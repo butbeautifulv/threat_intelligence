@@ -1,8 +1,8 @@
 build:
-	@go build -o bin/treat_intellegence ./cmd
+	@go build -o bin/vuln ./cmd
 
 run: build
-	@./bin/treat_intellegence
+	@./bin/vuln
 
 test:
 	@go test -v ./...
