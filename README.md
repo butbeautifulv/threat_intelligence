@@ -1,20 +1,26 @@
 # Threat Intelligence
 
 ## Stage 1 :
-Scrape 
+Make tracing project with beta level parsing from one source of each category.
+
 ```
-Metasploit, Eploit-DB, NVD (CVSS, CPE, CWE),Vulners, API
+Vulns - Metasploit, Eploit-DB, NVD (CVSS, CPE, CWE),Vulners, API
 
-Lolbins/LOLScripts: LOLBAS, GTFOBins, LOFTS, TTP MITRE ATT&CK
+LOLA - Lolbins/LOLScripts: LOLBAS, GTFOBins, LOFTS, TTP MITRE ATT&CK
 
-Redhat: Sigma rules, YARA rules, Atomic Red Team Tests, Caldera Profiles
+DS (Detection & Simulation) - Redhat: Sigma rules, YARA rules, Atomic Red Team Tests, Caldera Profiles
 
-ТІ-Artifacts: ІОС (JP, URL, hash), IOA, Campaings / Clustrers
+TI - ТІ-Artifacts: ІОС (JP, URL, hash), IOA, Campaings / Clustrers
 ```
+
+Save to Mongo for now
+
 ## Stage 2 :
 
-Make normalized database with known freshly updated threats. Harden the code and maybe Harbor repo for packages of LLM. SAST, SCA/SBOM. Auto-ajustable layers.
+Add kafka to increase fault tolerance. Add workers that listen to topic raw_data and store it to some kind of repository with replication.
+
+ Make index layer database over raw freshly updated threats. Harden the code (SAST, SCA/SBOM) and maybe make Harbor repo to deliver safe packages for agent. 
 
 ## Stage 3 :
 
-Create OpenClaw instance in the isolated field as an autoadjusting brain over it
+Create OpenClaw instance in the isolated field as an autoadjusting brain over it to later correlate it with SIEM and DLP systems.
