@@ -19,6 +19,8 @@ Save to Mongo for now
 
 Add kafka to increase fault tolerance. Add workers that listen to topic raw_data and store it to some kind of repository with replication.
 
+Cue over go for schema validation?
+
  Make index layer database over raw freshly updated threats. Harden the code (SAST, SCA/SBOM) and maybe make Harbor repo to deliver safe packages for agent. 
 
 ## Stage 3 :

@@ -1,0 +1,78 @@
+schema: {
+    version: 1
+    name: "app_db"
+
+    tables: [{
+        name: "users"
+        comment: "Application users"
+
+        columns: [
+            {
+                name: "id"
+                type: "BIGINT"
+                notNull: true
+            },
+            {
+                name: "email"
+                type: "VARCHAR"
+                length: 320
+                notNull: true
+            },
+            {
+                name: "created_at"
+                type: "TIMESTAMPTZ"
+                notNull: true
+                default: "CURRENT_TIMESTAMP" // допустим, если ты хочешь ослабить правило
+            },
+        ]
+
+        primaryKey: {
+            columns: ["id"]
+        }
+
+        uniques: [{
+            columns: ["email"]
+        }]
+
+        indexes: [{
+            name: "users_email_idx"
+            unique: true
+            columns: [{
+                name: "email"
+                order: "ASC"
+            }]
+        }]
+    }, {
+        name: "sessions"
+
+        columns: [
+            {
+                name: "id"
+                type: "BIGINT"
+                notNull: true
+            },
+            {
+                name: "user_id"
+                type: "BIGINT"
+                notNull: true
+            },
+            {
+                name: "created_at"
+                type: "TIMESTAMPTZ"
+                notNull: true
+            },
+        ]
+
+        primaryKey: {
+            columns: ["id"]
+        }
+
+        foreignKeys: [{
+            name: "sessions_user_fk"
+            columns: ["user_id"]
+            refTable: "users"
+            refColumns: ["id"]
+            onDelete: "CASCADE"
+        }]
+    }]
+}

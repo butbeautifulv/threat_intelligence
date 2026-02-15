@@ -1,0 +1,29 @@
+neo4jNode: #Node & {
+    name: "graph-query"
+    kind: "worker"
+
+    ports: [
+        {
+            name:       "neo4j-read"
+            direction:  "out"
+            protocol:   "neo4j"
+            messageType: "GraphQueryResult"
+            config: {
+                uri:    "bolt://neo4j:7687"
+                cypher: "MATCH (u:User)-[:FRIEND]->(f:User) WHERE u.id = $id RETURN f"
+            }
+        },
+    ]
+
+    domainHandlers: [
+        {
+            name:       "GetUserFriends"
+            inputType:  "GetUserFriendsQuery"
+            outputType: "GraphQueryResult"
+            impl: {
+                language: "go"
+                ref:      "github.com/acme/graph.GetUserFriends"
+            }
+        },
+    ]
+}

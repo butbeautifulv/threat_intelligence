@@ -1,0 +1,59 @@
+#FactoryNode: #Node & {
+    kind: "factory"
+
+    // Дополнительный контракт фабрики
+    factory: {
+        // Какие узлы она умеет генерировать
+        generates: [...string]
+
+        // Формат артефактов
+        artifacts: [...{
+            kind: "k8s" | "docker-compose" | "cue" | "go-code"
+            outputPath: string
+        }]
+    }
+}
+
+pipelineFactory: #FactoryNode & {
+    name: "pipeline-factory"
+
+    factory: {
+        generates: ["order-service", "payment-worker", "graph-query"]
+        artifacts: [
+            {
+                kind:       "k8s"
+                outputPath: "./deploy/k8s"
+            },
+            {
+                kind:       "cue"
+                outputPath: "./generated/pipelines"
+            },
+        ]
+    }
+
+    // Порт, через который фабрика принимает запросы на генерацию
+    ports: [
+        {
+            name:       "http-generate"
+            direction:  "in"
+            protocol:   "http"
+            messageType: "GeneratePipelineRequest"
+            config: {
+                path:   "/generate"
+                method: "POST"
+            }
+        },
+    ]
+
+    domainHandlers: [
+        {
+            name:       "GeneratePipeline"
+            inputType:  "GeneratePipelineRequest"
+            outputType: "GeneratePipelineResponse"
+            impl: {
+                language: "cue-gen"
+                ref:      "./factory/generate.cue"
+            }
+        },
+    ]
+}

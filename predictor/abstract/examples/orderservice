@@ -1,0 +1,72 @@
+myOrderService: #Node & {
+    name: "order-service"
+    kind: "api"
+
+    ports: [
+        {
+            name:       "http-create-order"
+            direction:  "in"
+            protocol:   "http"
+            messageType: "CreateOrderHttpRequest"
+            config: {
+                path:   "/orders"
+                method: "POST"
+            }
+        },
+        {
+            name:       "kafka-order-created"
+            direction:  "out"
+            protocol:   "kafka"
+            messageType: "OrderCreatedEvent"
+            config: {
+                topic:  "orders.created"
+                groupId: "order-service"
+            }
+        },
+    ]
+
+    domainHandlers: [
+        {
+            name:       "CreateOrder"
+            inputType:  "CreateOrderCommand"
+            outputType: "OrderCreatedEvent"
+            impl: {
+                language: "go"
+                ref:      "github.com/acme/orders/cmd.CreateOrder"
+            }
+        },
+    ]
+
+    adapters: [
+        {
+            name: "HttpToCreateOrderCommand"
+            from: {
+                protocol:    "http"
+                messageType: "CreateOrderHttpRequest"
+            }
+            to: {
+                protocol:    "protobuf-rpc"
+                messageType: "CreateOrderCommand"
+            }
+            impl: {
+                language: "go"
+                ref:      "github.com/acme/orders/adapters.HttpToCommand"
+            }
+        },
+        {
+            name: "OrderCreatedToKafka"
+            from: {
+                protocol:    "protobuf-rpc"
+                messageType: "OrderCreatedEvent"
+            }
+            to: {
+                protocol:    "kafka"
+                messageType: "OrderCreatedEvent"
+            }
+            impl: {
+                language: "go"
+                ref:      "github.com/acme/orders/adapters.EventToKafka"
+            }
+        },
+    ]
+}

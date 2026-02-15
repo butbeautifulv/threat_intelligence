@@ -1,0 +1,52 @@
+query: {
+    match: [{
+        start: {
+            alias: "u"
+            labels: ["user"]
+        }
+        path: [{
+            rel: {
+                types: ["friend_of"]
+                direction: "->"
+                minHops: 1
+                maxHops: 2
+            }
+            node: {
+                alias: "f"
+                labels: ["user"]
+            }
+        }]
+    }]
+
+    where: {
+        field: {
+            alias: "u"
+            property: "id"
+        }
+        op: "="
+        value: 123
+    }
+
+    returns: [
+        {
+            alias: "u"
+            property: "name"
+            as: "user_name"
+        },
+        {
+            alias: "f"
+            property: "name"
+            as: "friend_name"
+        },
+    ]
+
+    distinct: true
+
+    orderBy: [{
+        alias: "friend_name" // можно сделать policy: только alias из RETURN
+        // но здесь мы оставили как alias узла, тогда: alias: "f", property: "name"
+        direction: "ASC"
+    }]
+
+    limit: 100
+}

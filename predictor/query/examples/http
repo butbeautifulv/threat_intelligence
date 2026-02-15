@@ -1,0 +1,29 @@
+request: {
+    method: "POST"
+    scheme: "https"
+    host: "api.example.com"
+    path: "/v1/users/create"
+
+    headers: [
+        { name: "Content-Type", value: "application/json" },
+        { name: "Authorization", value: "Bearer XXX" },
+    ]
+
+    query: [
+        { name: "trace_id", required: false },
+    ]
+
+    body: {
+        type: "json"
+        json: {
+            fields: [
+                { name: "email",    type: "string", required: true },
+                { name: "password", type: "string", required: true },
+                { name: "name",     type: "string", required: false },
+            ]
+        }
+    }
+
+    timeoutMs: 3000
+    maxRetries: 2
+}

@@ -1,0 +1,22 @@
+proto: {
+    syntax: "proto3"
+    package: "app.user.v1"
+
+    enums: [{
+        name: "UserStatus"
+        values: [
+            { name: "ACTIVE", number: 0 },
+            { name: "DISABLED", number: 1 },
+        ]
+    }]
+
+    messages: [{
+        name: "User"
+        fields: [
+            { name: "id",        number: 1, type: "int64" },
+            { name: "email",     number: 2, type: "string" },
+            { name: "status",    number: 3, type: "UserStatus" },
+            { name: "createdAt", number: 4, type: "int64" },
+        ]
+    }]
+}

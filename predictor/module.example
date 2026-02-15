@@ -1,0 +1,46 @@
+package arch
+
+import "../../predictor/arch.cue"
+
+vulnController: arch.Module & {
+    name:        "vuln-controller"
+    layer:       "controller"
+    description: "HTTP handlers for vuln"
+    version:     "v1.0.0"
+    owner:       "team-ti"
+    imports: [
+        "usecase",
+    ]
+}
+
+vulnUsecase: arch.Module & {
+    name:        "vuln-usecase"
+    layer:       "usecase"
+    description: "business logic for vuln"
+    version:     "v1.0.0"
+    owner:       "team-ti"
+    imports: [
+        "domain",
+        "adapter",
+    ]
+}
+
+vulnDomain: arch.Module & {
+    name:        "vuln-domain"
+    layer:       "domain"
+    description: "entities and interfaces"
+    version:     "v1.0.0"
+    owner:       "team-ti"
+    imports: []
+}
+
+vulnAdapter: arch.Module & {
+    name:        "vuln-adapter"
+    layer:       "adapter"
+    description: "db / external integrations"
+    version:     "v1.0.0"
+    owner:       "team-ti"
+    imports: [
+        "domain",
+    ]
+}
