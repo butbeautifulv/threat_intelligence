@@ -25,4 +25,4 @@ Cue over go for schema validation?
 
 ## Stage 3 :
 
-Create OpenClaw instance in the isolated field as an autoadjusting brain over it to later correlate it with SIEM and DLP systems.
+Create OpenClaw? or Picobot instance in the isolated field as an autoadjusting brain over it to later correlate it with SIEM and DLP systems.
