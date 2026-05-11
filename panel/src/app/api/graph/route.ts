@@ -118,7 +118,10 @@ export async function GET() {
     // Also makes browsing less chaotic when there are many CPE/leaf nodes.
     const categoryIds = new Set<string>();
     for (const n of nodes) {
+      // Never create a category hub for category nodes themselves.
+      if (n.labels?.includes("Category") || n.kind === "Category") continue;
       const kind = n.kind || n.labels?.[0] || "Node";
+      if (kind === "Category") continue;
       const catId = `category:${kind}`;
       if (!categoryIds.has(catId)) {
         categoryIds.add(catId);

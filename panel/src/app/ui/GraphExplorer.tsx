@@ -207,9 +207,14 @@ export default function GraphExplorer() {
     return base;
   }, [graph.nodes, q]);
 
+  const browserNodes = useMemo(() => {
+    // Don't show synthetic category hubs as a “kind” folder in the browser.
+    return filteredNodes.filter((n) => !n.labels?.includes('Category'));
+  }, [filteredNodes]);
+
   const kindFolders = useMemo(() => {
     const groups = new Map<string, GraphNode[]>();
-    for (const n of filteredNodes) {
+    for (const n of browserNodes) {
       const key = n.kind || n.labels?.[0] || 'Node';
       const arr = groups.get(key) || [];
       arr.push(n);
@@ -217,10 +222,10 @@ export default function GraphExplorer() {
     }
     const sorted = Array.from(groups.entries()).sort((a, b) => b[1].length - a[1].length);
     return sorted.map(([k, nodes]) => [k, nodes.slice(0, 200)] as const);
-  }, [filteredNodes]);
+  }, [browserNodes]);
 
   const allKinds = useMemo(() => {
-    return Array.from(new Set(graph.nodes.map((n) => n.kind || n.labels?.[0] || 'Node'))).sort();
+    return Array.from(new Set(browserNodes.map((n) => n.kind || n.labels?.[0] || 'Node'))).sort();
   }, [graph.nodes]);
 
   const graphForViz = useMemo(() => {
@@ -339,7 +344,14 @@ export default function GraphExplorer() {
                 <div key={kind} style={{ marginBottom: 10 }}>
                   <div
                     className="folderHeader"
-                    onClick={() => setCollapsedKinds((prev) => ({ ...prev, [kind]: !collapsed }))}
+                    onClick={() => {
+                      const nextCollapsed = !collapsed;
+                      setCollapsedKinds((prev) => ({ ...prev, [kind]: nextCollapsed }));
+                      // When expanding a folder, highlight the central hub node for that kind.
+                      if (!nextCollapsed) {
+                        setSelectedId(`category:${kind}`);
+                      }
+                    }}
                     role="button"
                     tabIndex={0}
                   >
