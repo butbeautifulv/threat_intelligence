@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { GraphData, GraphNode } from './types';
+import { forceCollide } from 'd3-force';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 
@@ -22,6 +23,7 @@ const COLOR_ACCENT_DIM = 'rgba(122,162,247,.30)';
 export default function GraphExplorer() {
   const fgRef = useRef<any>(null);
   const graphWrapRef = useRef<HTMLDivElement | null>(null);
+  const nodeDragRef = useRef<{ active: boolean; id: string | number | null }>({ active: false, id: null });
   const [graph, setGraph] = useState<GraphData>({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -29,7 +31,6 @@ export default function GraphExplorer() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const [selectedMarkdown, setSelectedMarkdown] = useState<string>('');
-  const [freezeLayout, setFreezeLayout] = useState(true);
   const [collapsedKinds, setCollapsedKinds] = useState<Record<string, boolean>>({});
 
   // resizable panes
@@ -44,7 +45,6 @@ export default function GraphExplorer() {
 
   // canvas “Obsidian-like” knobs
   const [nodeSize, setNodeSize] = useState(5);
-  const [baseLinkWidth, setBaseLinkWidth] = useState(1);
   const [chargeStrength, setChargeStrength] = useState(-55);
   const [linkDistance, setLinkDistance] = useState(32);
   const [clampRadius, setClampRadius] = useState(650);
@@ -137,25 +137,7 @@ export default function GraphExplorer() {
     });
   }, [graph.nodes]);
 
-  // Apply persisted positions (simple localStorage cache).
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('ti:graph:pos:v1');
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as Record<string, { x: number; y: number }>;
-      setGraph((g) => ({
-        ...g,
-        nodes: g.nodes.map((n: any) => {
-          const p = parsed[n.id];
-          if (!p) return n;
-          return { ...n, x: p.x, y: p.y, fx: freezeLayout ? p.x : undefined, fy: freezeLayout ? p.y : undefined };
-        }),
-      }));
-    } catch {
-      // ignore
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // (No persisted/frozen layout controls — keep interaction simple like Obsidian.)
 
   useEffect(() => {
     function onMove(e: MouseEvent) {
@@ -258,7 +240,7 @@ export default function GraphExplorer() {
     return { id: activeId, neigh, isHover: Boolean(hoveredId) };
   }, [adjacency, activeId, hoveredId]);
 
-  // Tune forces once (do NOT reapply on every render/click).
+  // Tune forces (safe to update; does not recreate graph).
   useEffect(() => {
     const t = window.setTimeout(() => {
       const fg = fgRef.current;
@@ -266,12 +248,20 @@ export default function GraphExplorer() {
       try {
         fg.d3Force('charge')?.strength(chargeStrength);
         fg.d3Force('link')?.distance(linkDistance);
+        fg.d3Force(
+          'collide',
+          forceCollide((n: any) => {
+            // Category hubs are larger; nodes repel within their radius (Obsidian-like).
+            const base = n?.labels?.includes('Category') ? 26 : 10;
+            return base + nodeSize * 0.9;
+          }).strength(0.8)
+        );
       } catch {
         // ignore
       }
     }, 0);
     return () => window.clearTimeout(t);
-  }, [chargeStrength, linkDistance]);
+  }, [chargeStrength, linkDistance, nodeSize]);
 
   // When selecting from browser, center/zoom to node position.
   useEffect(() => {
@@ -403,29 +393,6 @@ export default function GraphExplorer() {
         <div className="cardHeader">
           <div className="title">Graph</div>
           <div className="toolbar toolbarWrap">
-            <button
-              className={`btn iconBtn ${freezeLayout ? 'btnActive' : ''}`}
-              onClick={() => setFreezeLayout((v) => !v)}
-              title="Toggle freeze"
-            >
-              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2v20M4 6l16 12M20 6L4 18M6 4l12 16M18 4L6 20" />
-              </svg>
-            </button>
-            <button
-              className="btn iconBtn"
-              onClick={() => {
-                setSelectedId(null);
-                setHoveredId(null);
-                setSelected(null);
-                setSelectedMarkdown('');
-              }}
-              title="Clear selection"
-            >
-              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </button>
             <div className="sliderRow">
               <span>node</span>
               <input
@@ -437,18 +404,6 @@ export default function GraphExplorer() {
                 onChange={(e) => setNodeSize(Number(e.target.value))}
               />
               <span>{nodeSize}</span>
-            </div>
-            <div className="sliderRow">
-              <span>link</span>
-              <input
-                className="slider"
-                type="range"
-                min={1}
-                max={4}
-                value={baseLinkWidth}
-                onChange={(e) => setBaseLinkWidth(Number(e.target.value))}
-              />
-              <span>{baseLinkWidth}</span>
             </div>
           </div>
         </div>
@@ -465,12 +420,12 @@ export default function GraphExplorer() {
               if (labels.includes('Category')) {
                 if (!activeNeighborhood) return COLOR_NODE;
                 if (n.id === activeNeighborhood.id) return COLOR_ACCENT;
-                if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
+                if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE; // keep neighbor standard
                 return COLOR_NODE_DIM;
               }
               if (!activeNeighborhood) return COLOR_NODE;
               if (n.id === activeNeighborhood.id) return COLOR_ACCENT;
-              if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
+              if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE; // keep neighbor standard
               return COLOR_NODE_DIM;
             }}
             linkColor={(l: any) => {
@@ -478,17 +433,11 @@ export default function GraphExplorer() {
               const s = typeof l.source === 'string' ? l.source : l.source?.id;
               const t = typeof l.target === 'string' ? l.target : l.target?.id;
               const sel = activeNeighborhood.id;
-              if (s === sel || t === sel) return COLOR_ACCENT_DIM;
+              if (s === sel || t === sel) return COLOR_ACCENT; // active edges purple
               if (activeNeighborhood.neigh.has(String(s)) && activeNeighborhood.neigh.has(String(t))) return 'rgba(255,255,255,.09)';
               return COLOR_EDGE_DIM;
             }}
-            linkWidth={(l: any) => {
-              if (!activeNeighborhood) return baseLinkWidth;
-              const s = typeof l.source === 'string' ? l.source : l.source?.id;
-              const t = typeof l.target === 'string' ? l.target : l.target?.id;
-              const sel = activeNeighborhood.id;
-              return s === sel || t === sel ? Math.max(2, baseLinkWidth + 1) : baseLinkWidth;
-            }}
+            linkWidth={() => 0.6}
             onNodeClick={(n: any) => setSelectedId((n as GraphNode).id)}
             onNodeHover={(n: any) => setHoveredId(n?.id ?? null)}
             onBackgroundClick={() => {
@@ -497,30 +446,40 @@ export default function GraphExplorer() {
               setSelected(null);
               setSelectedMarkdown('');
             }}
-            cooldownTicks={freezeLayout ? 120 : 0}
-            d3AlphaDecay={freezeLayout ? 0.03 : 0.02}
+            d3AlphaDecay={0.02}
             d3VelocityDecay={0.35}
             nodeRelSize={nodeSize}
             nodeVal={(n: any) => (n.labels?.includes('Category') ? 10 : 1)}
             nodeCanvasObjectMode={() => 'after'}
             nodeCanvasObject={(n: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
-              if (!n.labels?.includes('Category')) return;
-              const label = String(n.title || n.id);
-              const fontSize = Math.max(6.5, Math.min(9, 9 / globalScale));
-              ctx.font = `800 ${fontSize}px ui-sans-serif, system-ui`;
               const x = n.x as number;
               const y = n.y as number;
+              const label = String(n.title || n.id);
 
-              // Black label by default; purple when selected/hovered
-              const isActive = activeNeighborhood && n.id === activeNeighborhood.id;
-              // When active, node circle is purple accent → make label white for contrast
-              ctx.fillStyle = isActive ? 'rgba(255,255,255,.95)' : 'rgba(0,0,0,.85)';
+              // Category hub tiny centered label
+              if (n.labels?.includes('Category')) {
+                const fontSize = Math.max(6.5, Math.min(9, 9 / globalScale));
+                ctx.font = `800 ${fontSize}px ui-sans-serif, system-ui`;
+                const isActive = activeNeighborhood && n.id === activeNeighborhood.id;
+                ctx.fillStyle = isActive ? 'rgba(255,255,255,.95)' : 'rgba(0,0,0,.85)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const maxChars = 10;
+                const text = label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label;
+                ctx.fillText(text, x, y);
+                return;
+              }
+
+              // Node labels when zoomed in
+              if (globalScale < 2.6) return;
+              const fontSize = Math.max(7, Math.min(11, 11 / globalScale));
+              ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui`;
+              ctx.fillStyle = 'rgba(230,237,247,.70)';
               ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              // Truncate to fit inside the hub.
-              const maxChars = 10;
+              ctx.textBaseline = 'top';
+              const maxChars = 22;
               const text = label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label;
-              ctx.fillText(text, x, y);
+              ctx.fillText(text, x, y + (nodeSize * 2.4));
             }}
             onEngineTick={() => {
               // Soft clamp to keep nodes near center (prevents “flyaway” beyond viewport).
@@ -534,44 +493,38 @@ export default function GraphExplorer() {
                   const s = R / d;
                   n.x *= s;
                   n.y *= s;
-                  if (freezeLayout) {
-                    n.fx = n.x;
-                    n.fy = n.y;
-                  }
                 }
               }
             }}
             enableNodeDrag
             onNodeDrag={(n: any) => {
+              // react-force-graph doesn't expose onNodeDragStart in its TS types.
+              // Emulate "start" on the first onNodeDrag callback of a drag session.
+              const nid = (n?.id ?? null) as string | number | null;
+              if (!nodeDragRef.current.active || nodeDragRef.current.id !== nid) {
+                nodeDragRef.current = { active: true, id: nid };
+                const fg = fgRef.current;
+                try {
+                  fg?.d3AlphaTarget?.(0.2);
+                  fg?.d3ReheatSimulation?.();
+                } catch {
+                  // ignore
+                }
+              }
               // Keep the dragged node pinned to cursor. No “neighbor gravity” here.
               n.fx = n.x;
               n.fy = n.y;
             }}
             onNodeDragEnd={(n: any) => {
+              nodeDragRef.current = { active: false, id: null };
               const fg = fgRef.current;
               try {
                 fg?.d3AlphaTarget?.(0);
               } catch {
                 // ignore
               }
-              if (freezeLayout) {
-                n.fx = n.x;
-                n.fy = n.y;
-              } else {
-                n.fx = null;
-                n.fy = null;
-              }
-            }}
-            onNodeDragStart={(n: any) => {
-              const fg = fgRef.current;
-              try {
-                fg?.d3AlphaTarget?.(0.2);
-                fg?.d3ReheatSimulation?.();
-              } catch {
-                // ignore
-              }
-              n.fx = n.x;
-              n.fy = n.y;
+              n.fx = null;
+              n.fy = null;
             }}
           />
         </div>
