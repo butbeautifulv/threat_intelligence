@@ -24,6 +24,9 @@ out/
 .turbo/
 .vite/
 
+# Project data caches
+data/cache/
+
 # Coverage
 coverage/
 .nyc_output/
