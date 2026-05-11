@@ -450,7 +450,7 @@ export default function GraphExplorer() {
             nodeLabel={(n: any) => nodeTitle(n as GraphNode)}
             nodeColor={(n: any) => {
               const labels: string[] = n.labels || [];
-              if (labels.includes('Category')) return 'rgba(122,162,247,.22)';
+              if (labels.includes('Category')) return 'rgba(255,255,255,.95)';
               if (!activeNeighborhood) return COLOR_NODE;
               if (n.id === activeNeighborhood.id) return COLOR_ACCENT;
               if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
@@ -489,29 +489,14 @@ export default function GraphExplorer() {
             nodeCanvasObject={(n: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
               if (!n.labels?.includes('Category')) return;
               const label = String(n.title || n.id);
-              const fontSize = Math.max(9, Math.min(12, 12 / globalScale));
-              const padX = 8;
-              const padY = 5;
-              ctx.font = `700 ${fontSize}px ui-sans-serif, system-ui`;
-              const tw = ctx.measureText(label).width;
+              const fontSize = Math.max(8, Math.min(10, 10 / globalScale));
+              ctx.font = `800 ${fontSize}px ui-sans-serif, system-ui`;
               const x = n.x as number;
               const y = n.y as number;
 
-              // Background pill for readability
-              ctx.fillStyle = 'rgba(11,15,23,.65)';
-              const w = tw + padX * 2;
-              const h = fontSize + padY * 2;
-              const r = 8;
-              ctx.beginPath();
-              ctx.moveTo(x - w / 2 + r, y - h / 2);
-              ctx.arcTo(x + w / 2, y - h / 2, x + w / 2, y + h / 2, r);
-              ctx.arcTo(x + w / 2, y + h / 2, x - w / 2, y + h / 2, r);
-              ctx.arcTo(x - w / 2, y + h / 2, x - w / 2, y - h / 2, r);
-              ctx.arcTo(x - w / 2, y - h / 2, x + w / 2, y - h / 2, r);
-              ctx.closePath();
-              ctx.fill();
-
-              ctx.fillStyle = 'rgba(230,237,247,.92)';
+              // Black label by default; purple when selected/hovered
+              const isActive = activeNeighborhood && n.id === activeNeighborhood.id;
+              ctx.fillStyle = isActive ? 'rgba(122,162,247,.95)' : 'rgba(0,0,0,.85)';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText(label, x, y);
