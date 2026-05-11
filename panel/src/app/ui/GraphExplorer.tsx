@@ -506,7 +506,7 @@ export default function GraphExplorer() {
             nodeCanvasObject={(n: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
               if (!n.labels?.includes('Category')) return;
               const label = String(n.title || n.id);
-              const fontSize = Math.max(8, Math.min(10, 10 / globalScale));
+              const fontSize = Math.max(6.5, Math.min(9, 9 / globalScale));
               ctx.font = `800 ${fontSize}px ui-sans-serif, system-ui`;
               const x = n.x as number;
               const y = n.y as number;
@@ -517,7 +517,10 @@ export default function GraphExplorer() {
               ctx.fillStyle = isActive ? 'rgba(255,255,255,.95)' : 'rgba(0,0,0,.85)';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
-              ctx.fillText(label, x, y);
+              // Truncate to fit inside the hub.
+              const maxChars = 10;
+              const text = label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label;
+              ctx.fillText(text, x, y);
             }}
             onEngineTick={() => {
               // Soft clamp to keep nodes near center (prevents “flyaway” beyond viewport).
