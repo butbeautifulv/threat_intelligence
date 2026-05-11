@@ -34,6 +34,37 @@ function toMarkdown(props: Record<string, unknown>) {
 
 export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
+
+  // Synthetic category nodes are not stored in Neo4j.
+  if (id.startsWith("category:")) {
+    const kind = id.slice("category:".length) || "Node";
+    const descriptions: Record<string, string> = {
+      Vulnerability:
+        "CVE / vulnerability entries. These nodes usually connect to **CWE** (weakness) and **CPE** (affected products).",
+      CWE: "Common Weakness Enumeration — vulnerability classes (e.g. `CWE-79`).",
+      CPE:
+        "Common Platform Enumeration — affected product identifiers. The UI shortens them to `vendor:product:version` for readability.",
+      IOC: "Indicators of Compromise — IPs/domains/URLs/hashes referenced by reports/campaigns.",
+      Actor: "Threat actors (if ingested).",
+      Campaign: "Campaign entities (if ingested).",
+      Report: "Reports/articles (if ingested).",
+      SigmaRule: "Sigma detections (if ingested).",
+      YaraRule: "YARA signatures (if ingested).",
+      AtomicTest: "Atomic Red Team tests (if ingested).",
+    };
+
+    const body = descriptions[kind] ?? "Category hub node used to organize the graph view.";
+    const node = {
+      id,
+      labels: ["Category"],
+      title: kind,
+      markdown: `# ${kind}\n\n${body}\n`,
+      kind: "Category",
+      tags: undefined as string[] | undefined,
+    };
+    return NextResponse.json({ node, markdown: node.markdown });
+  }
+
   const driver = getDriver();
   const session = driver.session({ database: process.env.NEO4J_DB || "neo4j" });
   try {
