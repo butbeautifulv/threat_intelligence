@@ -193,7 +193,7 @@ export default function GraphExplorer() {
       if (!s) return true;
       return `${n.title} ${n.id} ${n.labels.join(' ')} ${n.kind || ''}`.toLowerCase().includes(s);
     });
-    return base.slice(0, 400);
+    return base;
   }, [graph.nodes, q]);
 
   const kindFolders = useMemo(() => {
@@ -277,18 +277,18 @@ export default function GraphExplorer() {
       className="app"
       ref={wrapRef}
       style={{
-        gridTemplateColumns: `${leftCollapsed ? 0 : leftW}px ${leftCollapsed ? 0 : 10}px 1fr ${rightCollapsed ? 0 : 10}px ${
-          rightCollapsed ? 0 : rightW
+        gridTemplateColumns: `${leftCollapsed ? 44 : leftW}px ${leftCollapsed ? 0 : 10}px 1fr ${rightCollapsed ? 0 : 10}px ${
+          rightCollapsed ? 44 : rightW
         }px`,
       }}
     >
-      <section className="card" style={{ display: leftCollapsed ? 'none' : 'block' }}>
+      <section className="card">
         <div className="cardHeader">
           <div className="title">Nodes</div>
           <div className="toolbar toolbarWrap">
             <span className="pill">{loading ? 'loading…' : `${graph.nodes.length}`}</span>
             <button
-              className="btn"
+              className="btn iconBtn"
               onClick={() => {
                 setCollapsedKinds((prev) => {
                   const next: Record<string, boolean> = { ...prev };
@@ -296,11 +296,12 @@ export default function GraphExplorer() {
                   return next;
                 });
               }}
+              title="Expand all kinds"
             >
               +
             </button>
             <button
-              className="btn"
+              className="btn iconBtn"
               onClick={() => {
                 setCollapsedKinds((prev) => {
                   const next: Record<string, boolean> = { ...prev };
@@ -308,15 +309,16 @@ export default function GraphExplorer() {
                   return next;
                 });
               }}
+              title="Collapse all kinds"
             >
               −
             </button>
-            <button className="btn" onClick={() => setLeftCollapsed(true)}>
-              Hide
+            <button className="btn iconBtn" onClick={() => setLeftCollapsed(true)} title="Hide left pane">
+              ‹
             </button>
           </div>
         </div>
-        <div className="content">
+        <div className="content" style={{ display: leftCollapsed ? 'none' : 'block' }}>
           <input
             className="input"
             value={q}
@@ -368,6 +370,13 @@ export default function GraphExplorer() {
           </div>
           {!filteredNodes.length && <div className="hint">No matches.</div>}
         </div>
+        {leftCollapsed && (
+          <div className="dock">
+            <button className="btn iconBtn" onClick={() => setLeftCollapsed(false)} title="Show left pane">
+              ›
+            </button>
+          </div>
+        )}
       </section>
 
       <div
@@ -384,31 +393,22 @@ export default function GraphExplorer() {
         <div className="cardHeader">
           <div className="title">Graph</div>
           <div className="toolbar toolbarWrap">
-            {leftCollapsed && (
-              <button className="btn" onClick={() => setLeftCollapsed(false)}>
-                Show left
-              </button>
-            )}
-            <button className={`btn ${freezeLayout ? 'btnActive' : ''}`} onClick={() => setFreezeLayout((v) => !v)}>
-              {freezeLayout ? 'Frozen' : 'Free'}
+            <button className={`btn iconBtn ${freezeLayout ? 'btnActive' : ''}`} onClick={() => setFreezeLayout((v) => !v)} title="Toggle freeze">
+              F
             </button>
-            {rightCollapsed && (
-              <button className="btn" onClick={() => setRightCollapsed(false)}>
-                Show right
-              </button>
-            )}
             <button
-              className="btn"
+              className="btn iconBtn"
               onClick={() => {
                 setSelectedId(null);
                 setHoveredId(null);
                 setSelected(null);
                 setSelectedMarkdown('');
               }}
+              title="Clear selection"
             >
-              Clear
+              ×
             </button>
-            <span className="pill">{filteredNodes.length} shown</span>
+            <span className="pill">{filteredNodes.length}</span>
             <div className="sliderRow">
               <span>node</span>
               <input
@@ -565,17 +565,17 @@ export default function GraphExplorer() {
         aria-label="Resize right pane"
       />
 
-      <section className="card right" style={{ display: rightCollapsed ? 'none' : 'block' }}>
+      <section className="card right">
         <div className="cardHeader">
           <div className="title">Markdown</div>
           <div className="toolbar">
             {selected ? <span className="pill">{selected.labels[0] ?? 'Node'}</span> : <span className="pill">none</span>}
-            <button className="btn" onClick={() => setRightCollapsed(true)}>
-              Hide
+            <button className="btn iconBtn" onClick={() => setRightCollapsed(true)} title="Hide right pane">
+              ›
             </button>
           </div>
         </div>
-        <div className="content">
+        <div className="content" style={{ display: rightCollapsed ? 'none' : 'block' }}>
           {!selectedId && <div className="hint">Click a node to render its markdown (or fall back to properties).</div>}
           {selectedId && !selected && <div className="hint">Loading…</div>}
           {selected && (
@@ -594,6 +594,13 @@ export default function GraphExplorer() {
             </>
           )}
         </div>
+        {rightCollapsed && (
+          <div className="dock">
+            <button className="btn iconBtn" onClick={() => setRightCollapsed(false)} title="Show right pane">
+              ‹
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );
