@@ -8,8 +8,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"vuln/internal/components"
-	"vuln/internal/config"
+
+	"lola/internal/components"
+	"lola/internal/config"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -23,12 +24,12 @@ func main() {
 
 	logger := components.SetupLogger(cfg.Env)
 
-	components, err := components.InitComponents(cfg, logger)
+	c, err := components.InitComponents(cfg, logger)
 	if err != nil {
 		logger.Error("bad configuration", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	defer components.Shutdown()
+	defer c.Shutdown()
 
 	eg, ctx := errgroup.WithContext(context.Background())
 
@@ -36,15 +37,14 @@ func main() {
 	signal.Notify(sigQuit, syscall.SIGINT, syscall.SIGTERM)
 
 	eg.Go(func() error {
-		logger.Info("Scraper started")
-		return components.Scraper.Run(ctx)
+		logger.Info("LOLA ingest started")
+		return c.Scraper.Run(ctx)
 	})
 
 	eg.Go(func() error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-
 		case s := <-sigQuit:
 			logger.Info("Captured signal", slog.String("signal", s.String()))
 			return fmt.Errorf("captured signal: %v", s)
@@ -52,5 +52,5 @@ func main() {
 	})
 
 	err = eg.Wait()
-	logger.Info("Gracefully shutting down", slog.String("error", err.Error()))
+	logger.Info("shutdown", slog.String("error", fmt.Sprint(err)))
 }

@@ -1,31 +1,59 @@
 package config
 
+import "os"
+
 type Config struct {
-	Env         string `yaml:"env" env-default:"local"`
-	MongoConfig MongoConfig
+	Env        string `yaml:"env" env-default:"local"`
+	Neo4j      Neo4jConfig
+	NVD        NVDConfig
 }
 
+type Neo4jConfig struct {
+	URI      string
+	Username string
+	Password string
+	Database string
+}
+
+type NVDConfig struct {
+	APIKey string
+}
+
+// MongoConfig is kept for legacy packages that still compile, even though
+// `vuln` now uses Neo4j only.
 type MongoConfig struct {
-	URI            string `mapstructure:"uri"`             // mongodb://user:pass@host:port
-	Host           string `mapstructure:"host"`            // localhost
-	Port           int    `mapstructure:"port"`            // 27017
-	Username       string `mapstructure:"username"`        // admin
-	Password       string `mapstructure:"password"`        // secret
-	Database       string `mapstructure:"database"`        // mydb
-	AuthSource     string `mapstructure:"auth_source"`     // admin
-	MaxPoolSize    uint64 `mapstructure:"max_pool_size"`   // 10–100
-	MinPoolSize    uint64 `mapstructure:"min_pool_size"`   // 1–5
-	ConnectTimeout int    `mapstructure:"connect_timeout"` // ms
+	URI            string
+	Host           string
+	Port           int
+	Username       string
+	Password       string
+	Database       string
+	AuthSource     string
+	MaxPoolSize    uint64
+	MinPoolSize    uint64
+	ConnectTimeout int
 }
 
 func LoadConfig() (*Config, error) {
-	// Minimal config loader for local usage. Replace with YAML/env loader as needed.
+	// Minimal config loader for local usage.
+	// Services use Neo4j only (graph) and can be configured via env.
 	return &Config{
 		Env: "local",
-		MongoConfig: MongoConfig{
-			Host:     "localhost",
-			Port:     27017,
-			Database: "vuln",
+		Neo4j: Neo4jConfig{
+			URI:      envOr("NEO4J_URI", "neo4j://localhost:7687"),
+			Username: envOr("NEO4J_USER", "neo4j"),
+			Password: envOr("NEO4J_PASS", "neo4jpassword"),
+			Database: envOr("NEO4J_DB", "neo4j"),
+		},
+		NVD: NVDConfig{
+			APIKey: envOr("NVD_API_KEY", ""),
 		},
 	}, nil
+}
+
+func envOr(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

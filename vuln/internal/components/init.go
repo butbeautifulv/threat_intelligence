@@ -1,11 +1,12 @@
 package components
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"vuln/internal/config"
 	"vuln/internal/repository"
-	"vuln/internal/storage/mongo"
+	neo4jstore "vuln/internal/storage/neo4j"
 	"vuln/internal/usecase"
 )
 
@@ -16,36 +17,39 @@ const (
 )
 
 type Components struct {
-	MongoClient *mongo.ClientWrapper
 	VulnRepo    repository.VulnerabilityRepository
 	Scraper     *usecase.ScraperUsecase
+	Neo4jStore  *neo4jstore.Store
 }
 
 func InitComponents(cfg *config.Config, logger *slog.Logger) (*Components, error) {
-	// 1. Mongo client (инфраструктура)
-	mongoClient, err := mongo.NewMongoClient(cfg.MongoConfig, logger)
+	store, err := neo4jstore.New(context.Background(), neo4jstore.Config{
+		URI:      cfg.Neo4j.URI,
+		Username: cfg.Neo4j.Username,
+		Password: cfg.Neo4j.Password,
+		Database: cfg.Neo4j.Database,
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	// 2. Mongo repository (адаптер)
-	vulnRepo := mongo.NewVulnerabilityRepository(
-		mongoClient.Database(cfg.MongoConfig.Database),
-	)
+	if err := store.EnsureSchema(context.Background()); err != nil {
+		_ = store.Close(context.Background())
+		return nil, err
+	}
 
 	// 3. Usecase (бизнес-логика)
-	scraper := usecase.NewScraperUsecase(vulnRepo, logger)
+	scraper := usecase.NewScraperUsecase(store, logger, cfg.NVD.APIKey)
 
 	return &Components{
-		MongoClient: mongoClient,
-		VulnRepo:    vulnRepo,
+		VulnRepo:    store,
 		Scraper:     scraper,
+		Neo4jStore:  store,
 	}, nil
 }
 
 func (c *Components) Shutdown() {
-	if c.MongoClient != nil {
-		c.MongoClient.Close()
+	if c.Neo4jStore != nil {
+		_ = c.Neo4jStore.Close(context.Background())
 	}
 }
 
