@@ -15,6 +15,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"ds/internal/proxypool"
 	neo4jstore "ds/internal/storage/neo4j"
 )
 
@@ -26,7 +27,20 @@ type Ingestor struct {
 }
 
 func NewIngestor(store *neo4jstore.Store, logger *slog.Logger, cacheDir string) *Ingestor {
-	return &Ingestor{store: store, logger: logger, http: &http.Client{Timeout: 120 * time.Second}, cache: cacheDir}
+	base := http.DefaultTransport.(*http.Transport).Clone()
+	base.TLSHandshakeTimeout = 30 * time.Second
+	var rt http.RoundTripper = base
+	if env := strings.TrimSpace(os.Getenv("DS_PROXY_URLS")); env != "" {
+		p, err := proxypool.New(proxypool.SplitEnvList(env), 2*time.Minute)
+		if err == nil {
+			only := strings.EqualFold(strings.TrimSpace(os.Getenv("DS_PROXY_MODE")), "only")
+			rt = proxypool.NewTransport(base, p, only)
+			logger.Info("ds proxy pool enabled", slog.Int("count", len(proxypool.SplitEnvList(env))))
+		} else {
+			logger.Warn("ds proxy pool invalid; running direct", slog.String("err", err.Error()))
+		}
+	}
+	return &Ingestor{store: store, logger: logger, http: &http.Client{Timeout: 120 * time.Second, Transport: rt}, cache: cacheDir}
 }
 
 type ghContent struct {

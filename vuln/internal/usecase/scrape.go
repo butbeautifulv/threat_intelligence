@@ -9,12 +9,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"log/slog"
 
 	"vuln/internal/domain"
+	"vuln/internal/proxypool"
 	"vuln/internal/repository"
 )
 
@@ -24,13 +27,69 @@ type ScraperUsecase struct {
 	repo   repository.VulnerabilityRepository
 	logger *slog.Logger
 	apiKey string
+	http   *http.Client
+	cache  string
+	delay  time.Duration
 }
 
 func NewScraperUsecase(repo repository.VulnerabilityRepository, logger *slog.Logger, apiKey string) *ScraperUsecase {
-	return &ScraperUsecase{repo: repo, logger: logger, apiKey: apiKey}
+	base := http.DefaultTransport.(*http.Transport).Clone()
+	base.TLSHandshakeTimeout = 30 * time.Second
+
+	// Per-service proxy pool (optional).
+	var rt http.RoundTripper = base
+	if env := strings.TrimSpace(os.Getenv("VULN_PROXY_URLS")); env != "" {
+		p, err := proxypool.New(proxypool.SplitEnvList(env), 2*time.Minute)
+		if err == nil {
+			only := strings.EqualFold(strings.TrimSpace(os.Getenv("VULN_PROXY_MODE")), "only")
+			rt = proxypool.NewTransport(base, p, only)
+			logger.Info("vuln proxy pool enabled", slog.Int("count", len(proxypool.SplitEnvList(env))))
+		} else {
+			logger.Warn("vuln proxy pool invalid; running direct", slog.String("err", err.Error()))
+		}
+	}
+
+	return &ScraperUsecase{
+		repo:   repo,
+		logger: logger,
+		apiKey: apiKey,
+		http:   &http.Client{Timeout: 60 * time.Second, Transport: rt},
+		cache:  firstNonEmpty(os.Getenv("VULN_CACHE_DIR"), filepath.Join(".", "data", "cache")),
+		delay:  parseDelayEnv(os.Getenv("VULN_REQUEST_DELAY"), 1200*time.Millisecond),
+	}
+}
+
+func firstNonEmpty(a, b string) string {
+	if strings.TrimSpace(a) != "" {
+		return a
+	}
+	return b
+}
+
+func parseDelayEnv(v string, def time.Duration) time.Duration {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return def
+	}
+	// Accept Go durations ("1500ms", "2s") or plain milliseconds ("1200").
+	if d, err := time.ParseDuration(v); err == nil && d >= 0 {
+		return d
+	}
+	if ms, err := strconv.Atoi(v); err == nil && ms >= 0 {
+		return time.Duration(ms) * time.Millisecond
+	}
+	return def
 }
 
 func (u *ScraperUsecase) downloadNVDPage(ctx context.Context, startIndex, resultsPerPage int) ([]byte, error) {
+	// Disk cache to avoid re-downloading the same pages on re-runs.
+	if u.cache != "" {
+		fn := filepath.Join(u.cache, "nvd", fmt.Sprintf("start_%d_size_%d.json", startIndex, resultsPerPage))
+		if b, err := os.ReadFile(fn); err == nil && len(b) > 0 {
+			return b, nil
+		}
+	}
+
 	uu, _ := url.Parse(nvdBaseURL)
 	q := uu.Query()
 	q.Set("startIndex", strconv.Itoa(startIndex))
@@ -46,10 +105,12 @@ func (u *ScraperUsecase) downloadNVDPage(ctx context.Context, startIndex, result
 		req.Header.Set("apiKey", u.apiKey)
 	}
 
-	client := &http.Client{Timeout: 60 * time.Second}
 	backoff := 1 * time.Second
 	for attempt := 0; attempt < 6; attempt++ {
-		resp, err := client.Do(req)
+		if u.delay > 0 {
+			time.Sleep(u.delay)
+		}
+		resp, err := u.http.Do(req)
 		if err != nil {
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return nil, err
@@ -74,6 +135,11 @@ func (u *ScraperUsecase) downloadNVDPage(ctx context.Context, startIndex, result
 		}
 		b, rerr := io.ReadAll(resp.Body)
 		_ = resp.Body.Close()
+		if rerr == nil && u.cache != "" && len(b) > 0 {
+			fn := filepath.Join(u.cache, "nvd", fmt.Sprintf("start_%d_size_%d.json", startIndex, resultsPerPage))
+			_ = os.MkdirAll(filepath.Dir(fn), 0o755)
+			_ = os.WriteFile(fn, b, 0o644)
+		}
 		return b, rerr
 	}
 	return nil, fmt.Errorf("nvd fetch failed after retries")

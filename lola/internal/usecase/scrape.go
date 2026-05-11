@@ -16,6 +16,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"lola/internal/domain"
+	"lola/internal/proxypool"
 	"lola/internal/repository"
 )
 
@@ -39,10 +40,21 @@ type ScraperUsecase struct {
 func NewScraperUsecase(repo repository.LolaRepository, logger *slog.Logger, cacheDir string) *ScraperUsecase {
 	tr := http.DefaultTransport.(*http.Transport).Clone()
 	tr.TLSHandshakeTimeout = 30 * time.Second
+	var rt http.RoundTripper = tr
+	if env := strings.TrimSpace(os.Getenv("LOLA_PROXY_URLS")); env != "" {
+		p, err := proxypool.New(proxypool.SplitEnvList(env), 2*time.Minute)
+		if err == nil {
+			only := strings.EqualFold(strings.TrimSpace(os.Getenv("LOLA_PROXY_MODE")), "only")
+			rt = proxypool.NewTransport(tr, p, only)
+			logger.Info("lola proxy pool enabled", slog.Int("count", len(proxypool.SplitEnvList(env))))
+		} else {
+			logger.Warn("lola proxy pool invalid; running direct", slog.String("err", err.Error()))
+		}
+	}
 	return &ScraperUsecase{
 		repo:   repo,
 		logger: logger,
-		http:   &http.Client{Timeout: 120 * time.Second, Transport: tr},
+		http:   &http.Client{Timeout: 120 * time.Second, Transport: rt},
 		cache:  cacheDir,
 	}
 }

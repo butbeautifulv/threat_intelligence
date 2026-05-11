@@ -4,6 +4,7 @@ use (
 	./ds
 	./graph
 	./lola
+	./proxybroker
 	./ti
 	./vuln
 )

@@ -13,6 +13,11 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p neo4jpassword 'RETURN 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
 
   vuln:
     build:
@@ -24,8 +29,14 @@ services:
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
       - NVD_MAX_PAGES=${NVD_MAX_PAGES:-1}
+      - VULN_CACHE_DIR=/data/cache
+      - VULN_REQUEST_DELAY=${VULN_REQUEST_DELAY:-1200ms}
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./data/cache:/data/cache
 
   lola:
     build:
@@ -38,10 +49,13 @@ services:
       - NEO4J_DB=neo4j
       - LOLA_CACHE_DIR=/data/cache
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - LOLA_PROXY_URLS=${LOLA_PROXY_URLS:-}
     volumes:
       - ./data/cache:/data/cache
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
+    restart: on-failure
 
   ds:
     build:
@@ -57,10 +71,13 @@ services:
       - DS_MAX_YARA=${DS_MAX_YARA:-80}
       - DS_MAX_ATOMIC=${DS_MAX_ATOMIC:-120}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - DS_PROXY_URLS=${DS_PROXY_URLS:-}
     volumes:
       - ./data/cache:/data/cache
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
+    restart: on-failure
 
   ti:
     build:
@@ -74,16 +91,22 @@ services:
       - TI_KEV_MAX=${TI_KEV_MAX:-200}
       - TI_PT_MAX=${TI_PT_MAX:-40}
       - TI_URLHAUS_MAX=${TI_URLHAUS_MAX:-300}
-    command: ["--feeds", "kev,pt,urlhaus", "--input", "/app/example.jsonl"]
+      - TI_CACHE_DIR=/data/cache
+      - TI_REQUEST_DELAY=${TI_REQUEST_DELAY:-1200ms}
+    command: ["--feeds", "${TI_FEEDS:-kev,urlhaus}", "--input", "/app/example.jsonl"]
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - ./data/cache:/data/cache
 
   panel:
     build:
       context: .
       dockerfile: docker/panel.Dockerfile
     ports:
-      - "8088:8088"
+      - "${PANEL_PORT:-8088}:8088"
     environment:
       - NEO4J_URI=neo4j://neo4j:7687
       - NEO4J_USER=neo4j
@@ -91,7 +114,9 @@ services:
       - NEO4J_DB=neo4j
       - PORT=8088
     depends_on:
-      - neo4j
+      neo4j:
+        condition: service_healthy
+    restart: on-failure
 
 volumes:
   neo4j_data:

@@ -9,12 +9,14 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"ti/internal/domain"
 	"ti/internal/normalize"
+	"ti/internal/proxypool"
 	neo4jstore "ti/internal/storage/neo4j"
 )
 
@@ -24,14 +26,86 @@ type Runner struct {
 	Store  *neo4jstore.Store
 	Logger *slog.Logger
 	HTTP   *http.Client
+	Cache  string
+	Delay  time.Duration
 }
 
 func NewRunner(store *neo4jstore.Store, logger *slog.Logger) *Runner {
+	base := http.DefaultTransport.(*http.Transport).Clone()
+	base.TLSHandshakeTimeout = 30 * time.Second
+	var rt http.RoundTripper = base
+	if env := strings.TrimSpace(os.Getenv("TI_PROXY_URLS")); env != "" {
+		p, err := proxypool.New(proxypool.SplitEnvList(env), 2*time.Minute)
+		if err == nil {
+			only := strings.EqualFold(strings.TrimSpace(os.Getenv("TI_PROXY_MODE")), "only")
+			rt = proxypool.NewTransport(base, p, only)
+			logger.Info("ti proxy pool enabled", slog.Int("count", len(proxypool.SplitEnvList(env))))
+		} else {
+			logger.Warn("ti proxy pool invalid; running direct", slog.String("err", err.Error()))
+		}
+	}
 	return &Runner{
 		Store:  store,
 		Logger: logger,
-		HTTP:   &http.Client{Timeout: 120 * time.Second},
+		HTTP:   &http.Client{Timeout: 120 * time.Second, Transport: rt},
+		Cache:  firstNonEmpty(os.Getenv("TI_CACHE_DIR"), filepath.Join(".", "data", "cache")),
+		Delay:  parseDelayEnv(os.Getenv("TI_REQUEST_DELAY"), 1200*time.Millisecond),
 	}
+}
+
+func firstNonEmpty(a, b string) string {
+	if strings.TrimSpace(a) != "" {
+		return a
+	}
+	return b
+}
+
+func parseDelayEnv(v string, def time.Duration) time.Duration {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return def
+	}
+	if d, err := time.ParseDuration(v); err == nil && d >= 0 {
+		return d
+	}
+	if ms, err := strconv.Atoi(v); err == nil && ms >= 0 {
+		return time.Duration(ms) * time.Millisecond
+	}
+	return def
+}
+
+func (r *Runner) getBytesCached(ctx context.Context, urlStr, cacheFile string) ([]byte, error) {
+	if r.Cache != "" && cacheFile != "" {
+		if b, err := os.ReadFile(cacheFile); err == nil && len(b) > 0 {
+			return b, nil
+		}
+	}
+	if r.Delay > 0 {
+		time.Sleep(r.Delay)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "threat_intelligence-ti/1.0")
+	resp, err := r.HTTP.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return nil, fmt.Errorf("http %d: %s", resp.StatusCode, string(b))
+	}
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if r.Cache != "" && cacheFile != "" && len(b) > 0 {
+		_ = os.MkdirAll(filepath.Dir(cacheFile), 0o755)
+		_ = os.WriteFile(cacheFile, b, 0o644)
+	}
+	return b, nil
 }
 
 func (r *Runner) Run(ctx context.Context, kinds []string) error {
@@ -71,22 +145,12 @@ type kevFile struct {
 
 func (r *Runner) runKEV(ctx context.Context) error {
 	r.Logger.Info("ingesting CISA KEV")
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, kevURL, nil)
+	b, err := r.getBytesCached(ctx, kevURL, filepath.Join(r.Cache, "ti", "kev.json"))
 	if err != nil {
 		return err
-	}
-	req.Header.Set("User-Agent", "threat_intelligence-ti/1.0")
-	resp, err := r.HTTP.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return fmt.Errorf("kev http %d: %s", resp.StatusCode, string(b))
 	}
 	var doc kevFile
-	if err := json.NewDecoder(resp.Body).Decode(&doc); err != nil {
+	if err := json.Unmarshal(b, &doc); err != nil {
 		return err
 	}
 	limitN := len(doc.Vulnerabilities)
@@ -122,17 +186,8 @@ func (r *Runner) runPTRSS(ctx context.Context) error {
 		u = "https://www.ptsecurity.com/rss/all.xml"
 	}
 	r.Logger.Info("ingesting PT RSS", slog.String("url", u))
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("User-Agent", "threat_intelligence-ti/1.0")
-	resp, err := r.HTTP.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
+	cacheFile := filepath.Join(r.Cache, "ti", "pt.xml")
+	b, err := r.getBytesCached(ctx, u, cacheFile)
 	if err != nil {
 		return err
 	}
@@ -202,17 +257,7 @@ func stripHTML(s string) string {
 func (r *Runner) runURLhaus(ctx context.Context) error {
 	u := "https://urlhaus.abuse.ch/downloads/csv_recent/"
 	r.Logger.Info("ingesting URLhaus recent CSV", slog.String("url", u))
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("User-Agent", "threat_intelligence-ti/1.0")
-	resp, err := r.HTTP.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
+	b, err := r.getBytesCached(ctx, u, filepath.Join(r.Cache, "ti", "urlhaus_recent.csv"))
 	if err != nil {
 		return err
 	}
