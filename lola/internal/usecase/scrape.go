@@ -3,163 +3,322 @@ package usecase
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
-	"log/slog"
+	"gopkg.in/yaml.v3"
 
-	"vuln/internal/domain"
-	"vuln/internal/repository"
+	"lola/internal/domain"
+	"lola/internal/repository"
 )
 
-const nvdURL = "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=2000"
+const (
+	lolbasOwner = "LOLBAS-Project"
+	lolbasRepo  = "LOLBAS"
+	lolbasPath  = "yml"
+
+	gtfobinsOwner = "GTFOBins"
+	gtfobinsRepo  = "GTFOBins.github.io"
+	gtfobinsPath  = "_gtfobins"
+)
 
 type ScraperUsecase struct {
-	repo   repository.VulnerabilityRepository
+	repo   repository.LolaRepository
 	logger *slog.Logger
+	http   *http.Client
+	cache  string
 }
 
-func NewScraperUsecase(repo repository.VulnerabilityRepository, logger *slog.Logger) *ScraperUsecase {
-	return &ScraperUsecase{repo: repo, logger: logger}
+func NewScraperUsecase(repo repository.LolaRepository, logger *slog.Logger, cacheDir string) *ScraperUsecase {
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.TLSHandshakeTimeout = 30 * time.Second
+	return &ScraperUsecase{
+		repo:   repo,
+		logger: logger,
+		http:   &http.Client{Timeout: 120 * time.Second, Transport: tr},
+		cache:  cacheDir,
+	}
 }
 
-func (u *ScraperUsecase) downloadNVDFeed(ctx context.Context) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, nvdURL, nil)
+type ghContent struct {
+	Name        string `json:"name"`
+	Path        string `json:"path"`
+	Type        string `json:"type"`
+	DownloadURL string `json:"download_url"`
+}
+
+func (u *ScraperUsecase) Run(ctx context.Context) error {
+	if err := u.repo.EnsureSchema(ctx); err != nil {
+		return err
+	}
+	if err := u.IngestLOLBAS(ctx); err != nil {
+		return err
+	}
+	if err := u.IngestGTFOBins(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *ScraperUsecase) IngestLOLBAS(ctx context.Context) error {
+	u.logger.Info("ingesting LOLBAS definitions")
+	cats, err := u.githubListDir(ctx, lolbasOwner, lolbasRepo, lolbasPath)
+	if err != nil {
+		return err
+	}
+	n := 0
+	for _, cat := range cats {
+		if cat.Type != "dir" {
+			continue
+		}
+		items, err := u.githubListDir(ctx, lolbasOwner, lolbasRepo, cat.Path)
+		if err != nil {
+			u.logger.Warn("lolbas category list failed", slog.String("path", cat.Path), slog.String("err", err.Error()))
+			continue
+		}
+		for _, it := range items {
+			if it.Type != "file" {
+				continue
+			}
+			if !strings.HasSuffix(strings.ToLower(it.Name), ".yml") && !strings.HasSuffix(strings.ToLower(it.Name), ".yaml") {
+				continue
+			}
+			cacheName := strings.ReplaceAll(it.Path, "/", "__")
+			raw, err := u.fetchBytes(ctx, it.DownloadURL, filepath.Join(u.cache, "lolbas", cacheName))
+			if err != nil {
+				u.logger.Warn("lolbas file fetch failed", slog.String("path", it.Path), slog.String("err", err.Error()))
+				continue
+			}
+			a, err := parseLOLBASYAML(raw)
+			if err != nil {
+				u.logger.Warn("lolbas parse failed", slog.String("path", it.Path), slog.String("err", err.Error()))
+				continue
+			}
+			// Capture category from folder name when not present.
+			if a.Category == "" {
+				a.Category = strings.TrimPrefix(cat.Path, lolbasPath+"/")
+			}
+			if err := u.repo.UpsertArtifact(ctx, "lolbas", a); err != nil {
+				return err
+			}
+			n++
+		}
+	}
+	u.logger.Info("LOLBAS ingest done", slog.Int("count", n))
+	return nil
+}
+
+func (u *ScraperUsecase) IngestGTFOBins(ctx context.Context) error {
+	u.logger.Info("ingesting GTFOBins pages")
+	items, err := u.githubListDir(ctx, gtfobinsOwner, gtfobinsRepo, gtfobinsPath)
+	if err != nil {
+		return err
+	}
+	n := 0
+	for _, it := range items {
+		if it.Type != "file" || !strings.HasSuffix(it.Name, ".md") {
+			continue
+		}
+		raw, err := u.fetchBytes(ctx, it.DownloadURL, filepath.Join(u.cache, "gtfobins", it.Name))
+		if err != nil {
+			u.logger.Warn("gtfobins fetch failed", slog.String("name", it.Name), slog.String("err", err.Error()))
+			continue
+		}
+		a := parseGTFOBinsMarkdown(it.Name, string(raw))
+		if err := u.repo.UpsertArtifact(ctx, "gtfobins", a); err != nil {
+			return err
+		}
+		n++
+	}
+	u.logger.Info("GTFOBins ingest done", slog.Int("count", n))
+	return nil
+}
+
+func (u *ScraperUsecase) githubListDir(ctx context.Context, owner, repo, path string) ([]ghContent, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/%s", owner, repo, path)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-
-	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Do(req)
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("User-Agent", "threat_intelligence-lola/1.0")
+	if tok := os.Getenv("GITHUB_TOKEN"); tok != "" {
+		req.Header.Set("Authorization", "Bearer "+tok)
+	}
+	resp, err := u.http.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-
-	return io.ReadAll(resp.Body)
-}
-
-// parseNVD extracts a minimal set of fields into domain.Vulnerability.
-func (u *ScraperUsecase) parseNVD(data []byte) ([]domain.Vulnerability, error) {
-	var raw map[string]any
-	if err := json.Unmarshal(data, &raw); err != nil {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		b, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+		return nil, fmt.Errorf("github list %s: %d %s", url, resp.StatusCode, string(b))
+	}
+	var out []ghContent
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
 		return nil, err
 	}
-
-	items, _ := raw["vulnerabilities"].([]any)
-	var out []domain.Vulnerability
-
-	for _, it := range items {
-		m, ok := it.(map[string]any)
-		if !ok {
-			continue
-		}
-		cveBlock, _ := m["cve"].(map[string]any)
-		id, _ := cveBlock["id"].(string)
-
-		// description
-		var desc string
-		if descs, ok := cveBlock["descriptions"].([]any); ok {
-			for _, d := range descs {
-				if dm, ok := d.(map[string]any); ok {
-					if lang, _ := dm["lang"].(string); lang == "en" {
-						if v, _ := dm["value"].(string); v != "" {
-							desc = v
-							break
-						}
-					}
-				}
-			}
-			if desc == "" && len(descs) > 0 {
-				if dm, ok := descs[0].(map[string]any); ok {
-					desc, _ = dm["value"].(string)
-				}
-			}
-		}
-
-		// weaknesses -> CWE
-		var cwes []string
-		if weaknesses, ok := cveBlock["weaknesses"].([]any); ok {
-			for _, w := range weaknesses {
-				if wm, ok := w.(map[string]any); ok {
-					if descs, ok := wm["description"].([]any); ok {
-						for _, dd := range descs {
-							if dm, ok := dd.(map[string]any); ok {
-								if v, _ := dm["value"].(string); v != "" {
-									cwes = append(cwes, v)
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		// configurations -> cpes
-		var cpes []domain.CPE
-		if confs, ok := cveBlock["configurations"].([]any); ok {
-			for _, c := range confs {
-				if cm, ok := c.(map[string]any); ok {
-					if nodes, ok := cm["nodes"].([]any); ok {
-						for _, n := range nodes {
-							if nm, ok := n.(map[string]any); ok {
-								if matches, ok := nm["cpeMatch"].([]any); ok {
-									for _, mm := range matches {
-										if mmm, ok := mm.(map[string]any); ok {
-											if uri, _ := mmm["criteria"].(string); uri != "" {
-												cpes = append(cpes, domain.CPE{URI: uri})
-											} else if uri2, _ := mmm["cpe23Uri"].(string); uri2 != "" {
-												cpes = append(cpes, domain.CPE{URI: uri2})
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		v := domain.Vulnerability{
-			ID:      id,
-			CVE:     id,
-			Summary: desc,
-			CWE:     cwes,
-			CPEs:    cpes,
-		}
-
-		out = append(out, v)
-	}
-
 	return out, nil
 }
 
-func (u *ScraperUsecase) ScrapeNVD(ctx context.Context) error {
-	u.logger.Info("starting NVD scraping")
-
-	data, err := u.downloadNVDFeed(ctx)
-	if err != nil {
-		return err
-	}
-
-	vulns, err := u.parseNVD(data)
-	if err != nil {
-		return err
-	}
-
-	for _, v := range vulns {
-		if err := u.repo.Upsert(ctx, &v); err != nil {
-			u.logger.Error("failed to upsert vuln", slog.String("cve", v.CVE), slog.String("error", err.Error()))
-			return err
+func (u *ScraperUsecase) fetchBytes(ctx context.Context, downloadURL, cacheFile string) ([]byte, error) {
+	if u.cache != "" && cacheFile != "" {
+		if b, err := os.ReadFile(cacheFile); err == nil && len(b) > 0 {
+			return b, nil
 		}
 	}
-
-	u.logger.Info("finished NVD scraping", slog.Int("count", len(vulns)))
-	return nil
+	backoff := 1 * time.Second
+	var lastErr error
+	for attempt := 0; attempt < 5; attempt++ {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadURL, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("User-Agent", "threat_intelligence-lola/1.0")
+		resp, err := u.http.Do(req)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, err
+			}
+			lastErr = err
+			time.Sleep(backoff)
+			backoff *= 2
+			continue
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			b, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+			_ = resp.Body.Close()
+			return nil, fmt.Errorf("download %s: %d %s", downloadURL, resp.StatusCode, string(b))
+		}
+		b, rerr := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if rerr != nil {
+			lastErr = rerr
+			time.Sleep(backoff)
+			backoff *= 2
+			continue
+		}
+		if u.cache != "" && cacheFile != "" {
+			_ = os.MkdirAll(filepath.Dir(cacheFile), 0o755)
+			_ = os.WriteFile(cacheFile, b, 0o644)
+		}
+		return b, nil
+	}
+	if lastErr != nil {
+		return nil, lastErr
+	}
+	return nil, fmt.Errorf("download failed: %s", downloadURL)
 }
 
-func (u *ScraperUsecase) Run(ctx context.Context) error {
-	return u.ScrapeNVD(ctx)
+func parseLOLBASYAML(raw []byte) (*domain.Artifact, error) {
+	var root map[string]any
+	if err := yaml.Unmarshal(raw, &root); err != nil {
+		return nil, err
+	}
+	a := &domain.Artifact{}
+	if v, ok := root["Name"].(string); ok {
+		a.Name = strings.TrimSpace(v)
+	}
+	if v, ok := root["Description"].(string); ok {
+		a.Description = strings.TrimSpace(v)
+	}
+	if v, ok := root["Author"].(string); ok && v != "" {
+		a.Description = strings.TrimSpace(a.Description + "\n\nAuthor: " + v)
+	}
+	if v, ok := root["OS"].(string); ok && v != "" {
+		a.OS = []string{v}
+	}
+	if v, ok := root["MITRE"].(map[string]any); ok {
+		if id, ok := v["ID"].(string); ok {
+			a.MitreID = id
+		}
+	}
+	if v, ok := root["Categories"].([]any); ok && len(v) > 0 {
+		if s, ok := v[0].(string); ok {
+			a.Category = s
+		}
+	}
+	if v, ok := root["Full Path"].([]any); ok {
+		for _, p := range v {
+			if s, ok := p.(string); ok {
+				a.Paths = append(a.Paths, s)
+			}
+		}
+	}
+	if v, ok := root["Commands"].([]any); ok {
+		for _, c := range v {
+			cm, ok := c.(map[string]any)
+			if !ok {
+				continue
+			}
+			cmd := domain.Command{}
+			if s, ok := cm["Command"].(string); ok {
+				cmd.Command = s
+			}
+			if s, ok := cm["Description"].(string); ok {
+				cmd.Description = s
+			}
+			if s, ok := cm["Usecase"].(string); ok {
+				cmd.Usecase = s
+			}
+			a.Commands = append(a.Commands, cmd)
+		}
+	}
+	if det, ok := root["Detection"].(map[string]any); ok {
+		if sig, ok := det["Sigma"].([]any); ok {
+			for _, s := range sig {
+				if str, ok := s.(string); ok {
+					a.Detection.Sigma = append(a.Detection.Sigma, str)
+				}
+			}
+		}
+		if yar, ok := det["YARA"].([]any); ok {
+			for _, s := range yar {
+				if str, ok := s.(string); ok {
+					a.Detection.Yara = append(a.Detection.Yara, str)
+				}
+			}
+		}
+	}
+	if a.Name == "" {
+		return nil, fmt.Errorf("missing Name")
+	}
+	return a, nil
+}
+
+func parseGTFOBinsMarkdown(filename, body string) *domain.Artifact {
+	name := strings.TrimSuffix(filename, ".md")
+	name = strings.ReplaceAll(name, "_", "/")
+	a := &domain.Artifact{
+		Name:        name,
+		Description: firstParagraph(body),
+		OS:          []string{"linux"},
+		Category:    "gtfobins",
+	}
+	a.Commands = []domain.Command{
+		{Command: "(see GTFOBins page)", Description: truncate(body, 8000)},
+	}
+	return a
+}
+
+func firstParagraph(s string) string {
+	s = strings.TrimSpace(s)
+	if idx := strings.Index(s, "\n## "); idx > 0 {
+		s = s[:idx]
+	}
+	return truncate(strings.TrimSpace(s), 4000)
+}
+
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "\n\n…"
 }

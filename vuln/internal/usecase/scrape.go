@@ -3,8 +3,13 @@ package usecase
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
+	"strconv"
 	"time"
 
 	"log/slog"
@@ -13,41 +18,79 @@ import (
 	"vuln/internal/repository"
 )
 
-const nvdURL = "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=2000"
+const nvdBaseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
 type ScraperUsecase struct {
 	repo   repository.VulnerabilityRepository
 	logger *slog.Logger
+	apiKey string
 }
 
-func NewScraperUsecase(repo repository.VulnerabilityRepository, logger *slog.Logger) *ScraperUsecase {
-	return &ScraperUsecase{repo: repo, logger: logger}
+func NewScraperUsecase(repo repository.VulnerabilityRepository, logger *slog.Logger, apiKey string) *ScraperUsecase {
+	return &ScraperUsecase{repo: repo, logger: logger, apiKey: apiKey}
 }
 
-func (u *ScraperUsecase) downloadNVDFeed(ctx context.Context) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, nvdURL, nil)
+func (u *ScraperUsecase) downloadNVDPage(ctx context.Context, startIndex, resultsPerPage int) ([]byte, error) {
+	uu, _ := url.Parse(nvdBaseURL)
+	q := uu.Query()
+	q.Set("startIndex", strconv.Itoa(startIndex))
+	q.Set("resultsPerPage", strconv.Itoa(resultsPerPage))
+	uu.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uu.String(), nil)
 	if err != nil {
 		return nil, err
+	}
+	req.Header.Set("User-Agent", "threat_intelligence/1.0")
+	if u.apiKey != "" {
+		req.Header.Set("apiKey", u.apiKey)
 	}
 
 	client := &http.Client{Timeout: 60 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
+	backoff := 1 * time.Second
+	for attempt := 0; attempt < 6; attempt++ {
+		resp, err := client.Do(req)
+		if err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, err
+			}
+			time.Sleep(backoff)
+			backoff *= 2
+			continue
+		}
 
-	return io.ReadAll(resp.Body)
+		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
+			// Read and discard to reuse connections.
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+			time.Sleep(backoff)
+			backoff *= 2
+			continue
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+			_ = resp.Body.Close()
+			return nil, fmt.Errorf("nvd http %d: %s", resp.StatusCode, string(b))
+		}
+		b, rerr := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		return b, rerr
+	}
+	return nil, fmt.Errorf("nvd fetch failed after retries")
 }
 
 // parseNVD extracts a minimal set of fields into domain.Vulnerability.
-func (u *ScraperUsecase) parseNVD(data []byte) ([]domain.Vulnerability, error) {
+func (u *ScraperUsecase) parseNVD(data []byte) ([]domain.Vulnerability, int, error) {
 	var raw map[string]any
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	items, _ := raw["vulnerabilities"].([]any)
+	total := 0
+	if tr, ok := raw["totalResults"].(float64); ok {
+		total = int(tr)
+	}
 	var out []domain.Vulnerability
 
 	for _, it := range items {
@@ -122,44 +165,106 @@ func (u *ScraperUsecase) parseNVD(data []byte) ([]domain.Vulnerability, error) {
 			}
 		}
 
+		// metrics -> CVSS
+		var cvss *domain.CVSS
+		if metrics, ok := cveBlock["metrics"].(map[string]any); ok {
+			// Prefer v3.1 then v3.0
+			cvss = pickCVSS(metrics, "cvssMetricV31")
+			if cvss == nil {
+				cvss = pickCVSS(metrics, "cvssMetricV30")
+			}
+		}
+
 		v := domain.Vulnerability{
 			ID:      id,
 			CVE:     id,
 			Summary: desc,
 			CWE:     cwes,
 			CPEs:    cpes,
+			CVSS:    cvss,
 		}
 
 		out = append(out, v)
 	}
 
-	return out, nil
+	return out, total, nil
 }
 
 func (u *ScraperUsecase) ScrapeNVD(ctx context.Context) error {
 	u.logger.Info("starting NVD scraping")
 
-	data, err := u.downloadNVDFeed(ctx)
-	if err != nil {
-		return err
-	}
-
-	vulns, err := u.parseNVD(data)
-	if err != nil {
-		return err
-	}
-
-	for _, v := range vulns {
-		if err := u.repo.Upsert(ctx, &v); err != nil {
-			u.logger.Error("failed to upsert vuln", slog.String("cve", v.CVE), slog.String("error", err.Error()))
-			return err
+	const pageSize = 2000
+	start := 0
+	total := -1
+	count := 0
+	maxPages := 0
+	if v := os.Getenv("NVD_MAX_PAGES"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			maxPages = n
 		}
 	}
+	pages := 0
 
-	u.logger.Info("finished NVD scraping", slog.Int("count", len(vulns)))
+	for total < 0 || start < total {
+		data, err := u.downloadNVDPage(ctx, start, pageSize)
+		if err != nil {
+			return err
+		}
+		vulns, tr, err := u.parseNVD(data)
+		if err != nil {
+			return err
+		}
+		if total < 0 {
+			total = tr
+		}
+
+		for _, v := range vulns {
+			if err := u.repo.Upsert(ctx, &v); err != nil {
+				u.logger.Error("failed to upsert vuln", slog.String("cve", v.CVE), slog.String("error", err.Error()))
+				return err
+			}
+			count++
+		}
+
+		u.logger.Info("nvd page ingested", slog.Int("startIndex", start), slog.Int("pageCount", len(vulns)), slog.Int("totalResults", total))
+		if len(vulns) == 0 {
+			break
+		}
+		pages++
+		if maxPages > 0 && pages >= maxPages {
+			u.logger.Info("nvd stopping early (NVD_MAX_PAGES)", slog.Int("maxPages", maxPages))
+			break
+		}
+		start += pageSize
+	}
+
+	u.logger.Info("finished NVD scraping", slog.Int("count", count))
 	return nil
 }
 
 func (u *ScraperUsecase) Run(ctx context.Context) error {
 	return u.ScrapeNVD(ctx)
+}
+
+func pickCVSS(metrics map[string]any, key string) *domain.CVSS {
+	ms, ok := metrics[key].([]any)
+	if !ok || len(ms) == 0 {
+		return nil
+	}
+	// Take first metric block
+	m0, ok := ms[0].(map[string]any)
+	if !ok {
+		return nil
+	}
+	cv, _ := m0["cvssData"].(map[string]any)
+	if cv == nil {
+		return nil
+	}
+	ver, _ := cv["version"].(string)
+	vec, _ := cv["vectorString"].(string)
+	base, _ := cv["baseScore"].(float64)
+	if ver == "" && vec == "" && base == 0 {
+		return nil
+	}
+	return &domain.CVSS{Version: ver, Base: base, Vector: vec}
 }

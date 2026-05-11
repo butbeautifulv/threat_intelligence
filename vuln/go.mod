@@ -2,8 +2,12 @@ module vuln
 
 go 1.25.0
 
+replace github.com/butbeautifulv/threat_intelligence/graph => ../graph
+
 require (
+	github.com/butbeautifulv/threat_intelligence/graph v0.0.0
 	github.com/fatih/color v1.18.0
+	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
 	go.mongodb.org/mongo-driver v1.11.4
 	golang.org/x/exp v0.0.0-20260212183809-81e46e3db34a
 	golang.org/x/sync v0.19.0

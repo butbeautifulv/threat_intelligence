@@ -1,31 +1,34 @@
 package config
 
+import "os"
+
 type Config struct {
-	Env         string `yaml:"env" env-default:"local"`
-	MongoConfig MongoConfig
+	Env   string
+	Neo4j Neo4jConfig
 }
 
-type MongoConfig struct {
-	URI            string `mapstructure:"uri"`             // mongodb://user:pass@host:port
-	Host           string `mapstructure:"host"`            // localhost
-	Port           int    `mapstructure:"port"`            // 27017
-	Username       string `mapstructure:"username"`        // admin
-	Password       string `mapstructure:"password"`        // secret
-	Database       string `mapstructure:"database"`        // mydb
-	AuthSource     string `mapstructure:"auth_source"`     // admin
-	MaxPoolSize    uint64 `mapstructure:"max_pool_size"`   // 10–100
-	MinPoolSize    uint64 `mapstructure:"min_pool_size"`   // 1–5
-	ConnectTimeout int    `mapstructure:"connect_timeout"` // ms
+type Neo4jConfig struct {
+	URI      string
+	Username string
+	Password string
+	Database string
 }
 
 func LoadConfig() (*Config, error) {
-	// Minimal config loader for local usage. Replace with YAML/env loader as needed.
 	return &Config{
 		Env: "local",
-		MongoConfig: MongoConfig{
-			Host:     "localhost",
-			Port:     27017,
-			Database: "vuln",
+		Neo4j: Neo4jConfig{
+			URI:      envOr("NEO4J_URI", "neo4j://localhost:7687"),
+			Username: envOr("NEO4J_USER", "neo4j"),
+			Password: envOr("NEO4J_PASS", "neo4jpassword"),
+			Database: envOr("NEO4J_DB", "neo4j"),
 		},
 	}, nil
+}
+
+func envOr(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

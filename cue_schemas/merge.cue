@@ -2,12 +2,12 @@ import (
     "./schema/lola.cue"
     "./schema/vuln.cue"
     "./schema/ti.cue"
-    "./schema/detect.cue"
+    ds "./schema/ds.cue"
 )
 
 schema: {
     lola:   lola.lola
     vuln:   vuln.vuln
     ti:     ti.ti
-    detect: detect.detect
+    detect: ds.detect
 }
