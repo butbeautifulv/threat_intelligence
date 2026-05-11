@@ -26,66 +26,31 @@ a{ color: inherit; text-decoration:none; }
 
 .app{
   height: 100vh;
-  position: relative;
+  display: grid;
+  gap: 12px;
   padding: 12px;
 }
 
-.graphStage{
-  position: absolute;
-  inset: 12px;
-  z-index: 1;
-}
-
-.sideLeft{
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 12px;
-  width: var(--leftW, 340px);
-  z-index: 3;
-  transition: transform 140ms ease;
-}
-.sideRight{
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  right: 12px;
-  width: var(--rightW, 440px);
-  z-index: 3;
-  transition: transform 140ms ease;
-}
-.sideLeftHidden{ transform: translateX(calc(-1 * var(--leftW, 340px) + 44px)); }
-.sideRightHidden{ transform: translateX(calc(var(--rightW, 440px) - 44px)); }
-
-.dockBtn{
-  position:absolute;
-  top: 10px;
-  width: 34px;
-  height: 34px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border: 1px solid var(--border);
-  background: rgba(0,0,0,.20);
-  border-radius: 10px;
-  cursor: pointer;
-}
-.dockBtnLeft{ right: 6px; }
-.dockBtnRight{ left: 6px; }
-
-.resizeHandle{
-  position:absolute;
-  top: 12px;
-  bottom: 12px;
+.resizer{
   width: 10px;
-  z-index: 4;
+  margin: 0 -5px;
   cursor: col-resize;
+  position: relative;
+  z-index: 5;
 }
-.resizeHandleLeft{ left: calc(12px + var(--leftW, 340px) - 5px); }
-.resizeHandleRight{ right: calc(12px + var(--rightW, 440px) - 5px); }
-.resizeHandleHidden{ display:none; }
-
-/* old grid resizer removed (overlay layout now) */
+.resizer::before{
+  content:"";
+  position:absolute;
+  left: 4px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.10);
+}
+.resizer:hover::before{
+  background: rgba(122,162,247,.55);
+}
 
 .toolbar{
   display:flex;

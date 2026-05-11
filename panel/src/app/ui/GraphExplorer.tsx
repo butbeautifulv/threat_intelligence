@@ -45,6 +45,24 @@ export default function GraphExplorer() {
 
   const [graphSize, setGraphSize] = useState({ w: 0, h: 0 });
 
+  const freezeNow = () => {
+    const fg = fgRef.current;
+    if (!fg) return;
+    try {
+      const data = fg.graphData?.();
+      const nodes: any[] = data?.nodes || [];
+      for (const n of nodes) {
+        if (!n || n.labels?.includes('Category')) continue;
+        if (typeof n.x !== 'number' || typeof n.y !== 'number') continue;
+        n.fx = n.x;
+        n.fy = n.y;
+      }
+    } catch {
+      // ignore
+    }
+    setFreezeLayout(true);
+  };
+
   // canvas “Obsidian-like” knobs
   const [nodeSize, setNodeSize] = useState(5);
   const [baseLinkWidth, setBaseLinkWidth] = useState(1);
@@ -313,13 +331,12 @@ export default function GraphExplorer() {
       className="app"
       ref={wrapRef}
       style={{
-        // CSS vars consumed by overlay layout in globals.css
-        ['--leftW' as any]: `${leftW}px`,
-        ['--rightW' as any]: `${rightW}px`,
+        gridTemplateColumns: `${leftCollapsed ? 44 : leftW}px ${leftCollapsed ? 0 : 10}px 1fr ${rightCollapsed ? 0 : 10}px ${
+          rightCollapsed ? 44 : rightW
+        }px`,
       }}
     >
-      <div className={`sideLeft ${leftCollapsed ? 'sideLeftHidden' : ''}`}>
-        <section className="card" style={{ height: '100%' }}>
+      <section className="card" style={{ minHeight: 0 }}>
         <div className="cardHeader">
           <div className="title">Nodes</div>
           <div className="toolbar toolbarWrap">
@@ -350,12 +367,19 @@ export default function GraphExplorer() {
             >
               −
             </button>
-            <button className="btn iconBtn" onClick={() => setLeftCollapsed(true)} title="Hide left pane">
+            <button
+              className="btn iconBtn"
+              onClick={() => {
+                freezeNow();
+                setLeftCollapsed(true);
+              }}
+              title="Hide left pane"
+            >
               ‹
             </button>
           </div>
         </div>
-        <div className="content">
+        <div className="content" style={{ display: leftCollapsed ? 'none' : 'block' }}>
           <input
             className="input"
             value={q}
@@ -407,16 +431,25 @@ export default function GraphExplorer() {
           </div>
           {!filteredNodes.length && <div className="hint">No matches.</div>}
         </div>
-        </section>
         {leftCollapsed && (
-          <button className="dockBtn dockBtnLeft" onClick={() => setLeftCollapsed(false)} title="Show left pane">
-            ›
-          </button>
+          <div className="dock">
+            <button
+              className="btn iconBtn"
+              onClick={() => {
+                freezeNow();
+                setLeftCollapsed(false);
+              }}
+              title="Show left pane"
+            >
+              ›
+            </button>
+          </div>
         )}
-      </div>
+      </section>
 
       <div
-        className={`resizeHandle resizeHandleLeft ${leftCollapsed ? 'resizeHandleHidden' : ''}`}
+        className="resizer"
+        style={{ display: leftCollapsed ? 'none' : 'block' }}
         onMouseDown={(e) => {
           dragRef.current = { which: 'left', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -424,8 +457,7 @@ export default function GraphExplorer() {
         aria-label="Resize left pane"
       />
 
-      <div className="graphStage">
-        <section className="card" style={{ height: '100%' }}>
+      <section className="card" style={{ minHeight: 0 }}>
         <div className="cardHeader">
           <div className="title">Graph</div>
           <div className="toolbar toolbarWrap">
@@ -435,7 +467,7 @@ export default function GraphExplorer() {
               title="Toggle freeze"
             >
               <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2v20M4 7h16M4 17h16" />
+                <path d="M12 2v20M4 6l16 12M20 6L4 18M6 4l12 16M18 4L6 20" />
               </svg>
             </button>
             <button
@@ -601,11 +633,11 @@ export default function GraphExplorer() {
             }}
           />
         </div>
-        </section>
-      </div>
+      </section>
 
       <div
-        className={`resizeHandle resizeHandleRight ${rightCollapsed ? 'resizeHandleHidden' : ''}`}
+        className="resizer"
+        style={{ display: rightCollapsed ? 'none' : 'block' }}
         onMouseDown={(e) => {
           dragRef.current = { which: 'right', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -613,18 +645,24 @@ export default function GraphExplorer() {
         aria-label="Resize right pane"
       />
 
-      <div className={`sideRight ${rightCollapsed ? 'sideRightHidden' : ''}`}>
-        <section className="card right" style={{ height: '100%' }}>
+      <section className="card right" style={{ minHeight: 0 }}>
         <div className="cardHeader">
           <div className="title">Markdown</div>
           <div className="toolbar">
             {selected ? <span className="pill">{selected.labels[0] ?? 'Node'}</span> : <span className="pill">none</span>}
-            <button className="btn iconBtn" onClick={() => setRightCollapsed(true)} title="Hide right pane">
+            <button
+              className="btn iconBtn"
+              onClick={() => {
+                freezeNow();
+                setRightCollapsed(true);
+              }}
+              title="Hide right pane"
+            >
               ›
             </button>
           </div>
         </div>
-        <div className="content">
+        <div className="content" style={{ display: rightCollapsed ? 'none' : 'block' }}>
           {!selectedId && <div className="hint">Click a node to render its markdown (or fall back to properties).</div>}
           {selectedId && !selected && <div className="hint">Loading…</div>}
           {selected && (
@@ -643,13 +681,21 @@ export default function GraphExplorer() {
             </>
           )}
         </div>
-        </section>
         {rightCollapsed && (
-          <button className="dockBtn dockBtnRight" onClick={() => setRightCollapsed(false)} title="Show right pane">
-            ‹
-          </button>
+          <div className="dock">
+            <button
+              className="btn iconBtn"
+              onClick={() => {
+                freezeNow();
+                setRightCollapsed(false);
+              }}
+              title="Show right pane"
+            >
+              ‹
+            </button>
+          </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }
