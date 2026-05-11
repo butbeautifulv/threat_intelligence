@@ -450,7 +450,12 @@ export default function GraphExplorer() {
             nodeLabel={(n: any) => nodeTitle(n as GraphNode)}
             nodeColor={(n: any) => {
               const labels: string[] = n.labels || [];
-              if (labels.includes('Category')) return 'rgba(255,255,255,.95)';
+              if (labels.includes('Category')) {
+                if (!activeNeighborhood) return COLOR_NODE;
+                if (n.id === activeNeighborhood.id) return COLOR_ACCENT;
+                if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
+                return COLOR_NODE_DIM;
+              }
               if (!activeNeighborhood) return COLOR_NODE;
               if (n.id === activeNeighborhood.id) return COLOR_ACCENT;
               if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
@@ -496,7 +501,8 @@ export default function GraphExplorer() {
 
               // Black label by default; purple when selected/hovered
               const isActive = activeNeighborhood && n.id === activeNeighborhood.id;
-              ctx.fillStyle = isActive ? 'rgba(122,162,247,.95)' : 'rgba(0,0,0,.85)';
+              // When active, node circle is purple accent → make label white for contrast
+              ctx.fillStyle = isActive ? 'rgba(255,255,255,.95)' : 'rgba(0,0,0,.85)';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText(label, x, y);
