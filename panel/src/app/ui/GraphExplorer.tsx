@@ -39,6 +39,29 @@ export default function GraphExplorer() {
     null
   );
 
+  const focusNode = (id: string) => {
+    const fg = fgRef.current;
+    if (!fg) return;
+    try {
+      const data = fg.graphData?.();
+      const nodes: any[] = data?.nodes || [];
+      const n = nodes.find((x) => x?.id === id);
+      if (!n || typeof n.x !== 'number' || typeof n.y !== 'number') return;
+      // Run after layout/canvas size settles (esp. after pane resize).
+      requestAnimationFrame(() => {
+        try {
+          fg.centerAt(n.x, n.y, 300);
+          const z = typeof fg.zoom === 'function' ? fg.zoom() : 1;
+          if (typeof z === 'number' && z < 2.2) fg.zoom(2.2, 300);
+        } catch {
+          // ignore
+        }
+      });
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -225,19 +248,17 @@ export default function GraphExplorer() {
   // When selecting from browser, center/zoom to node position.
   useEffect(() => {
     if (!selectedId) return;
-    const fg = fgRef.current;
-    if (!fg) return;
-    const n = (graphForViz.nodes as any[]).find((x) => x.id === selectedId);
-    if (!n || typeof n.x !== 'number' || typeof n.y !== 'number') return;
-    try {
-      // Keep this subtle to avoid “jerk”: center always; zoom only if far out.
-      fg.centerAt(n.x, n.y, 350);
-      const z = typeof fg.zoom === 'function' ? fg.zoom() : 1;
-      if (typeof z === 'number' && z < 2.2) fg.zoom(2.2, 350);
-    } catch {
-      // ignore
-    }
-  }, [selectedId, graphForViz.nodes]);
+    focusNode(selectedId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+  // Re-focus after pane resize (canvas size changes can shift perceived center).
+  useEffect(() => {
+    if (!selectedId) return;
+    const t = window.setTimeout(() => focusNode(selectedId), 50);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leftW, rightW, selectedId]);
 
   return (
     <div
