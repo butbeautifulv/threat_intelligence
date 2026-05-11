@@ -3,6 +3,8 @@ export type GraphNode = {
   labels: string[];
   title: string;
   markdown?: string | null;
+  kind?: string;
+  tags?: string[];
 };
 
 export type GraphEdge = {

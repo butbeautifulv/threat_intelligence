@@ -1,6 +1,12 @@
 import neo4j from "neo4j-driver";
 import { NextResponse } from "next/server";
 
+function asStringArray(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out = v.filter((x) => typeof x === "string") as string[];
+  return out.length ? out : undefined;
+}
+
 function env(name: string, fallback?: string) {
   const v = process.env[name] ?? fallback;
   if (!v) throw new Error(`Missing env: ${name}`);
@@ -53,12 +59,15 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
       (typeof props.name === "string" && props.name) ||
       (typeof props.id === "string" && props.id) ||
       (labels[0] ? `${labels[0]} ${id}` : id);
+    const tags = asStringArray(props.tags);
 
     const node = {
       id: n.elementId as string,
       labels,
       title,
       markdown: typeof props.markdown === "string" ? (props.markdown as string) : null,
+      kind: labels[0] || "Node",
+      tags,
     };
     return NextResponse.json({ node, markdown: toMarkdown(props) });
   } finally {

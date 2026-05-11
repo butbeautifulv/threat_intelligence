@@ -27,9 +27,49 @@ a{ color: inherit; text-decoration:none; }
 .app{
   height: 100vh;
   display: grid;
-  grid-template-columns: 320px 1fr 420px;
   gap: 12px;
   padding: 12px;
+}
+
+.resizer{
+  width: 10px;
+  margin: 0 -5px;
+  cursor: col-resize;
+  position: relative;
+  z-index: 5;
+}
+.resizer::before{
+  content:"";
+  position:absolute;
+  left: 4px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.10);
+}
+.resizer:hover::before{
+  background: rgba(122,162,247,.55);
+}
+
+.toolbar{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+}
+.btn{
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.20);
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn:hover{ border-color: rgba(255,255,255,.16); }
+.btnActive{
+  border-color: rgba(122,162,247,.55);
+  background: rgba(122,162,247,.12);
 }
 
 .card{
@@ -149,4 +189,5 @@ a{ color: inherit; text-decoration:none; }
 @media (max-width: 1200px){
   .app{ grid-template-columns: 280px 1fr; grid-template-rows: 1fr 1fr; }
   .right{ grid-column: 1 / -1; }
+  .resizer{ display:none; }
 }
