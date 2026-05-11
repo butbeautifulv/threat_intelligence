@@ -21,6 +21,7 @@ const COLOR_ACCENT_DIM = 'rgba(122,162,247,.30)';
 
 export default function GraphExplorer() {
   const fgRef = useRef<any>(null);
+  const graphWrapRef = useRef<HTMLDivElement | null>(null);
   const [graph, setGraph] = useState<GraphData>({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -41,6 +42,8 @@ export default function GraphExplorer() {
   const dragRef = useRef<null | { which: 'left' | 'right'; startX: number; startLeft: number; startRight: number }>(
     null
   );
+
+  const [graphSize, setGraphSize] = useState({ w: 0, h: 0 });
 
   // canvas “Obsidian-like” knobs
   const [nodeSize, setNodeSize] = useState(5);
@@ -72,6 +75,20 @@ export default function GraphExplorer() {
       // ignore
     }
   };
+
+  // Keep canvas stable when panes are hidden/resized.
+  useEffect(() => {
+    const el = graphWrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const r = el.getBoundingClientRect();
+      const w = Math.max(0, Math.floor(r.width));
+      const h = Math.max(0, Math.floor(r.height));
+      setGraphSize((prev) => (prev.w === w && prev.h === h ? prev : { w, h }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -235,6 +252,28 @@ export default function GraphExplorer() {
     return map;
   }, [graphForViz.links]);
 
+  const bfsDepth = useMemo(() => {
+    // Depth map from currently dragged/active node: used for “connected gravity”.
+    return (rootId: string, maxDepth: number) => {
+      const depth = new Map<string, number>();
+      const q: string[] = [rootId];
+      depth.set(rootId, 0);
+      for (let i = 0; i < q.length; i++) {
+        const cur = q[i];
+        const d = depth.get(cur) ?? 0;
+        if (d >= maxDepth) continue;
+        const neigh = adjacency.get(cur);
+        if (!neigh) continue;
+        for (const n of neigh) {
+          if (depth.has(n)) continue;
+          depth.set(n, d + 1);
+          q.push(n);
+        }
+      }
+      return depth;
+    };
+  }, [adjacency]);
+
   const activeId = hoveredId || selectedId;
   const activeNeighborhood = useMemo(() => {
     if (!activeId) return null;
@@ -393,8 +432,14 @@ export default function GraphExplorer() {
         <div className="cardHeader">
           <div className="title">Graph</div>
           <div className="toolbar toolbarWrap">
-            <button className={`btn iconBtn ${freezeLayout ? 'btnActive' : ''}`} onClick={() => setFreezeLayout((v) => !v)} title="Toggle freeze">
-              F
+            <button
+              className={`btn iconBtn ${freezeLayout ? 'btnActive' : ''}`}
+              onClick={() => setFreezeLayout((v) => !v)}
+              title="Toggle freeze"
+            >
+              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2v20M4 7h16M4 17h16" />
+              </svg>
             </button>
             <button
               className="btn iconBtn"
@@ -406,9 +451,10 @@ export default function GraphExplorer() {
               }}
               title="Clear selection"
             >
-              ×
+              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
             </button>
-            <span className="pill">{filteredNodes.length}</span>
             <div className="sliderRow">
               <span>node</span>
               <input
@@ -435,10 +481,12 @@ export default function GraphExplorer() {
             </div>
           </div>
         </div>
-        <div style={{ height: 'calc(100% - 49px)' }}>
+        <div ref={graphWrapRef} style={{ height: 'calc(100% - 49px)' }}>
           <ForceGraph2D
             ref={fgRef}
             graphData={graphForViz as any}
+            width={graphSize.w || undefined}
+            height={graphSize.h || undefined}
             backgroundColor="rgba(0,0,0,0)"
             nodeLabel={(n: any) => nodeTitle(n as GraphNode)}
             nodeColor={(n: any) => {
@@ -510,7 +558,7 @@ export default function GraphExplorer() {
             }}
             enableNodeDrag
             onNodeDrag={(n: any) => {
-              // Obsidian-ish behavior: move nodes by radius with falloff (gravity-like).
+              // Obsidian-ish behavior: move CONNECTED nodes with depth falloff.
               const last = dragMoveRef.current;
               if (!last || last.id !== n.id) {
                 dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
@@ -521,14 +569,13 @@ export default function GraphExplorer() {
               dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
               if (!dx && !dy) return;
               const nodes = graphForViz.nodes as any[];
-              const R = dragRadius; // influence radius
+              const depth = bfsDepth(n.id, 3);
               for (const nn of nodes) {
                 if (!nn || nn.id === n.id || nn.labels?.includes('Category')) continue;
                 if (typeof nn.x !== 'number' || typeof nn.y !== 'number') continue;
-                const dist = Math.hypot(nn.x - n.x, nn.y - n.y);
-                if (dist > R) continue;
-                const w = Math.max(0, 1 - dist / R);
-                const k = w * w * 0.75; // quadratic falloff
+                const d = depth.get(nn.id);
+                if (d === undefined) continue;
+                const k = d === 1 ? 0.75 : d === 2 ? 0.45 : 0.25;
                 nn.x += dx * k;
                 nn.y += dy * k;
                 if (freezeLayout) {
