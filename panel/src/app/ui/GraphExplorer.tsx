@@ -31,37 +31,16 @@ export default function GraphExplorer() {
   const [selectedMarkdown, setSelectedMarkdown] = useState<string>('');
   const [freezeLayout, setFreezeLayout] = useState(true);
   const [collapsedKinds, setCollapsedKinds] = useState<Record<string, boolean>>({});
-  const dragMoveRef = useRef<{ id: string; lastX: number; lastY: number } | null>(null);
 
   // resizable panes
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [leftW, setLeftW] = useState(340);
   const [rightW, setRightW] = useState(440);
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
   const dragRef = useRef<null | { which: 'left' | 'right'; startX: number; startLeft: number; startRight: number }>(
     null
   );
 
   const [graphSize, setGraphSize] = useState({ w: 0, h: 0 });
-
-  const freezeNow = () => {
-    const fg = fgRef.current;
-    if (!fg) return;
-    try {
-      const data = fg.graphData?.();
-      const nodes: any[] = data?.nodes || [];
-      for (const n of nodes) {
-        if (!n || n.labels?.includes('Category')) continue;
-        if (typeof n.x !== 'number' || typeof n.y !== 'number') continue;
-        n.fx = n.x;
-        n.fy = n.y;
-      }
-    } catch {
-      // ignore
-    }
-    setFreezeLayout(true);
-  };
 
   // canvas “Obsidian-like” knobs
   const [nodeSize, setNodeSize] = useState(5);
@@ -267,28 +246,6 @@ export default function GraphExplorer() {
     return map;
   }, [graphForViz.links]);
 
-  const bfsDepth = useMemo(() => {
-    // Depth map from currently dragged/active node: used for “connected gravity”.
-    return (rootId: string, maxDepth: number) => {
-      const depth = new Map<string, number>();
-      const q: string[] = [rootId];
-      depth.set(rootId, 0);
-      for (let i = 0; i < q.length; i++) {
-        const cur = q[i];
-        const d = depth.get(cur) ?? 0;
-        if (d >= maxDepth) continue;
-        const neigh = adjacency.get(cur);
-        if (!neigh) continue;
-        for (const n of neigh) {
-          if (depth.has(n)) continue;
-          depth.set(n, d + 1);
-          q.push(n);
-        }
-      }
-      return depth;
-    };
-  }, [adjacency]);
-
   const activeId = hoveredId || selectedId;
   const activeNeighborhood = useMemo(() => {
     if (!activeId) return null;
@@ -324,16 +281,14 @@ export default function GraphExplorer() {
     const t = window.setTimeout(() => focusNode(selectedId), 50);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leftW, rightW, leftCollapsed, rightCollapsed, selectedId]);
+  }, [leftW, rightW, selectedId]);
 
   return (
     <div
       className="app"
       ref={wrapRef}
       style={{
-        gridTemplateColumns: `${leftCollapsed ? 44 : leftW}px ${leftCollapsed ? 0 : 10}px 1fr ${rightCollapsed ? 0 : 10}px ${
-          rightCollapsed ? 44 : rightW
-        }px`,
+        gridTemplateColumns: `${leftW}px 10px 1fr 10px ${rightW}px`,
       }}
     >
       <section className="card" style={{ minHeight: 0 }}>
@@ -367,19 +322,9 @@ export default function GraphExplorer() {
             >
               −
             </button>
-            <button
-              className="btn iconBtn"
-              onClick={() => {
-                freezeNow();
-                setLeftCollapsed(true);
-              }}
-              title="Hide left pane"
-            >
-              ‹
-            </button>
           </div>
         </div>
-        <div className="content" style={{ display: leftCollapsed ? 'none' : 'block' }}>
+        <div className="content">
           <input
             className="input"
             value={q}
@@ -431,25 +376,10 @@ export default function GraphExplorer() {
           </div>
           {!filteredNodes.length && <div className="hint">No matches.</div>}
         </div>
-        {leftCollapsed && (
-          <div className="dock">
-            <button
-              className="btn iconBtn"
-              onClick={() => {
-                freezeNow();
-                setLeftCollapsed(false);
-              }}
-              title="Show left pane"
-            >
-              ›
-            </button>
-          </div>
-        )}
       </section>
 
       <div
         className="resizer"
-        style={{ display: leftCollapsed ? 'none' : 'block' }}
         onMouseDown={(e) => {
           dragRef.current = { which: 'left', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -587,49 +517,35 @@ export default function GraphExplorer() {
             }}
             enableNodeDrag
             onNodeDrag={(n: any) => {
-              // Obsidian-ish behavior: move CONNECTED nodes with depth+distance falloff.
-              const last = dragMoveRef.current;
-              if (!last || last.id !== n.id) {
-                dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
-                return;
-              }
-              const dx = n.x - last.lastX;
-              const dy = n.y - last.lastY;
-              dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
-              if (!dx && !dy) return;
-              const nodes = graphForViz.nodes as any[];
-              const depth = bfsDepth(n.id, 3);
-              for (const nn of nodes) {
-                if (!nn || nn.id === n.id || nn.labels?.includes('Category')) continue;
-                if (typeof nn.x !== 'number' || typeof nn.y !== 'number') continue;
-                const d = depth.get(nn.id);
-                if (d === undefined) continue;
-                const dist = Math.hypot(nn.x - n.x, nn.y - n.y);
-                const R = dragRadius;
-                const w = Math.max(0, 1 - dist / R);
-                const byDepth = d === 1 ? 1 : d === 2 ? 0.55 : 0.28;
-                const k = byDepth * (w * w) * 0.85;
-                nn.x += dx * k;
-                nn.y += dy * k;
-                if (freezeLayout) {
-                  nn.fx = nn.x;
-                  nn.fy = nn.y;
-                }
-              }
-            }}
-            onNodeDragEnd={(n: any) => {
-              dragMoveRef.current = null;
-              if (!freezeLayout) return;
+              // Keep the dragged node pinned to cursor. No “neighbor gravity” here.
               n.fx = n.x;
               n.fy = n.y;
+            }}
+            onNodeDragEnd={(n: any) => {
+              const fg = fgRef.current;
               try {
-                const raw = localStorage.getItem('ti:graph:pos:v1') || '{}';
-                const parsed = JSON.parse(raw) as Record<string, { x: number; y: number }>;
-                parsed[n.id] = { x: n.x, y: n.y };
-                localStorage.setItem('ti:graph:pos:v1', JSON.stringify(parsed));
+                fg?.d3AlphaTarget?.(0);
               } catch {
                 // ignore
               }
+              if (freezeLayout) {
+                n.fx = n.x;
+                n.fy = n.y;
+              } else {
+                n.fx = null;
+                n.fy = null;
+              }
+            }}
+            onNodeDragStart={(n: any) => {
+              const fg = fgRef.current;
+              try {
+                fg?.d3AlphaTarget?.(0.2);
+                fg?.d3ReheatSimulation?.();
+              } catch {
+                // ignore
+              }
+              n.fx = n.x;
+              n.fy = n.y;
             }}
           />
         </div>
@@ -637,7 +553,6 @@ export default function GraphExplorer() {
 
       <div
         className="resizer"
-        style={{ display: rightCollapsed ? 'none' : 'block' }}
         onMouseDown={(e) => {
           dragRef.current = { which: 'right', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -650,19 +565,9 @@ export default function GraphExplorer() {
           <div className="title">Markdown</div>
           <div className="toolbar">
             {selected ? <span className="pill">{selected.labels[0] ?? 'Node'}</span> : <span className="pill">none</span>}
-            <button
-              className="btn iconBtn"
-              onClick={() => {
-                freezeNow();
-                setRightCollapsed(true);
-              }}
-              title="Hide right pane"
-            >
-              ›
-            </button>
           </div>
         </div>
-        <div className="content" style={{ display: rightCollapsed ? 'none' : 'block' }}>
+        <div className="content">
           {!selectedId && <div className="hint">Click a node to render its markdown (or fall back to properties).</div>}
           {selectedId && !selected && <div className="hint">Loading…</div>}
           {selected && (
@@ -681,20 +586,6 @@ export default function GraphExplorer() {
             </>
           )}
         </div>
-        {rightCollapsed && (
-          <div className="dock">
-            <button
-              className="btn iconBtn"
-              onClick={() => {
-                freezeNow();
-                setRightCollapsed(false);
-              }}
-              title="Show right pane"
-            >
-              ‹
-            </button>
-          </div>
-        )}
       </section>
     </div>
   );
