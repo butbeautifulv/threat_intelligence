@@ -11,25 +11,13 @@ function nodeTitle(n: GraphNode) {
   return n.title || n.id;
 }
 
-const PALETTE = [
-  '#8aa2c8',
-  '#7aa2f7',
-  '#2dd4bf',
-  '#a6e3a1',
-  '#f2cdcd',
-  '#f9e2af',
-  '#cba6f7',
-  '#94e2d5',
-];
-
-function stableColor(key: string) {
-  let h = 2166136261;
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return PALETTE[Math.abs(h) % PALETTE.length];
-}
+const COLOR_NODE = 'rgba(230,237,247,.85)'; // default white-ish
+const COLOR_NODE_DIM = 'rgba(230,237,247,.14)';
+const COLOR_NODE_NEIGH = 'rgba(230,237,247,.55)';
+const COLOR_EDGE = 'rgba(255,255,255,.12)';
+const COLOR_EDGE_DIM = 'rgba(255,255,255,.05)';
+const COLOR_ACCENT = 'rgba(122,162,247,.95)';
+const COLOR_ACCENT_DIM = 'rgba(122,162,247,.30)';
 
 export default function GraphExplorer() {
   const fgRef = useRef<any>(null);
@@ -213,6 +201,12 @@ export default function GraphExplorer() {
     return map;
   }, [graphForViz.links]);
 
+  const selectedNeighborhood = useMemo(() => {
+    if (!selectedId) return null;
+    const neigh = adjacency.get(selectedId) || new Set<string>();
+    return { id: selectedId, neigh };
+  }, [adjacency, selectedId]);
+
   // Tune forces once (do NOT reapply on every render/click).
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -257,7 +251,7 @@ export default function GraphExplorer() {
         <div className="cardHeader">
           <div className="title">Nodes</div>
           <div className="toolbar">
-            <span className="pill">{loading ? 'loading…' : `${graph.nodes.length} total`}</span>
+            <span className="pill">{loading ? 'loading…' : `${graph.nodes.length}`}</span>
             <button
               className="btn"
               onClick={() => {
@@ -268,7 +262,7 @@ export default function GraphExplorer() {
                 });
               }}
             >
-              Expand all
+              +
             </button>
             <button
               className="btn"
@@ -280,7 +274,7 @@ export default function GraphExplorer() {
                 });
               }}
             >
-              Collapse all
+              −
             </button>
           </div>
         </div>
@@ -365,11 +359,28 @@ export default function GraphExplorer() {
             nodeLabel={(n: any) => nodeTitle(n as GraphNode)}
             nodeColor={(n: any) => {
               const labels: string[] = n.labels || [];
-              if (labels.includes('Category')) return 'rgba(230,237,247,.65)';
-              return stableColor(String(n.kind ?? labels?.[0] ?? 'Node'));
+              if (labels.includes('Category')) return 'rgba(230,237,247,.55)';
+              if (!selectedNeighborhood) return COLOR_NODE;
+              if (n.id === selectedNeighborhood.id) return COLOR_ACCENT;
+              if (selectedNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
+              return COLOR_NODE_DIM;
             }}
-            linkColor={() => 'rgba(255,255,255,.20)'}
-            linkWidth={1}
+            linkColor={(l: any) => {
+              if (!selectedNeighborhood) return COLOR_EDGE;
+              const s = typeof l.source === 'string' ? l.source : l.source?.id;
+              const t = typeof l.target === 'string' ? l.target : l.target?.id;
+              const sel = selectedNeighborhood.id;
+              if (s === sel || t === sel) return COLOR_ACCENT_DIM;
+              if (selectedNeighborhood.neigh.has(String(s)) && selectedNeighborhood.neigh.has(String(t))) return 'rgba(255,255,255,.09)';
+              return COLOR_EDGE_DIM;
+            }}
+            linkWidth={(l: any) => {
+              if (!selectedNeighborhood) return 1;
+              const s = typeof l.source === 'string' ? l.source : l.source?.id;
+              const t = typeof l.target === 'string' ? l.target : l.target?.id;
+              const sel = selectedNeighborhood.id;
+              return s === sel || t === sel ? 2 : 1;
+            }}
             onNodeClick={(n: any) => setSelectedId((n as GraphNode).id)}
             cooldownTicks={freezeLayout ? 120 : 0}
             d3AlphaDecay={freezeLayout ? 0.03 : 0.02}
@@ -408,7 +419,7 @@ export default function GraphExplorer() {
             }}
             enableNodeDrag
             onNodeDrag={(n: any) => {
-              // Obsidian-ish behavior: move immediate neighbors with the dragged node.
+              // Obsidian-ish behavior: move nodes by radius with falloff (gravity-like).
               const last = dragMoveRef.current;
               if (!last || last.id !== n.id) {
                 dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
@@ -418,13 +429,17 @@ export default function GraphExplorer() {
               const dy = n.y - last.lastY;
               dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
               if (!dx && !dy) return;
-              const neigh = adjacency.get(n.id);
-              if (!neigh) return;
-              for (const id of neigh) {
-                const nn = (graphForViz.nodes as any[]).find((x) => x.id === id);
-                if (!nn || nn.labels?.includes('Category')) continue;
-                nn.x += dx * 0.85;
-                nn.y += dy * 0.85;
+              const nodes = graphForViz.nodes as any[];
+              const R = 220; // influence radius
+              for (const nn of nodes) {
+                if (!nn || nn.id === n.id || nn.labels?.includes('Category')) continue;
+                if (typeof nn.x !== 'number' || typeof nn.y !== 'number') continue;
+                const dist = Math.hypot(nn.x - n.x, nn.y - n.y);
+                if (dist > R) continue;
+                const w = Math.max(0, 1 - dist / R);
+                const k = w * w * 0.75; // quadratic falloff
+                nn.x += dx * k;
+                nn.y += dy * k;
                 if (freezeLayout) {
                   nn.fx = nn.x;
                   nn.fy = nn.y;
