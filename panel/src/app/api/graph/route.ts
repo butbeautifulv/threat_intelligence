@@ -1,6 +1,11 @@
 import neo4j from "neo4j-driver";
 import { NextResponse } from "next/server";
 
+function clampInt(n: number, min: number, max: number) {
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, Math.trunc(n)));
+}
+
 function asStringArray(v: unknown): string[] | undefined {
   if (!Array.isArray(v)) return undefined;
   const out = v.filter((x) => typeof x === "string") as string[];
@@ -60,17 +65,25 @@ function getDriver() {
   return neo4j.driver(uri, neo4j.auth.basic(user, pass));
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const maxLimit = clampInt(Number(process.env.PANEL_GRAPH_MAX_LIMIT ?? "5000"), 100, 50_000);
+  const defaultLimit = clampInt(Number(process.env.PANEL_GRAPH_DEFAULT_LIMIT ?? "2000"), 100, maxLimit);
+  const requestedLimit = url.searchParams.get("limit");
+  const limit = requestedLimit ? clampInt(Number(requestedLimit), 1, maxLimit) : defaultLimit;
+
   const driver = getDriver();
   const session = driver.session({ database: process.env.NEO4J_DB || "neo4j" });
   try {
     const res = await session.run(
       `
       MATCH (n)
-      WITH n LIMIT 400
+      WITH n LIMIT $limit
       OPTIONAL MATCH (n)-[r]->(m)
       RETURN n, collect(distinct { id: elementId(r), type: type(r), source: elementId(n), target: elementId(m) }) AS rels
-      `
+      `,
+      // Neo4j requires LIMIT parameter to be an Integer (not Float).
+      { limit: neo4j.int(limit) }
     );
 
     const nodes: Array<{
