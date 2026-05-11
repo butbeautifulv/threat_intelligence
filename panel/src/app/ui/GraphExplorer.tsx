@@ -143,14 +143,22 @@ export default function GraphExplorer() {
     function onMove(e: MouseEvent) {
       const d = dragRef.current;
       if (!d) return;
+      const el = wrapRef.current;
+      if (!el) return;
+      const total = el.getBoundingClientRect().width;
       const dx = e.clientX - d.startX;
       const minLeft = 260;
       const minRight = 320;
+      const minCenter = 520;
       if (d.which === 'left') {
-        const next = Math.max(minLeft, d.startLeft + dx);
+        const raw = d.startLeft + dx;
+        const maxLeft = Math.max(minLeft, total - minRight - minCenter - 20); // 20px = gutters/resizers
+        const next = Math.max(minLeft, Math.min(maxLeft, raw));
         setLeftW(next);
       } else {
-        const next = Math.max(minRight, d.startRight - dx);
+        const raw = d.startRight - dx;
+        const maxRight = Math.max(minRight, total - minLeft - minCenter - 20);
+        const next = Math.max(minRight, Math.min(maxRight, raw));
         setRightW(next);
       }
     }
@@ -297,7 +305,7 @@ export default function GraphExplorer() {
         <div className="cardHeader">
           <div className="title">Nodes</div>
           <div className="toolbar toolbarWrap">
-            <span className="pill">{loading ? 'loading…' : `${graph.nodes.length}`}</span>
+            <span className="pill">{loading ? '0' : `${graph.nodes.length}`}</span>
             <button
               className="btn iconBtn"
               onClick={() => {
@@ -309,7 +317,9 @@ export default function GraphExplorer() {
               }}
               title="Expand all kinds"
             >
-              +
+              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             </button>
             <button
               className="btn iconBtn"
@@ -322,7 +332,9 @@ export default function GraphExplorer() {
               }}
               title="Collapse all kinds"
             >
-              −
+              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h14" />
+              </svg>
             </button>
           </div>
         </div>
@@ -353,7 +365,7 @@ export default function GraphExplorer() {
                     tabIndex={0}
                   >
                     <div className="folderLeft">
-                      <span className="caret">{collapsed ? '+' : '−'}</span>
+                      <span className="caret">{collapsed ? '›' : '⌄'}</span>
                       <div className="folderName">{kind}</div>
                       <span className="pill">{nodes.length}</span>
                     </div>
@@ -402,7 +414,10 @@ export default function GraphExplorer() {
           <div className="toolbar toolbarWrap">
             <button className="btn iconBtn" onClick={clearActive} title="Reset">
               <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 6v12M6 12h12" />
+                <path d="M3 12a9 9 0 0 1 15.36-6.36" />
+                <path d="M21 12a9 9 0 0 1-15.36 6.36" />
+                <path d="M18 3v4h-4" />
+                <path d="M6 21v-4h4" />
               </svg>
             </button>
             <div className="sliderRow">
@@ -565,7 +580,7 @@ export default function GraphExplorer() {
 
       <section className="card right" style={{ minHeight: 0 }}>
         <div className="cardHeader">
-          <div className="title">Markdown</div>
+          <div className="title">Description</div>
           <div className="toolbar">
             {selected ? <span className="pill">{selected.labels[0] ?? 'Node'}</span> : <span className="pill">none</span>}
           </div>
