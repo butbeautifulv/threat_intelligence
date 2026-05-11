@@ -57,6 +57,9 @@ a{ color: inherit; text-decoration:none; }
   align-items:center;
   gap: 8px;
 }
+.toolbarWrap{
+  flex-wrap: wrap;
+}
 .btn{
   border: 1px solid var(--border);
   background: rgba(0,0,0,.20);
@@ -221,6 +224,18 @@ a{ color: inherit; text-decoration:none; }
 .hint{
   color: var(--muted);
   font-size: 13px;
+}
+
+.sliderRow{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.slider{
+  width: 140px;
 }
 
 @media (max-width: 1200px){

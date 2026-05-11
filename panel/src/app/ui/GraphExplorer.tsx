@@ -25,6 +25,7 @@ export default function GraphExplorer() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selected, setSelected] = useState<GraphNode | null>(null);
   const [selectedMarkdown, setSelectedMarkdown] = useState<string>('');
   const [freezeLayout, setFreezeLayout] = useState(true);
@@ -35,9 +36,19 @@ export default function GraphExplorer() {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [leftW, setLeftW] = useState(340);
   const [rightW, setRightW] = useState(440);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
   const dragRef = useRef<null | { which: 'left' | 'right'; startX: number; startLeft: number; startRight: number }>(
     null
   );
+
+  // canvas “Obsidian-like” knobs
+  const [nodeSize, setNodeSize] = useState(5);
+  const [baseLinkWidth, setBaseLinkWidth] = useState(1);
+  const [chargeStrength, setChargeStrength] = useState(-55);
+  const [linkDistance, setLinkDistance] = useState(32);
+  const [clampRadius, setClampRadius] = useState(650);
+  const [dragRadius, setDragRadius] = useState(220);
 
   const focusNode = (id: string) => {
     const fg = fgRef.current;
@@ -224,11 +235,12 @@ export default function GraphExplorer() {
     return map;
   }, [graphForViz.links]);
 
-  const selectedNeighborhood = useMemo(() => {
-    if (!selectedId) return null;
-    const neigh = adjacency.get(selectedId) || new Set<string>();
-    return { id: selectedId, neigh };
-  }, [adjacency, selectedId]);
+  const activeId = hoveredId || selectedId;
+  const activeNeighborhood = useMemo(() => {
+    if (!activeId) return null;
+    const neigh = adjacency.get(activeId) || new Set<string>();
+    return { id: activeId, neigh, isHover: Boolean(hoveredId) };
+  }, [adjacency, activeId, hoveredId]);
 
   // Tune forces once (do NOT reapply on every render/click).
   useEffect(() => {
@@ -236,14 +248,14 @@ export default function GraphExplorer() {
       const fg = fgRef.current;
       if (!fg?.d3Force) return;
       try {
-        fg.d3Force('charge')?.strength(-55);
-        fg.d3Force('link')?.distance(32);
+        fg.d3Force('charge')?.strength(chargeStrength);
+        fg.d3Force('link')?.distance(linkDistance);
       } catch {
         // ignore
       }
     }, 0);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [chargeStrength, linkDistance]);
 
   // When selecting from browser, center/zoom to node position.
   useEffect(() => {
@@ -258,20 +270,22 @@ export default function GraphExplorer() {
     const t = window.setTimeout(() => focusNode(selectedId), 50);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leftW, rightW, selectedId]);
+  }, [leftW, rightW, leftCollapsed, rightCollapsed, selectedId]);
 
   return (
     <div
       className="app"
       ref={wrapRef}
       style={{
-        gridTemplateColumns: `${leftW}px 10px 1fr 10px ${rightW}px`,
+        gridTemplateColumns: `${leftCollapsed ? 0 : leftW}px ${leftCollapsed ? 0 : 10}px 1fr ${rightCollapsed ? 0 : 10}px ${
+          rightCollapsed ? 0 : rightW
+        }px`,
       }}
     >
-      <section className="card">
+      <section className="card" style={{ display: leftCollapsed ? 'none' : 'block' }}>
         <div className="cardHeader">
           <div className="title">Nodes</div>
-          <div className="toolbar">
+          <div className="toolbar toolbarWrap">
             <span className="pill">{loading ? 'loading…' : `${graph.nodes.length}`}</span>
             <button
               className="btn"
@@ -296,6 +310,9 @@ export default function GraphExplorer() {
               }}
             >
               −
+            </button>
+            <button className="btn" onClick={() => setLeftCollapsed(true)}>
+              Hide
             </button>
           </div>
         </div>
@@ -355,6 +372,7 @@ export default function GraphExplorer() {
 
       <div
         className="resizer"
+        style={{ display: leftCollapsed ? 'none' : 'block' }}
         onMouseDown={(e) => {
           dragRef.current = { which: 'left', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -365,11 +383,56 @@ export default function GraphExplorer() {
       <section className="card">
         <div className="cardHeader">
           <div className="title">Graph</div>
-          <div className="toolbar">
+          <div className="toolbar toolbarWrap">
+            {leftCollapsed && (
+              <button className="btn" onClick={() => setLeftCollapsed(false)}>
+                Show left
+              </button>
+            )}
             <button className={`btn ${freezeLayout ? 'btnActive' : ''}`} onClick={() => setFreezeLayout((v) => !v)}>
               {freezeLayout ? 'Frozen' : 'Free'}
             </button>
+            {rightCollapsed && (
+              <button className="btn" onClick={() => setRightCollapsed(false)}>
+                Show right
+              </button>
+            )}
+            <button
+              className="btn"
+              onClick={() => {
+                setSelectedId(null);
+                setHoveredId(null);
+                setSelected(null);
+                setSelectedMarkdown('');
+              }}
+            >
+              Clear
+            </button>
             <span className="pill">{filteredNodes.length} shown</span>
+            <div className="sliderRow">
+              <span>node</span>
+              <input
+                className="slider"
+                type="range"
+                min={3}
+                max={10}
+                value={nodeSize}
+                onChange={(e) => setNodeSize(Number(e.target.value))}
+              />
+              <span>{nodeSize}</span>
+            </div>
+            <div className="sliderRow">
+              <span>link</span>
+              <input
+                className="slider"
+                type="range"
+                min={1}
+                max={4}
+                value={baseLinkWidth}
+                onChange={(e) => setBaseLinkWidth(Number(e.target.value))}
+              />
+              <span>{baseLinkWidth}</span>
+            </div>
           </div>
         </div>
         <div style={{ height: 'calc(100% - 49px)' }}>
@@ -381,32 +444,39 @@ export default function GraphExplorer() {
             nodeColor={(n: any) => {
               const labels: string[] = n.labels || [];
               if (labels.includes('Category')) return 'rgba(230,237,247,.55)';
-              if (!selectedNeighborhood) return COLOR_NODE;
-              if (n.id === selectedNeighborhood.id) return COLOR_ACCENT;
-              if (selectedNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
+              if (!activeNeighborhood) return COLOR_NODE;
+              if (n.id === activeNeighborhood.id) return COLOR_ACCENT;
+              if (activeNeighborhood.neigh.has(n.id)) return COLOR_NODE_NEIGH;
               return COLOR_NODE_DIM;
             }}
             linkColor={(l: any) => {
-              if (!selectedNeighborhood) return COLOR_EDGE;
+              if (!activeNeighborhood) return COLOR_EDGE;
               const s = typeof l.source === 'string' ? l.source : l.source?.id;
               const t = typeof l.target === 'string' ? l.target : l.target?.id;
-              const sel = selectedNeighborhood.id;
+              const sel = activeNeighborhood.id;
               if (s === sel || t === sel) return COLOR_ACCENT_DIM;
-              if (selectedNeighborhood.neigh.has(String(s)) && selectedNeighborhood.neigh.has(String(t))) return 'rgba(255,255,255,.09)';
+              if (activeNeighborhood.neigh.has(String(s)) && activeNeighborhood.neigh.has(String(t))) return 'rgba(255,255,255,.09)';
               return COLOR_EDGE_DIM;
             }}
             linkWidth={(l: any) => {
-              if (!selectedNeighborhood) return 1;
+              if (!activeNeighborhood) return baseLinkWidth;
               const s = typeof l.source === 'string' ? l.source : l.source?.id;
               const t = typeof l.target === 'string' ? l.target : l.target?.id;
-              const sel = selectedNeighborhood.id;
-              return s === sel || t === sel ? 2 : 1;
+              const sel = activeNeighborhood.id;
+              return s === sel || t === sel ? Math.max(2, baseLinkWidth + 1) : baseLinkWidth;
             }}
             onNodeClick={(n: any) => setSelectedId((n as GraphNode).id)}
+            onNodeHover={(n: any) => setHoveredId(n?.id ?? null)}
+            onBackgroundClick={() => {
+              setSelectedId(null);
+              setHoveredId(null);
+              setSelected(null);
+              setSelectedMarkdown('');
+            }}
             cooldownTicks={freezeLayout ? 120 : 0}
             d3AlphaDecay={freezeLayout ? 0.03 : 0.02}
             d3VelocityDecay={0.35}
-            nodeRelSize={5}
+            nodeRelSize={nodeSize}
             nodeVal={(n: any) => (n.labels?.includes('Category') ? 4 : 1)}
             nodeCanvasObjectMode={() => 'after'}
             nodeCanvasObject={(n: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -422,7 +492,7 @@ export default function GraphExplorer() {
             onEngineTick={() => {
               // Soft clamp to keep nodes near center (prevents “flyaway” beyond viewport).
               const nodes = graphForViz.nodes as any[];
-              const R = 650;
+              const R = clampRadius;
               for (const n of nodes) {
                 if (!n || n.labels?.includes('Category')) continue;
                 if (typeof n.x !== 'number' || typeof n.y !== 'number') continue;
@@ -451,7 +521,7 @@ export default function GraphExplorer() {
               dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
               if (!dx && !dy) return;
               const nodes = graphForViz.nodes as any[];
-              const R = 220; // influence radius
+              const R = dragRadius; // influence radius
               for (const nn of nodes) {
                 if (!nn || nn.id === n.id || nn.labels?.includes('Category')) continue;
                 if (typeof nn.x !== 'number' || typeof nn.y !== 'number') continue;
@@ -487,6 +557,7 @@ export default function GraphExplorer() {
 
       <div
         className="resizer"
+        style={{ display: rightCollapsed ? 'none' : 'block' }}
         onMouseDown={(e) => {
           dragRef.current = { which: 'right', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -494,10 +565,15 @@ export default function GraphExplorer() {
         aria-label="Resize right pane"
       />
 
-      <section className="card right">
+      <section className="card right" style={{ display: rightCollapsed ? 'none' : 'block' }}>
         <div className="cardHeader">
           <div className="title">Markdown</div>
-          {selected ? <span className="pill">{selected.labels[0] ?? 'Node'}</span> : <span className="pill">none</span>}
+          <div className="toolbar">
+            {selected ? <span className="pill">{selected.labels[0] ?? 'Node'}</span> : <span className="pill">none</span>}
+            <button className="btn" onClick={() => setRightCollapsed(true)}>
+              Hide
+            </button>
+          </div>
         </div>
         <div className="content">
           {!selectedId && <div className="hint">Click a node to render its markdown (or fall back to properties).</div>}
