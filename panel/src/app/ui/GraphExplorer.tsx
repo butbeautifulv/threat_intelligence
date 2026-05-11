@@ -11,6 +11,26 @@ function nodeTitle(n: GraphNode) {
   return n.title || n.id;
 }
 
+const PALETTE = [
+  '#8aa2c8',
+  '#7aa2f7',
+  '#2dd4bf',
+  '#a6e3a1',
+  '#f2cdcd',
+  '#f9e2af',
+  '#cba6f7',
+  '#94e2d5',
+];
+
+function stableColor(key: string) {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
 export default function GraphExplorer() {
   const fgRef = useRef<any>(null);
   const [graph, setGraph] = useState<GraphData>({ nodes: [], edges: [] });
@@ -21,6 +41,7 @@ export default function GraphExplorer() {
   const [selectedMarkdown, setSelectedMarkdown] = useState<string>('');
   const [freezeLayout, setFreezeLayout] = useState(true);
   const [collapsedKinds, setCollapsedKinds] = useState<Record<string, boolean>>({});
+  const dragMoveRef = useRef<{ id: string; lastX: number; lastY: number } | null>(null);
 
   // resizable panes
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -37,7 +58,27 @@ export default function GraphExplorer() {
       try {
         const res = await fetch('/api/graph');
         const data = (await res.json()) as GraphData;
-        if (!cancelled) setGraph(data);
+        if (!cancelled) {
+          // Pin category hubs near the center (Obsidian-like “clusters”).
+          const cats = data.nodes.filter((n) => n.labels?.includes('Category'));
+          const angleStep = (Math.PI * 2) / Math.max(1, cats.length);
+          const catPos = new Map<string, { x: number; y: number }>();
+          cats.forEach((n, idx) => {
+            const a = idx * angleStep;
+            const r = 70;
+            catPos.set(n.id, { x: Math.cos(a) * r, y: Math.sin(a) * r });
+          });
+          setGraph({
+            ...data,
+            nodes: data.nodes.map((n: any) => {
+              if (n.labels?.includes('Category')) {
+                const p = catPos.get(n.id) || { x: 0, y: 0 };
+                return { ...n, x: p.x, y: p.y, fx: p.x, fy: p.y };
+              }
+              return n;
+            }),
+          });
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -145,23 +186,47 @@ export default function GraphExplorer() {
     return sorted.map(([k, nodes]) => [k, nodes.slice(0, 200)] as const);
   }, [filteredNodes]);
 
+  const allKinds = useMemo(() => {
+    return Array.from(new Set(graph.nodes.map((n) => n.kind || n.labels?.[0] || 'Node'))).sort();
+  }, [graph.nodes]);
+
   const graphForViz = useMemo(() => {
     const nodeSet = new Set(filteredNodes.map((n) => n.id));
     const edges = graph.edges.filter((e) => nodeSet.has(e.source) && nodeSet.has(e.target));
     return { nodes: filteredNodes, links: edges.map((e) => ({ ...e, source: e.source, target: e.target })) };
   }, [filteredNodes, graph.edges]);
 
-  // Tune forces to avoid “flyaway” nodes.
-  useEffect(() => {
-    const fg = fgRef.current;
-    if (!fg?.d3Force) return;
-    try {
-      fg.d3Force('charge')?.strength(-80);
-      fg.d3Force('link')?.distance(40);
-    } catch {
-      // ignore
+  const adjacency = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    const add = (a: string, b: string) => {
+      const s = map.get(a) || new Set<string>();
+      s.add(b);
+      map.set(a, s);
+    };
+    for (const e of graphForViz.links as any[]) {
+      const s = typeof e.source === 'string' ? e.source : e.source?.id;
+      const t = typeof e.target === 'string' ? e.target : e.target?.id;
+      if (!s || !t) continue;
+      add(s, t);
+      add(t, s);
     }
-  }, [graphForViz]);
+    return map;
+  }, [graphForViz.links]);
+
+  // Tune forces once (do NOT reapply on every render/click).
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const fg = fgRef.current;
+      if (!fg?.d3Force) return;
+      try {
+        fg.d3Force('charge')?.strength(-55);
+        fg.d3Force('link')?.distance(32);
+      } catch {
+        // ignore
+      }
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // When selecting from browser, center/zoom to node position.
   useEffect(() => {
@@ -171,8 +236,10 @@ export default function GraphExplorer() {
     const n = (graphForViz.nodes as any[]).find((x) => x.id === selectedId);
     if (!n || typeof n.x !== 'number' || typeof n.y !== 'number') return;
     try {
-      fg.centerAt(n.x, n.y, 500);
-      fg.zoom(3, 500);
+      // Keep this subtle to avoid “jerk”: center always; zoom only if far out.
+      fg.centerAt(n.x, n.y, 350);
+      const z = typeof fg.zoom === 'function' ? fg.zoom() : 1;
+      if (typeof z === 'number' && z < 2.2) fg.zoom(2.2, 350);
     } catch {
       // ignore
     }
@@ -196,7 +263,7 @@ export default function GraphExplorer() {
               onClick={() => {
                 setCollapsedKinds((prev) => {
                   const next: Record<string, boolean> = { ...prev };
-                  for (const [k] of kindFolders) next[k] = false;
+                  for (const k of allKinds) next[k] = false;
                   return next;
                 });
               }}
@@ -208,7 +275,7 @@ export default function GraphExplorer() {
               onClick={() => {
                 setCollapsedKinds((prev) => {
                   const next: Record<string, boolean> = { ...prev };
-                  for (const [k] of kindFolders) next[k] = true;
+                  for (const k of allKinds) next[k] = true;
                   return next;
                 });
               }}
@@ -296,14 +363,55 @@ export default function GraphExplorer() {
             graphData={graphForViz as any}
             backgroundColor="rgba(0,0,0,0)"
             nodeLabel={(n: any) => nodeTitle(n as GraphNode)}
-            nodeAutoColorBy={(n: any) => (n.kind ?? n.labels?.[0] ?? 'Node')}
+            nodeColor={(n: any) => {
+              const labels: string[] = n.labels || [];
+              if (labels.includes('Category')) return 'rgba(230,237,247,.65)';
+              return stableColor(String(n.kind ?? labels?.[0] ?? 'Node'));
+            }}
             linkColor={() => 'rgba(255,255,255,.20)'}
             linkWidth={1}
             onNodeClick={(n: any) => setSelectedId((n as GraphNode).id)}
             cooldownTicks={freezeLayout ? 120 : 0}
             d3AlphaDecay={freezeLayout ? 0.03 : 0.02}
+            nodeRelSize={5}
+            nodeVal={(n: any) => (n.labels?.includes('Category') ? 4 : 1)}
+            nodeCanvasObject={(n: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+              if (!n.labels?.includes('Category')) return;
+              const label = String(n.title || n.id);
+              const fontSize = Math.max(10, 16 / globalScale);
+              ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui`;
+              ctx.fillStyle = 'rgba(230,237,247,.75)';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(label, n.x, n.y);
+            }}
             enableNodeDrag
+            onNodeDrag={(n: any) => {
+              // Obsidian-ish behavior: move immediate neighbors with the dragged node.
+              const last = dragMoveRef.current;
+              if (!last || last.id !== n.id) {
+                dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
+                return;
+              }
+              const dx = n.x - last.lastX;
+              const dy = n.y - last.lastY;
+              dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
+              if (!dx && !dy) return;
+              const neigh = adjacency.get(n.id);
+              if (!neigh) return;
+              for (const id of neigh) {
+                const nn = (graphForViz.nodes as any[]).find((x) => x.id === id);
+                if (!nn || nn.labels?.includes('Category')) continue;
+                nn.x += dx * 0.85;
+                nn.y += dy * 0.85;
+                if (freezeLayout) {
+                  nn.fx = nn.x;
+                  nn.fy = nn.y;
+                }
+              }
+            }}
             onNodeDragEnd={(n: any) => {
+              dragMoveRef.current = null;
               if (!freezeLayout) return;
               n.fx = n.x;
               n.fy = n.y;
