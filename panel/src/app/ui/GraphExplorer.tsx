@@ -240,6 +240,13 @@ export default function GraphExplorer() {
     return { id: activeId, neigh, isHover: Boolean(hoveredId) };
   }, [adjacency, activeId, hoveredId]);
 
+  const clearActive = () => {
+    setSelectedId(null);
+    setHoveredId(null);
+    setSelected(null);
+    setSelectedMarkdown('');
+  };
+
   // Tune forces (safe to update; does not recreate graph).
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -252,8 +259,8 @@ export default function GraphExplorer() {
           'collide',
           forceCollide((n: any) => {
             // Category hubs are larger; nodes repel within their radius (Obsidian-like).
-            const base = n?.labels?.includes('Category') ? 26 : 10;
-            return base + nodeSize * 0.9;
+            const base = n?.labels?.includes('Category') ? 30 : 18;
+            return base + nodeSize * 1.2;
           }).strength(0.8)
         );
       } catch {
@@ -393,6 +400,11 @@ export default function GraphExplorer() {
         <div className="cardHeader">
           <div className="title">Graph</div>
           <div className="toolbar toolbarWrap">
+            <button className="btn iconBtn" onClick={clearActive} title="Reset">
+              <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 6v12M6 12h12" />
+              </svg>
+            </button>
             <div className="sliderRow">
               <span>node</span>
               <input
@@ -441,10 +453,7 @@ export default function GraphExplorer() {
             onNodeClick={(n: any) => setSelectedId((n as GraphNode).id)}
             onNodeHover={(n: any) => setHoveredId(n?.id ?? null)}
             onBackgroundClick={() => {
-              setSelectedId(null);
-              setHoveredId(null);
-              setSelected(null);
-              setSelectedMarkdown('');
+              clearActive();
             }}
             d3AlphaDecay={0.02}
             d3VelocityDecay={0.35}
@@ -471,15 +480,30 @@ export default function GraphExplorer() {
               }
 
               // Node labels when zoomed in
-              if (globalScale < 2.6) return;
+              // Avoid messy overlaps: show labels only for active neighborhood,
+              // unless we're extremely zoomed in.
+              const showAll = globalScale >= 5;
+              if (!showAll) {
+                if (!activeNeighborhood) return;
+                if (!(n.id === activeNeighborhood.id || activeNeighborhood.neigh.has(n.id))) return;
+              }
+
+              if (globalScale < 2.8) return;
               const fontSize = Math.max(7, Math.min(11, 11 / globalScale));
               ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui`;
-              ctx.fillStyle = 'rgba(230,237,247,.70)';
+              ctx.fillStyle = 'rgba(230,237,247,1)';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'top';
               const maxChars = 22;
               const text = label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label;
-              ctx.fillText(text, x, y + (nodeSize * 2.4));
+              const ty = y + nodeSize * 2.6;
+              const tw = ctx.measureText(text).width;
+              const padX = 6;
+              const padY = 3;
+              ctx.fillStyle = 'rgba(11,15,23,.88)';
+              ctx.fillRect(x - tw / 2 - padX, ty - 1, tw + padX * 2, fontSize + padY * 2);
+              ctx.fillStyle = 'rgba(230,237,247,1)';
+              ctx.fillText(text, x, ty + padY);
             }}
             onEngineTick={() => {
               // Soft clamp to keep nodes near center (prevents “flyaway” beyond viewport).
