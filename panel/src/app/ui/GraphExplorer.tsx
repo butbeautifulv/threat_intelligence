@@ -164,17 +164,14 @@ export default function GraphExplorer() {
     function onMove(e: MouseEvent) {
       const d = dragRef.current;
       if (!d) return;
-      const el = wrapRef.current;
-      if (!el) return;
-      const total = el.getBoundingClientRect().width;
       const dx = e.clientX - d.startX;
-      const minLeft = 240;
+      const minLeft = 260;
       const minRight = 320;
       if (d.which === 'left') {
-        const next = Math.max(minLeft, Math.min(total - minRight - 200, d.startLeft + dx));
+        const next = Math.max(minLeft, d.startLeft + dx);
         setLeftW(next);
       } else {
-        const next = Math.max(minRight, Math.min(total - minLeft - 200, d.startRight - dx));
+        const next = Math.max(minRight, d.startRight - dx);
         setRightW(next);
       }
     }
@@ -316,12 +313,13 @@ export default function GraphExplorer() {
       className="app"
       ref={wrapRef}
       style={{
-        gridTemplateColumns: `${leftCollapsed ? 44 : leftW}px ${leftCollapsed ? 0 : 10}px 1fr ${rightCollapsed ? 0 : 10}px ${
-          rightCollapsed ? 44 : rightW
-        }px`,
+        // CSS vars consumed by overlay layout in globals.css
+        ['--leftW' as any]: `${leftW}px`,
+        ['--rightW' as any]: `${rightW}px`,
       }}
     >
-      <section className="card">
+      <div className={`sideLeft ${leftCollapsed ? 'sideLeftHidden' : ''}`}>
+        <section className="card" style={{ height: '100%' }}>
         <div className="cardHeader">
           <div className="title">Nodes</div>
           <div className="toolbar toolbarWrap">
@@ -357,7 +355,7 @@ export default function GraphExplorer() {
             </button>
           </div>
         </div>
-        <div className="content" style={{ display: leftCollapsed ? 'none' : 'block' }}>
+        <div className="content">
           <input
             className="input"
             value={q}
@@ -409,18 +407,16 @@ export default function GraphExplorer() {
           </div>
           {!filteredNodes.length && <div className="hint">No matches.</div>}
         </div>
+        </section>
         {leftCollapsed && (
-          <div className="dock">
-            <button className="btn iconBtn" onClick={() => setLeftCollapsed(false)} title="Show left pane">
-              ›
-            </button>
-          </div>
+          <button className="dockBtn dockBtnLeft" onClick={() => setLeftCollapsed(false)} title="Show left pane">
+            ›
+          </button>
         )}
-      </section>
+      </div>
 
       <div
-        className="resizer"
-        style={{ display: leftCollapsed ? 'none' : 'block' }}
+        className={`resizeHandle resizeHandleLeft ${leftCollapsed ? 'resizeHandleHidden' : ''}`}
         onMouseDown={(e) => {
           dragRef.current = { which: 'left', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -428,7 +424,8 @@ export default function GraphExplorer() {
         aria-label="Resize left pane"
       />
 
-      <section className="card">
+      <div className="graphStage">
+        <section className="card" style={{ height: '100%' }}>
         <div className="cardHeader">
           <div className="title">Graph</div>
           <div className="toolbar toolbarWrap">
@@ -558,7 +555,7 @@ export default function GraphExplorer() {
             }}
             enableNodeDrag
             onNodeDrag={(n: any) => {
-              // Obsidian-ish behavior: move CONNECTED nodes with depth falloff.
+              // Obsidian-ish behavior: move CONNECTED nodes with depth+distance falloff.
               const last = dragMoveRef.current;
               if (!last || last.id !== n.id) {
                 dragMoveRef.current = { id: n.id, lastX: n.x, lastY: n.y };
@@ -575,7 +572,11 @@ export default function GraphExplorer() {
                 if (typeof nn.x !== 'number' || typeof nn.y !== 'number') continue;
                 const d = depth.get(nn.id);
                 if (d === undefined) continue;
-                const k = d === 1 ? 0.75 : d === 2 ? 0.45 : 0.25;
+                const dist = Math.hypot(nn.x - n.x, nn.y - n.y);
+                const R = dragRadius;
+                const w = Math.max(0, 1 - dist / R);
+                const byDepth = d === 1 ? 1 : d === 2 ? 0.55 : 0.28;
+                const k = byDepth * (w * w) * 0.85;
                 nn.x += dx * k;
                 nn.y += dy * k;
                 if (freezeLayout) {
@@ -600,11 +601,11 @@ export default function GraphExplorer() {
             }}
           />
         </div>
-      </section>
+        </section>
+      </div>
 
       <div
-        className="resizer"
-        style={{ display: rightCollapsed ? 'none' : 'block' }}
+        className={`resizeHandle resizeHandleRight ${rightCollapsed ? 'resizeHandleHidden' : ''}`}
         onMouseDown={(e) => {
           dragRef.current = { which: 'right', startX: e.clientX, startLeft: leftW, startRight: rightW };
         }}
@@ -612,7 +613,8 @@ export default function GraphExplorer() {
         aria-label="Resize right pane"
       />
 
-      <section className="card right">
+      <div className={`sideRight ${rightCollapsed ? 'sideRightHidden' : ''}`}>
+        <section className="card right" style={{ height: '100%' }}>
         <div className="cardHeader">
           <div className="title">Markdown</div>
           <div className="toolbar">
@@ -622,7 +624,7 @@ export default function GraphExplorer() {
             </button>
           </div>
         </div>
-        <div className="content" style={{ display: rightCollapsed ? 'none' : 'block' }}>
+        <div className="content">
           {!selectedId && <div className="hint">Click a node to render its markdown (or fall back to properties).</div>}
           {selectedId && !selected && <div className="hint">Loading…</div>}
           {selected && (
@@ -641,14 +643,13 @@ export default function GraphExplorer() {
             </>
           )}
         </div>
+        </section>
         {rightCollapsed && (
-          <div className="dock">
-            <button className="btn iconBtn" onClick={() => setRightCollapsed(false)} title="Show right pane">
-              ‹
-            </button>
-          </div>
+          <button className="dockBtn dockBtnRight" onClick={() => setRightCollapsed(false)} title="Show right pane">
+            ‹
+          </button>
         )}
-      </section>
+      </div>
     </div>
   );
 }
