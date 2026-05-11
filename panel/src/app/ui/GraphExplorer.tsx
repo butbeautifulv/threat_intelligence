@@ -12,6 +12,7 @@ function nodeTitle(n: GraphNode) {
 }
 
 export default function GraphExplorer() {
+  const fgRef = useRef<any>(null);
   const [graph, setGraph] = useState<GraphData>({ nodes: [], edges: [] });
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
@@ -150,6 +151,33 @@ export default function GraphExplorer() {
     return { nodes: filteredNodes, links: edges.map((e) => ({ ...e, source: e.source, target: e.target })) };
   }, [filteredNodes, graph.edges]);
 
+  // Tune forces to avoid “flyaway” nodes.
+  useEffect(() => {
+    const fg = fgRef.current;
+    if (!fg?.d3Force) return;
+    try {
+      fg.d3Force('charge')?.strength(-80);
+      fg.d3Force('link')?.distance(40);
+    } catch {
+      // ignore
+    }
+  }, [graphForViz]);
+
+  // When selecting from browser, center/zoom to node position.
+  useEffect(() => {
+    if (!selectedId) return;
+    const fg = fgRef.current;
+    if (!fg) return;
+    const n = (graphForViz.nodes as any[]).find((x) => x.id === selectedId);
+    if (!n || typeof n.x !== 'number' || typeof n.y !== 'number') return;
+    try {
+      fg.centerAt(n.x, n.y, 500);
+      fg.zoom(3, 500);
+    } catch {
+      // ignore
+    }
+  }, [selectedId, graphForViz.nodes]);
+
   return (
     <div
       className="app"
@@ -209,7 +237,7 @@ export default function GraphExplorer() {
                     tabIndex={0}
                   >
                     <div className="folderLeft">
-                      <span className="caret">{collapsed ? '▶' : '▼'}</span>
+                      <span className="caret">{collapsed ? '+' : '−'}</span>
                       <div className="folderName">{kind}</div>
                       <span className="pill">{nodes.length}</span>
                     </div>
@@ -264,6 +292,7 @@ export default function GraphExplorer() {
         </div>
         <div style={{ height: 'calc(100% - 49px)' }}>
           <ForceGraph2D
+            ref={fgRef}
             graphData={graphForViz as any}
             backgroundColor="rgba(0,0,0,0)"
             nodeLabel={(n: any) => nodeTitle(n as GraphNode)}
