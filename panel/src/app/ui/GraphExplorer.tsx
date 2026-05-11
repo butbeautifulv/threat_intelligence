@@ -373,8 +373,10 @@ export default function GraphExplorer() {
             onNodeClick={(n: any) => setSelectedId((n as GraphNode).id)}
             cooldownTicks={freezeLayout ? 120 : 0}
             d3AlphaDecay={freezeLayout ? 0.03 : 0.02}
+            d3VelocityDecay={0.35}
             nodeRelSize={5}
             nodeVal={(n: any) => (n.labels?.includes('Category') ? 4 : 1)}
+            nodeCanvasObjectMode={() => 'after'}
             nodeCanvasObject={(n: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
               if (!n.labels?.includes('Category')) return;
               const label = String(n.title || n.id);
@@ -384,6 +386,25 @@ export default function GraphExplorer() {
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
               ctx.fillText(label, n.x, n.y);
+            }}
+            onEngineTick={() => {
+              // Soft clamp to keep nodes near center (prevents “flyaway” beyond viewport).
+              const nodes = graphForViz.nodes as any[];
+              const R = 650;
+              for (const n of nodes) {
+                if (!n || n.labels?.includes('Category')) continue;
+                if (typeof n.x !== 'number' || typeof n.y !== 'number') continue;
+                const d = Math.hypot(n.x, n.y);
+                if (d > R) {
+                  const s = R / d;
+                  n.x *= s;
+                  n.y *= s;
+                  if (freezeLayout) {
+                    n.fx = n.x;
+                    n.fy = n.y;
+                  }
+                }
+              }
             }}
             enableNodeDrag
             onNodeDrag={(n: any) => {
