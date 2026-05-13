@@ -1,11 +1,11 @@
 go 1.25.0
 
 use (
-	./ds
 	./graph
-	./lola
 	./mcp
 	./proxybroker
-	./ti
-	./vuln
+	./scrapers/ds
+	./scrapers/lola
+	./scrapers/ti
+	./scrapers/vuln
 )

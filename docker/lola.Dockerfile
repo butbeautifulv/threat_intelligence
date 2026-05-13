@@ -2,7 +2,7 @@
 FROM golang:1.25-bookworm AS build
 WORKDIR /src
 COPY . .
-WORKDIR /src/lola
+WORKDIR /src/scrapers/lola
 RUN go mod download
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/lola ./cmd
 

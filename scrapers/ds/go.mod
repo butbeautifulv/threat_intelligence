@@ -2,7 +2,7 @@ module ds
 
 go 1.25.0
 
-replace github.com/butbeautifulv/threat_intelligence/graph => ../graph
+replace github.com/butbeautifulv/threat_intelligence/graph => ../../graph
 
 require (
 	github.com/butbeautifulv/threat_intelligence/graph v0.0.0
