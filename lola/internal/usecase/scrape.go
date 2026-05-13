@@ -76,6 +76,12 @@ func (u *ScraperUsecase) Run(ctx context.Context) error {
 	if err := u.IngestGTFOBins(ctx); err != nil {
 		return err
 	}
+	if err := u.IngestLOFTS(ctx); err != nil {
+		return err
+	}
+	if err := u.IngestMITREEnterprise(ctx); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -70,6 +70,9 @@ func (u *Ingestor) Run(ctx context.Context) error {
 	if err := u.ingestAtomicTests(ctx, maxAtomic); err != nil {
 		return err
 	}
+	if err := u.ingestCalderaAbilities(ctx); err != nil {
+		return err
+	}
 	return nil
 }
 

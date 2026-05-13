@@ -3,6 +3,7 @@ package neo4jstore
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
@@ -31,6 +32,7 @@ func (s *Store) EnsureSchema(ctx context.Context) error {
 		`CREATE CONSTRAINT sigma_rule_id IF NOT EXISTS FOR (n:SigmaRule) REQUIRE n.id IS UNIQUE`,
 		`CREATE CONSTRAINT yara_rule_id IF NOT EXISTS FOR (n:YaraRule) REQUIRE n.id IS UNIQUE`,
 		`CREATE CONSTRAINT atomic_test_id IF NOT EXISTS FOR (n:AtomicTest) REQUIRE n.id IS UNIQUE`,
+		`CREATE CONSTRAINT caldera_ability_id IF NOT EXISTS FOR (n:CalderaAbility) REQUIRE n.id IS UNIQUE`,
 	})
 }
 
@@ -108,4 +110,44 @@ func StableID(prefix, key string) string {
 		x *= 1099511628211
 	}
 	return fmt.Sprintf("%s:%016x", prefix, x)
+}
+
+func (s *Store) UpsertCalderaAbility(ctx context.Context, id, name, tactic, techniqueID, markdown, source string) error {
+	if id == "" {
+		return nil
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	params := map[string]any{
+		"id": id, "name": name, "tactic": tactic, "technique": techniqueID,
+		"markdown": markdown, "source": source, "updatedAt": now,
+	}
+	q := `
+MERGE (n:CalderaAbility {id: $id})
+SET n.name = $name,
+    n.tactic = $tactic,
+    n.technique = $technique,
+    n.markdown = $markdown,
+    n.source = $source,
+    n.updatedAt = $updatedAt
+`
+	if err := s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	}); err != nil {
+		return err
+	}
+	if strings.TrimSpace(techniqueID) == "" {
+		return nil
+	}
+	q2 := `
+MATCH (c:CalderaAbility {id: $id})
+OPTIONAL MATCH (t:AttackTechnique {id: $technique})
+WITH c, t WHERE t IS NOT NULL
+MERGE (c)-[r:RELATES_TO_TECHNIQUE]->(t)
+SET r.updatedAt = $updatedAt
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q2, map[string]any{"id": id, "technique": techniqueID, "updatedAt": now})
+		return err
+	})
 }

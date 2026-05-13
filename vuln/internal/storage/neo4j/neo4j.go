@@ -35,6 +35,7 @@ func (s *Store) EnsureSchema(ctx context.Context) error {
 		`CREATE CONSTRAINT vuln_cve IF NOT EXISTS FOR (n:Vulnerability) REQUIRE n.cve IS UNIQUE`,
 		`CREATE CONSTRAINT cwe_id IF NOT EXISTS FOR (n:CWE) REQUIRE n.id IS UNIQUE`,
 		`CREATE CONSTRAINT cpe_uri IF NOT EXISTS FOR (n:CPE) REQUIRE n.uri IS UNIQUE`,
+		`CREATE CONSTRAINT exploit_id IF NOT EXISTS FOR (n:Exploit) REQUIRE n.id IS UNIQUE`,
 	})
 }
 
@@ -183,5 +184,45 @@ func cpeURIs(cpes []domain.CPE) []string {
 		}
 	}
 	return out
+}
+
+func stableExploitID(source, refID string) string {
+	h := source + ":" + refID
+	var x uint64 = 14695981039346656037
+	for _, b := range []byte(h) {
+		x ^= uint64(b)
+		x *= 1099511628211
+	}
+	return fmt.Sprintf("exploit:%s:%016x", source, x)
+}
+
+func (s *Store) MergeExploitForCVE(ctx context.Context, cve string, ref domain.ExploitRef) error {
+	if cve == "" || ref.RefID == "" {
+		return nil
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	exploitID := stableExploitID(ref.Source, ref.RefID)
+	params := map[string]any{
+		"cve":       cve,
+		"exploitID": exploitID,
+		"source":    ref.Source,
+		"refId":     ref.RefID,
+		"url":       ref.URL,
+		"now":       now,
+	}
+	q := `
+MATCH (v:Vulnerability {cve: $cve})
+MERGE (e:Exploit {id: $exploitID})
+SET e.source = $source,
+    e.refId = $refId,
+    e.url = $url,
+    e.updatedAt = $now
+MERGE (v)-[r:HAS_EXPLOIT]->(e)
+SET r.updatedAt = $now
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	})
 }
 

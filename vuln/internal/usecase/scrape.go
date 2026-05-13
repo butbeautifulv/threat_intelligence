@@ -308,10 +308,6 @@ func (u *ScraperUsecase) ScrapeNVD(ctx context.Context) error {
 	return nil
 }
 
-func (u *ScraperUsecase) Run(ctx context.Context) error {
-	return u.ScrapeNVD(ctx)
-}
-
 func pickCVSS(metrics map[string]any, key string) *domain.CVSS {
 	ms, ok := metrics[key].([]any)
 	if !ok || len(ms) == 0 {

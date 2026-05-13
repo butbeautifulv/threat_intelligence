@@ -40,3 +40,11 @@ func (r *MongoVulnRepository) Upsert(ctx context.Context, v *domain.Vulnerabilit
 	_, err := r.collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
 	return err
 }
+
+func (r *MongoVulnRepository) MergeExploitForCVE(ctx context.Context, cve string, ref domain.ExploitRef) error {
+	_ = ctx
+	_ = cve
+	_ = ref
+	// Neo4j is the graph source of truth; Mongo backend does not model exploits here.
+	return nil
+}

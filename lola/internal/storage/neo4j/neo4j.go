@@ -36,6 +36,9 @@ func (s *Store) EnsureSchema(ctx context.Context) error {
 	return neo4j.EnsureConstraints(ctx, s.client, []string{
 		`CREATE CONSTRAINT lola_artifact_id IF NOT EXISTS FOR (n:LolaArtifact) REQUIRE n.id IS UNIQUE`,
 		`CREATE CONSTRAINT lola_command_id IF NOT EXISTS FOR (n:Command) REQUIRE n.id IS UNIQUE`,
+		`CREATE CONSTRAINT attack_technique_id IF NOT EXISTS FOR (n:AttackTechnique) REQUIRE n.id IS UNIQUE`,
+		`CREATE CONSTRAINT attack_tactic_id IF NOT EXISTS FOR (n:AttackTactic) REQUIRE n.id IS UNIQUE`,
+		`CREATE CONSTRAINT lofts_entry_id IF NOT EXISTS FOR (n:LoftsEntry) REQUIRE n.id IS UNIQUE`,
 	})
 }
 
@@ -216,4 +219,142 @@ func renderArtifactMarkdown(source string, a *domain.Artifact) string {
 		}
 	}
 	return string(b)
+}
+
+func loftsEntryStableID(linkURL string) string {
+	h := "lofts:" + linkURL
+	var x uint64 = 14695981039346656037
+	for _, b := range []byte(h) {
+		x ^= uint64(b)
+		x *= 1099511628211
+	}
+	return fmt.Sprintf("lofts:%016x", x)
+}
+
+func (s *Store) UpsertLoftsEntry(ctx context.Context, title, category, linkURL, markdown string) error {
+	if linkURL == "" {
+		return fmt.Errorf("lofts linkURL required")
+	}
+	entryID := loftsEntryStableID(linkURL)
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	params := map[string]any{
+		"id": entryID, "title": title, "category": category, "linkURL": linkURL,
+		"markdown": markdown, "updatedAt": now,
+	}
+	q := `
+MERGE (n:LoftsEntry {id: $id})
+SET n.title = $title,
+    n.category = $category,
+    n.linkURL = $linkURL,
+    n.markdown = $markdown,
+    n.updatedAt = $updatedAt
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	})
+}
+
+func (s *Store) UpsertAttackTechnique(ctx context.Context, id, name, description, markdown string) error {
+	if id == "" {
+		return nil
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	params := map[string]any{
+		"id": id, "name": name, "description": description, "markdown": markdown, "updatedAt": now,
+	}
+	q := `
+MERGE (t:AttackTechnique {id: $id})
+SET t.name = $name,
+    t.description = $description,
+    t.markdown = $markdown,
+    t.updatedAt = $updatedAt
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	})
+}
+
+func (s *Store) UpsertAttackTactic(ctx context.Context, id, name, description, markdown string) error {
+	if id == "" {
+		return nil
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	params := map[string]any{
+		"id": id, "name": name, "description": description, "markdown": markdown, "updatedAt": now,
+	}
+	q := `
+MERGE (t:AttackTactic {id: $id})
+SET t.name = $name,
+    t.description = $description,
+    t.markdown = $markdown,
+    t.updatedAt = $updatedAt
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	})
+}
+
+func (s *Store) MergeTacticIncludesTechnique(ctx context.Context, tacticID, techniqueID string) error {
+	if tacticID == "" || techniqueID == "" {
+		return nil
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	params := map[string]any{"tacticID": tacticID, "techniqueID": techniqueID, "now": now}
+	q := `
+MATCH (ta:AttackTactic {id: $tacticID})
+MATCH (te:AttackTechnique {id: $techniqueID})
+MERGE (ta)-[r:INCLUDES_TECHNIQUE]->(te)
+SET r.updatedAt = $now
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	})
+}
+
+func (s *Store) MergeSubtechniqueOf(ctx context.Context, parentTechniqueID, childTechniqueID string) error {
+	if parentTechniqueID == "" || childTechniqueID == "" {
+		return nil
+	}
+	now := time.Now().UTC().Format(time.RFC3339Nano)
+	params := map[string]any{"parent": parentTechniqueID, "child": childTechniqueID, "now": now}
+	q := `
+MATCH (p:AttackTechnique {id: $parent})
+MATCH (c:AttackTechnique {id: $child})
+MERGE (p)-[r:HAS_SUBTECHNIQUE]->(c)
+SET r.updatedAt = $now
+`
+	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+		_, err := tx.Run(ctx, q, params)
+		return err
+	})
+}
+
+func (s *Store) LinkArtifactsAndCommandsToTechniques(ctx context.Context) error {
+	q1 := `
+MATCH (a:LolaArtifact)
+WHERE a.mitreID IS NOT NULL AND a.mitreID <> ""
+MATCH (t:AttackTechnique {id: a.mitreID})
+MERGE (a)-[r:REFERENCES_TECHNIQUE]->(t)
+SET r.updatedAt = datetime()
+`
+	q2 := `
+MATCH (c:Command)
+WHERE c.mitreID IS NOT NULL AND c.mitreID <> ""
+MATCH (t:AttackTechnique {id: c.mitreID})
+MERGE (c)-[r:REFERENCES_TECHNIQUE]->(t)
+SET r.updatedAt = datetime()
+`
+	for _, q := range []string{q1, q2} {
+		if err := s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
+			_, err := tx.Run(ctx, q, nil)
+			return err
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
