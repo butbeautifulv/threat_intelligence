@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"runtime"
 
+	gq "github.com/butbeautifulv/threat_intelligence/graph/query"
+
 	"mcp/internal/usecase"
 )
 
@@ -87,13 +89,45 @@ func (s *Server) handle(ctx context.Context, method string, params json.RawMessa
 		}, nil
 
 	case "tools/list":
+		categoryEnum := []any{"vuln", "ti", "detection", "lola", "mitre"}
 		return map[string]any{
 			"tools": []any{
-				toolDef("ti_list_kinds", "List available node labels (kinds) in Neo4j.", map[string]any{
+				toolDef("ti_list_categories", "List product categories (vuln, ti, detection, lola, mitre) with titles and Neo4j label sets.", map[string]any{
 					"type":       "object",
 					"properties": map[string]any{},
 				}),
-				toolDef("ti_get_nodes_by_kind", "List nodes for a given kind/label.", map[string]any{
+				toolDef("ti_list_kinds_in_category", "List Neo4j labels within a category that exist in the graph (with counts).", map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"category": map[string]any{"type": "string", "enum": categoryEnum},
+					},
+					"required": []string{"category"},
+				}),
+				toolDef("ti_nodes_by_category", "List nodes: category + kind (label must belong to that category).", map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"category": map[string]any{"type": "string", "enum": categoryEnum},
+						"kind":     map[string]any{"type": "string"},
+						"limit":    map[string]any{"type": "integer", "default": 200},
+						"offset":   map[string]any{"type": "integer", "default": 0},
+					},
+					"required": []string{"category", "kind"},
+				}),
+				toolDef("ti_search_in_category", "Search within a category (optional kind filter).", map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"category": map[string]any{"type": "string", "enum": categoryEnum},
+						"query":    map[string]any{"type": "string"},
+						"kind":     map[string]any{"type": "string"},
+						"limit":    map[string]any{"type": "integer", "default": 50},
+					},
+					"required": []string{"category", "query"},
+				}),
+				toolDef("ti_list_kinds", "List all distinct node labels in the graph (legacy; prefer ti_list_categories + ti_list_kinds_in_category).", map[string]any{
+					"type":       "object",
+					"properties": map[string]any{},
+				}),
+				toolDef("ti_get_nodes_by_kind", "List nodes for a given Neo4j label (no category guard).", map[string]any{
 					"type": "object",
 					"properties": map[string]any{
 						"kind":   map[string]any{"type": "string"},
@@ -112,13 +146,13 @@ func (s *Server) handle(ctx context.Context, method string, params json.RawMessa
 				toolDef("ti_neighbors", "Fetch a subgraph around a node (k-hop).", map[string]any{
 					"type": "object",
 					"properties": map[string]any{
-						"id":     map[string]any{"type": "string"},
-						"depth":  map[string]any{"type": "integer", "default": 1, "minimum": 1, "maximum": 3},
-						"limit":  map[string]any{"type": "integer", "default": 500},
+						"id":    map[string]any{"type": "string"},
+						"depth": map[string]any{"type": "integer", "default": 1, "minimum": 1, "maximum": 3},
+						"limit": map[string]any{"type": "integer", "default": 500},
 					},
 					"required": []string{"id"},
 				}),
-				toolDef("ti_search", "Substring search over common node fields (title/name/id/cve/value/uri/link).", map[string]any{
+				toolDef("ti_search", "Substring search globally or scoped to one label (legacy).", map[string]any{
 					"type": "object",
 					"properties": map[string]any{
 						"query": map[string]any{"type": "string"},
@@ -165,6 +199,39 @@ func (s *Server) callTool(ctx context.Context, name string, args map[string]any)
 			"os":      runtime.GOOS,
 			"arch":    runtime.GOARCH,
 		})
+
+	case "ti_list_categories":
+		return toolTextResult(map[string]any{"categories": gq.ListCategoryMeta()})
+
+	case "ti_list_kinds_in_category":
+		cat := getString(args, "category")
+		kinds, err := s.uc.ListKindsInCategory(ctx, cat)
+		if err != nil {
+			return nil, err
+		}
+		return toolTextResult(map[string]any{"category": cat, "kinds": kinds})
+
+	case "ti_nodes_by_category":
+		cat := getString(args, "category")
+		kind := getString(args, "kind")
+		limit := getInt(args, "limit", 200)
+		offset := getInt(args, "offset", 0)
+		nodes, err := s.uc.NodesByCategory(ctx, cat, kind, limit, offset)
+		if err != nil {
+			return nil, err
+		}
+		return toolTextResult(map[string]any{"category": cat, "kind": kind, "nodes": nodes})
+
+	case "ti_search_in_category":
+		cat := getString(args, "category")
+		q := getString(args, "query")
+		kind := getString(args, "kind")
+		limit := getInt(args, "limit", 50)
+		nodes, err := s.uc.SearchInCategory(ctx, cat, q, kind, limit)
+		if err != nil {
+			return nil, err
+		}
+		return toolTextResult(map[string]any{"category": cat, "query": q, "kind": kind, "nodes": nodes})
 
 	case "ti_list_kinds":
 		kinds, err := s.uc.ListKinds(ctx)

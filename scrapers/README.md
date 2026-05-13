@@ -10,6 +10,7 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | [lola/](lola/) | `lola` | LOLBAS, GTFOBins, LOFTS, MITRE ATT&CK STIX enterprise |
 | [ds/](ds/) | `ds` | SigmaHQ, YARA (Neo23x0), Atomic Red Team, Caldera Stockpile abilities |
 | [ti/](ti/) | `ti` | CISA KEV, URLhaus, PT RSS, optional JSONL file |
+| [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers (Compose service name `proxybroker`) |
 | [cue_schemas/](cue_schemas/) | — | Cue schemas (`merge.cue` imports `schema/ds.cue`) |
 
 ## Sources matrix
@@ -39,7 +40,15 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 
 ### Optional: same stack via Docker Compose
 
-From repo root, `docker compose up --build` runs `neo4j` + `vuln` + `lola` + `ds` + `ti` + `panel` (see [../docker-compose.yml](../docker-compose.yml)). Re-run ingest without rebuild: `docker compose restart vuln lola ds ti`.
+From repo root, `docker compose up --build` runs **Neo4j** + **graph pack import** + **HTTP API** + **panel** by default (no live scraping). See [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+
+Re-run **scrapers** and **`proxybroker`** (all require `--profile scrape`; they never start on default `docker compose up`):
+
+```bash
+docker compose --profile scrape up --build -d
+```
+
+Re-run ingest only: `docker compose restart vuln lola ds ti` (with profile `scrape` enabled for those services).
 
 ### Planned only (no parser here)
 
@@ -52,15 +61,22 @@ From repo root, `docker compose up --build` runs `neo4j` + `vuln` + `lola` + `ds
 From repo root (paths under `scrapers/`):
 
 ```bash
+cd scrapers/proxybroker && go run ./cmd
 cd scrapers/vuln && go run ./cmd
 cd scrapers/lola && go run ./cmd
 cd scrapers/ds && go run ./cmd
 cd scrapers/ti && go run ./cmd --feeds kev,pt,urlhaus --input example.jsonl
 ```
 
+`proxybroker` does not talk to Neo4j; start it when scrapers need `*_PROXY_URLS`.
+
 `go.work` at repo root includes these modules; use `go work sync` if imports drift.
 
 ## Graph export and packs
+
+**Consuming a pack** (no scrapers): use the default Compose stack — `graph-bootstrap` imports a ZIP before `api` / `panel` start. Env vars and bind mounts: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+
+**Building a pack** (scraping): enable the Compose **`scrape`** profile (`proxybroker` + ingest services), fill Neo4j, then run the scripts below on the host.
 
 Full export/pack/import flow lives in root [scripts/](../scripts/) (see root [README.md](../README.md)):
 

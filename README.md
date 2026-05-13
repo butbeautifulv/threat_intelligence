@@ -8,19 +8,32 @@ Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection conten
 docker compose up --build
 ```
 
+Default behaviour: **Neo4j** starts, **graph-bootstrap** imports a [graph pack](docs/threatintel-runtime.md#graph-bootstrap-usage-mode) (from `GRAPH_PACK_URL` / default GitHub release, or skip with `GRAPH_PACK_SKIP=1`), then **HTTP API** and **panel** start. Scrapers are **not** started unless you use the `scrape` profile.
+
 - **Neo4j Browser:** `http://localhost:7474` — `neo4j` / `neo4jpassword` (defaults in compose). APOC enabled for Cypher export.
+- **HTTP API:** `http://localhost:8090` — categorical REST (`/v1/categories`, …). See [docs/threatintel-runtime.md](docs/threatintel-runtime.md).
 - **Panel:** `http://localhost:8088` — force-directed graph, node `markdown` viewer.
+
+**Fill graph by scraping instead of importing a pack:**
+
+```bash
+docker compose --profile scrape up --build -d
+```
+
+Runtime details, env vars, MCP over stdio, and OpenAPI sketch: **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**.
 
 Layout:
 
 | Path | Role |
 |------|------|
-| [graph/](graph/) | Shared Neo4j driver helpers |
+| [graph/](graph/) | Shared Neo4j client + [graph/query](graph/query) (categories, Cypher reads) |
+| [api/](api/) | HTTP API (`docker/api.Dockerfile`): `cmd`, `internal/config`, `internal/domain`, `internal/storage/neo4j`, `internal/usecase`, `internal/transport/httpserver`, `internal/components` |
 | [panel/](panel/) | Next.js graph UI |
-| [mcp/](mcp/) | MCP server over the graph |
-| [proxybroker/](proxybroker/) | Optional HTTP proxy pool for scrapers |
+| [docker/](docker/) | **All** service Dockerfiles (api, bootstrap, scrapers, panel, mcp, `scrapers/proxybroker`) |
+| [mcp/](mcp/) | MCP server (stdio); uses `graph/query` |
+| [scrapers/proxybroker/](scrapers/proxybroker/) | HTTP proxy pool for scrapers (compose profile `scrape`) |
 | [scripts/](scripts/) | Export / pack / import Cypher (`export-graph-cypher.sh`, `build-graph-pack.sh`, `import-graph-pack.sh`) |
-| [docs/](docs/) | e.g. [graph pack manifest schema](docs/graph-pack-manifest.schema.json) |
+| [docs/](docs/) | [threatintel-runtime.md](docs/threatintel-runtime.md), [openapi.yaml](docs/openapi.yaml), [graph pack manifest schema](docs/graph-pack-manifest.schema.json) |
 | [scrapers/](scrapers/) | `vuln`, `lola`, `ds`, `ti` ingest binaries + [cue_schemas/](scrapers/cue_schemas/) |
 
 ## Offline graph packs (no scraping on target)
@@ -36,7 +49,11 @@ Import: [scripts/import-graph-pack.sh](scripts/import-graph-pack.sh) — details
 
 ## MCP
 
-Build/run from [mcp/](mcp/) (see module `README` if present, or `go run ./cmd` with Neo4j env vars matching compose).
+Stdio MCP server in [mcp/](mcp/) (same categorical queries as the HTTP API). After `docker compose up`, run:
+
+`docker compose --profile mcp run --rm -i mcp`
+
+Details: [docs/threatintel-runtime.md](docs/threatintel-runtime.md#mcp-stdio) and [mcp/README.md](mcp/README.md).
 
 ## Smoke Cypher
 

@@ -61,6 +61,16 @@ func (c *Client) ExecWrite(ctx context.Context, fn func(tx driver.ManagedTransac
 	return err
 }
 
+// ExecRead runs a read transaction (AccessModeRead).
+func (c *Client) ExecRead(ctx context.Context, fn func(tx driver.ManagedTransaction) (any, error)) (any, error) {
+	sess := c.driver.NewSession(ctx, driver.SessionConfig{
+		DatabaseName: c.database,
+		AccessMode:   driver.AccessModeRead,
+	})
+	defer sess.Close(ctx)
+	return sess.ExecuteRead(ctx, fn)
+}
+
 func EnsureConstraints(ctx context.Context, c *Client, queries []string) error {
 	return c.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
 		for _, q := range queries {

@@ -1,11 +1,12 @@
 go 1.25.0
 
 use (
+	./api
 	./graph
 	./mcp
-	./proxybroker
 	./scrapers/ds
 	./scrapers/lola
+	./scrapers/proxybroker
 	./scrapers/ti
 	./scrapers/vuln
 )

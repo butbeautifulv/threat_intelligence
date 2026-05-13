@@ -20,10 +20,21 @@ Env (same as other services):
 
 ## Tools
 
+Category-first (preferred for agents):
+
+- `ti_list_categories`
+- `ti_list_kinds_in_category` (`category`: `vuln` \| `ti` \| `detection` \| `lola` \| `mitre`)
+- `ti_nodes_by_category` (`category`, `kind`, `limit`, `offset`)
+- `ti_search_in_category` (`category`, `query`, optional `kind`, `limit`)
+
+Legacy (raw Neo4j labels):
+
 - `ti_list_kinds`
 - `ti_get_nodes_by_kind` (`kind`, `limit`, `offset`)
 - `ti_get_node` (`id`)
 - `ti_neighbors` (`id`, `depth`, `limit`)
 - `ti_search` (`query`, optional `kind`, `limit`)
 - `ti_health`
+
+Implementation: shared categorical queries live in [graph/query](../graph/query); MCP wraps the same service as the HTTP API.
 
