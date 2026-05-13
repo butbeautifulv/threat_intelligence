@@ -14,26 +14,38 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 
 ## Sources matrix
 
-| Source | Service | Parser status | Notes |
-|--------|---------|----------------|-------|
-| NVD CVE API 2.0 | `vuln` | Implemented | `NVD_API_KEY`, `NVD_MAX_PAGES`, `VULN_REQUEST_DELAY`, `VULN_CACHE_DIR` |
-| Metasploit modules (GitHub) | `vuln` | Implemented | `GITHUB_TOKEN`, `VULN_METASPLOIT_MAX_RB`, `VULN_METASPLOIT_MAX_DIRS` |
-| Exploit-DB CSV (GitLab mirror) | `vuln` | Implemented | `VULN_EXPLOITDB_CSV_URL`, `VULN_EXPLOITDB_MAX_ROWS` |
-| Vulners | `vuln` | Implemented when key set | `VULNERS_API_KEY`; `VULN_VULNERS_MAX`, `VULN_VULNERS_QUERY` |
-| LOLBAS / GTFOBins | `lola` | Implemented | `LOLA_CACHE_DIR`, `GITHUB_TOKEN` |
-| LOFTS | `lola` | Implemented | `LOFTS_URL`, `LOFTS_SKIP_ON_ERROR`, `LOFTS_MAX_ENTRIES` |
-| MITRE ATT&CK (STIX) | `lola` | Implemented | `LOLA_MITRE_STIX_URL`, `LOLA_MITRE_MAX_TECHNIQUES`, `LOLA_MITRE_MAX_RELATIONSHIPS` |
-| Sigma / YARA / ART / Caldera | `ds` | Implemented | `DS_MAX_*`, `DS_CACHE_DIR`, `GITHUB_TOKEN`, `DS_MAX_CALDERA`, `DS_CALDERA_BASE_PATH` |
-| CISA KEV / URLhaus / PT RSS | `ti` | Implemented | `TI_*_MAX`, `TI_FEEDS`, `TI_CACHE_DIR` |
-| TI JSONL | `ti` | Implemented | `--input path.jsonl` |
+| Source | Service | Parser status | Public endpoint / repo (reference) | Notes |
+|--------|---------|----------------|--------------------------------------|-------|
+| NVD CVE API 2.0 | `vuln` | Implemented | `https://services.nvd.nist.gov/rest/json/cves/2.0` | `NVD_API_KEY`, `NVD_MAX_PAGES`, `VULN_REQUEST_DELAY`, `VULN_CACHE_DIR` |
+| Metasploit modules (GitHub API) | `vuln` | Implemented | `https://api.github.com/repos/rapid7/metasploit-framework/contents/...` | `GITHUB_TOKEN`, `VULN_METASPLOIT_MAX_RB`, `VULN_METASPLOIT_MAX_DIRS` |
+| Exploit-DB CSV (GitLab mirror) | `vuln` | Implemented | Default CSV: `https://gitlab.com/exploit-database/exploitdb/-/raw/main/files_exploits.csv` | `VULN_EXPLOITDB_CSV_URL`, `VULN_EXPLOITDB_MAX_ROWS` |
+| Exploit-DB web (links in graph) | `vuln` | Implemented (URLs only) | `https://www.exploit-db.com/exploits/<id>` | Stored as metadata on ingested rows |
+| Vulners search API | `vuln` | Implemented when key set | `https://vulners.com/api/v3/search/lucene/` | `VULNERS_API_KEY`; `VULN_VULNERS_MAX`, `VULN_VULNERS_QUERY` |
+| LOLBAS (GitHub API) | `lola` | Implemented | `https://api.github.com/repos/LOLBAS-Project/LOLBAS/contents/...` | `LOLA_CACHE_DIR`, `GITHUB_TOKEN` |
+| GTFOBins (GitHub API) | `lola` | Implemented | `https://api.github.com/repos/GTFOBins/GTFOBins.github.io/contents/...` | Same as LOLBAS |
+| LOFTS | `lola` | Implemented | Default: `https://lofts.galeal.com/` | `LOFTS_URL`, `LOFTS_SKIP_ON_ERROR`, `LOFTS_MAX_ENTRIES` |
+| MITRE ATT&CK (STIX bundle) | `lola` | Implemented | Default: `https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/enterprise-attack.json` | `LOLA_MITRE_STIX_URL`, `LOLA_MITRE_MAX_TECHNIQUES`, `LOLA_MITRE_MAX_RELATIONSHIPS` |
+| MITRE ATT&CK (human-readable) | — | Reference only | `https://attack.mitre.org/techniques/` | Used in docs / manual correlation; STIX URL above is what `lola` ingests |
+| SigmaHQ (GitHub API) | `ds` | Implemented | `https://api.github.com/repos/SigmaHQ/sigma/contents/rules/windows/process_creation` | `DS_MAX_SIGMA`, `DS_CACHE_DIR`, `GITHUB_TOKEN` |
+| Neo23x0 signature-base YARA (GitHub API) | `ds` | Implemented | `https://api.github.com/repos/Neo23x0/signature-base/contents/yara` (fallback `iocs/yara`) | `DS_MAX_YARA`, `DS_YARA_PATH`, `GITHUB_TOKEN` |
+| Atomic Red Team (GitHub API) | `ds` | Implemented | `https://api.github.com/repos/redcanaryco/atomic-red-team/contents/atomics` | `DS_MAX_ATOMIC`, `DS_CACHE_DIR`, `GITHUB_TOKEN` |
+| Caldera Stockpile abilities (GitHub API) | `ds` | Implemented | `https://api.github.com/repos/mitre/caldera/contents/plugins/stockpile/data/abilities` | `DS_MAX_CALDERA`, `DS_CALDERA_BASE_PATH`, `GITHUB_TOKEN` |
+| CISA KEV JSON | `ti` | Implemented | `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` | `TI_KEV_MAX`, `TI_CACHE_DIR`, `TI_REQUEST_DELAY` |
+| URLhaus recent CSV | `ti` | Implemented | `https://urlhaus.abuse.ch/downloads/csv_recent/` | `TI_URLHAUS_MAX`; full DB dump (not used by parser): `https://urlhaus.abuse.ch/downloads/csv/` |
+| Positive Technologies RSS | `ti` | Implemented | Override via `PT_RSS_URL`; default in code: `https://www.ptsecurity.com/rss/all.xml` | `TI_PT_MAX`, `TI_FEEDS` |
+| TI JSONL (local / mounted file) | `ti` | Implemented | — | `--input path.jsonl` (compose mounts [example.jsonl](ti/example.jsonl) as `/app/example.jsonl`) |
 
-**TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,pt,urlhaus`. Override with `TI_FEEDS=kev,urlhaus` to drop PT RSS.
+**TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,pt,urlhaus`. If the default PT URL returns HTML errors, use e.g. `TI_FEEDS=kev,urlhaus` or set `PT_RSS_URL` to a stable RSS endpoint you operate.
+
+### Optional: same stack via Docker Compose
+
+From repo root, `docker compose up --build` runs `neo4j` + `vuln` + `lola` + `ds` + `ti` + `panel` (see [../docker-compose.yml](../docker-compose.yml)). Re-run ingest without rebuild: `docker compose restart vuln lola ds ti`.
 
 ### Planned only (no parser here)
 
 - AlienVault OTX API — future.
 - MISP feeds — future.
-- Abuse.ch Feodo / MalwareBazaar — future.
+- Abuse.ch ThreatFox / Feodo Tracker / MalwareBazaar (public CSV/API) — future; reference: `https://threatfox.abuse.ch/`, `https://feodotracker.abuse.ch/`, `https://bazaar.abuse.ch/`.
 
 ## Run locally (Neo4j must be up)
 
