@@ -4,7 +4,7 @@
 
 Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection content (Sigma/YARA/Atomic/Caldera), and TI feeds. The repository splits **graph + HTTP API + MCP** (root modules) from **scrapers and ingest** ([scrapers/README.md](scrapers/README.md)).
 
-**License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Security:** [SECURITY.md](SECURITY.md)
+**License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Security:** [SECURITY.md](SECURITY.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## Quick start
 
@@ -38,6 +38,9 @@ Full service matrix, ports, and environment variables: **[docs/threatintel-runti
 | [docs/ontology-appsec.md](docs/ontology-appsec.md) | AppSec labels, relationships, roadmap |
 | [mcp/README.md](mcp/README.md) | Stdio MCP server tools and env |
 | [scripts/README.md](scripts/README.md) | Export, packs, graph housekeeping |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, tests, licensing |
+| [SECURITY.md](SECURITY.md) | Responsible disclosure for vulnerabilities |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community expectations |
 
 ## Repository layout
 

@@ -5,10 +5,11 @@ Thank you for improving this project. Small, focused changes are easier to revie
 ## Before you open a PR
 
 1. Read **[docs/coding-style.md](docs/coding-style.md)** — layers (`cmd` → `usecase` → `repository` → `storage` / `feeds`), `slog`, and ingest conventions.
-2. Run tests for the modules you touched, for example:
+2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** in issues, reviews, and discussions.
+3. Run tests for the modules you touched, for example:
    - `go test ./pkg/ingestv1/... ./scrapers/ingestpub/... ./scrapers/sbom/... ./scrapers/coderules/... ./scrapers/nuclei/... ./scrapers/ingest-worker/...`
    - or from a single scraper directory: `go test ./...`
-3. If you change Compose behaviour or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)** and **[scrapers/README.md](scrapers/README.md)** in the same PR.
+4. If you change Compose behaviour or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)** and **[scrapers/README.md](scrapers/README.md)** in the same PR.
 
 ## Commits and branches
 

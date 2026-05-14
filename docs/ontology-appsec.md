@@ -72,3 +72,4 @@ A read-side or batch **enrichment engine** (outside the Neo4j write path) can ma
 - [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, MCP, **`nats`**, **`ingest-worker`**
 - [scrapers/README.md](../scrapers/README.md) — source matrix, `INGEST_MODE`, local runs
 - [coding-style.md](coding-style.md) — scraper and worker layering
+- [CONTRIBUTING.md](../CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community and PR expectations
