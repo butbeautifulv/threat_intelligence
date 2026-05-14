@@ -4,6 +4,7 @@ Long-running **JetStream pull consumer** that reads **`ingestv1`** envelopes fro
 
 - **AppSec:** `sbom`, `coderules`, `nuclei` (subjects `ingest.appsec.*`)
 - **TI:** `ti` feeds / JSONL (`ingest.ti.*` or default `ingest.ti.events`)
+- **Graph scrapers:** `vuln`, `lola`, `ds` (default subjects `ingest.vuln.events`, `ingest.lola.events`, `ingest.ds.events`)
 
 The binary follows the same lifecycle pattern as other long-running scrapers: **`golang.org/x/sync/errgroup`** with a context cancelled on **SIGINT/SIGTERM** (see [docs/coding-style.md](../../docs/coding-style.md)). Envelope **`source`** must match **`kind`**; unknown kinds are logged and **acked** so newer producers do not block the consumer.
 
@@ -13,10 +14,13 @@ Use this service when scrapers run with **`INGEST_MODE=nats`** (publish-only). W
 
 | Path | Role |
 |------|------|
-| [cmd/main.go](cmd/main.go) | Neo4j writers (sbom, coderules, nuclei, ti), NATS JetStream, pull loop, ack/nak |
+| [cmd/main.go](cmd/main.go) | Neo4j writers (sbom, coderules, nuclei, ti, vuln, lola, ds), NATS JetStream, pull loop, ack/nak |
 | [../ingestpub/](../ingestpub/) | Stream ensure (`EnsureIngestStream`, `ingest.>`) used by publishers too |
 | [../../pkg/ingestv1/](../../pkg/ingestv1/) | Envelope schema, kinds, payloads |
 | [../ti/workeringest/](../ti/workeringest/) | TI apply path (importable from outside `ti/internal`) |
+| [../vuln/workeringest/](../vuln/workeringest/) | Vulnerability apply path |
+| [../lola/workeringest/](../lola/workeringest/) | Lola apply path |
+| [../ds/workeringest/](../ds/workeringest/) | Detection-content apply path |
 | [../sbom/storage/neo4j/](../sbom/storage/neo4j/) | OSV / GHSA writes |
 | [../coderules/storage/neo4j/](../coderules/storage/neo4j/) | CWE / Semgrep / CodeQL writes |
 | [../nuclei/storage/neo4j/](../nuclei/storage/neo4j/) | Nuclei template writes |
@@ -55,4 +59,4 @@ From repo root with `go.work` synced.
 docker compose --profile scrape up --build -d neo4j nats ingest-worker sbom
 ```
 
-Add **`ti`** when **`INGEST_MODE=nats`** for TI queue-backed ingest.
+Add **`ti`**, **`vuln`**, **`lola`**, or **`ds`** when those services use **`INGEST_MODE=nats`** for queue-backed ingest.

@@ -140,6 +140,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - VULN_NATS_SUBJECT=${VULN_NATS_SUBJECT:-ingest.vuln.events}
       - NVD_MAX_PAGES=${NVD_MAX_PAGES:-1}
       - VULN_CACHE_DIR=/data/cache
       - VULN_REQUEST_DELAY=${VULN_REQUEST_DELAY:-1200ms}
@@ -149,6 +152,8 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+      nats:
+        condition: service_started
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -191,6 +196,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - LOLA_NATS_SUBJECT=${LOLA_NATS_SUBJECT:-ingest.lola.events}
       - LOLA_CACHE_DIR=/data/cache
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - LOLA_PROXY_URLS=${LOLA_PROXY_URLS:-}
@@ -202,6 +210,8 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+      nats:
+        condition: service_started
     restart: on-failure
 
   ds:
@@ -214,6 +224,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - DS_NATS_SUBJECT=${DS_NATS_SUBJECT:-ingest.ds.events}
       - DS_CACHE_DIR=/data/cache
       - DS_MAX_SIGMA=${DS_MAX_SIGMA:-120}
       - DS_MAX_YARA=${DS_MAX_YARA:-80}
@@ -226,6 +239,8 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+      nats:
+        condition: service_started
     restart: on-failure
 
   ti:

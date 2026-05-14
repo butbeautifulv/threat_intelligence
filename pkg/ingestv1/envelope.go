@@ -16,6 +16,9 @@ const (
 	SourceCoderules = "coderules"
 	SourceNuclei    = "nuclei"
 	SourceTI        = "ti"
+	SourceVuln      = "vuln"
+	SourceLola      = "lola"
+	SourceDS        = "ds"
 )
 
 // Event kinds per source (extend as needed).
@@ -39,6 +42,25 @@ const (
 	KindTILinkCampaignActor      = "ti_link_campaign_actor"
 	KindTILinkReportMentionsIOC  = "ti_link_report_mentions_ioc"
 	KindTIJSONLRecord            = "ti_jsonl_record"
+
+	// vuln — NVD + exploit refs (same semantics as vuln/storage/neo4j).
+	KindVulnUpsert        = "vuln_upsert"
+	KindVulnMergeExploit  = "vuln_merge_exploit"
+
+	// lola — LOLBAS / GTFOBins / LOFTS / MITRE STIX (repository.LolaRepository).
+	KindLolaArtifact              = "lola_artifact"
+	KindLolaLofts                 = "lola_lofts"
+	KindLolaAttackTechnique       = "lola_attack_technique"
+	KindLolaAttackTactic          = "lola_attack_tactic"
+	KindLolaMergeTacticTechnique  = "lola_merge_tactic_technique"
+	KindLolaMergeSubtechnique     = "lola_merge_subtechnique"
+	KindLolaLinkArtifacts         = "lola_link_artifacts"
+
+	// ds — detection content writers (Sigma / YARA / Atomic / Caldera).
+	KindDSUpsertSigma    = "ds_upsert_sigma"
+	KindDSUpsertYara     = "ds_upsert_yara"
+	KindDSUpsertAtomic   = "ds_upsert_atomic"
+	KindDSUpsertCaldera  = "ds_upsert_caldera"
 )
 
 // Envelope is the on-wire JSON for JetStream / HTTP bridges.
@@ -160,7 +182,96 @@ type TIJSONLRecordPayload struct {
 	Line json.RawMessage `json:"line"`
 }
 
-// NewEnvelope builds a v1 envelope with JSON-marshaled payload.
+// VulnMergeExploitPayload links an Exploit node to a Vulnerability (CVE must exist).
+type VulnMergeExploitPayload struct {
+	CVE    string `json:"cve"`
+	Source string `json:"source"`
+	RefID  string `json:"ref_id"`
+	URL    string `json:"url"`
+}
+
+// LolaArtifactPayload is one artifact JSON (lola/domain.Artifact) plus feed source key.
+type LolaArtifactPayload struct {
+	Source string          `json:"source"`
+	Body   json.RawMessage `json:"body"`
+}
+
+// LolaLoftsPayload is one LOFTS markdown row.
+type LolaLoftsPayload struct {
+	Title    string `json:"title"`
+	Category string `json:"category"`
+	LinkURL  string `json:"link_url"`
+	Markdown string `json:"markdown"`
+}
+
+// LolaAttackTechniquePayload / LolaAttackTacticPayload mirror store upsert args.
+type LolaAttackTechniquePayload struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Markdown    string `json:"markdown"`
+}
+
+type LolaAttackTacticPayload struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Markdown    string `json:"markdown"`
+}
+
+type LolaMergeTacticTechniquePayload struct {
+	TacticID     string `json:"tactic_id"`
+	TechniqueID  string `json:"technique_id"`
+}
+
+type LolaMergeSubtechniquePayload struct {
+	ParentTechniqueID string `json:"parent_technique_id"`
+	ChildTechniqueID  string `json:"child_technique_id"`
+}
+
+// LolaLinkArtifactsPayload is a marker job (empty object) to run post-STIX linking.
+type LolaLinkArtifactsPayload struct{}
+
+// DS payloads mirror neo4j store method parameters.
+type DSUpsertSigmaPayload struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Level       string `json:"level"`
+	LogProduct  string `json:"log_product"`
+	LogService  string `json:"log_service"`
+	TagsJSON    string `json:"tags_json"`
+	Markdown    string `json:"markdown"`
+	Source      string `json:"source"`
+}
+
+type DSUpsertYaraPayload struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Author   string `json:"author"`
+	TagsJSON string `json:"tags_json"`
+	Markdown string `json:"markdown"`
+	Source   string `json:"source"`
+}
+
+type DSUpsertAtomicPayload struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Tactic     string `json:"tactic"`
+	Technique  string `json:"technique"`
+	ExecName   string `json:"exec_name"`
+	ExecCmd    string `json:"exec_cmd"`
+	Markdown   string `json:"markdown"`
+	Source     string `json:"source"`
+}
+
+type DSUpsertCalderaPayload struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Tactic       string `json:"tactic"`
+	TechniqueID  string `json:"technique_id"`
+	Markdown     string `json:"markdown"`
+	Source       string `json:"source"`
+}
 func NewEnvelope(source, kind, idempotencyKey string, payload any) (*Envelope, error) {
 	raw, err := json.Marshal(payload)
 	if err != nil {
@@ -251,3 +362,48 @@ func TILinkReportMentionsIOCIdempotencyKey(reportID, iocCanonicalID string) stri
 func TIJSONLRecordIdempotencyKey(lineSHA256Hex32 string) string {
 	return "ti:jsonl:" + strings.TrimSpace(lineSHA256Hex32)
 }
+
+// --- vuln ---
+
+func VulnUpsertIdempotencyKey(cve string) string {
+	return "vuln:upsert:" + strings.TrimSpace(strings.ToUpper(cve))
+}
+
+func VulnMergeExploitIdempotencyKey(cve, source, refID string) string {
+	return "vuln:exp:" + strings.TrimSpace(strings.ToUpper(cve)) + ":" + strings.TrimSpace(source) + ":" + strings.TrimSpace(refID)
+}
+
+// --- lola ---
+
+func LolaArtifactIdempotencyKey(source, artifactName string) string {
+	return "lola:art:" + strings.TrimSpace(strings.ToLower(source)) + ":" + strings.TrimSpace(artifactName)
+}
+
+func LolaLoftsIdempotencyKey(linkURL string) string {
+	return "lola:lofts:" + strings.TrimSpace(linkURL)
+}
+
+func LolaTechniqueIdempotencyKey(id string) string {
+	return "lola:tech:" + strings.TrimSpace(id)
+}
+
+func LolaTacticIdempotencyKey(id string) string {
+	return "lola:tac:" + strings.TrimSpace(id)
+}
+
+func LolaMergeTacticTechniqueIdempotencyKey(tac, tech string) string {
+	return "lola:mt:" + strings.TrimSpace(tac) + ":" + strings.TrimSpace(tech)
+}
+
+func LolaMergeSubtechniqueIdempotencyKey(parent, child string) string {
+	return "lola:ms:" + strings.TrimSpace(parent) + ":" + strings.TrimSpace(child)
+}
+
+func LolaLinkArtifactsIdempotencyKey() string { return "lola:link:artifacts:v1" }
+
+// --- ds ---
+
+func DSSigmaIdempotencyKey(id string) string   { return "ds:sigma:" + strings.TrimSpace(id) }
+func DSYaraIdempotencyKey(id string) string     { return "ds:yara:" + strings.TrimSpace(id) }
+func DSAtomicIdempotencyKey(id string) string   { return "ds:atomic:" + strings.TrimSpace(id) }
+func DSCalderaIdempotencyKey(id string) string  { return "ds:caldera:" + strings.TrimSpace(id) }

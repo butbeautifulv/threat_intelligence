@@ -26,11 +26,12 @@ flowchart TB
     S["Scrapers: vuln, lola, ds"]
     TI["ti"]
     A["AppSec: sbom, coderules, nuclei"]
-    S -->|"MERGE"| Neo4j
+    S -->|"direct: MERGE"| Neo4j
+    S -->|"INGEST_MODE=nats"| NATS
     TI -->|"direct: MERGE"| Neo4j
+    TI -->|"INGEST_MODE=nats"| NATS
     A -->|"direct: MERGE"| Neo4j
     A -->|"INGEST_MODE=nats"| NATS
-    TI -->|"INGEST_MODE=nats"| NATS
     NATS -->|"ingest.>"| Worker -->|"MERGE"| Neo4j
     S -.->|optional *_PROXY_URLS| Proxy
     TI -.->|optional *_PROXY_URLS| Proxy
@@ -44,6 +45,7 @@ flowchart TB
     MCP --> Neo4j
     A -.-> IV1
     TI -.-> IV1
+    S -.-> IV1
     Worker -.-> IV1
   end
 ```
