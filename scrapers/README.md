@@ -1,24 +1,40 @@
 # Scrapers (ingest → Neo4j)
 
-Go services that pull public data and write into the shared Neo4j database. Built via [docker/](../docker/) Dockerfiles with repo root as context.
+Go binaries that pull public data and write into the shared Neo4j database. Images are built from [docker/](../docker/) with the **repository root** as build context.
 
-**Code layout and PR expectations:** [../docs/coding-style.md](../docs/coding-style.md).
+**Before a PR:** read [../docs/coding-style.md](../docs/coding-style.md) (layers, `slog`, NATS ingest).
+
+---
 
 ## Layout
 
-| Directory | Binary | Role |
-|-----------|--------|------|
+| Directory | Compose service / binary | Role |
+|-----------|--------------------------|------|
 | [vuln/](vuln/) | `vuln` | NVD CVE 2.0, Metasploit paths, Exploit-DB CSV, optional Vulners |
 | [lola/](lola/) | `lola` | LOLBAS, GTFOBins, LOFTS, MITRE ATT&CK STIX enterprise |
 | [ds/](ds/) | `ds` | SigmaHQ, YARA (Neo23x0), Atomic Red Team, Caldera Stockpile abilities |
 | [ti/](ti/) | `ti` | CISA KEV, URLhaus, PT RSS, ThreatFox, MalwareBazaar, Feodo, OpenPhish, optional JSONL file |
-| [sbom/](sbom/) | `sbom` | OSV per-CVE package ranges, GitHub Advisory Database (GHSA) JSON → `Package`, `SecurityAdvisory`, links to `Vulnerability` |
-| [coderules/](coderules/) | `coderules` | MITRE CWE catalog (XML zip), Semgrep registry rules, sample CodeQL queries → `CWE`, `SemgrepRule`, `CodeQLRule` |
-| [nuclei/](nuclei/) | `nuclei-scrape` (image binary) | ProjectDiscovery [nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) CVE YAML subset → `NucleiTemplate` |
-| [ingest-worker/](ingest-worker/) | `ingest-worker` | JetStream pull consumer: `ingest.appsec.>` → Neo4j (pairs with `INGEST_MODE=nats` on `sbom` / `coderules` / `nuclei`) |
-| [ingestpub/](ingestpub/) | — | Shared NATS JetStream publisher helper (used by scrapers in `nats` mode) |
-| [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers (Compose service name `proxybroker`) |
+| [sbom/](sbom/) | `sbom` | OSV per-CVE package ranges, GHSA JSON → `Package`, `SecurityAdvisory`, links to `Vulnerability` |
+| [coderules/](coderules/) | `coderules` | MITRE CWE catalog (zip), Semgrep rules, sample CodeQL → `CWE`, `SemgrepRule`, `CodeQLRule` |
+| [nuclei/](nuclei/) | `nuclei` (image binary `nuclei-scrape`) | [nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) CVE YAML subset → `NucleiTemplate` |
+| [ingest-worker/](ingest-worker/README.md) | **`ingest-worker`** | **Consumer:** JetStream pull on `ingest.appsec.>` → Neo4j (same writers as direct mode). See dedicated [ingest-worker README](ingest-worker/README.md). |
+| [ingestpub/](ingestpub/) | *(library)* | Shared JetStream publisher + stream bootstrap (`INGEST` / `ingest.appsec.>`). |
+| [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers |
 | [cue_schemas/](cue_schemas/) | — | Cue schemas (`merge.cue` imports `schema/ds.cue`) |
+
+---
+
+## ingest-worker (queue → Neo4j)
+
+**`ingest-worker`** is a first-class scrape-profile service (see [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker)). It does **not** fetch from the public internet; it **consumes** envelopes produced by **`sbom`**, **`coderules`**, and **`nuclei`** when **`INGEST_MODE=nats`**.
+
+| Topic | Doc |
+|--------|-----|
+| Env vars, local `go run`, Compose | [ingest-worker/README.md](ingest-worker/README.md) |
+| Stream + dedup | [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md) (Compose service `nats`, `ingest-worker`) |
+| Envelope schema | [../pkg/ingestv1/](../pkg/ingestv1/) |
+
+---
 
 ## Sources matrix
 
@@ -53,42 +69,56 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | CodeQL (GitHub API) | `coderules` | Implemented | `https://api.github.com/repos/github/codeql/contents/javascript/ql/src/Security/CWE-079` | `CODERULES_MAX_CODEQL`; `MAPS_TO_CWE` when `CWE-*` appears in query header |
 | Nuclei templates (GitHub API) | `nuclei` | Implemented | `https://api.github.com/repos/projectdiscovery/nuclei-templates/contents/http/cves/...` | `NUCLEI_MAX`, `NUCLEI_YEARS`, `GITHUB_TOKEN` (recommended); `RELATES_TO_CVE`, `MAPS_TO_CWE` when metadata present |
 
-**Ontology & roadmap:** [../docs/ontology-appsec.md](../docs/ontology-appsec.md) (labels, relationships, P3 SOC scope).
+**Ontology & roadmap:** [../docs/ontology-appsec.md](../docs/ontology-appsec.md).
 
-### Optional NATS queue (`INGEST_MODE`)
+---
 
-For **`sbom`**, **`coderules`**, and **`nuclei`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j directly (Compose scrape profile includes **`nats`** and **`ingest-worker`**). Default remains **`direct`** (current behaviour: scrapers write Neo4j).
+## Optional NATS queue (`INGEST_MODE`)
+
+Primary doc for the consumer: **[ingest-worker/README.md](ingest-worker/README.md)** and [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker).
+
+For **`sbom`**, **`coderules`**, and **`nuclei`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j directly. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
 
 | Variable | Default | Meaning |
 |----------|---------|--------|
-| `INGEST_MODE` | `direct` | `direct` = write Neo4j; `nats` = publish to JetStream only (`coderules` / `nuclei` skip opening Neo4j; `sbom` still reads CVE list from Neo4j) |
-| `NATS_URL` | `nats://localhost:4222` | Client URL; in Compose scrape profile use `nats://nats:4222` |
+| `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` skip Neo4j client; **`sbom`** still reads CVE keys from Neo4j) |
+| `NATS_URL` | `nats://localhost:4222` | Client URL; in Compose use `nats://nats:4222` |
 | `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
 | `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
 | `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
 
-Stream **`INGEST`** with subjects **`ingest.appsec.>`** is created by the first publisher or by **`ingest-worker`** on startup. Run **`ingest-worker`** (or `docker compose --profile scrape up ingest-worker`) to drain the queue into Neo4j using the same MERGE logic as direct mode.
+Stream **`INGEST`**, subjects **`ingest.appsec.>`**, dedup `Nats-Msg-Id` = envelope `idempotency_key`. Details: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
 
 **TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,urlhaus,threatfox,malwarebazaar,feodo`. Append `openphish` when you want phishing URLs (the remote feed can be slow or flaky; the scraper logs a warning and continues if the download fails). MalwareBazaar is skipped unless `MALWAREBAZAAR_AUTH_KEY` (or `MALWARE_BAZAAR_API_KEY`) is set. With `THREATFOX_AUTH_KEY`, ThreatFox uses the authenticated API instead of the public JSON export. Use `TI_PROXY_URLS` (and optional `TI_PROXY_MODE=only`) to route traffic via [proxybroker](proxybroker/). If the default PT URL returns HTML errors, add `pt` explicitly to `TI_FEEDS` only when needed, or set `PT_RSS_URL` to a stable RSS endpoint you operate.
 
-### Optional: same stack via Docker Compose
+---
 
-From repo root, `docker compose up --build` runs **Neo4j** + **graph pack import** + **HTTP API** by default (no live scraping). See [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+## Docker Compose
 
-Re-run **scrapers** and **`proxybroker`** (all require `--profile scrape`; they never start on default `docker compose up`):
+From repo root, `docker compose up --build` runs **Neo4j** + **graph-bootstrap** + **HTTP API** (no live scraping). See [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+
+Re-run scrape profile services:
 
 ```bash
 docker compose --profile scrape up --build -d
 ```
 
-Re-run ingest only: `docker compose restart vuln lola ds ti sbom coderules nuclei ingest-worker` (with profile `scrape` enabled for those services).
+Restart ingest only (example):
 
-**Graph maintenance:** [../scripts/README.md](../scripts/README.md) documents `graph-dedup-cleanup.sh` (duplicate `HAS_ADVISORY`, optional stale isolated IOC removal; always `--dry-run` first).
+```bash
+docker compose restart vuln lola ds ti sbom coderules nuclei ingest-worker
+```
 
-### Planned only (no parser here)
+**Graph maintenance:** [../scripts/README.md](../scripts/README.md) — `graph-dedup-cleanup.sh` (duplicate `HAS_ADVISORY`, optional stale isolated IOC removal; always `--dry-run` first).
+
+---
+
+## Planned only (no parser here)
 
 - AlienVault OTX API — future.
 - MISP feeds — future.
+
+---
 
 ## Run locally (Neo4j must be up)
 
@@ -108,20 +138,22 @@ cd scrapers/ingest-worker && go run ./cmd
 
 `proxybroker` does not talk to Neo4j; start it when scrapers need `*_PROXY_URLS`.
 
-`go.work` at repo root includes these modules (including `pkg/ingestv1`, `scrapers/ingestpub`, `scrapers/ingest-worker`); use `go work sync` if imports drift.
+`go.work` at repo root includes `pkg/ingestv1`, `scrapers/ingestpub`, `scrapers/ingest-worker`, and scraper modules; run `go work sync` if imports drift.
+
+---
 
 ## Graph export and packs
 
-**Consuming a pack** (no scrapers): use the default Compose stack — `graph-bootstrap` imports a ZIP before `api` starts. Env vars and bind mounts: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+**Consuming a pack** (no scrapers): default Compose stack — `graph-bootstrap` imports a ZIP before `api` starts. Env vars: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
 
-**Building a pack** (scraping): enable the Compose **`scrape`** profile (`proxybroker` + ingest services), fill Neo4j, then run the scripts below on the host.
+**Building a pack** (scraping): enable the **`scrape`** profile, fill Neo4j, then on the host:
 
-Full export/pack/import flow lives in root [scripts/](../scripts/) (see root [README.md](../README.md)):
-
-- `../scripts/export-graph-cypher.sh` — needs running Neo4j from compose.
-- `../scripts/build-graph-pack.sh` / `../scripts/import-graph-pack.sh` — versioned ZIP + `manifest.json` + `sha256`.
+- [../scripts/export-graph-cypher.sh](../scripts/export-graph-cypher.sh)
+- [../scripts/build-graph-pack.sh](../scripts/build-graph-pack.sh) / [../scripts/import-graph-pack.sh](../scripts/import-graph-pack.sh)
 
 Manifest schema: [../docs/graph-pack-manifest.schema.json](../docs/graph-pack-manifest.schema.json).
+
+---
 
 ## JSONL shapes (`ti`)
 
@@ -130,6 +162,8 @@ Manifest schema: [../docs/graph-pack-manifest.schema.json](../docs/graph-pack-ma
 - `{"cluster":{...}}` — optional nested `campaigns`
 - `{"actor":{"name":"APT-X","description":"..."}}`
 - `{"report":{"title":"...","provider":"...","link":"https://...","body_markdown":"..."}}`
+
+---
 
 ## IOC freshness and TTL (`ti`)
 
@@ -140,6 +174,8 @@ IOC nodes store **`firstSeen`**, **`lastSeen`**, **`sources`**, **`updatedAt`**,
 1. Use **`lastSeen`** (updated on every matching upsert) as the freshness clock.
 2. Periodically run Cypher or [../scripts/graph-dedup-cleanup.sh](../scripts/graph-dedup-cleanup.sh) with `GRAPH_DELETE_STALE_ISOLATED_IOCS=1` **only after** reviewing counts — it removes **degree-0** IOCs older than `GRAPH_IOC_STALE_DAYS` (default 90) by comparing `coalesce(lastSeen, updatedAt)` to a UTC cutoff.
 3. For campaign-linked IOCs, prefer targeted queries rather than blind global deletes.
+
+---
 
 ## Stage 2 (future)
 

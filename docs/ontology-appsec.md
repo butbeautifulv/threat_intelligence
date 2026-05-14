@@ -27,7 +27,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 - Hard **limits** via environment variables on every high-cardinality feed (`*_MAX_*`).
 - **MERGE** on canonical keys (`id`, `cve`, `Package.id`, `SemgrepRule.id`, …).
-- Optional **NATS JetStream** path for AppSec scrapers (`sbom`, `coderules`, `nuclei`): producers publish `ingestv1` envelopes to **`ingest.appsec.*`**; **`ingest-worker`** normalizes and writes Neo4j with the same MERGE semantics as direct mode (see [threatintel-runtime.md](threatintel-runtime.md#nats-jetstream-optional-ingest-queue)).
+- Optional **NATS JetStream** path for AppSec scrapers (`sbom`, `coderules`, `nuclei`): producers publish `ingestv1` envelopes to **`ingest.appsec.*`**; **`ingest-worker`** normalizes and writes Neo4j with the same MERGE semantics as direct mode (see [threatintel-runtime.md](threatintel-runtime.md#ingest-worker) and [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md)).
 - Optional **cleanup** scripts under [`scripts/`](../scripts/) (duplicate relationships, stale isolated IOCs) with `--dry-run` first.
 
 ## IOC freshness (TI)
@@ -60,3 +60,15 @@ The MITRE CWE XML includes **parent/child** relationships between weaknesses. Th
 ## Correlation layer (future)
 
 A read-side or batch **enrichment engine** (outside the Neo4j write path) can materialize “attack path” subgraphs: CVE → package → advisory → CWE → Semgrep/CodeQL/Nuclei → detection content. This repo currently focuses on **ingest + categorical query APIs**; correlation jobs can be added later without changing ingest contracts.
+
+## Related documentation
+
+- [threatintel-runtime.md](threatintel-runtime.md) — Compose services, NATS, **ingest-worker**
+- [scrapers/README.md](../scrapers/README.md) — Scraper env vars and `INGEST_MODE`
+- [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) — Consumer binary details
+
+## Related documentation
+
+- [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, MCP, **`nats`**, **`ingest-worker`**
+- [scrapers/README.md](../scrapers/README.md) — source matrix, `INGEST_MODE`, local runs
+- [coding-style.md](coding-style.md) — scraper and worker layering
