@@ -51,20 +51,40 @@ func (p *JetStreamPublisher) PublishJSON(ctx context.Context, subject string, en
 	return nil
 }
 
-// EnsureAppSecStream creates the INGEST stream if missing (idempotent).
-func EnsureAppSecStream(js nats.JetStreamContext) error {
-	if _, err := js.StreamInfo("INGEST"); err != nil {
+// EnsureIngestStream creates or updates the INGEST stream to accept all ingest.* subjects.
+func EnsureIngestStream(js nats.JetStreamContext) error {
+	info, err := js.StreamInfo("INGEST")
+	if err != nil {
 		if !errors.Is(err, nats.ErrStreamNotFound) {
 			return err
 		}
 		_, err = js.AddStream(&nats.StreamConfig{
 			Name:     "INGEST",
-			Subjects: []string{"ingest.appsec.>"},
+			Subjects: []string{"ingest.>"},
 			Storage:  nats.FileStorage,
 		})
 		return err
 	}
-	return nil
+	// Widen legacy streams that only matched ingest.appsec.>
+	hasIngestAll := false
+	for _, s := range info.Config.Subjects {
+		if s == "ingest.>" {
+			hasIngestAll = true
+			break
+		}
+	}
+	if hasIngestAll {
+		return nil
+	}
+	cfg := info.Config
+	cfg.Subjects = []string{"ingest.>"}
+	_, err = js.UpdateStream(&cfg)
+	return err
+}
+
+// EnsureAppSecStream is kept for callers; it now ensures the unified ingest stream.
+func EnsureAppSecStream(js nats.JetStreamContext) error {
+	return EnsureIngestStream(js)
 }
 
 // ConnectJetStreamAndStream connects and ensures stream exists.

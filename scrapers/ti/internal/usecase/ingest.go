@@ -85,6 +85,25 @@ func (u *Ingestor) IngestJSONL(ctx context.Context, stream *ingest.Stream) error
 	return nil
 }
 
+// IngestOne applies a single JSONL-shaped envelope (used by NATS ingest-worker).
+func (u *Ingestor) IngestOne(ctx context.Context, env ingest.Envelope) error {
+	switch {
+	case env.IOC != nil:
+		_, err := u.UpsertIOC(ctx, *env.IOC)
+		return err
+	case env.Campaign != nil:
+		return u.UpsertCampaign(ctx, *env.Campaign)
+	case env.Cluster != nil:
+		return u.UpsertCluster(ctx, *env.Cluster)
+	case env.Actor != nil:
+		return u.UpsertActor(ctx, *env.Actor)
+	case env.Report != nil:
+		return u.UpsertReport(ctx, *env.Report)
+	default:
+		return nil
+	}
+}
+
 func (u *Ingestor) UpsertIOC(ctx context.Context, i domain.IOC) (bool, error) {
 	ni, ok := normalize.NormalizeIOC(i)
 	if !ok {

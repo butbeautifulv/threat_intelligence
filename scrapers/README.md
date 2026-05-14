@@ -77,19 +77,20 @@ Go binaries that pull public data and write into the shared Neo4j database. Imag
 
 Primary doc for the consumer: **[ingest-worker/README.md](ingest-worker/README.md)** and [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker).
 
-For **`sbom`**, **`coderules`**, and **`nuclei`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j from the scraper process. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
+For **`sbom`**, **`coderules`**, **`nuclei`**, and **`ti`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j from the scraper process. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
 
 | Variable | Default | Meaning |
 |----------|---------|--------|
-| `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` / **`sbom`** skip Neo4j client) |
+| `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` / **`sbom`** / **`ti`** skip Neo4j client when `nats`) |
 | `NATS_URL` | `nats://localhost:4222` | Client URL; in Compose use `nats://nats:4222` |
 | `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
 | `SBOM_CVE_LIST_FILE` | *(Compose: `/fixtures/cve_list_seed.txt` in image)* | One `CVE-…` id per line (`#` comments allowed). Required for **`sbom`** OSV when `INGEST_MODE=nats` (replaces Neo4j `ListCVEs`). |
 | `SBOM_CVE_LIST_URL` | empty | Alternative: HTTP(S) document with the same line format (used if **`SBOM_CVE_LIST_FILE`** is unset). |
 | `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
 | `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
+| `TI_NATS_SUBJECT` | `ingest.ti.events` | Publish subject for **`ti`** (`--feeds` / `--input` in `nats` mode) |
 
-Stream **`INGEST`**, subjects **`ingest.appsec.>`**, dedup `Nats-Msg-Id` = envelope `idempotency_key`. Details: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+Stream **`INGEST`**, subjects **`ingest.>`** (JetStream pattern; includes **`ingest.appsec.*`**, **`ingest.ti.*`**, …), dedup `Nats-Msg-Id` = envelope `idempotency_key`. Details: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
 
 **TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,urlhaus,threatfox,malwarebazaar,feodo`. Append `openphish` when you want phishing URLs (the remote feed can be slow or flaky; the scraper logs a warning and continues if the download fails). MalwareBazaar is skipped unless `MALWAREBAZAAR_AUTH_KEY` (or `MALWARE_BAZAAR_API_KEY`) is set. With `THREATFOX_AUTH_KEY`, ThreatFox uses the authenticated API instead of the public JSON export. Use `TI_PROXY_URLS` (and optional `TI_PROXY_MODE=only`) to route traffic via [proxybroker](proxybroker/). If the default PT URL returns HTML errors, add `pt` explicitly to `TI_FEEDS` only when needed, or set `PT_RSS_URL` to a stable RSS endpoint you operate.
 

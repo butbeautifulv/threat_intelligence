@@ -15,6 +15,7 @@ const (
 	SourceSBOM      = "sbom"
 	SourceCoderules = "coderules"
 	SourceNuclei    = "nuclei"
+	SourceTI        = "ti"
 )
 
 // Event kinds per source (extend as needed).
@@ -25,6 +26,19 @@ const (
 	KindCoderulesSemgrep = "coderules_semgrep_yaml"
 	KindCoderulesCodeQL  = "coderules_codeql_ql"
 	KindNucleiTemplate   = "nuclei_template_yaml"
+
+	// TI (threat intel feeds / JSONL) — payload is JSON matching ti/internal/domain and ti/internal/ingest shapes.
+	KindTIIoC                   = "ti_ioc"
+	KindTIKEVVulnerability      = "ti_kev_vulnerability"
+	KindTIReport                = "ti_report"
+	KindTICampaign              = "ti_campaign"
+	KindTICluster               = "ti_cluster"
+	KindTIActor                 = "ti_actor"
+	KindTILinkCampaignIOC       = "ti_link_campaign_ioc"
+	KindTILinkClusterCampaign    = "ti_link_cluster_campaign"
+	KindTILinkCampaignActor      = "ti_link_campaign_actor"
+	KindTILinkReportMentionsIOC  = "ti_link_report_mentions_ioc"
+	KindTIJSONLRecord            = "ti_jsonl_record"
 )
 
 // Envelope is the on-wire JSON for JetStream / HTTP bridges.
@@ -108,6 +122,44 @@ type NucleiTemplatePayload struct {
 	RawYAML    string `json:"raw_yaml"`
 }
 
+// TIKEVVulnPayload is one CISA KEV row (same fields as ti feeds runner).
+type TIKEVVulnPayload struct {
+	CVEID         string `json:"cve_id"`
+	VendorProject string `json:"vendor_project"`
+	Product       string `json:"product"`
+	ShortDesc     string `json:"short_desc"`
+	DateAdded     string `json:"date_added"`
+}
+
+// TILinkCampaignIOCPayload links Campaign → IOC after both upserts.
+type TILinkCampaignIOCPayload struct {
+	CampaignID string          `json:"campaign_id"`
+	IOC        json.RawMessage `json:"ioc"`
+}
+
+// TILinkClusterCampaignPayload links Cluster → Campaign.
+type TILinkClusterCampaignPayload struct {
+	ClusterID  string `json:"cluster_id"`
+	CampaignID string `json:"campaign_id"`
+}
+
+// TILinkCampaignActorPayload links Campaign → Actor (actor identified by name).
+type TILinkCampaignActorPayload struct {
+	CampaignID string `json:"campaign_id"`
+	ActorName  string `json:"actor_name"`
+}
+
+// TILinkReportMentionsIOCPayload links Report → IOC.
+type TILinkReportMentionsIOCPayload struct {
+	ReportID string          `json:"report_id"`
+	IOC      json.RawMessage `json:"ioc"`
+}
+
+// TIJSONLRecordPayload is one raw JSONL line (ti/internal/ingest.Envelope JSON).
+type TIJSONLRecordPayload struct {
+	Line json.RawMessage `json:"line"`
+}
+
 // NewEnvelope builds a v1 envelope with JSON-marshaled payload.
 func NewEnvelope(source, kind, idempotencyKey string, payload any) (*Envelope, error) {
 	raw, err := json.Marshal(payload)
@@ -152,4 +204,50 @@ func CoderulesCodeQLIdempotencyKey(path string) string {
 // NucleiTemplateIdempotencyKey addresses one template path.
 func NucleiTemplateIdempotencyKey(path string) string {
 	return "nuclei:template:" + strings.TrimSpace(path)
+}
+
+// --- TI idempotency keys (prefix ti:) ---
+
+func TIIoCIdempotencyKey(canonicalIOCID string) string {
+	return "ti:ioc:" + strings.TrimSpace(canonicalIOCID)
+}
+
+func TIKEVIdempotencyKey(cve string) string {
+	return "ti:kev:" + strings.TrimSpace(strings.ToUpper(cve))
+}
+
+func TIReportIdempotencyKey(stableReportID string) string {
+	return "ti:report:" + strings.TrimSpace(stableReportID)
+}
+
+func TICampaignIdempotencyKey(id string) string {
+	return "ti:campaign:" + strings.TrimSpace(id)
+}
+
+func TIClusterIdempotencyKey(id string) string {
+	return "ti:cluster:" + strings.TrimSpace(id)
+}
+
+func TIActorIdempotencyKey(actorStableID string) string {
+	return "ti:actor:" + strings.TrimSpace(actorStableID)
+}
+
+func TILinkCampaignIOCIdempotencyKey(campaignID, iocCanonicalID string) string {
+	return "ti:lc:" + strings.TrimSpace(campaignID) + ":" + strings.TrimSpace(iocCanonicalID)
+}
+
+func TILinkClusterCampaignIdempotencyKey(clusterID, campaignID string) string {
+	return "ti:lkc:" + strings.TrimSpace(clusterID) + ":" + strings.TrimSpace(campaignID)
+}
+
+func TILinkCampaignActorIdempotencyKey(campaignID, actorStableID string) string {
+	return "ti:lca:" + strings.TrimSpace(campaignID) + ":" + strings.TrimSpace(actorStableID)
+}
+
+func TILinkReportMentionsIOCIdempotencyKey(reportID, iocCanonicalID string) string {
+	return "ti:lrmi:" + strings.TrimSpace(reportID) + ":" + strings.TrimSpace(iocCanonicalID)
+}
+
+func TIJSONLRecordIdempotencyKey(lineSHA256Hex32 string) string {
+	return "ti:jsonl:" + strings.TrimSpace(lineSHA256Hex32)
 }

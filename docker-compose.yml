@@ -94,7 +94,7 @@ services:
       - "${NATS_CLIENT_PORT:-4222}:4222"
       - "${NATS_MONITOR_PORT:-8222}:8222"
 
-  # Pull consumer: drains ingest.appsec.> and writes to Neo4j (run alongside NATS + scrapers in nats mode).
+  # Pull consumer: drains ingest.> (AppSec + TI + future domains) and writes to Neo4j.
   ingest-worker:
     profiles: ["scrape"]
     build:
@@ -108,7 +108,7 @@ services:
       - NATS_URL=nats://nats:4222
       - NATS_INGEST_STREAM=INGEST
       - NATS_DURABLE=ingest-worker
-      - NATS_SUBSCRIBE_SUBJECT=ingest.appsec.>
+      - NATS_SUBSCRIBE_SUBJECT=${NATS_SUBSCRIBE_SUBJECT:-ingest.>}
       - INGEST_BATCH=${INGEST_BATCH:-10}
       - INGEST_MAX_WAIT=${INGEST_MAX_WAIT:-5s}
     depends_on:
@@ -238,6 +238,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - TI_NATS_SUBJECT=${TI_NATS_SUBJECT:-ingest.ti.events}
       - TI_KEV_MAX=${TI_KEV_MAX:-200}
       - TI_PT_MAX=${TI_PT_MAX:-40}
       - TI_URLHAUS_MAX=${TI_URLHAUS_MAX:-300}
@@ -260,6 +263,8 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+      nats:
+        condition: service_started
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache

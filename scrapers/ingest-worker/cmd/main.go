@@ -21,6 +21,8 @@ import (
 	coderulesneo "coderules/storage/neo4j"
 	nucleineo "nuclei/storage/neo4j"
 	sbomneo "sbom/storage/neo4j"
+
+	"ti/workeringest"
 )
 
 func main() {
@@ -39,7 +41,7 @@ func run(rootCtx context.Context, log *slog.Logger) error {
 	natsURL := getenv("NATS_URL", "nats://localhost:4222")
 	stream := getenv("NATS_INGEST_STREAM", "INGEST")
 	durable := getenv("NATS_DURABLE", "ingest-worker")
-	subject := getenv("NATS_SUBSCRIBE_SUBJECT", "ingest.appsec.>")
+	subject := getenv("NATS_SUBSCRIBE_SUBJECT", "ingest.>")
 	batch := getenvInt("INGEST_BATCH", 10)
 	maxWait := getenvDuration("INGEST_MAX_WAIT", 5*time.Second)
 
@@ -65,9 +67,19 @@ func run(rootCtx context.Context, log *slog.Logger) error {
 		return fmt.Errorf("neo4j nuclei: %w", err)
 	}
 	defer nuSt.Close(rootCtx)
+	tiEnsure, tiApply, tiClose, err := workeringest.SetupTIWriter(rootCtx, workeringest.NeoConfig{
+		URI:      neoCfg.URI,
+		Username: neoCfg.Username,
+		Password: neoCfg.Password,
+		Database: neoCfg.Database,
+	}, log)
+	if err != nil {
+		return err
+	}
+	defer tiClose(rootCtx)
 
 	for _, fn := range []func(context.Context) error{
-		sbomSt.EnsureSchema, crSt.EnsureSchema, nuSt.EnsureSchema,
+		sbomSt.EnsureSchema, crSt.EnsureSchema, nuSt.EnsureSchema, tiEnsure,
 	} {
 		if err := fn(rootCtx); err != nil {
 			return fmt.Errorf("schema: %w", err)
@@ -84,7 +96,7 @@ func run(rootCtx context.Context, log *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("jetstream: %w", err)
 	}
-	if err := ingestpub.EnsureAppSecStream(js); err != nil {
+	if err := ingestpub.EnsureIngestStream(js); err != nil {
 		return fmt.Errorf("stream: %w", err)
 	}
 
@@ -98,12 +110,12 @@ func run(rootCtx context.Context, log *slog.Logger) error {
 
 	eg, ctx := errgroup.WithContext(rootCtx)
 	eg.Go(func() error {
-		return runPullLoop(ctx, log, sub, batch, maxWait, sbomSt, crSt, nuSt)
+		return runPullLoop(ctx, log, sub, batch, maxWait, sbomSt, crSt, nuSt, tiApply)
 	})
 	return eg.Wait()
 }
 
-func runPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, batch int, maxWait time.Duration, sbomSt *sbomneo.Store, crSt *coderulesneo.Store, nuSt *nucleineo.Store) error {
+func runPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, batch int, maxWait time.Duration, sbomSt *sbomneo.Store, crSt *coderulesneo.Store, nuSt *nucleineo.Store, tiApply func(context.Context, *ingestv1.Envelope) error) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -125,7 +137,7 @@ func runPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, 
 			continue
 		}
 		for _, m := range msgs {
-			if err := handleMsg(ctx, log, m, sbomSt, crSt, nuSt); err != nil {
+			if err := handleMsg(ctx, log, m, sbomSt, crSt, nuSt, tiApply); err != nil {
 				log.Warn("message", slog.String("err", err.Error()))
 				_ = m.NakWithDelay(2 * time.Second)
 				continue
@@ -151,11 +163,16 @@ func validateEnvelopeSource(e *ingestv1.Envelope) error {
 		if e.Source != ingestv1.SourceNuclei {
 			return fmt.Errorf("kind %q expects source %q, got %q", e.Kind, ingestv1.SourceNuclei, e.Source)
 		}
+	case ingestv1.KindTIIoC, ingestv1.KindTIKEVVulnerability, ingestv1.KindTIReport, ingestv1.KindTICampaign, ingestv1.KindTICluster, ingestv1.KindTIActor,
+		ingestv1.KindTILinkCampaignIOC, ingestv1.KindTILinkClusterCampaign, ingestv1.KindTILinkCampaignActor, ingestv1.KindTILinkReportMentionsIOC, ingestv1.KindTIJSONLRecord:
+		if e.Source != ingestv1.SourceTI {
+			return fmt.Errorf("kind %q expects source %q, got %q", e.Kind, ingestv1.SourceTI, e.Source)
+		}
 	}
 	return nil
 }
 
-func handleMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, sbomSt *sbomneo.Store, crSt *coderulesneo.Store, nuSt *nucleineo.Store) error {
+func handleMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, sbomSt *sbomneo.Store, crSt *coderulesneo.Store, nuSt *nucleineo.Store, tiApply func(context.Context, *ingestv1.Envelope) error) error {
 	var env ingestv1.Envelope
 	if err := json.Unmarshal(m.Data, &env); err != nil {
 		return fmt.Errorf("decode envelope: %w", err)
@@ -228,8 +245,11 @@ func handleMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, sbomSt *sbomn
 		id := nucleineo.StableID("nuclei", p.Path)
 		md := fmt.Sprintf("# %s\n\n**id:** `%s`  \n**path:** `%s`\n\n```yaml\n%s\n```\n", p.Name, p.TemplateID, p.Path, p.RawYAML)
 		return nuSt.UpsertNucleiTemplate(ctx, id, p.TemplateID, p.Path, p.Name, p.Severity, p.TagsJSON, p.CVE, p.CWE, md)
+
+	case ingestv1.KindTIIoC, ingestv1.KindTIKEVVulnerability, ingestv1.KindTIReport, ingestv1.KindTICampaign, ingestv1.KindTICluster, ingestv1.KindTIActor,
+		ingestv1.KindTILinkCampaignIOC, ingestv1.KindTILinkClusterCampaign, ingestv1.KindTILinkCampaignActor, ingestv1.KindTILinkReportMentionsIOC, ingestv1.KindTIJSONLRecord:
+		return tiApply(ctx, &env)
 	default:
-		// Ack and skip: forward-compatible with new kinds until worker is extended.
 		log.Warn("unknown kind", slog.String("kind", env.Kind))
 		return nil
 	}

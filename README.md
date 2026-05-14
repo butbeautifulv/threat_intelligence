@@ -23,13 +23,17 @@ flowchart TB
     NATS[NATS JetStream]
     Worker[ingest-worker]
     Proxy[proxybroker]
-    S["Scrapers: vuln, lola, ds, ti"]
+    S["Scrapers: vuln, lola, ds"]
+    TI["ti"]
     A["AppSec: sbom, coderules, nuclei"]
     S -->|"MERGE"| Neo4j
+    TI -->|"direct: MERGE"| Neo4j
     A -->|"direct: MERGE"| Neo4j
     A -->|"INGEST_MODE=nats"| NATS
-    NATS -->|"ingest.appsec.>"| Worker -->|"MERGE"| Neo4j
+    TI -->|"INGEST_MODE=nats"| NATS
+    NATS -->|"ingest.>"| Worker -->|"MERGE"| Neo4j
     S -.->|optional *_PROXY_URLS| Proxy
+    TI -.->|optional *_PROXY_URLS| Proxy
     A -.->|optional *_PROXY_URLS| Proxy
   end
   subgraph modules["Shared Go packages"]
@@ -39,6 +43,7 @@ flowchart TB
     MCP[Optional profile mcp: stdio MCP] --> GQ
     MCP --> Neo4j
     A -.-> IV1
+    TI -.-> IV1
     Worker -.-> IV1
   end
 ```

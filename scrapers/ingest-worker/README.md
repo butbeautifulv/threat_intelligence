@@ -1,8 +1,11 @@
 # ingest-worker
 
-Long-running **JetStream pull consumer** that reads AppSec ingest envelopes from NATS and writes to **Neo4j** using the same Cypher `MERGE` paths as the **`sbom`**, **`coderules`**, and **`nuclei`** scrapers in `INGEST_MODE=direct`.
+Long-running **JetStream pull consumer** that reads **`ingestv1`** envelopes from NATS and writes to **Neo4j** using the same semantics as **`INGEST_MODE=direct`** scrapers:
 
-The binary follows the same lifecycle pattern as other long-running scrapers: **`golang.org/x/sync/errgroup`** with a context cancelled on **SIGINT/SIGTERM** (see [docs/coding-style.md](../../docs/coding-style.md)). Envelope **`source`** must match **`kind`** (`sbom`, `coderules`, `nuclei`); unknown kinds are logged and **acked** so newer producers do not block the consumer.
+- **AppSec:** `sbom`, `coderules`, `nuclei` (subjects `ingest.appsec.*`)
+- **TI:** `ti` feeds / JSONL (`ingest.ti.*` or default `ingest.ti.events`)
+
+The binary follows the same lifecycle pattern as other long-running scrapers: **`golang.org/x/sync/errgroup`** with a context cancelled on **SIGINT/SIGTERM** (see [docs/coding-style.md](../../docs/coding-style.md)). Envelope **`source`** must match **`kind`**; unknown kinds are logged and **acked** so newer producers do not block the consumer.
 
 Use this service when scrapers run with **`INGEST_MODE=nats`** (publish-only). Without the worker, messages accumulate in the stream until a consumer drains them.
 
@@ -10,9 +13,10 @@ Use this service when scrapers run with **`INGEST_MODE=nats`** (publish-only). W
 
 | Path | Role |
 |------|------|
-| [cmd/main.go](cmd/main.go) | Connect Neo4j (three stores), NATS JetStream, pull loop, ack/nak |
-| [../ingestpub/](../ingestpub/) | Stream creation helper (`EnsureAppSecStream`) used by publishers too |
+| [cmd/main.go](cmd/main.go) | Neo4j writers (sbom, coderules, nuclei, ti), NATS JetStream, pull loop, ack/nak |
+| [../ingestpub/](../ingestpub/) | Stream ensure (`EnsureIngestStream`, `ingest.>`) used by publishers too |
 | [../../pkg/ingestv1/](../../pkg/ingestv1/) | Envelope schema, kinds, payloads |
+| [../ti/workeringest/](../ti/workeringest/) | TI apply path (importable from outside `ti/internal`) |
 | [../sbom/storage/neo4j/](../sbom/storage/neo4j/) | OSV / GHSA writes |
 | [../coderules/storage/neo4j/](../coderules/storage/neo4j/) | CWE / Semgrep / CodeQL writes |
 | [../nuclei/storage/neo4j/](../nuclei/storage/neo4j/) | Nuclei template writes |
@@ -26,11 +30,13 @@ Use this service when scrapers run with **`INGEST_MODE=nats`** (publish-only). W
 | `NATS_URL` | `nats://localhost:4222` | In Compose scrape profile: `nats://nats:4222` |
 | `NATS_INGEST_STREAM` | `INGEST` | JetStream stream name |
 | `NATS_DURABLE` | `ingest-worker` | Durable consumer name |
-| `NATS_SUBSCRIBE_SUBJECT` | `ingest.appsec.>` | Pull filter (must match stream subjects) |
+| `NATS_SUBSCRIBE_SUBJECT` | `ingest.>` | Pull filter (must match stream subjects) |
 | `INGEST_BATCH` | `10` | Max messages per `Fetch` |
 | `INGEST_MAX_WAIT` | `5s` | Max wait per fetch batch |
 
-On startup the worker ensures stream **`INGEST`** exists (subjects **`ingest.appsec.>`**) if missing, then binds a durable pull subscription.
+On startup the worker ensures stream **`INGEST`** exists with subjects **`ingest.>`** (widens legacy `ingest.appsec.>`-only streams on update).
+
+If you previously used **`NATS_SUBSCRIBE_SUBJECT=ingest.appsec.>`**, switch to **`ingest.>`** (or a narrower filter) so TI messages are delivered; you may need a new **`NATS_DURABLE`** name if the old consumer filter cannot be updated in place.
 
 ## Run locally
 
@@ -43,15 +49,10 @@ go run ./cmd
 
 From repo root with `go.work` synced.
 
-## Docker Compose
-
-Service **`ingest-worker`** is defined in the root [docker-compose.yml](../../docker-compose.yml) under **`profiles: ["scrape"]`**, alongside **`nats`**. See [docs/threatintel-runtime.md](../../docs/threatintel-runtime.md) for the full service matrix and ports.
-
-Typical queue mode:
+## Compose (scrape profile)
 
 ```bash
-export INGEST_MODE=nats
 docker compose --profile scrape up --build -d neo4j nats ingest-worker sbom
 ```
 
-Tune `INGEST_MODE` per service in an override file if only some publishers use NATS.
+Add **`ti`** when **`INGEST_MODE=nats`** for TI queue-backed ingest.

@@ -101,27 +101,28 @@ Use **`ingest-worker`** whenever AppSec scrapers publish with **`INGEST_MODE=nat
 | `vuln` | [docker/vuln.Dockerfile](../docker/vuln.Dockerfile) | NVD, Metasploit, Exploit-DB, optional Vulners; volume `data/cache` |
 | `lola` | [docker/lola.Dockerfile](../docker/lola.Dockerfile) | LOLBAS, GTFOBins, LOFTS, MITRE STIX |
 | `ds` | [docker/ds.Dockerfile](../docker/ds.Dockerfile) | Sigma, YARA, Atomic, Caldera |
-| `ti` | [docker/ti.Dockerfile](../docker/ti.Dockerfile) | KEV, URLhaus, ThreatFox, …; `TI_FEEDS`, `TI_*` limits |
+| `ti` | [docker/ti.Dockerfile](../docker/ti.Dockerfile) | KEV, URLhaus, ThreatFox, …; **`INGEST_MODE`**, **`TI_NATS_SUBJECT`**; depends on `nats` (started) |
 | `sbom` | [docker/sbom.Dockerfile](../docker/sbom.Dockerfile) | OSV + GHSA; **`INGEST_MODE`**, **`SBOM_NATS_SUBJECT`**; depends on `nats` (started) |
 | `coderules` | [docker/coderules.Dockerfile](../docker/coderules.Dockerfile) | CWE, Semgrep, CodeQL; **`INGEST_MODE`**, **`CODERULES_NATS_SUBJECT`**; depends on `nats` |
 | `nuclei` | [docker/nuclei.Dockerfile](../docker/nuclei.Dockerfile) | Nuclei templates; **`INGEST_MODE`**, **`NUCLEI_NATS_SUBJECT`**; depends on `nats` |
 
-All scrape ingest rows above use **`NEO4J_URI=neo4j://neo4j:7687`** (except **`coderules` / `nuclei` / `sbom`** do not open Neo4j when **`INGEST_MODE=nats`**; **`sbom`** uses **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for OSV CVE ids in `nats` mode). See [scrapers/README.md](../scrapers/README.md) for per-feed env vars.
+All scrape ingest rows above use **`NEO4J_URI=neo4j://neo4j:7687`** (except **`coderules` / `nuclei` / `sbom` / `ti`** do not open Neo4j when **`INGEST_MODE=nats`**; **`sbom`** uses **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for OSV CVE ids in `nats` mode). See [scrapers/README.md](../scrapers/README.md) for per-feed env vars.
 
 ### NATS publish and consume (`INGEST_MODE`)
 
 | Variable | Default | Meaning |
 |----------|---------|--------|
-| `INGEST_MODE` | `direct` | `direct` = scraper writes Neo4j; `nats` = publish envelopes (AppSec scrapers only, as wired in compose) |
+| `INGEST_MODE` | `direct` | `direct` = scraper writes Neo4j; `nats` = publish envelopes (AppSec + **`ti`** in compose; others still direct) |
 | `NATS_URL` | `nats://nats:4222` in Compose | NATS client URL for publishers and **ingest-worker** |
 | `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
 | `SBOM_CVE_LIST_FILE` | empty (Compose scrape sets image default) | CVE list for OSV when **`INGEST_MODE=nats`** |
 | `SBOM_CVE_LIST_URL` | empty | Alternative CVE list URL if file unset |
 | `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
 | `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
+| `TI_NATS_SUBJECT` | `ingest.ti.events` | Publish subject for **`ti`** when **`INGEST_MODE=nats`** |
 | `NATS_INGEST_STREAM` | `INGEST` | Stream name (worker) |
 | `NATS_DURABLE` | `ingest-worker` | Durable consumer name |
-| `NATS_SUBSCRIBE_SUBJECT` | `ingest.appsec.>` | Worker pull filter |
+| `NATS_SUBSCRIBE_SUBJECT` | `ingest.>` | Worker pull filter (AppSec + TI + future domains) |
 | `INGEST_BATCH` | `10` | Max messages per fetch |
 | `INGEST_MAX_WAIT` | `5s` | Fetch wait |
 

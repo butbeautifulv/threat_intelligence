@@ -10,6 +10,7 @@ require (
 	ingestpub v0.0.0
 	nuclei v0.0.0
 	sbom v0.0.0
+	ti v0.0.0
 )
 
 require (
@@ -33,3 +34,5 @@ replace ingestpub => ../ingestpub
 replace nuclei => ../nuclei
 
 replace sbom => ../sbom
+
+replace ti => ../ti
