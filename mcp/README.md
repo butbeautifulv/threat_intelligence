@@ -23,7 +23,7 @@ Env (same as other services):
 Category-first (preferred for agents):
 
 - `ti_list_categories`
-- `ti_list_kinds_in_category` (`category`: `vuln` \| `ti` \| `detection` \| `lola` \| `mitre`)
+- `ti_list_kinds_in_category` (`category`: any key from `GET /v1/categories` / [graph/query/categories.go](../graph/query/categories.go), e.g. `vuln`, `ti`, `sbom`, `code_rules`)
 - `ti_nodes_by_category` (`category`, `kind`, `limit`, `offset`)
 - `ti_search_in_category` (`category`, `query`, optional `kind`, `limit`)
 

@@ -41,7 +41,7 @@ Build and run scrapers + proxy pool:
 docker compose --profile scrape up --build -d
 ```
 
-Services (all `profiles: ["scrape"]`): `proxybroker`, `vuln`, `lola`, `ds`, `ti`. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
+Services (all `profiles: ["scrape"]`): `proxybroker`, `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei`. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
 
 After data is in Neo4j, export a pack from the host:
 
@@ -55,7 +55,7 @@ GRAPH_PACK_VERSION=v2026.05.0 ./scripts/build-graph-pack.sh
 Base URL: `http://localhost:8090` (with default compose).
 
 - `GET /health`
-- `GET /v1/categories` — product categories (`vuln`, `ti`, `detection`, `lola`, `mitre`) and Neo4j label sets.
+- `GET /v1/categories` — product categories (`vuln`, `ti`, `detection`, `lola`, `mitre`, `sbom`, `code_rules`, `dast`) and Neo4j label sets.
 - `GET /v1/categories/{category}/kinds` — labels present in the graph with counts.
 - `GET /v1/categories/{category}/nodes?kind=Vulnerability&limit=50&offset=0`
 - `GET /v1/categories/{category}/search?q=cve&kind=&limit=50`

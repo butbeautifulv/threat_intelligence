@@ -18,7 +18,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [vuln, ti, detection, lola, mitre]
+            enum: [vuln, ti, detection, lola, mitre, sbom, code_rules, dast]
   /v1/categories/{category}/nodes:
     get:
       summary: Paginated nodes of a label within a category
@@ -26,7 +26,9 @@ paths:
         - name: category
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
+            enum: [vuln, ti, detection, lola, mitre, sbom, code_rules, dast]
         - name: kind
           in: query
           required: true
@@ -44,7 +46,9 @@ paths:
         - name: category
           in: path
           required: true
-          schema: { type: string }
+          schema:
+            type: string
+            enum: [vuln, ti, detection, lola, mitre, sbom, code_rules, dast]
         - name: q
           in: query
           required: true

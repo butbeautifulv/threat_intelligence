@@ -15,6 +15,7 @@ type IOC struct {
 	Confidence *int     `json:"confidence,omitempty" yaml:"confidence,omitempty"`
 	Tags       []string `json:"tags,omitempty" yaml:"tags,omitempty"`
 	Source     string   `json:"source,omitempty" yaml:"source,omitempty"`
+	Sources    []string `json:"sources,omitempty" yaml:"sources,omitempty"`
 }
 
 type Campaign struct {

@@ -30,9 +30,9 @@ Layout:
 | [docker/](docker/) | **All** service Dockerfiles (api, bootstrap, scrapers, mcp, `scrapers/proxybroker`) |
 | [mcp/](mcp/) | MCP server (stdio); uses `graph/query` |
 | [scrapers/proxybroker/](scrapers/proxybroker/) | HTTP proxy pool for scrapers (compose profile `scrape`) |
-| [scripts/](scripts/) | Export / pack / import Cypher (`export-graph-cypher.sh`, `build-graph-pack.sh`, `import-graph-pack.sh`) |
-| [docs/](docs/) | [threatintel-runtime.md](docs/threatintel-runtime.md), [openapi.yaml](docs/openapi.yaml), [graph pack manifest schema](docs/graph-pack-manifest.schema.json) |
-| [scrapers/](scrapers/) | `vuln`, `lola`, `ds`, `ti` ingest binaries + [cue_schemas/](scrapers/cue_schemas/) |
+| [scripts/](scripts/) | Export / pack / import Cypher; [scripts/README.md](scripts/README.md) (`graph-dedup-cleanup.sh`, …) |
+| [docs/](docs/) | [threatintel-runtime.md](docs/threatintel-runtime.md), [ontology-appsec.md](docs/ontology-appsec.md) (labels + roadmap), [openapi.yaml](docs/openapi.yaml), [graph pack manifest schema](docs/graph-pack-manifest.schema.json) |
+| [scrapers/](scrapers/) | `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei` ingest binaries + [cue_schemas/](scrapers/cue_schemas/) |
 
 ## Offline graph packs (no scraping on target)
 

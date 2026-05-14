@@ -32,10 +32,28 @@ var Categories = map[string]CategoryMeta{
 		Description: "ATT&CK tactics and techniques (STIX ingest)",
 		Labels:      []string{"AttackTechnique", "AttackTactic"},
 	},
+	"sbom": {
+		ID:          "sbom",
+		Title:       "SBOM & advisories",
+		Description: "Packages, GitHub security advisories, OSV links from sbom scraper",
+		Labels:      []string{"Package", "SecurityAdvisory"},
+	},
+	"code_rules": {
+		ID:          "code_rules",
+		Title:       "Code rules & CWE catalog",
+		Description: "Semgrep rules, CodeQL queries, CWE catalog enrichment from coderules scraper",
+		Labels:      []string{"SemgrepRule", "CodeQLRule", "CWE"},
+	},
+	"dast": {
+		ID:          "dast",
+		Title:       "DAST / runtime templates",
+		Description: "Nuclei templates (CVE-tagged HTTP checks) from nuclei scraper",
+		Labels:      []string{"NucleiTemplate"},
+	},
 }
 
 // categoryOrder is the stable iteration order for APIs and docs.
-var categoryOrder = []string{"vuln", "ti", "detection", "lola", "mitre"}
+var categoryOrder = []string{"vuln", "ti", "detection", "lola", "mitre", "sbom", "code_rules", "dast"}
 
 // CategoryIDs returns known category keys in stable order.
 func CategoryIDs() []string {

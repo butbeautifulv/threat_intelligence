@@ -10,6 +10,9 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | [lola/](lola/) | `lola` | LOLBAS, GTFOBins, LOFTS, MITRE ATT&CK STIX enterprise |
 | [ds/](ds/) | `ds` | SigmaHQ, YARA (Neo23x0), Atomic Red Team, Caldera Stockpile abilities |
 | [ti/](ti/) | `ti` | CISA KEV, URLhaus, PT RSS, ThreatFox, MalwareBazaar, Feodo, OpenPhish, optional JSONL file |
+| [sbom/](sbom/) | `sbom` | OSV per-CVE package ranges, GitHub Advisory Database (GHSA) JSON → `Package`, `SecurityAdvisory`, links to `Vulnerability` |
+| [coderules/](coderules/) | `coderules` | MITRE CWE catalog (XML zip), Semgrep registry rules, sample CodeQL queries → `CWE`, `SemgrepRule`, `CodeQLRule` |
+| [nuclei/](nuclei/) | `nuclei-scrape` (image binary) | ProjectDiscovery [nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) CVE YAML subset → `NucleiTemplate` |
 | [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers (Compose service name `proxybroker`) |
 | [cue_schemas/](cue_schemas/) | — | Cue schemas (`merge.cue` imports `schema/ds.cue`) |
 
@@ -39,6 +42,14 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | Feodo Tracker IP blocklist | `ti` | Implemented | Default: `https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt` | `TI_FEODO_MAX`, optional `FEODO_BLOCKLIST_URL` |
 | OpenPhish URL feed | `ti` | Implemented | Default: `https://openphish.com/feed.txt` | `TI_OPENPHISH_MAX`, optional `OPENPHISH_FEED_URL` |
 | TI JSONL (local / mounted file) | `ti` | Implemented | — | `--input path.jsonl` (compose mounts [example.jsonl](ti/example.jsonl) as `/app/example.jsonl`) |
+| OSV API (per CVE) | `sbom` | Implemented | `https://api.osv.dev/v1/vulns/{CVE}` | `-sources osv`, `-max-cves` / `SBOM_MAX_CVES`; links `Vulnerability`→`Package` when CVE exists in graph |
+| GitHub Advisory Database (raw JSON) | `sbom` | Implemented | `https://raw.githubusercontent.com/github/advisory-database/main/...` | `-sources ghsa`, `GITHUB_TOKEN` (recommended), `SBOM_MAX_GHSA`, `SBOM_GHSA_MIN_YEAR` |
+| MITRE CWE catalog (zip) | `coderules` | Implemented | `https://cwe.mitre.org/data/xml/cwec_latest.xml.zip` | `CODERULES_MAX_CWE`; enriches `CWE` (`name`, `description`, `status` from MITRE) |
+| Semgrep rules (GitHub API) | `coderules` | Implemented | `https://api.github.com/repos/semgrep/semgrep-rules/contents/...` | `CODERULES_MAX_SEMGREP`; optional `MAPS_TO_CWE` when rule metadata lists CWEs |
+| CodeQL (GitHub API) | `coderules` | Implemented | `https://api.github.com/repos/github/codeql/contents/javascript/ql/src/Security/CWE-079` | `CODERULES_MAX_CODEQL`; `MAPS_TO_CWE` when `CWE-*` appears in query header |
+| Nuclei templates (GitHub API) | `nuclei` | Implemented | `https://api.github.com/repos/projectdiscovery/nuclei-templates/contents/http/cves/...` | `NUCLEI_MAX`, `NUCLEI_YEARS`, `GITHUB_TOKEN` (recommended); `RELATES_TO_CVE`, `MAPS_TO_CWE` when metadata present |
+
+**Ontology & roadmap:** [../docs/ontology-appsec.md](../docs/ontology-appsec.md) (labels, relationships, P3 SOC scope).
 
 **TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,urlhaus,threatfox,malwarebazaar,feodo`. Append `openphish` when you want phishing URLs (the remote feed can be slow or flaky; the scraper logs a warning and continues if the download fails). MalwareBazaar is skipped unless `MALWAREBAZAAR_AUTH_KEY` (or `MALWARE_BAZAAR_API_KEY`) is set. With `THREATFOX_AUTH_KEY`, ThreatFox uses the authenticated API instead of the public JSON export. Use `TI_PROXY_URLS` (and optional `TI_PROXY_MODE=only`) to route traffic via [proxybroker](proxybroker/). If the default PT URL returns HTML errors, add `pt` explicitly to `TI_FEEDS` only when needed, or set `PT_RSS_URL` to a stable RSS endpoint you operate.
 
@@ -52,7 +63,9 @@ Re-run **scrapers** and **`proxybroker`** (all require `--profile scrape`; they 
 docker compose --profile scrape up --build -d
 ```
 
-Re-run ingest only: `docker compose restart vuln lola ds ti` (with profile `scrape` enabled for those services).
+Re-run ingest only: `docker compose restart vuln lola ds ti sbom coderules nuclei` (with profile `scrape` enabled for those services).
+
+**Graph maintenance:** [../scripts/README.md](../scripts/README.md) documents `graph-dedup-cleanup.sh` (duplicate `HAS_ADVISORY`, optional stale isolated IOC removal; always `--dry-run` first).
 
 ### Planned only (no parser here)
 
@@ -69,6 +82,9 @@ cd scrapers/vuln && go run ./cmd
 cd scrapers/lola && go run ./cmd
 cd scrapers/ds && go run ./cmd
 cd scrapers/ti && go run ./cmd --feeds kev,urlhaus,threatfox,feodo,openphish --input example.jsonl
+cd scrapers/sbom && go run ./cmd
+cd scrapers/coderules && go run ./cmd
+cd scrapers/nuclei && go run ./cmd
 ```
 
 `proxybroker` does not talk to Neo4j; start it when scrapers need `*_PROXY_URLS`.
@@ -90,12 +106,22 @@ Manifest schema: [../docs/graph-pack-manifest.schema.json](../docs/graph-pack-ma
 
 ## JSONL shapes (`ti`)
 
-- `{"ioc":{...}}` — types: `ip`, `domain`, `url`, `hash`
+- `{"ioc":{...}}` — types: `ip`, `domain`, `url`, `hash`; optional `sources` (string array) for provenance; `source` (single string) is still merged into `sources` and stored on the IOC node together with `firstSeen` / `lastSeen` timestamps (Neo4j requires APOC for merging `sources`; default Compose image enables APOC)
 - `{"campaign":{...}}` — optional `actors`, embedded `iocs`
 - `{"cluster":{...}}` — optional nested `campaigns`
 - `{"actor":{"name":"APT-X","description":"..."}}`
 - `{"report":{"title":"...","provider":"...","link":"https://...","body_markdown":"..."}}`
 
+## IOC freshness and TTL (`ti`)
+
+IOC nodes store **`firstSeen`**, **`lastSeen`**, **`sources`**, **`updatedAt`**, and legacy **`source`**. There is **no automatic expiry** in the write path: high-churn feeds (URLhaus, OpenPhish, ThreatFox) will accumulate nodes until you run an explicit cleanup policy.
+
+**Recommended practice**
+
+1. Use **`lastSeen`** (updated on every matching upsert) as the freshness clock.
+2. Periodically run Cypher or [../scripts/graph-dedup-cleanup.sh](../scripts/graph-dedup-cleanup.sh) with `GRAPH_DELETE_STALE_ISOLATED_IOCS=1` **only after** reviewing counts — it removes **degree-0** IOCs older than `GRAPH_IOC_STALE_DAYS` (default 90) by comparing `coalesce(lastSeen, updatedAt)` to a UTC cutoff.
+3. For campaign-linked IOCs, prefer targeted queries rather than blind global deletes.
+
 ## Stage 2 (future)
 
-Kafka workers, STIX/MISP ingestion, Cue validation in CI, SBOM/Harbor, etc.
+Kafka workers, STIX/MISP ingestion, Cue validation in CI, Harbor/binary SBOM, etc.

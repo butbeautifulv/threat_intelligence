@@ -46,21 +46,32 @@ func (s *Store) EnsureSchema(ctx context.Context) error {
 
 func (s *Store) UpsertIOC(ctx context.Context, i domain.IOC) error {
 	id := normalize.CanonicalID(i)
+	eventTime := time.Now().UTC().Format(time.RFC3339Nano)
+	sources := i.Sources
+	if sources == nil {
+		sources = []string{}
+	}
 	params := map[string]any{
-		"id":         id,
-		"type":       string(i.Type),
-		"value":      i.Value,
-		"source":     i.Source,
-		"confidence": i.Confidence,
-		"tags":       i.Tags,
-		"updatedAt":  time.Now().UTC().Format(time.RFC3339Nano),
+		"id":          id,
+		"type":        string(i.Type),
+		"value":       i.Value,
+		"source":      i.Source,
+		"sources":     sources,
+		"confidence":  i.Confidence,
+		"tags":        i.Tags,
+		"updatedAt":   eventTime,
+		"eventTime":   eventTime,
 	}
 	q := `
 MERGE (n:IOC {id: $id})
+ON CREATE SET n.firstSeen = $eventTime, n.lastSeen = $eventTime
+ON MATCH SET n.lastSeen = CASE WHEN $eventTime > coalesce(n.lastSeen, '') THEN $eventTime ELSE n.lastSeen END,
+             n.firstSeen = CASE WHEN $eventTime < n.firstSeen THEN $eventTime ELSE n.firstSeen END
 SET n.type = $type,
     n.value = $value,
     n.source = CASE WHEN $source = "" THEN n.source ELSE $source END,
-    n.updatedAt = $updatedAt
+    n.updatedAt = $updatedAt,
+    n.sources = apoc.coll.sort(apoc.coll.toSet(coalesce(n.sources, []) + $sources))
 FOREACH (_ IN CASE WHEN $confidence IS NULL THEN [] ELSE [1] END | SET n.confidence = $confidence)
 FOREACH (_ IN CASE WHEN $tags IS NULL OR size($tags) = 0 THEN [] ELSE [1] END | SET n.tags = $tags)
 `

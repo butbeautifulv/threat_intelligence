@@ -4,9 +4,12 @@ use (
 	./api
 	./graph
 	./mcp
+	./scrapers/coderules
 	./scrapers/ds
 	./scrapers/lola
+	./scrapers/nuclei
 	./scrapers/proxybroker
+	./scrapers/sbom
 	./scrapers/ti
 	./scrapers/vuln
 )

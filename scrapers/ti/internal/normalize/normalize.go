@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 
 	"ti/internal/domain"
@@ -26,6 +27,27 @@ func CanonicalID(i domain.IOC) string {
 func NormalizeIOC(i domain.IOC) (domain.IOC, bool) {
 	i.Value = strings.TrimSpace(i.Value)
 	i.Source = strings.TrimSpace(i.Source)
+	var srcs []string
+	seen := map[string]struct{}{}
+	add := func(s string) {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return
+		}
+		if _, ok := seen[s]; ok {
+			return
+		}
+		seen[s] = struct{}{}
+		srcs = append(srcs, s)
+	}
+	for _, s := range i.Sources {
+		add(s)
+	}
+	if i.Source != "" {
+		add(i.Source)
+	}
+	sort.Strings(srcs)
+	i.Sources = srcs
 
 	switch i.Type {
 	case domain.IOCIP:

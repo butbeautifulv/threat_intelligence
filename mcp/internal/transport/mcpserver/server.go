@@ -89,10 +89,14 @@ func (s *Server) handle(ctx context.Context, method string, params json.RawMessa
 		}, nil
 
 	case "tools/list":
-		categoryEnum := []any{"vuln", "ti", "detection", "lola", "mitre"}
+		ids := gq.CategoryIDs()
+		categoryEnum := make([]any, len(ids))
+		for i, id := range ids {
+			categoryEnum[i] = id
+		}
 		return map[string]any{
 			"tools": []any{
-				toolDef("ti_list_categories", "List product categories (vuln, ti, detection, lola, mitre) with titles and Neo4j label sets.", map[string]any{
+				toolDef("ti_list_categories", "List product categories (see graph/query) with titles and Neo4j label sets.", map[string]any{
 					"type":       "object",
 					"properties": map[string]any{},
 				}),
