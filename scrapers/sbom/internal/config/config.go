@@ -26,6 +26,9 @@ type Config struct {
 	IngestMode    string
 	NATSURL       string
 	NATSSubject   string
+	// CVEListFile / CVEListURL: OSV CVE ids when INGEST_MODE=nats (no Neo4j). File wins if both set.
+	CVEListFile string
+	CVEListURL  string
 }
 
 func getenv(k, def string) string {
@@ -75,5 +78,7 @@ func FromEnv() *Config {
 		IngestMode:  mode,
 		NATSURL:     getenv("NATS_URL", "nats://localhost:4222"),
 		NATSSubject: getenv("SBOM_NATS_SUBJECT", "ingest.appsec.sbom"),
+		CVEListFile: getenv("SBOM_CVE_LIST_FILE", ""),
+		CVEListURL:  getenv("SBOM_CVE_LIST_URL", ""),
 	}
 }

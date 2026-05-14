@@ -170,6 +170,8 @@ services:
       - INGEST_MODE=${INGEST_MODE:-direct}
       - NATS_URL=${NATS_URL:-nats://nats:4222}
       - SBOM_NATS_SUBJECT=${SBOM_NATS_SUBJECT:-ingest.appsec.sbom}
+      - SBOM_CVE_LIST_FILE=${SBOM_CVE_LIST_FILE:-/fixtures/cve_list_seed.txt}
+      - SBOM_CVE_LIST_URL=${SBOM_CVE_LIST_URL:-}
     depends_on:
       neo4j:
         condition: service_healthy

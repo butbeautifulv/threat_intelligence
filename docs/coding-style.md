@@ -53,7 +53,7 @@ Keep a clear dependency direction (no cycles):
 ## Ingest pipeline (NATS)
 
 - **Envelope:** [pkg/ingestv1](../pkg/ingestv1/) — versioned JSON (`schema_version`, `source`, `kind`, `idempotency_key`, `payload`).
-- **Producers:** `sbom`, `coderules`, `nuclei` in **`INGEST_MODE=nats`** publish via [scrapers/ingestpub](../scrapers/ingestpub/).
+- **Producers:** `sbom`, `coderules`, `nuclei` in **`INGEST_MODE=nats`** publish via [scrapers/ingestpub](../scrapers/ingestpub/). For **`sbom`** OSV, set **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** so CVE ids are not read from Neo4j in the scraper process.
 - **Consumer:** [scrapers/ingest-worker](../scrapers/ingest-worker/README.md) applies the same **`storage/neo4j`** writers as **`direct`** mode.
 - Default **`INGEST_MODE=direct`** keeps `docker compose run sbom` usable without NATS until you opt in.
 

@@ -77,13 +77,15 @@ Go binaries that pull public data and write into the shared Neo4j database. Imag
 
 Primary doc for the consumer: **[ingest-worker/README.md](ingest-worker/README.md)** and [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker).
 
-For **`sbom`**, **`coderules`**, and **`nuclei`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j directly. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
+For **`sbom`**, **`coderules`**, and **`nuclei`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j from the scraper process. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
 
 | Variable | Default | Meaning |
 |----------|---------|--------|
-| `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` skip Neo4j client; **`sbom`** still reads CVE keys from Neo4j) |
+| `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` / **`sbom`** skip Neo4j client) |
 | `NATS_URL` | `nats://localhost:4222` | Client URL; in Compose use `nats://nats:4222` |
 | `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
+| `SBOM_CVE_LIST_FILE` | *(Compose: `/fixtures/cve_list_seed.txt` in image)* | One `CVE-…` id per line (`#` comments allowed). Required for **`sbom`** OSV when `INGEST_MODE=nats` (replaces Neo4j `ListCVEs`). |
+| `SBOM_CVE_LIST_URL` | empty | Alternative: HTTP(S) document with the same line format (used if **`SBOM_CVE_LIST_FILE`** is unset). |
 | `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
 | `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
 
