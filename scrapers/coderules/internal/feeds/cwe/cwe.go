@@ -10,14 +10,17 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	neo4jstore "coderules/internal/storage/neo4j"
 )
 
 const zipURL = "https://cwe.mitre.org/data/xml/cwec_latest.xml.zip"
 
-// IngestFromMITRE downloads the official CWE catalog zip and upserts CWE nodes (name, description).
-func IngestFromMITRE(ctx context.Context, st *neo4jstore.Store, maxWeakness int) error {
+// CatalogWriter receives one CWE weakness row from the MITRE zip stream.
+type CatalogWriter interface {
+	UpsertCWECatalog(ctx context.Context, cweID, name, description, status string) error
+}
+
+// StreamMITRE downloads the CWE catalog zip and streams Weakness elements to w.
+func StreamMITRE(ctx context.Context, w CatalogWriter, maxWeakness int) error {
 	if maxWeakness <= 0 {
 		maxWeakness = 5000
 	}
@@ -74,18 +77,18 @@ func IngestFromMITRE(ctx context.Context, st *neo4jstore.Store, maxWeakness int)
 		if !ok || se.Name.Local != "Weakness" {
 			continue
 		}
-		var w struct {
+		var wk struct {
 			ID          string `xml:"ID,attr"`
 			Name        string `xml:"Name,attr"`
 			Status      string `xml:"Status,attr"`
 			Description string `xml:"Description"`
 		}
-		if err := dec.DecodeElement(&w, &se); err != nil {
+		if err := dec.DecodeElement(&wk, &se); err != nil {
 			continue
 		}
-		cid := "CWE-" + strings.TrimPrefix(strings.TrimSpace(w.ID), "CWE-")
-		desc := strings.TrimSpace(w.Description)
-		if err := st.UpsertCWECatalog(ctx, cid, w.Name, desc, w.Status); err != nil {
+		cid := "CWE-" + strings.TrimPrefix(strings.TrimSpace(wk.ID), "CWE-")
+		desc := strings.TrimSpace(wk.Description)
+		if err := w.UpsertCWECatalog(ctx, cid, wk.Name, desc, wk.Status); err != nil {
 			return err
 		}
 		n++

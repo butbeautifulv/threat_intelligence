@@ -32,3 +32,5 @@ Requires `cypher-shell` on `PATH`, or run the printed `docker compose exec neo4j
 | `GRAPH_DELETE_STALE_ISOLATED_IOCS` | `0` | Set to `1` to `DETACH DELETE` stale isolated IOCs when not using `--dry-run` |
 
 Other graph maintenance (export/pack/import) is documented in the root [README.md](../README.md) and [scrapers/README.md](../scrapers/README.md).
+
+**Ingest queue:** the **`ingest-worker`** service (Compose **`scrape`** profile) drains NATS JetStream messages into Neo4j; it is not a host script under `scripts/`—see [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#nats-jetstream-optional-ingest-queue).

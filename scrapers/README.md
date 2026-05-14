@@ -2,6 +2,8 @@
 
 Go services that pull public data and write into the shared Neo4j database. Built via [docker/](../docker/) Dockerfiles with repo root as context.
 
+**Code layout and PR expectations:** [../docs/coding-style.md](../docs/coding-style.md).
+
 ## Layout
 
 | Directory | Binary | Role |
@@ -13,6 +15,8 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | [sbom/](sbom/) | `sbom` | OSV per-CVE package ranges, GitHub Advisory Database (GHSA) JSON → `Package`, `SecurityAdvisory`, links to `Vulnerability` |
 | [coderules/](coderules/) | `coderules` | MITRE CWE catalog (XML zip), Semgrep registry rules, sample CodeQL queries → `CWE`, `SemgrepRule`, `CodeQLRule` |
 | [nuclei/](nuclei/) | `nuclei-scrape` (image binary) | ProjectDiscovery [nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) CVE YAML subset → `NucleiTemplate` |
+| [ingest-worker/](ingest-worker/) | `ingest-worker` | JetStream pull consumer: `ingest.appsec.>` → Neo4j (pairs with `INGEST_MODE=nats` on `sbom` / `coderules` / `nuclei`) |
+| [ingestpub/](ingestpub/) | — | Shared NATS JetStream publisher helper (used by scrapers in `nats` mode) |
 | [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers (Compose service name `proxybroker`) |
 | [cue_schemas/](cue_schemas/) | — | Cue schemas (`merge.cue` imports `schema/ds.cue`) |
 
@@ -51,6 +55,20 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 
 **Ontology & roadmap:** [../docs/ontology-appsec.md](../docs/ontology-appsec.md) (labels, relationships, P3 SOC scope).
 
+### Optional NATS queue (`INGEST_MODE`)
+
+For **`sbom`**, **`coderules`**, and **`nuclei`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j directly (Compose scrape profile includes **`nats`** and **`ingest-worker`**). Default remains **`direct`** (current behaviour: scrapers write Neo4j).
+
+| Variable | Default | Meaning |
+|----------|---------|--------|
+| `INGEST_MODE` | `direct` | `direct` = write Neo4j; `nats` = publish to JetStream only (`coderules` / `nuclei` skip opening Neo4j; `sbom` still reads CVE list from Neo4j) |
+| `NATS_URL` | `nats://localhost:4222` | Client URL; in Compose scrape profile use `nats://nats:4222` |
+| `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
+| `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
+| `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
+
+Stream **`INGEST`** with subjects **`ingest.appsec.>`** is created by the first publisher or by **`ingest-worker`** on startup. Run **`ingest-worker`** (or `docker compose --profile scrape up ingest-worker`) to drain the queue into Neo4j using the same MERGE logic as direct mode.
+
 **TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,urlhaus,threatfox,malwarebazaar,feodo`. Append `openphish` when you want phishing URLs (the remote feed can be slow or flaky; the scraper logs a warning and continues if the download fails). MalwareBazaar is skipped unless `MALWAREBAZAAR_AUTH_KEY` (or `MALWARE_BAZAAR_API_KEY`) is set. With `THREATFOX_AUTH_KEY`, ThreatFox uses the authenticated API instead of the public JSON export. Use `TI_PROXY_URLS` (and optional `TI_PROXY_MODE=only`) to route traffic via [proxybroker](proxybroker/). If the default PT URL returns HTML errors, add `pt` explicitly to `TI_FEEDS` only when needed, or set `PT_RSS_URL` to a stable RSS endpoint you operate.
 
 ### Optional: same stack via Docker Compose
@@ -63,7 +81,7 @@ Re-run **scrapers** and **`proxybroker`** (all require `--profile scrape`; they 
 docker compose --profile scrape up --build -d
 ```
 
-Re-run ingest only: `docker compose restart vuln lola ds ti sbom coderules nuclei` (with profile `scrape` enabled for those services).
+Re-run ingest only: `docker compose restart vuln lola ds ti sbom coderules nuclei ingest-worker` (with profile `scrape` enabled for those services).
 
 **Graph maintenance:** [../scripts/README.md](../scripts/README.md) documents `graph-dedup-cleanup.sh` (duplicate `HAS_ADVISORY`, optional stale isolated IOC removal; always `--dry-run` first).
 
@@ -85,11 +103,12 @@ cd scrapers/ti && go run ./cmd --feeds kev,urlhaus,threatfox,feodo,openphish --i
 cd scrapers/sbom && go run ./cmd
 cd scrapers/coderules && go run ./cmd
 cd scrapers/nuclei && go run ./cmd
+cd scrapers/ingest-worker && go run ./cmd
 ```
 
 `proxybroker` does not talk to Neo4j; start it when scrapers need `*_PROXY_URLS`.
 
-`go.work` at repo root includes these modules; use `go work sync` if imports drift.
+`go.work` at repo root includes these modules (including `pkg/ingestv1`, `scrapers/ingestpub`, `scrapers/ingest-worker`); use `go work sync` if imports drift.
 
 ## Graph export and packs
 

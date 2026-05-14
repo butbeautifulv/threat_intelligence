@@ -9,6 +9,7 @@ Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP 
 | Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
 | HTTP API | 8090 | `API_PORT` to override published port |
 | Proxybroker | 8099 | Only with `--profile scrape`; `PROXYBROKER_PORT` |
+| NATS (JetStream) | `${NATS_CLIENT_PORT:-4222}` | Only with `--profile scrape`; monitoring `${NATS_MONITOR_PORT:-8222}` (`http://localhost:8222` when published) |
 
 ## Graph bootstrap (usage mode)
 
@@ -41,7 +42,23 @@ Build and run scrapers + proxy pool:
 docker compose --profile scrape up --build -d
 ```
 
-Services (all `profiles: ["scrape"]`): `proxybroker`, `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei`. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
+Services (all `profiles: ["scrape"]`): `proxybroker`, `nats`, `ingest-worker`, `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei`. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
+
+### NATS JetStream (optional ingest queue)
+
+With the **`scrape`** profile, Compose starts **`nats`** (JetStream enabled) and **`ingest-worker`**. Scrapers **`sbom`**, **`coderules`**, and **`nuclei`** accept **`INGEST_MODE=direct`** (default: write Neo4j) or **`INGEST_MODE=nats`** (publish JSON envelopes; **`ingest-worker`** pulls from stream **`INGEST`**, subjects **`ingest.appsec.>`**, and applies the same MERGE Cypher as direct mode).
+
+| Variable | Default | Meaning |
+|----------|---------|--------|
+| `INGEST_MODE` | `direct` | Set to `nats` on scrapers to publish; run **`ingest-worker`** to consume |
+| `NATS_URL` | `nats://nats:4222` in Compose | Client URL for publishers and the worker |
+| `NATS_INGEST_STREAM` | `INGEST` | JetStream stream name (`ingest-worker`) |
+| `NATS_DURABLE` | `ingest-worker` | Durable consumer name |
+| `NATS_SUBSCRIBE_SUBJECT` | `ingest.appsec.>` | Pull filter |
+| `INGEST_BATCH` | `10` | Max messages per fetch |
+| `INGEST_MAX_WAIT` | `5s` | `Fetch` max wait |
+
+`sbom` still connects to Neo4j in **`nats`** mode (CVE list for OSV). **`coderules`** and **`nuclei`** skip Neo4j when **`INGEST_MODE=nats`**. JetStream dedup uses `Nats-Msg-Id` from envelope `idempotency_key` (see `scrapers/ingestpub` and `pkg/ingestv1`).
 
 After data is in Neo4j, export a pack from the host:
 

@@ -32,7 +32,7 @@ Layout:
 | [scrapers/proxybroker/](scrapers/proxybroker/) | HTTP proxy pool for scrapers (compose profile `scrape`) |
 | [scripts/](scripts/) | Export / pack / import Cypher; [scripts/README.md](scripts/README.md) (`graph-dedup-cleanup.sh`, …) |
 | [docs/](docs/) | [threatintel-runtime.md](docs/threatintel-runtime.md), [ontology-appsec.md](docs/ontology-appsec.md) (labels + roadmap), [openapi.yaml](docs/openapi.yaml), [graph pack manifest schema](docs/graph-pack-manifest.schema.json) |
-| [scrapers/](scrapers/) | `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei` ingest binaries + [cue_schemas/](scrapers/cue_schemas/) |
+| [scrapers/](scrapers/) | `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei`, `ingest-worker` ingest binaries + [cue_schemas/](scrapers/cue_schemas/) |
 
 ## Offline graph packs (no scraping on target)
 
@@ -62,5 +62,6 @@ MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS c ORDER BY c DESC;
 
 ## Further reading
 
+- **[docs/coding-style.md](docs/coding-style.md)** — scraper layers (`domain` / `usecase` / `repository` / `storage`), logging, optional NATS ingest.
 - **[scrapers/README.md](scrapers/README.md)** — source coverage matrix, env vars, local `go run`, TI JSONL shapes, roadmap.
 - **Stage 2:** Kafka workers, STIX/MISP, Cue in CI — sketched in scrapers README.
