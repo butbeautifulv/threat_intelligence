@@ -79,6 +79,12 @@ Primary doc for the consumer: **[ingest-worker/README.md](ingest-worker/README.m
 
 For **`sbom`**, **`coderules`**, **`nuclei`**, **`ti`**, **`vuln`**, **`lola`**, and **`ds`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j from the scraper process. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
 
+To drop **`NEO4J_*`** from producer containers in Compose while keeping **`ingest-worker`** on Bolt, add **`docker-compose.scrape-nats.yml`** (see [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#nats-only-producers-optional-override)):
+
+```bash
+INGEST_MODE=nats docker compose -f docker-compose.yml -f docker-compose.scrape-nats.yml --profile scrape up --build -d
+```
+
 | Variable | Default | Meaning |
 |----------|---------|--------|
 | `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` / **`sbom`** / **`ti`** / **`vuln`** / **`lola`** / **`ds`** skip Neo4j client when `nats`) |
@@ -93,7 +99,7 @@ For **`sbom`**, **`coderules`**, **`nuclei`**, **`ti`**, **`vuln`**, **`lola`**,
 | `LOLA_NATS_SUBJECT` | `ingest.lola.events` | Publish subject for **`lola`** |
 | `DS_NATS_SUBJECT` | `ingest.ds.events` | Publish subject for **`ds`** |
 
-Stream **`INGEST`**, subjects **`ingest.>`** (JetStream pattern; includes **`ingest.appsec.*`**, **`ingest.ti.*`**, …), dedup `Nats-Msg-Id` = envelope `idempotency_key`. Details: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+Stream **`INGEST`**, subjects **`ingest.>`** (JetStream pattern; includes **`ingest.appsec.*`**, **`ingest.ti.*`**, …), dedup `Nats-Msg-Id` = envelope `idempotency_key`. Runtime env: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md). **Envelope kinds, ack policy, and handler matrix:** [../docs/ingest-contract.md](../docs/ingest-contract.md).
 
 **TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,urlhaus,threatfox,malwarebazaar,feodo`. Append `openphish` when you want phishing URLs (the remote feed can be slow or flaky; the scraper logs a warning and continues if the download fails). MalwareBazaar is skipped unless `MALWAREBAZAAR_AUTH_KEY` (or `MALWARE_BAZAAR_API_KEY`) is set. With `THREATFOX_AUTH_KEY`, ThreatFox uses the authenticated API instead of the public JSON export. Use `TI_PROXY_URLS` (and optional `TI_PROXY_MODE=only`) to route traffic via [proxybroker](proxybroker/). If the default PT URL returns HTML errors, add `pt` explicitly to `TI_FEEDS` only when needed, or set `PT_RSS_URL` to a stable RSS endpoint you operate.
 

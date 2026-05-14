@@ -77,6 +77,7 @@ Full service matrix, ports, and environment variables: **[docs/threatintel-runti
 |----------|----------|
 | [AGENTS.md](AGENTS.md) | **Cursor / agents:** mandatory pointer to [docs/coding-style.md](docs/coding-style.md) before code changes |
 | [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose services (including **ingest-worker**), ports, bootstrap, API, MCP, NATS / `INGEST_MODE` |
+| [docs/ingest-contract.md](docs/ingest-contract.md) | **ingestv1** kinds, subjects, JetStream ADR, producer→worker→Neo4j matrix |
 | [scrapers/README.md](scrapers/README.md) | Scraper sources matrix, env vars, `direct` vs `nats`, local `go run` |
 | [scrapers/ingest-worker/README.md](scrapers/ingest-worker/README.md) | JetStream consumer: env, local run, Compose examples |
 | [docs/coding-style.md](docs/coding-style.md) | Layering, logging, ingest conventions for PRs |
@@ -130,4 +131,4 @@ MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS c ORDER BY c DESC;
 
 - **[docs/coding-style.md](docs/coding-style.md)** — scraper and worker layering, `slog`, optional NATS ingest.
 - **[scrapers/README.md](scrapers/README.md)** — source matrix, `INGEST_MODE`, TI JSONL, roadmap.
-- **Stage 2:** Kafka workers, STIX/MISP, Cue in CI — sketched in scrapers README.
+- **[docs/ingest-contract.md](docs/ingest-contract.md)** — JetStream stream/subjects, kind matrix, ack policy.

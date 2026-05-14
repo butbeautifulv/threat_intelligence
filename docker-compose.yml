@@ -93,6 +93,12 @@ services:
     ports:
       - "${NATS_CLIENT_PORT:-4222}:4222"
       - "${NATS_MONITOR_PORT:-8222}:8222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8222/healthz >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 3s
 
   # Pull consumer: drains ingest.> (AppSec + TI + future domains) and writes to Neo4j.
   ingest-worker:
@@ -115,7 +121,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   # --- profile "scrape": proxy pool + live ingest (not started by default `docker compose up`) ---
@@ -153,7 +159,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -181,7 +187,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -211,7 +217,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   ds:
@@ -240,7 +246,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   ti:
@@ -279,7 +285,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -306,7 +312,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -331,7 +337,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache

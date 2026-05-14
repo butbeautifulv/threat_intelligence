@@ -27,7 +27,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 - Hard **limits** via environment variables on every high-cardinality feed (`*_MAX_*`).
 - **MERGE** on canonical keys (`id`, `cve`, `Package.id`, `SemgrepRule.id`, …).
-- Optional **NATS JetStream** path for AppSec scrapers (`sbom`, `coderules`, `nuclei`): producers publish `ingestv1` envelopes to **`ingest.appsec.*`**; **`ingest-worker`** normalizes and writes Neo4j with the same MERGE semantics as direct mode (see [threatintel-runtime.md](threatintel-runtime.md#ingest-worker) and [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md)).
+- Optional **NATS JetStream** path for AppSec scrapers (`sbom`, `coderules`, `nuclei`): producers publish `ingestv1` envelopes to **`ingest.appsec.*`**; **`ingest-worker`** normalizes and writes Neo4j with the same MERGE semantics as direct mode (see [threatintel-runtime.md](threatintel-runtime.md#ingest-worker) and [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md)). The same pipeline applies to **`ti`**, **`vuln`**, **`lola`**, and **`ds`** on their subjects under **`ingest.>`** — full kind and subject matrix: [ingest-contract.md](ingest-contract.md).
 - Optional **cleanup** scripts under [`scripts/`](../scripts/) (duplicate relationships, stale isolated IOCs) with `--dry-run` first.
 
 ## IOC freshness (TI)

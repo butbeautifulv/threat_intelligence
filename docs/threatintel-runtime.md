@@ -10,11 +10,20 @@ Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP 
 | HTTP API | 8090 | `API_PORT` to override published port |
 | Proxybroker | 8099 | Only with `--profile scrape`; `PROXYBROKER_PORT` |
 | NATS client | `${NATS_CLIENT_PORT:-4222}` | Only with `--profile scrape`; maps container `4222` |
-| NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP monitoring on container port `8222` (e.g. `http://localhost:8222` when published) |
+| NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP on container `8222`; **`nats`** healthcheck uses **`http://127.0.0.1:8222/healthz`** |
+
+## Build and environment checklist (repeatable builds)
+
+Use this before relying on a full **`--profile scrape`** run or a reproducible graph pack.
+
+1. **`docker compose --profile scrape build`** — may run many `go mod download` steps inside Docker. If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** (and `GOSUMDB` if required) for Docker builds or use a stable corporate proxy; an unstable VPN often shows up here first.
+2. **Bolt / Browser ports** — if `7687` or `7474` are taken on the host, set **`NEO4J_BOLT_PORT`** / **`NEO4J_HTTP_PORT`** (see [Ports](#ports)) and stop duplicate Neo4j containers.
+3. **After `docker compose up --build`** — `cypher-shell` against the published Bolt URL; **`curl -sS http://localhost:${API_PORT:-8090}/health`** (see [HTTP API](#http-api-categorical)).
+4. **Scrape profile** — once **`docker compose --profile scrape build`** succeeds, `docker compose --profile scrape up -d` is the baseline smoke; scrape services wait for **Neo4j healthy** and **NATS healthy** (`healthz` on the monitoring port). **`go mod download`** failures with **TLS handshake timeout** or **EOF** inside Docker are network/proxy problems (try **`GOPROXY`**, stable VPN, or retry), not necessarily code defects.
 
 ## Compose service reference
 
-All definitions live in [docker-compose.yml](../docker-compose.yml). **Binary / module docs:** see links in each subsection.
+All definitions live in [docker-compose.yml](../docker-compose.yml). Optional NATS-only producer env: [docker-compose.scrape-nats.yml](../docker-compose.scrape-nats.yml). **Binary / module docs:** see links in each subsection.
 
 ### neo4j
 
@@ -69,6 +78,7 @@ All definitions live in [docker-compose.yml](../docker-compose.yml). **Binary / 
 | **Command** | `-js -m 8222` (JetStream + monitoring) |
 | **Purpose** | Message bus for optional **`INGEST_MODE=nats`** on `sbom`, `coderules`, `nuclei`, **`ti`**, **`vuln`**, **`lola`**, **`ds`** |
 | **Ports** | Client and monitoring (see [Ports](#ports)) |
+| **Health** | `wget` on `http://127.0.0.1:8222/healthz` (JetStream monitoring) |
 | **Stream** | Created by publishers or **`ingest-worker`**: name **`INGEST`**, subjects **`ingest.>`** |
 
 ### ingest-worker
@@ -79,7 +89,7 @@ All definitions live in [docker-compose.yml](../docker-compose.yml). **Binary / 
 | **Build** | [docker/ingest-worker.Dockerfile](../docker/ingest-worker.Dockerfile) |
 | **Module** | [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) |
 | **Purpose** | Long-running **JetStream pull consumer**: reads `ingestv1` envelopes from **`ingest.>`**, writes **Neo4j** using the same `MERGE` paths as **`direct`** scrapers (AppSec, **`ti`**, **`vuln`**, **`lola`**, **`ds`**) |
-| **Depends on** | `neo4j` healthy, `nats` started |
+| **Depends on** | `neo4j` healthy, **`nats` healthy** |
 | **Restart** | `on-failure` |
 | **Env** | `NEO4J_*`, `NATS_URL` (Compose: `nats://nats:4222`), `NATS_INGEST_STREAM`, `NATS_DURABLE`, `NATS_SUBSCRIBE_SUBJECT`, `INGEST_BATCH`, `INGEST_MAX_WAIT` — full table in [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) |
 
@@ -98,13 +108,13 @@ Use **`ingest-worker`** whenever any scraper publishes with **`INGEST_MODE=nats`
 
 | Compose service | Dockerfile | Notes |
 |-----------------|------------|--------|
-| `vuln` | [docker/vuln.Dockerfile](../docker/vuln.Dockerfile) | NVD, Metasploit, Exploit-DB, optional Vulners; **`INGEST_MODE`**, **`VULN_NATS_SUBJECT`**; volume `data/cache`; depends on `nats` (started) |
-| `lola` | [docker/lola.Dockerfile](../docker/lola.Dockerfile) | LOLBAS, GTFOBins, LOFTS, MITRE STIX; **`INGEST_MODE`**, **`LOLA_NATS_SUBJECT`**; depends on `nats` (started) |
-| `ds` | [docker/ds.Dockerfile](../docker/ds.Dockerfile) | Sigma, YARA, Atomic, Caldera; **`INGEST_MODE`**, **`DS_NATS_SUBJECT`**; depends on `nats` (started) |
-| `ti` | [docker/ti.Dockerfile](../docker/ti.Dockerfile) | KEV, URLhaus, ThreatFox, …; **`INGEST_MODE`**, **`TI_NATS_SUBJECT`**; depends on `nats` (started) |
-| `sbom` | [docker/sbom.Dockerfile](../docker/sbom.Dockerfile) | OSV + GHSA; **`INGEST_MODE`**, **`SBOM_NATS_SUBJECT`**; depends on `nats` (started) |
-| `coderules` | [docker/coderules.Dockerfile](../docker/coderules.Dockerfile) | CWE, Semgrep, CodeQL; **`INGEST_MODE`**, **`CODERULES_NATS_SUBJECT`**; depends on `nats` |
-| `nuclei` | [docker/nuclei.Dockerfile](../docker/nuclei.Dockerfile) | Nuclei templates; **`INGEST_MODE`**, **`NUCLEI_NATS_SUBJECT`**; depends on `nats` |
+| `vuln` | [docker/vuln.Dockerfile](../docker/vuln.Dockerfile) | NVD, Metasploit, Exploit-DB, optional Vulners; **`INGEST_MODE`**, **`VULN_NATS_SUBJECT`**; volume `data/cache`; depends on Neo4j + **`nats` healthy** |
+| `lola` | [docker/lola.Dockerfile](../docker/lola.Dockerfile) | LOLBAS, GTFOBins, LOFTS, MITRE STIX; **`INGEST_MODE`**, **`LOLA_NATS_SUBJECT`**; depends on Neo4j + **`nats` healthy** |
+| `ds` | [docker/ds.Dockerfile](../docker/ds.Dockerfile) | Sigma, YARA, Atomic, Caldera; **`INGEST_MODE`**, **`DS_NATS_SUBJECT`**; depends on Neo4j + **`nats` healthy** |
+| `ti` | [docker/ti.Dockerfile](../docker/ti.Dockerfile) | KEV, URLhaus, ThreatFox, …; **`INGEST_MODE`**, **`TI_NATS_SUBJECT`**; depends on Neo4j + **`nats` healthy** |
+| `sbom` | [docker/sbom.Dockerfile](../docker/sbom.Dockerfile) | OSV + GHSA; **`INGEST_MODE`**, **`SBOM_NATS_SUBJECT`**; depends on Neo4j + **`nats` healthy** |
+| `coderules` | [docker/coderules.Dockerfile](../docker/coderules.Dockerfile) | CWE, Semgrep, CodeQL; **`INGEST_MODE`**, **`CODERULES_NATS_SUBJECT`**; depends on Neo4j + **`nats` healthy** |
+| `nuclei` | [docker/nuclei.Dockerfile](../docker/nuclei.Dockerfile) | Nuclei templates; **`INGEST_MODE`**, **`NUCLEI_NATS_SUBJECT`**; depends on Neo4j + **`nats` healthy** |
 
 All scrape ingest rows above use **`NEO4J_URI=neo4j://neo4j:7687`** (except **`coderules` / `nuclei` / `sbom` / `ti` / `vuln` / `lola` / `ds`** do not open Neo4j when **`INGEST_MODE=nats`**; **`sbom`** uses **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for OSV CVE ids in `nats` mode). See [scrapers/README.md](../scrapers/README.md) for per-feed env vars.
 
@@ -130,6 +140,16 @@ All scrape ingest rows above use **`NEO4J_URI=neo4j://neo4j:7687`** (except **`c
 | `INGEST_MAX_WAIT` | `5s` | Fetch wait |
 
 JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([scrapers/ingestpub](../scrapers/ingestpub), [pkg/ingestv1](../pkg/ingestv1)).
+
+### NATS-only producers (optional override)
+
+When **`INGEST_MODE=nats`**, scrapers do not need Bolt credentials in the container. Use the extra file [docker-compose.scrape-nats.yml](../docker-compose.scrape-nats.yml) so **`NEO4J_*`** are unset (`null`) on **`vuln`**, **`sbom`**, **`lola`**, **`ds`**, **`ti`**, **`coderules`**, **`nuclei`** (they still **`depends_on`** Neo4j healthy so the stack and **`ingest-worker`** are ordered safely):
+
+```bash
+INGEST_MODE=nats docker compose -f docker-compose.yml -f docker-compose.scrape-nats.yml --profile scrape up --build -d
+```
+
+Contract details: [docs/ingest-contract.md](ingest-contract.md).
 
 ## Graph bootstrap (usage mode)
 
@@ -168,6 +188,13 @@ After data is in Neo4j, export a pack from the host:
 ./scripts/export-graph-cypher.sh
 GRAPH_PACK_VERSION=v0.3.0 ./scripts/build-graph-pack.sh
 ```
+
+### Smoke checklist
+
+1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
+2. **Graph pack without GitHub download:** place **`threat-intel-graph-v0.3.0.zip`** under `data/neo4j_user_export/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+3. **Scrape + NATS:** `INGEST_MODE=nats` with **`ingest-worker`** and at least one publisher (e.g. `sbom`); confirm JetStream drains and Neo4j gains expected nodes (sample Cypher per domain in [scrapers/README.md](../scrapers/README.md) / per-module README).
+4. **Release asset:** the default URL in [docker/graph-bootstrap.sh](../docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
 
 ## HTTP API (categorical)
 
