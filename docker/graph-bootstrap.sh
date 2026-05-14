@@ -6,7 +6,7 @@ NEO4J_USER="${NEO4J_USER:-neo4j}"
 NEO4J_PASS="${NEO4J_PASS:-neo4jpassword}"
 NEO4J_DB="${NEO4J_DB:-neo4j}"
 
-DEFAULT_PACK_URL="${GRAPH_PACK_DEFAULT_URL:-https://github.com/butbeautifulv/threat_intelligence/releases/download/v0.1.0-graph-pack/threat-intel-graph-v0.1.0.zip}"
+DEFAULT_PACK_URL="${GRAPH_PACK_DEFAULT_URL:-https://github.com/butbeatifulv/threat_intelligence/releases/download/v0.2.0-graph-pack/threat-intel-graph-v0.2.0.zip}"
 
 shell() {
   cypher-shell -a "${NEO4J_URI}" -u "${NEO4J_USER}" -p "${NEO4J_PASS}" -d "${NEO4J_DB}" "$@"

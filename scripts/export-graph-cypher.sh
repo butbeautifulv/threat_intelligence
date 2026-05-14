@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-mkdir -p "${ROOT}/data/neo4j_export"
+OUT_HOST="${NEO4J_EXPORT_HOST_DIR:-${ROOT}/data/neo4j_user_export}"
+mkdir -p "${OUT_HOST}"
 
-# Writes under Neo4j import dir (mounted as ./data/neo4j_export → /var/lib/neo4j/import/user_export)
+# Writes under Neo4j import dir (mounted as ./data/neo4j_user_export → /var/lib/neo4j/import/user_export by default)
 OUT_REL="user_export/graph.cypher"
 
 if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
@@ -15,4 +16,4 @@ else
   exit 1
 fi
 
-echo "Export written to ${ROOT}/data/neo4j_export/graph.cypher"
+echo "Export written to ${OUT_HOST}/graph.cypher"

@@ -20,7 +20,7 @@ import (
 func main() {
 	var (
 		input = flag.String("input", "", "optional path to TI JSONL file")
-		feedsFlag = flag.String("feeds", "", "comma-separated public feeds: kev,pt,urlhaus")
+		feedsFlag = flag.String("feeds", "", "comma-separated public feeds: kev,pt,urlhaus,threatfox,malwarebazaar,feodo,openphish")
 
 		neo4jURI  = flag.String("neo4j-uri", envOr("NEO4J_URI", "neo4j://localhost:7687"), "neo4j uri")
 		neo4jUser = flag.String("neo4j-user", envOr("NEO4J_USER", "neo4j"), "neo4j username")
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	if *input == "" && *feedsFlag == "" {
-		logger.Info("nothing to do: pass --feeds kev,pt,urlhaus and/or --input path/to.jsonl")
+		logger.Info("nothing to do: pass --feeds kev,urlhaus,threatfox,... and/or --input path/to.jsonl")
 	}
 }
 

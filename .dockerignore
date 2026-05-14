@@ -5,3 +5,6 @@
 **/.git
 data/cache/*
 !data/cache/.gitkeep
+# Neo4j bind-mount dirs (may be root-owned from older runs; ignore for Docker build context).
+data/neo4j_export
+data/neo4j_user_export

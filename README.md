@@ -1,6 +1,6 @@
 # Threat Intelligence
 
-Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection content (Sigma/YARA/Atomic/Caldera), and TI feeds. This repo splits **graph + UX + tooling** (root) from **scrapers / ingest** ([scrapers/README.md](scrapers/README.md)).
+Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection content (Sigma/YARA/Atomic/Caldera), and TI feeds. This repo splits **graph + tooling** (root) from **scrapers / ingest** ([scrapers/README.md](scrapers/README.md)).
 
 ## Quick start
 
@@ -8,11 +8,10 @@ Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection conten
 docker compose up --build
 ```
 
-Default behaviour: **Neo4j** starts, **graph-bootstrap** imports a [graph pack](docs/threatintel-runtime.md#graph-bootstrap-usage-mode) (from `GRAPH_PACK_URL` / default GitHub release, or skip with `GRAPH_PACK_SKIP=1`), then **HTTP API** and **panel** start. Scrapers are **not** started unless you use the `scrape` profile.
+Default behaviour: **Neo4j** starts, **graph-bootstrap** imports a [graph pack](docs/threatintel-runtime.md#graph-bootstrap-usage-mode) (from `GRAPH_PACK_URL` / default GitHub release, or skip with `GRAPH_PACK_SKIP=1`), then **HTTP API** starts. Scrapers are **not** started unless you use the `scrape` profile.
 
 - **Neo4j Browser:** `http://localhost:7474` — `neo4j` / `neo4jpassword` (defaults in compose). APOC enabled for Cypher export.
 - **HTTP API:** `http://localhost:8090` — categorical REST (`/v1/categories`, …). See [docs/threatintel-runtime.md](docs/threatintel-runtime.md).
-- **Panel:** `http://localhost:8088` — force-directed graph, node `markdown` viewer.
 
 **Fill graph by scraping instead of importing a pack:**
 
@@ -28,8 +27,7 @@ Layout:
 |------|------|
 | [graph/](graph/) | Shared Neo4j client + [graph/query](graph/query) (categories, Cypher reads) |
 | [api/](api/) | HTTP API (`docker/api.Dockerfile`): `cmd`, `internal/config`, `internal/domain`, `internal/storage/neo4j`, `internal/usecase`, `internal/transport/httpserver`, `internal/components` |
-| [panel/](panel/) | Next.js graph UI |
-| [docker/](docker/) | **All** service Dockerfiles (api, bootstrap, scrapers, panel, mcp, `scrapers/proxybroker`) |
+| [docker/](docker/) | **All** service Dockerfiles (api, bootstrap, scrapers, mcp, `scrapers/proxybroker`) |
 | [mcp/](mcp/) | MCP server (stdio); uses `graph/query` |
 | [scrapers/proxybroker/](scrapers/proxybroker/) | HTTP proxy pool for scrapers (compose profile `scrape`) |
 | [scripts/](scripts/) | Export / pack / import Cypher (`export-graph-cypher.sh`, `build-graph-pack.sh`, `import-graph-pack.sh`) |
@@ -38,7 +36,7 @@ Layout:
 
 ## Offline graph packs (no scraping on target)
 
-After you have filled Neo4j once (see scrapers), ship a versioned ZIP for air-gapped installs:
+After you have filled Neo4j once (see scrapers), ship a versioned ZIP for air-gapped installs. Exports land under `data/neo4j_user_export/` (see `scripts/export-graph-cypher.sh`).
 
 ```bash
 ./scripts/export-graph-cypher.sh

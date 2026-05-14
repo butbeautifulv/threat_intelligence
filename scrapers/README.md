@@ -9,7 +9,7 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | [vuln/](vuln/) | `vuln` | NVD CVE 2.0, Metasploit paths, Exploit-DB CSV, optional Vulners |
 | [lola/](lola/) | `lola` | LOLBAS, GTFOBins, LOFTS, MITRE ATT&CK STIX enterprise |
 | [ds/](ds/) | `ds` | SigmaHQ, YARA (Neo23x0), Atomic Red Team, Caldera Stockpile abilities |
-| [ti/](ti/) | `ti` | CISA KEV, URLhaus, PT RSS, optional JSONL file |
+| [ti/](ti/) | `ti` | CISA KEV, URLhaus, PT RSS, ThreatFox, MalwareBazaar, Feodo, OpenPhish, optional JSONL file |
 | [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers (Compose service name `proxybroker`) |
 | [cue_schemas/](cue_schemas/) | — | Cue schemas (`merge.cue` imports `schema/ds.cue`) |
 
@@ -34,13 +34,17 @@ Go services that pull public data and write into the shared Neo4j database. Buil
 | CISA KEV JSON | `ti` | Implemented | `https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json` | `TI_KEV_MAX`, `TI_CACHE_DIR`, `TI_REQUEST_DELAY` |
 | URLhaus recent CSV | `ti` | Implemented | `https://urlhaus.abuse.ch/downloads/csv_recent/` | `TI_URLHAUS_MAX`; full DB dump (not used by parser): `https://urlhaus.abuse.ch/downloads/csv/` |
 | Positive Technologies RSS | `ti` | Implemented | Override via `PT_RSS_URL`; default in code: `https://www.ptsecurity.com/rss/all.xml` | `TI_PT_MAX`, `TI_FEEDS` |
+| ThreatFox | `ti` | Implemented | Public export: `https://threatfox.abuse.ch/export/json/recent/`; or API `https://threatfox-api.abuse.ch/api/v1/` when `THREATFOX_AUTH_KEY` set | `TI_THREATFOX_MAX`, `TI_THREATFOX_DAYS` (1–7, API only), file cache under `TI_CACHE_DIR` |
+| MalwareBazaar recent | `ti` | Implemented when key set | POST `https://mb-api.abuse.ch/api/v1/` (`query=get_recent`) | **Required:** `MALWAREBAZAAR_AUTH_KEY` or `MALWARE_BAZAAR_API_KEY` (abuse.ch Auth-Key header). `TI_MALWAREBAZAAR_MAX` |
+| Feodo Tracker IP blocklist | `ti` | Implemented | Default: `https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt` | `TI_FEODO_MAX`, optional `FEODO_BLOCKLIST_URL` |
+| OpenPhish URL feed | `ti` | Implemented | Default: `https://openphish.com/feed.txt` | `TI_OPENPHISH_MAX`, optional `OPENPHISH_FEED_URL` |
 | TI JSONL (local / mounted file) | `ti` | Implemented | — | `--input path.jsonl` (compose mounts [example.jsonl](ti/example.jsonl) as `/app/example.jsonl`) |
 
-**TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,pt,urlhaus`. If the default PT URL returns HTML errors, use e.g. `TI_FEEDS=kev,urlhaus` or set `PT_RSS_URL` to a stable RSS endpoint you operate.
+**TI feeds vs Docker:** root [docker-compose.yml](../docker-compose.yml) defaults `TI_FEEDS=kev,urlhaus,threatfox,malwarebazaar,feodo`. Append `openphish` when you want phishing URLs (the remote feed can be slow or flaky; the scraper logs a warning and continues if the download fails). MalwareBazaar is skipped unless `MALWAREBAZAAR_AUTH_KEY` (or `MALWARE_BAZAAR_API_KEY`) is set. With `THREATFOX_AUTH_KEY`, ThreatFox uses the authenticated API instead of the public JSON export. Use `TI_PROXY_URLS` (and optional `TI_PROXY_MODE=only`) to route traffic via [proxybroker](proxybroker/). If the default PT URL returns HTML errors, add `pt` explicitly to `TI_FEEDS` only when needed, or set `PT_RSS_URL` to a stable RSS endpoint you operate.
 
 ### Optional: same stack via Docker Compose
 
-From repo root, `docker compose up --build` runs **Neo4j** + **graph pack import** + **HTTP API** + **panel** by default (no live scraping). See [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+From repo root, `docker compose up --build` runs **Neo4j** + **graph pack import** + **HTTP API** by default (no live scraping). See [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
 
 Re-run **scrapers** and **`proxybroker`** (all require `--profile scrape`; they never start on default `docker compose up`):
 
@@ -54,7 +58,6 @@ Re-run ingest only: `docker compose restart vuln lola ds ti` (with profile `scra
 
 - AlienVault OTX API — future.
 - MISP feeds — future.
-- Abuse.ch ThreatFox / Feodo Tracker / MalwareBazaar (public CSV/API) — future; reference: `https://threatfox.abuse.ch/`, `https://feodotracker.abuse.ch/`, `https://bazaar.abuse.ch/`.
 
 ## Run locally (Neo4j must be up)
 
@@ -65,7 +68,7 @@ cd scrapers/proxybroker && go run ./cmd
 cd scrapers/vuln && go run ./cmd
 cd scrapers/lola && go run ./cmd
 cd scrapers/ds && go run ./cmd
-cd scrapers/ti && go run ./cmd --feeds kev,pt,urlhaus --input example.jsonl
+cd scrapers/ti && go run ./cmd --feeds kev,urlhaus,threatfox,feodo,openphish --input example.jsonl
 ```
 
 `proxybroker` does not talk to Neo4j; start it when scrapers need `*_PROXY_URLS`.
@@ -74,7 +77,7 @@ cd scrapers/ti && go run ./cmd --feeds kev,pt,urlhaus --input example.jsonl
 
 ## Graph export and packs
 
-**Consuming a pack** (no scrapers): use the default Compose stack — `graph-bootstrap` imports a ZIP before `api` / `panel` start. Env vars and bind mounts: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+**Consuming a pack** (no scrapers): use the default Compose stack — `graph-bootstrap` imports a ZIP before `api` starts. Env vars and bind mounts: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
 
 **Building a pack** (scraping): enable the Compose **`scrape`** profile (`proxybroker` + ingest services), fill Neo4j, then run the scripts below on the host.
 

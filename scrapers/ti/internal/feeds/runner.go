@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -80,30 +80,13 @@ func (r *Runner) getBytesCached(ctx context.Context, urlStr, cacheFile string) (
 			return b, nil
 		}
 	}
-	if r.Delay > 0 {
-		time.Sleep(r.Delay)
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlStr, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", "threat_intelligence-ti/1.0")
-	resp, err := r.HTTP.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return nil, fmt.Errorf("http %d: %s", resp.StatusCode, string(b))
-	}
-	b, err := io.ReadAll(resp.Body)
+	r.preNetworkDelay()
+	b, err := r.doGETWithRetries(ctx, urlStr)
 	if err != nil {
 		return nil, err
 	}
 	if r.Cache != "" && cacheFile != "" && len(b) > 0 {
-		_ = os.MkdirAll(filepath.Dir(cacheFile), 0o755)
-		_ = os.WriteFile(cacheFile, b, 0o644)
+		_ = writeCacheFile(cacheFile, b)
 	}
 	return b, nil
 }
@@ -124,6 +107,22 @@ func (r *Runner) Run(ctx context.Context, kinds []string) error {
 			}
 		case "urlhaus":
 			if err := r.runURLhaus(ctx); err != nil {
+				return err
+			}
+		case "threatfox":
+			if err := r.runThreatFox(ctx); err != nil {
+				return err
+			}
+		case "malwarebazaar":
+			if err := r.runMalwareBazaar(ctx); err != nil {
+				return err
+			}
+		case "feodo":
+			if err := r.runFeodo(ctx); err != nil {
+				return err
+			}
+		case "openphish":
+			if err := r.runOpenPhish(ctx); err != nil {
 				return err
 			}
 		default:
@@ -305,5 +304,258 @@ func (r *Runner) runURLhaus(ctx context.Context) error {
 		count++
 	}
 	r.Logger.Info("URLhaus ingest done", slog.Int("iocs", count))
+	return nil
+}
+
+const threatFoxExportURL = "https://threatfox.abuse.ch/export/json/recent/"
+const threatFoxAPIURL = "https://threatfox-api.abuse.ch/api/v1/"
+
+func (r *Runner) runThreatFox(ctx context.Context) error {
+	if k := strings.TrimSpace(os.Getenv("THREATFOX_AUTH_KEY")); k != "" {
+		return r.runThreatFoxAPI(ctx, k)
+	}
+	return r.runThreatFoxExport(ctx)
+}
+
+func (r *Runner) runThreatFoxAPI(ctx context.Context, authKey string) error {
+	days := 3
+	if v := os.Getenv("TI_THREATFOX_DAYS"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 1 && n <= 7 {
+			days = n
+		}
+	}
+	body := fmt.Sprintf(`{"query":"get_iocs","days":%d}`, days)
+	cacheFile := filepath.Join(r.Cache, "ti", fmt.Sprintf("threatfox_api_days_%d.json", days))
+	r.Logger.Info("ingesting ThreatFox API", slog.Int("days", days))
+	b, err := r.postJSONAuthCached(ctx, threatFoxAPIURL, cacheFile, authKey, []byte(body))
+	if err != nil {
+		return err
+	}
+	var doc struct {
+		QueryStatus string `json:"query_status"`
+		Data        []struct {
+			IOC     string `json:"ioc"`
+			IOCType string `json:"ioc_type"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(b, &doc); err != nil {
+		return err
+	}
+	if doc.QueryStatus != "ok" && doc.QueryStatus != "no_results" {
+		return fmt.Errorf("threatfox query_status=%s", doc.QueryStatus)
+	}
+	max := 4000
+	if v := os.Getenv("TI_THREATFOX_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			max = n
+		}
+	}
+	count := 0
+	for _, row := range doc.Data {
+		if count >= max {
+			break
+		}
+		ni, ok := iocFromThreatFoxExport(row.IOC, row.IOCType)
+		if !ok {
+			continue
+		}
+		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+			return err
+		}
+		count++
+	}
+	r.Logger.Info("ThreatFox API ingest done", slog.Int("iocs", count))
+	return nil
+}
+
+func (r *Runner) runThreatFoxExport(ctx context.Context) error {
+	r.Logger.Info("ingesting ThreatFox public export", slog.String("url", threatFoxExportURL))
+	b, err := r.getBytesCached(ctx, threatFoxExportURL, filepath.Join(r.Cache, "ti", "threatfox_recent.json"))
+	if err != nil {
+		return err
+	}
+	var root map[string]json.RawMessage
+	if err := json.Unmarshal(b, &root); err != nil {
+		return err
+	}
+	max := 4000
+	if v := os.Getenv("TI_THREATFOX_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			max = n
+		}
+	}
+	count := 0
+outer:
+	for _, chunk := range root {
+		var rows []struct {
+			IOCValue string `json:"ioc_value"`
+			IOCType  string `json:"ioc_type"`
+		}
+		if err := json.Unmarshal(chunk, &rows); err != nil {
+			continue
+		}
+		for _, row := range rows {
+			if count >= max {
+				break outer
+			}
+			ni, ok := iocFromThreatFoxExport(row.IOCValue, row.IOCType)
+			if !ok {
+				continue
+			}
+			if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+				return err
+			}
+			count++
+		}
+	}
+	r.Logger.Info("ThreatFox ingest done", slog.Int("iocs", count))
+	return nil
+}
+
+type malwareBazaarRecent struct {
+	QueryStatus string `json:"query_status"`
+	Data        []struct {
+		Sha256 string `json:"sha256_hash"`
+		Md5    string `json:"md5_hash"`
+	} `json:"data"`
+}
+
+func (r *Runner) runMalwareBazaar(ctx context.Context) error {
+	key := strings.TrimSpace(os.Getenv("MALWAREBAZAAR_AUTH_KEY"))
+	if key == "" {
+		key = strings.TrimSpace(os.Getenv("MALWARE_BAZAAR_API_KEY"))
+	}
+	if key == "" {
+		r.Logger.Warn("malwarebazaar feed skipped", slog.String("reason", "set MALWAREBAZAAR_AUTH_KEY (abuse.ch Auth-Key)"))
+		return nil
+	}
+	const mbURL = "https://mb-api.abuse.ch/api/v1/"
+	body := []byte(`{"query":"get_recent","selector":"time"}`)
+	r.Logger.Info("ingesting MalwareBazaar recent (API)")
+	b, err := r.postJSONAuthCached(ctx, mbURL, filepath.Join(r.Cache, "ti", "malwarebazaar_recent.json"), key, body)
+	if err != nil {
+		return err
+	}
+	var doc malwareBazaarRecent
+	if err := json.Unmarshal(b, &doc); err != nil {
+		return err
+	}
+	if doc.QueryStatus != "ok" && doc.QueryStatus != "no_results" {
+		return fmt.Errorf("malwarebazaar query_status=%s", doc.QueryStatus)
+	}
+	max := 500
+	if v := os.Getenv("TI_MALWAREBAZAAR_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			max = n
+		}
+	}
+	n := 0
+	for _, row := range doc.Data {
+		if n >= max {
+			break
+		}
+		if row.Sha256 != "" {
+			ioc := domain.IOC{Type: domain.IOCHash, Value: row.Sha256, Source: "malwarebazaar"}
+			if ni, ok := normalize.NormalizeIOC(ioc); ok {
+				if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+					return err
+				}
+				n++
+			}
+			continue
+		}
+		if row.Md5 != "" {
+			ioc := domain.IOC{Type: domain.IOCHash, Value: row.Md5, Source: "malwarebazaar"}
+			if ni, ok := normalize.NormalizeIOC(ioc); ok {
+				if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+					return err
+				}
+				n++
+			}
+		}
+	}
+	r.Logger.Info("MalwareBazaar ingest done", slog.Int("iocs", n))
+	return nil
+}
+
+func (r *Runner) runFeodo(ctx context.Context) error {
+	u := strings.TrimSpace(os.Getenv("FEODO_BLOCKLIST_URL"))
+	if u == "" {
+		u = "https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt"
+	}
+	r.Logger.Info("ingesting Feodo Tracker blocklist", slog.String("url", u))
+	b, err := r.getBytesCached(ctx, u, filepath.Join(r.Cache, "ti", "feodo_ipblocklist.txt"))
+	if err != nil {
+		return err
+	}
+	max := 5000
+	if v := os.Getenv("TI_FEODO_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			max = n
+		}
+	}
+	count := 0
+	for _, ln := range strings.Split(string(b), "\n") {
+		if count >= max {
+			break
+		}
+		ln = strings.TrimSpace(ln)
+		if ln == "" || strings.HasPrefix(ln, "#") {
+			continue
+		}
+		if ip := net.ParseIP(ln); ip == nil {
+			continue
+		}
+		ioc := domain.IOC{Type: domain.IOCIP, Value: ln, Source: "feodo"}
+		ni, ok := normalize.NormalizeIOC(ioc)
+		if !ok {
+			continue
+		}
+		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+			return err
+		}
+		count++
+	}
+	r.Logger.Info("Feodo ingest done", slog.Int("iocs", count))
+	return nil
+}
+
+func (r *Runner) runOpenPhish(ctx context.Context) error {
+	u := strings.TrimSpace(os.Getenv("OPENPHISH_FEED_URL"))
+	if u == "" {
+		u = "https://openphish.com/feed.txt"
+	}
+	r.Logger.Info("ingesting OpenPhish feed", slog.String("url", u))
+	b, err := r.getBytesCached(ctx, u, filepath.Join(r.Cache, "ti", "openphish_feed.txt"))
+	if err != nil {
+		r.Logger.Warn("openphish feed skipped after retries", slog.String("err", err.Error()))
+		return nil
+	}
+	max := 800
+	if v := os.Getenv("TI_OPENPHISH_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			max = n
+		}
+	}
+	count := 0
+	for _, ln := range strings.Split(string(b), "\n") {
+		if count >= max {
+			break
+		}
+		ln = strings.TrimSpace(ln)
+		if ln == "" || strings.HasPrefix(ln, "#") {
+			continue
+		}
+		ioc := domain.IOC{Type: domain.IOCURL, Value: ln, Source: "openphish"}
+		ni, ok := normalize.NormalizeIOC(ioc)
+		if !ok {
+			continue
+		}
+		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+			return err
+		}
+		count++
+	}
+	r.Logger.Info("OpenPhish ingest done", slog.Int("iocs", count))
 	return nil
 }

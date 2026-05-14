@@ -13,8 +13,8 @@ if [[ -z "${VERSION}" ]]; then
   VERSION="$(date -u +%Y%m%dT%H%MZ)"
 fi
 
-OUT_DIR="${ROOT}/data/neo4j_export/releases"
-CY="${ROOT}/data/neo4j_export/graph.cypher"
+OUT_DIR="${ROOT}/data/neo4j_user_export/releases"
+CY="${ROOT}/data/neo4j_user_export/graph.cypher"
 mkdir -p "${OUT_DIR}"
 
 if [[ "${EXPORT_FIRST:-}" == "1" ]]; then

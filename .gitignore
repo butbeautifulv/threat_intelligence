@@ -30,6 +30,8 @@ data/cache/
 # Neo4j export artifacts (optional: keep small manifests locally if you want)
 data/neo4j_export/graph.cypher
 data/neo4j_export/releases/
+data/neo4j_user_export/graph.cypher
+data/neo4j_user_export/releases/
 
 # Coverage
 coverage/

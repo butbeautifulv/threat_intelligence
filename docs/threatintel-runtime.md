@@ -1,14 +1,13 @@
 # Threat Intel runtime (Docker Compose)
 
-Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API** + **panel**. Live scraping (including **`proxybroker`**) is opt-in via the **`scrape`** profile only.
+Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API**. Live scraping (including **`proxybroker`**) is opt-in via the **`scrape`** profile only.
 
 ## Ports
 
 | Service | Port | Notes |
 |---------|------|--------|
-| Neo4j Browser | 7474 | Bolt 7687 |
+| Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
 | HTTP API | 8090 | `API_PORT` to override published port |
-| Panel | 8088 | `PANEL_PORT` |
 | Proxybroker | 8099 | Only with `--profile scrape`; `PROXYBROKER_PORT` |
 
 ## Graph bootstrap (usage mode)
@@ -114,7 +113,7 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_export/releases/threat-intel-graph-v0.1.0.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.2.0.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
 Re-importing the same pack into **non-empty** Neo4j data (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` (drops volumes) or a fresh database.
 

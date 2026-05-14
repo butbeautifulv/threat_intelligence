@@ -3,8 +3,8 @@ services:
     image: neo4j:5
     container_name: threat-neo4j
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "${NEO4J_HTTP_PORT:-7474}:7474"
+      - "${NEO4J_BOLT_PORT:-7687}:7687"
     environment:
       - NEO4J_AUTH=neo4j/neo4jpassword
       - NEO4J_server_memory_pagecache_size=512M
@@ -16,7 +16,7 @@ services:
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
-      - ./data/neo4j_export:/var/lib/neo4j/import/user_export
+      - ./data/neo4j_user_export:/var/lib/neo4j/import/user_export
     healthcheck:
       test: ["CMD-SHELL", "cypher-shell -u neo4j -p neo4jpassword 'RETURN 1' >/dev/null 2>&1"]
       interval: 5s
@@ -66,25 +66,6 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
-
-  panel:
-    build:
-      context: .
-      dockerfile: docker/panel.Dockerfile
-    ports:
-      - "${PANEL_PORT:-8088}:8088"
-    environment:
-      - NEO4J_URI=neo4j://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASS=neo4jpassword
-      - NEO4J_DB=neo4j
-      - PORT=8088
-    depends_on:
-      neo4j:
-        condition: service_healthy
-      graph-bootstrap:
-        condition: service_completed_successfully
-    restart: on-failure
 
   # Stdio MCP: `docker compose --profile mcp run --rm -i mcp` (stack must be up so Neo4j + bootstrap finished).
   mcp:
@@ -199,9 +180,22 @@ services:
       - TI_KEV_MAX=${TI_KEV_MAX:-200}
       - TI_PT_MAX=${TI_PT_MAX:-40}
       - TI_URLHAUS_MAX=${TI_URLHAUS_MAX:-300}
+      - TI_THREATFOX_MAX=${TI_THREATFOX_MAX:-4000}
+      - TI_THREATFOX_DAYS=${TI_THREATFOX_DAYS:-3}
+      - TI_MALWAREBAZAAR_MAX=${TI_MALWAREBAZAAR_MAX:-500}
+      - TI_FEODO_MAX=${TI_FEODO_MAX:-5000}
+      - TI_OPENPHISH_MAX=${TI_OPENPHISH_MAX:-800}
       - TI_CACHE_DIR=/data/cache
       - TI_REQUEST_DELAY=${TI_REQUEST_DELAY:-1200ms}
-    command: ["--feeds", "${TI_FEEDS:-kev,pt,urlhaus}", "--input", "/app/example.jsonl"]
+      - TI_PROXY_URLS=${TI_PROXY_URLS:-}
+      - TI_PROXY_MODE=${TI_PROXY_MODE:-}
+      - MALWAREBAZAAR_AUTH_KEY=${MALWAREBAZAAR_AUTH_KEY:-}
+      - MALWARE_BAZAAR_API_KEY=${MALWARE_BAZAAR_API_KEY:-}
+      - THREATFOX_AUTH_KEY=${THREATFOX_AUTH_KEY:-}
+      - OPENPHISH_FEED_URL=${OPENPHISH_FEED_URL:-}
+      - FEODO_BLOCKLIST_URL=${FEODO_BLOCKLIST_URL:-}
+      - PT_RSS_URL=${PT_RSS_URL:-}
+    command: ["--feeds", "${TI_FEEDS:-kev,urlhaus,threatfox,malwarebazaar,feodo}", "--input", "/app/example.jsonl"]
     depends_on:
       neo4j:
         condition: service_healthy
