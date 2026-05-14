@@ -3,7 +3,10 @@ go 1.25.0
 use (
 	./api
 	./graph
+	./pkg/ingestv1
 	./mcp
+	./scrapers/ingestpub
+	./scrapers/ingest-worker
 	./scrapers/coderules
 	./scrapers/ds
 	./scrapers/lola

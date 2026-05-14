@@ -1,6 +1,6 @@
 # Threat Intel runtime (Docker Compose)
 
-Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API**. Live scraping (including **`proxybroker`**) is opt-in via the **`scrape`** profile only.
+Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API**. Live scraping, **NATS**, **ingest-worker**, and **proxybroker** are opt-in via the **`scrape`** profile. **MCP** uses **`profiles: ["mcp"]`**.
 
 ## Ports
 
@@ -9,6 +9,121 @@ Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP 
 | Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
 | HTTP API | 8090 | `API_PORT` to override published port |
 | Proxybroker | 8099 | Only with `--profile scrape`; `PROXYBROKER_PORT` |
+| NATS client | `${NATS_CLIENT_PORT:-4222}` | Only with `--profile scrape`; maps container `4222` |
+| NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP monitoring on container port `8222` (e.g. `http://localhost:8222` when published) |
+
+## Compose service reference
+
+All definitions live in [docker-compose.yml](../docker-compose.yml). **Binary / module docs:** see links in each subsection.
+
+### neo4j
+
+| | |
+|--|--|
+| **Profile** | *(none — starts with default `docker compose up`)* |
+| **Image** | `neo4j:5` |
+| **Purpose** | Graph database; APOC enabled for exports |
+| **Volumes** | `neo4j_data`, `neo4j_logs`; host `./data/neo4j_user_export` → import path |
+| **Health** | `cypher-shell` `RETURN 1` |
+| **Env** | `NEO4J_AUTH`, memory, plugins (see compose file) |
+
+### graph-bootstrap
+
+| | |
+|--|--|
+| **Profile** | *(none)* |
+| **Build** | [docker/graph-bootstrap.Dockerfile](../docker/graph-bootstrap.Dockerfile) |
+| **Purpose** | One-shot import of a graph pack ZIP before API starts |
+| **Depends on** | `neo4j` healthy |
+| **Restart** | `no` |
+| **Env** | `GRAPH_PACK_*`, `NEO4J_*` — see [Graph bootstrap (usage mode)](#graph-bootstrap-usage-mode) |
+
+### api
+
+| | |
+|--|--|
+| **Profile** | *(none)* |
+| **Build** | [docker/api.Dockerfile](../docker/api.Dockerfile) |
+| **Purpose** | Categorical REST API over Neo4j |
+| **Ports** | `${API_PORT:-8090}:8090` |
+| **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
+| **Health** | `GET /health` |
+| **Env** | `API_LISTEN_ADDR`, `NEO4J_*` |
+
+### mcp
+
+| | |
+|--|--|
+| **Profile** | `mcp` |
+| **Build** | [docker/mcp.Dockerfile](../docker/mcp.Dockerfile) |
+| **Purpose** | Stdio MCP tools (same queries as API) — [mcp/README.md](../mcp/README.md) |
+| **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
+| **Env** | `NEO4J_*` |
+
+### nats (JetStream broker)
+
+| | |
+|--|--|
+| **Profile** | `scrape` |
+| **Image** | `nats:2.10-alpine` |
+| **Command** | `-js -m 8222` (JetStream + monitoring) |
+| **Purpose** | Message bus for optional **`INGEST_MODE=nats`** on `sbom`, `coderules`, `nuclei` |
+| **Ports** | Client and monitoring (see [Ports](#ports)) |
+| **Stream** | Created by publishers or **`ingest-worker`**: name **`INGEST`**, subjects **`ingest.appsec.>`** |
+
+### ingest-worker
+
+| | |
+|--|--|
+| **Profile** | `scrape` |
+| **Build** | [docker/ingest-worker.Dockerfile](../docker/ingest-worker.Dockerfile) |
+| **Module** | [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) |
+| **Purpose** | Long-running **JetStream pull consumer**: reads `ingestv1` envelopes from **`ingest.appsec.>`**, writes **Neo4j** using the same `MERGE` paths as **`sbom`**, **`coderules`**, and **`nuclei`** in `INGEST_MODE=direct` |
+| **Depends on** | `neo4j` healthy, `nats` started |
+| **Restart** | `on-failure` |
+| **Env** | `NEO4J_*`, `NATS_URL` (Compose: `nats://nats:4222`), `NATS_INGEST_STREAM`, `NATS_DURABLE`, `NATS_SUBSCRIBE_SUBJECT`, `INGEST_BATCH`, `INGEST_MAX_WAIT` — full table in [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) |
+
+Use **`ingest-worker`** whenever AppSec scrapers publish with **`INGEST_MODE=nats`**; otherwise messages stay in JetStream until drained.
+
+### proxybroker
+
+| | |
+|--|--|
+| **Profile** | `scrape` |
+| **Build** | [docker/proxybroker.Dockerfile](../docker/proxybroker.Dockerfile) |
+| **Purpose** | HTTP proxy pool for scrapers (`*_PROXY_URLS`) |
+| **Ports** | `${PROXYBROKER_PORT:-8099}:8099` |
+
+### Scrape ingest services (Neo4j writers or NATS publishers)
+
+| Compose service | Dockerfile | Notes |
+|-----------------|------------|--------|
+| `vuln` | [docker/vuln.Dockerfile](../docker/vuln.Dockerfile) | NVD, Metasploit, Exploit-DB, optional Vulners; volume `data/cache` |
+| `lola` | [docker/lola.Dockerfile](../docker/lola.Dockerfile) | LOLBAS, GTFOBins, LOFTS, MITRE STIX |
+| `ds` | [docker/ds.Dockerfile](../docker/ds.Dockerfile) | Sigma, YARA, Atomic, Caldera |
+| `ti` | [docker/ti.Dockerfile](../docker/ti.Dockerfile) | KEV, URLhaus, ThreatFox, …; `TI_FEEDS`, `TI_*` limits |
+| `sbom` | [docker/sbom.Dockerfile](../docker/sbom.Dockerfile) | OSV + GHSA; **`INGEST_MODE`**, **`SBOM_NATS_SUBJECT`**; depends on `nats` (started) |
+| `coderules` | [docker/coderules.Dockerfile](../docker/coderules.Dockerfile) | CWE, Semgrep, CodeQL; **`INGEST_MODE`**, **`CODERULES_NATS_SUBJECT`**; depends on `nats` |
+| `nuclei` | [docker/nuclei.Dockerfile](../docker/nuclei.Dockerfile) | Nuclei templates; **`INGEST_MODE`**, **`NUCLEI_NATS_SUBJECT`**; depends on `nats` |
+
+All scrape ingest rows above use **`NEO4J_URI=neo4j://neo4j:7687`** (except **`coderules` / `nuclei`** do not open Neo4j when **`INGEST_MODE=nats`**; **`sbom`** still uses Neo4j for OSV CVE listing in `nats` mode). See [scrapers/README.md](../scrapers/README.md) for per-feed env vars.
+
+### NATS publish and consume (`INGEST_MODE`)
+
+| Variable | Default | Meaning |
+|----------|---------|--------|
+| `INGEST_MODE` | `direct` | `direct` = scraper writes Neo4j; `nats` = publish envelopes (AppSec scrapers only, as wired in compose) |
+| `NATS_URL` | `nats://nats:4222` in Compose | NATS client URL for publishers and **ingest-worker** |
+| `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
+| `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
+| `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
+| `NATS_INGEST_STREAM` | `INGEST` | Stream name (worker) |
+| `NATS_DURABLE` | `ingest-worker` | Durable consumer name |
+| `NATS_SUBSCRIBE_SUBJECT` | `ingest.appsec.>` | Worker pull filter |
+| `INGEST_BATCH` | `10` | Max messages per fetch |
+| `INGEST_MAX_WAIT` | `5s` | Fetch wait |
+
+JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([scrapers/ingestpub](../scrapers/ingestpub), [pkg/ingestv1](../pkg/ingestv1)).
 
 ## Graph bootstrap (usage mode)
 
@@ -22,7 +137,7 @@ Init container `graph-bootstrap` runs once after Neo4j is healthy. Pack resoluti
 Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 
 | Variable | Default | Meaning |
-|----------|---------|---------|
+|----------|---------|--------|
 | `GRAPH_PACK_SKIP` | `0` | `1` = exit 0 without importing |
 | `GRAPH_PACK_DEFAULT` | `1` | `0` = do not download the default release ZIP when no file/URL |
 | `GRAPH_PACK_URL` | empty | HTTP(S) URL of the pack ZIP |
@@ -35,13 +150,11 @@ Checksum: `manifest.json` `sha256` must match `graph.cypher` (same rules as [scr
 
 ## Scrape / pack-build profile
 
-Build and run scrapers + proxy pool:
-
 ```bash
 docker compose --profile scrape up --build -d
 ```
 
-Services (all `profiles: ["scrape"]`): `proxybroker`, `vuln`, `lola`, `ds`, `ti`, `sbom`, `coderules`, `nuclei`. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
+Starts **`proxybroker`**, **`nats`**, **`ingest-worker`**, **`vuln`**, **`lola`**, **`ds`**, **`ti`**, **`sbom`**, **`coderules`**, **`nuclei`**. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
 
 After data is in Neo4j, export a pack from the host:
 

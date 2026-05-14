@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -22,6 +23,10 @@ func NewClient(token string) *Client {
 		http:  &http.Client{Timeout: 120 * time.Second},
 		token: strings.TrimSpace(token),
 	}
+}
+
+func NewClientFromEnv() *Client {
+	return NewClient(os.Getenv("GITHUB_TOKEN"))
 }
 
 type contentItem struct {

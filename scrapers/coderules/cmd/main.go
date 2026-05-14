@@ -3,275 +3,96 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 
-	"coderules/internal/cwe"
-	gh "coderules/internal/github"
-	neo4jstore "coderules/internal/storage/neo4j"
-
-	"gopkg.in/yaml.v3"
+	"coderules/internal/config"
+	"coderules/internal/usecase"
+	"ingestpub"
+	neo4jstore "coderules/storage/neo4j"
 )
 
 func main() {
-	sources := flag.String("sources", getenvStr("CODERULES_SOURCES", "cwe,semgrep,codeql"), "comma-separated: cwe, semgrep, codeql")
-	maxCWE := flag.Int("max-cwe", getenvInt("CODERULES_MAX_CWE", 5000), "max CWE weakness records from MITRE catalog")
-	maxSemgrep := flag.Int("max-semgrep", getenvInt("CODERULES_MAX_SEMGREP", 80), "max Semgrep YAML rules")
-	maxCodeQL := flag.Int("max-codeql", getenvInt("CODERULES_MAX_CODEQL", 60), "max CodeQL .ql files")
+	sources := flag.String("sources", "", "comma-separated: cwe, semgrep, codeql (default CODERULES_SOURCES)")
+	maxCWE := flag.Int("max-cwe", 0, "max CWE (0 = CODERULES_MAX_CWE)")
+	maxSemgrep := flag.Int("max-semgrep", 0, "max Semgrep (0 = CODERULES_MAX_SEMGREP)")
+	maxCodeQL := flag.Int("max-codeql", 0, "max CodeQL (0 = CODERULES_MAX_CODEQL)")
+	ingestMode := flag.String("ingest-mode", "", "direct or nats (default INGEST_MODE)")
 	flag.Parse()
 
 	ctx := context.Background()
-	st, err := neo4jstore.New(ctx, neo4jstore.Config{
-		URI:      getenvStr("NEO4J_URI", "neo4j://localhost:7687"),
-		Username: getenvStr("NEO4J_USER", "neo4j"),
-		Password: getenvStr("NEO4J_PASS", "neo4jpassword"),
-		Database: getenvStr("NEO4J_DB", "neo4j"),
-	})
-	if err != nil {
-		log.Fatalf("neo4j: %v", err)
+	cfg := config.FromEnv()
+	opt := usecase.Options{
+		Sources:     cfg.Sources,
+		MaxCWE:      cfg.MaxCWE,
+		MaxSemgrep:  cfg.MaxSemgrep,
+		MaxCodeQL:   cfg.MaxCodeQL,
+		IngestMode:  cfg.IngestMode,
+		NATSURL:     cfg.NATSURL,
+		NATSSubject: cfg.NATSSubject,
 	}
-	defer st.Close(ctx)
-	if err := st.EnsureSchema(ctx); err != nil {
-		log.Fatalf("schema: %v", err)
-	}
-
-	src := map[string]bool{}
-	for _, s := range strings.Split(*sources, ",") {
-		src[strings.TrimSpace(strings.ToLower(s))] = true
-	}
-
-	if src["cwe"] {
-		log.Println("ingesting CWE catalog (MITRE zip)…")
-		if err := cwe.IngestFromMITRE(ctx, st, *maxCWE); err != nil {
-			log.Fatalf("cwe: %v", err)
+	if *sources != "" {
+		var p []string
+		for _, s := range strings.Split(*sources, ",") {
+			s = strings.TrimSpace(strings.ToLower(s))
+			if s != "" {
+				p = append(p, s)
+			}
+		}
+		if len(p) > 0 {
+			opt.Sources = p
 		}
 	}
-	if src["semgrep"] {
-		if err := ingestSemgrep(ctx, st, *maxSemgrep); err != nil {
-			log.Fatalf("semgrep: %v", err)
-		}
+	if *maxCWE > 0 {
+		opt.MaxCWE = *maxCWE
 	}
-	if src["codeql"] {
-		if err := ingestCodeQL(ctx, st, *maxCodeQL); err != nil {
-			log.Fatalf("codeql: %v", err)
-		}
+	if *maxSemgrep > 0 {
+		opt.MaxSemgrep = *maxSemgrep
 	}
-	log.Println("coderules scrape done")
-}
+	if *maxCodeQL > 0 {
+		opt.MaxCodeQL = *maxCodeQL
+	}
+	if strings.TrimSpace(*ingestMode) != "" {
+		opt.IngestMode = strings.ToLower(strings.TrimSpace(*ingestMode))
+	}
 
-func getenvStr(k, d string) string {
-	if v := strings.TrimSpace(os.Getenv(k)); v != "" {
-		return v
-	}
-	return d
-}
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-func getenvInt(k string, def int) int {
-	v := strings.TrimSpace(os.Getenv(k))
-	if v == "" {
-		return def
-	}
-	n, err := strconv.Atoi(v)
-	if err != nil {
-		return def
-	}
-	return n
-}
-
-func ingestSemgrep(ctx context.Context, st *neo4jstore.Store, limit int) error {
-	log.Println("ingesting Semgrep community rules (subset)…")
-	g := gh.NewClient()
-	const owner, repo = "semgrep", "semgrep-rules"
-	seeds := []string{"python", "javascript", "java", "go", "csharp", "dockerfile", "yaml", "bash"}
-	var q []string
-	for _, s := range seeds {
-		q = append(q, s)
-	}
-	n := 0
-	for len(q) > 0 && n < limit {
-		dir := q[0]
-		q = q[1:]
-		items, err := g.ListDir(ctx, owner, repo, dir)
+	var st *neo4jstore.Store
+	var err error
+	if opt.IngestMode != config.IngestModeNATS {
+		st, err = neo4jstore.New(ctx, neo4jstore.Config{
+			URI:      cfg.Neo4jURI,
+			Username: cfg.Neo4jUser,
+			Password: cfg.Neo4jPass,
+			Database: cfg.Neo4jDB,
+		})
 		if err != nil {
-			continue
+			log.Error("neo4j", slog.String("err", err.Error()))
+			os.Exit(1)
 		}
-		for _, it := range items {
-			if n >= limit {
-				break
-			}
-			if it.Type == "dir" && !strings.HasPrefix(it.Name, ".") {
-				q = append(q, it.Path)
-				continue
-			}
-			if it.Type != "file" || (!strings.HasSuffix(it.Name, ".yml") && !strings.HasSuffix(it.Name, ".yaml")) {
-				continue
-			}
-			raw, err := g.FetchText(ctx, it.DownloadURL)
-			if err != nil {
-				continue
-			}
-			var root map[string]any
-			if err := yaml.Unmarshal(raw, &root); err != nil {
-				continue
-			}
-			ruleID, title := semgrepMeta(root, it.Name)
-			id := neo4jstore.StableID("semgrep", it.Path)
-			md := fmt.Sprintf("# %s\n\n**path:** `%s`\n\n```yaml\n%s\n```\n", title, it.Path, string(raw))
-			lang := strings.Split(it.Path, "/")[0]
-			if err := st.UpsertSemgrepRule(ctx, id, it.Path, title, lang, md); err != nil {
-				return err
-			}
-			for _, cw := range semgrepCWES(root) {
-				if err := st.LinkSemgrepRuleToCWE(ctx, id, cw); err != nil {
-					return err
-				}
-			}
-			_ = ruleID
-			n++
+		defer st.Close(ctx)
+		if err := st.EnsureSchema(ctx); err != nil {
+			log.Error("schema", slog.String("err", err.Error()))
+			os.Exit(1)
 		}
 	}
-	log.Printf("semgrep rules ingested: %d", n)
-	return nil
-}
 
-func semgrepMeta(root map[string]any, fileName string) (id, title string) {
-	if v, ok := root["id"].(string); ok && v != "" {
-		id = v
-	}
-	if rules, ok := root["rules"].([]any); ok && len(rules) > 0 {
-		if rm, ok := rules[0].(map[string]any); ok {
-			if id == "" {
-				if s, ok := rm["id"].(string); ok {
-					id = s
-				}
-			}
-			if msg, ok := rm["message"].(string); ok && strings.TrimSpace(msg) != "" {
-				title = strings.TrimSpace(msg)
-			}
-		}
-	}
-	if title == "" {
-		title = firstNonEmpty(id, fileName)
-	}
-	if id == "" {
-		id = title
-	}
-	return id, title
-}
-
-var cweTokenRe = regexp.MustCompile(`(?i)CWE-\d+`)
-
-func semgrepCWES(root map[string]any) []string {
-	seen := map[string]struct{}{}
-	var out []string
-	add := func(s string) {
-		for _, m := range cweTokenRe.FindAllString(s, -1) {
-			u := strings.ToUpper(m)
-			if _, ok := seen[u]; ok {
-				continue
-			}
-			seen[u] = struct{}{}
-			out = append(out, u)
-		}
-	}
-	walkMeta := func(meta map[string]any) {
-		if meta == nil {
-			return
-		}
-		if v, ok := meta["cwe"]; ok {
-			switch t := v.(type) {
-			case string:
-				add(t)
-			case []any:
-				for _, x := range t {
-					if s, ok := x.(string); ok {
-						add(s)
-					}
-				}
-			}
-		}
-	}
-	if rules, ok := root["rules"].([]any); ok {
-		for _, r := range rules {
-			rm, ok := r.(map[string]any)
-			if !ok {
-				continue
-			}
-			if md, ok := rm["metadata"].(map[string]any); ok {
-				walkMeta(md)
-			}
-		}
-	}
-	return out
-}
-
-func ingestCodeQL(ctx context.Context, st *neo4jstore.Store, limit int) error {
-	log.Println("ingesting CodeQL queries (subset)…")
-	g := gh.NewClient()
-	const path = "javascript/ql/src/Security/CWE-079"
-	items, err := g.ListDir(ctx, "github", "codeql", path)
-	if err != nil {
-		return err
-	}
-	n := 0
-	for _, it := range items {
-		if n >= limit {
-			break
-		}
-		if it.Type != "file" || !strings.HasSuffix(it.Name, ".ql") {
-			continue
-		}
-		raw, err := g.FetchText(ctx, it.DownloadURL)
+	var pub *ingestpub.JetStreamPublisher
+	if opt.IngestMode == config.IngestModeNATS {
+		pub, err = ingestpub.ConnectJetStreamAndStream(cfg.NATSURL)
 		if err != nil {
-			continue
+			log.Error("nats", slog.String("err", err.Error()))
+			os.Exit(1)
 		}
-		body := string(raw)
-		name := it.Name
-		id := neo4jstore.StableID("codeql", it.Path)
-		md := fmt.Sprintf("# %s\n\n**path:** `%s`\n\n```ql\n%s\n```\n", name, it.Path, body)
-		if err := st.UpsertCodeQLRule(ctx, id, it.Path, name, "javascript", md); err != nil {
-			return err
-		}
-		for _, cw := range codeqlCWES(body) {
-			if err := st.LinkCodeQLRuleToCWE(ctx, id, cw); err != nil {
-				return err
-			}
-		}
-		n++
+		defer pub.Close()
 	}
-	log.Printf("codeql rules ingested: %d", n)
-	return nil
-}
 
-func firstNonEmpty(ss ...string) string {
-	for _, s := range ss {
-		if strings.TrimSpace(s) != "" {
-			return strings.TrimSpace(s)
-		}
+	runner := usecase.NewRunner(log, st, pub, opt)
+	if err := runner.Run(ctx); err != nil {
+		log.Error("run", slog.String("err", err.Error()))
+		os.Exit(1)
 	}
-	return ""
-}
-
-func codeqlCWES(body string) []string {
-	lines := strings.Split(body, "\n")
-	n := len(lines)
-	if n > 100 {
-		n = 100
-	}
-	chunk := strings.Join(lines[:n], "\n")
-	seen := map[string]struct{}{}
-	var out []string
-	for _, m := range cweTokenRe.FindAllString(chunk, -1) {
-		u := strings.ToUpper(m)
-		if _, ok := seen[u]; ok {
-			continue
-		}
-		seen[u] = struct{}{}
-		out = append(out, u)
-	}
-	return out
+	log.Info("coderules scrape done")
 }

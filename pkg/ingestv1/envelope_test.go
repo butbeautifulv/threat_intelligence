@@ -1,0 +1,43 @@
+package ingestv1
+
+import (
+	"encoding/json"
+	"testing"
+)
+
+func TestEnvelope_Validate(t *testing.T) {
+	p, err := NewEnvelope(SourceSBOM, KindSBOMOSVRecord, "k", SBOMOSVPayload{CVE: "CVE-2024-1", OSVID: "CVE-2024-1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := p.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	bad := &Envelope{SchemaVersion: 0, Source: SourceSBOM, Kind: KindSBOMOSVRecord, IdempotencyKey: "x", Payload: []byte(`{}`)}
+	if bad.Validate() == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestNewEnvelope_roundtrip(t *testing.T) {
+	in := SBOMOSVPayload{CVE: "CVE-2024-0001", OSVID: "CVE-2024-0001", Affected: []map[string]any{{"package": map[string]any{"ecosystem": "PyPI", "name": "foo"}}}}
+	e, err := NewEnvelope(SourceSBOM, KindSBOMOSVRecord, SBOMOSVIdempotencyKey("CVE-2024-0001", "PyPI", "foo"), in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := json.Marshal(e)
+	var out Envelope
+	if err := json.Unmarshal(raw, &out); err != nil {
+		t.Fatal(err)
+	}
+	if err := out.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	var p SBOMOSVPayload
+	if err := json.Unmarshal(out.Payload, &p); err != nil {
+		t.Fatal(err)
+	}
+	if p.CVE != in.CVE || len(p.Affected) != 1 {
+		t.Fatalf("payload mismatch %+v", p)
+	}
+}
