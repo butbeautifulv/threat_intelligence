@@ -6,6 +6,7 @@ require (
 	coderules v0.0.0
 	github.com/butbeautifulv/threat_intelligence/pkg/ingestv1 v0.0.0
 	github.com/nats-io/nats.go v1.39.1
+	golang.org/x/sync v0.20.0
 	ingestpub v0.0.0
 	nuclei v0.0.0
 	sbom v0.0.0

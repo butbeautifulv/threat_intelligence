@@ -160,7 +160,7 @@ After data is in Neo4j, export a pack from the host:
 
 ```bash
 ./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v2026.05.0 ./scripts/build-graph-pack.sh
+GRAPH_PACK_VERSION=v0.3.0 ./scripts/build-graph-pack.sh
 ```
 
 ## HTTP API (categorical)
@@ -226,7 +226,7 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.2.0.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.3.0.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
 Re-importing the same pack into **non-empty** Neo4j data (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` (drops volumes) or a fresh database.
 

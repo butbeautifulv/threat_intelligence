@@ -4,7 +4,7 @@ Thank you for improving this project. Small, focused changes are easier to revie
 
 ## Before you open a PR
 
-1. Read **[docs/coding-style.md](docs/coding-style.md)** — layers (`cmd` → `usecase` → `repository` → `storage` / `feeds`), `slog`, and ingest conventions.
+1. Read **[docs/coding-style.md](docs/coding-style.md)** — layers (`cmd` → `usecase` → `repository` → `storage` / `feeds`), `slog`, and ingest conventions. **Automated agents:** follow **[AGENTS.md](AGENTS.md)** so changes stay consistent with this doc.
 2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** in issues, reviews, and discussions.
 3. Run tests for the modules you touched, for example:
    - `go test ./pkg/ingestv1/... ./scrapers/ingestpub/... ./scrapers/sbom/... ./scrapers/coderules/... ./scrapers/nuclei/... ./scrapers/ingest-worker/...`

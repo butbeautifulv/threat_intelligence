@@ -5,6 +5,6 @@
 services:
   graph-bootstrap:
     volumes:
-      - ./data/neo4j_user_export/releases/threat-intel-graph-v0.2.0.zip:/pack/host.zip:ro
+      - ./data/neo4j_user_export/releases/threat-intel-graph-v0.3.0.zip:/pack/host.zip:ro
     environment:
       - GRAPH_PACK_DEFAULT=0

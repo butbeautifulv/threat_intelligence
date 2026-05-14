@@ -4,7 +4,44 @@
 
 Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection content (Sigma/YARA/Atomic/Caldera), and TI feeds. The repository splits **graph + HTTP API + MCP** (root modules) from **scrapers and ingest** ([scrapers/README.md](scrapers/README.md)).
 
-**License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Security:** [SECURITY.md](SECURITY.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+**License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Agents / AI:** [AGENTS.md](AGENTS.md) · **Security:** [SECURITY.md](SECURITY.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## Architecture
+
+High-level view of the default Compose stack, optional **`scrape`** profile, and shared Go modules (see [docs/threatintel-runtime.md](docs/threatintel-runtime.md) for ports and env vars).
+
+```mermaid
+flowchart TB
+  subgraph default_stack["Default: docker compose up"]
+    Neo4j[(Neo4j 5 + APOC)]
+    Bootstrap[graph-bootstrap]
+    API[HTTP API :8090]
+    Bootstrap -->|"import ZIP / Cypher pack"| Neo4j
+    API -->|"Bolt read"| Neo4j
+  end
+  subgraph scrape_profile["Profile: scrape"]
+    NATS[NATS JetStream]
+    Worker[ingest-worker]
+    Proxy[proxybroker]
+    S["Scrapers: vuln, lola, ds, ti"]
+    A["AppSec: sbom, coderules, nuclei"]
+    S -->|"MERGE"| Neo4j
+    A -->|"direct: MERGE"| Neo4j
+    A -->|"INGEST_MODE=nats"| NATS
+    NATS -->|"ingest.appsec.>"| Worker -->|"MERGE"| Neo4j
+    S -.->|optional *_PROXY_URLS| Proxy
+    A -.->|optional *_PROXY_URLS| Proxy
+  end
+  subgraph modules["Shared Go packages"]
+    GQ[graph/query]
+    IV1[pkg/ingestv1]
+    API --> GQ
+    MCP[Optional profile mcp: stdio MCP] --> GQ
+    MCP --> Neo4j
+    A -.-> IV1
+    Worker -.-> IV1
+  end
+```
 
 ## Quick start
 
@@ -31,6 +68,7 @@ Full service matrix, ports, and environment variables: **[docs/threatintel-runti
 
 | Document | Contents |
 |----------|----------|
+| [AGENTS.md](AGENTS.md) | **Cursor / agents:** mandatory pointer to [docs/coding-style.md](docs/coding-style.md) before code changes |
 | [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose services (including **ingest-worker**), ports, bootstrap, API, MCP, NATS / `INGEST_MODE` |
 | [scrapers/README.md](scrapers/README.md) | Scraper sources matrix, env vars, `direct` vs `nats`, local `go run` |
 | [scrapers/ingest-worker/README.md](scrapers/ingest-worker/README.md) | JetStream consumer: env, local run, Compose examples |
@@ -61,7 +99,7 @@ After Neo4j has been filled once, ship a versioned ZIP for air-gapped installs. 
 
 ```bash
 ./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v2026.05.0 ./scripts/build-graph-pack.sh
+GRAPH_PACK_VERSION=v0.3.0 ./scripts/build-graph-pack.sh
 ```
 
 Import: [scripts/import-graph-pack.sh](scripts/import-graph-pack.sh) — details in [scrapers/README.md](scrapers/README.md) (*Graph export and packs*).

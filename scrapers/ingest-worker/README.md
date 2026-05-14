@@ -2,6 +2,8 @@
 
 Long-running **JetStream pull consumer** that reads AppSec ingest envelopes from NATS and writes to **Neo4j** using the same Cypher `MERGE` paths as the **`sbom`**, **`coderules`**, and **`nuclei`** scrapers in `INGEST_MODE=direct`.
 
+The binary follows the same lifecycle pattern as other long-running scrapers: **`golang.org/x/sync/errgroup`** with a context cancelled on **SIGINT/SIGTERM** (see [docs/coding-style.md](../../docs/coding-style.md)). Envelope **`source`** must match **`kind`** (`sbom`, `coderules`, `nuclei`); unknown kinds are logged and **acked** so newer producers do not block the consumer.
+
 Use this service when scrapers run with **`INGEST_MODE=nats`** (publish-only). Without the worker, messages accumulate in the stream until a consumer drains them.
 
 ## Related code

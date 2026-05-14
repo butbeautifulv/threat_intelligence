@@ -2,6 +2,8 @@
 
 Conventions for **scrapers**, **`ingest-worker`**, and small **Go services** in this repo. When in doubt, mirror [scrapers/ti](../scrapers/ti) and [scrapers/vuln](../scrapers/vuln).
 
+**Cursor and other agents:** treat this file as the source of truth for code layout and ingest rules; the repo entry point is [AGENTS.md](../AGENTS.md).
+
 ---
 
 ## Layering
