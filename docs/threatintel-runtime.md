@@ -1,6 +1,6 @@
 # Threat Intel runtime (Docker Compose)
 
-Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API**. Live scraping, **NATS**, **ingest-worker**, and **proxybroker** are opt-in via the **`scrape`** profile. **MCP** uses **`profiles: ["mcp"]`**.
+Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API**. Live scraping, **NATS**, **ingest-worker**, and **proxybroker** are opt-in via the **`scrape`** profile. **MCP** uses **`profiles: ["mcp"]`**. Optional **nginx** load balancer in front of the API: profile **`deploy`** in [docker-compose.deploy.yml](../docker-compose.deploy.yml) — see [docs/deploy.md](deploy.md).
 
 ## Ports
 
@@ -8,6 +8,7 @@ Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP 
 |---------|------|--------|
 | Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
 | HTTP API | 8090 | `API_PORT` to override published port |
+| nginx LB | `${LB_HTTP_PORT:-8888}` | Profile **`deploy`** + [docker-compose.deploy.yml](../docker-compose.deploy.yml); HTTP to **`api`** replicas (see [docs/deploy.md](deploy.md)) |
 | Proxybroker | 8099 | Only with `--profile scrape`; `PROXYBROKER_PORT` |
 | NATS client | `${NATS_CLIENT_PORT:-4222}` | Only with `--profile scrape`; maps container `4222` |
 | NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP on container `8222`; **`nats`** healthcheck uses **`http://127.0.0.1:8222/healthz`** |
@@ -23,7 +24,7 @@ Use this before relying on a full **`--profile scrape`** run or a reproducible g
 
 ## Compose service reference
 
-All definitions live in [docker-compose.yml](../docker-compose.yml). Optional NATS-only producer env: [docker-compose.scrape-nats.yml](../docker-compose.scrape-nats.yml). **Binary / module docs:** see links in each subsection.
+All definitions live in [docker-compose.yml](../docker-compose.yml). Optional NATS-only producer env: [docker-compose.scrape-nats.yml](../docker-compose.scrape-nats.yml). Optional API load balancer: [docker-compose.deploy.yml](../docker-compose.deploy.yml). **Binary / module docs:** see links in each subsection.
 
 ### neo4j
 

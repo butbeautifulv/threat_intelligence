@@ -77,7 +77,7 @@ Full service matrix, ports, and environment variables: **[docs/threatintel-runti
 |----------|----------|
 | [AGENTS.md](AGENTS.md) | **Cursor / agents:** mandatory pointer to [docs/coding-style.md](docs/coding-style.md) before code changes |
 | [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose services (including **ingest-worker**), ports, bootstrap, API, MCP, NATS / `INGEST_MODE` |
-| [docs/ingest-contract.md](docs/ingest-contract.md) | **ingestv1** kinds, subjects, JetStream ADR, producer→worker→Neo4j matrix |
+| [docs/deploy.md](docs/deploy.md) | **v0.3.0** deploy: nginx LB, scale API / `ingest-worker`, BuildKit cache, GitHub graph-pack release |
 | [scrapers/README.md](scrapers/README.md) | Scraper sources matrix, env vars, `direct` vs `nats`, local `go run` |
 | [scrapers/ingest-worker/README.md](scrapers/ingest-worker/README.md) | JetStream consumer: env, local run, Compose examples |
 | [docs/coding-style.md](docs/coding-style.md) | Layering, logging, ingest conventions for PRs |
