@@ -9,6 +9,7 @@ import (
 
 	"ingestpub"
 	"sbom/internal/config"
+	"sbom/internal/cvesource"
 	"sbom/internal/usecase"
 	neo4jstore "sbom/storage/neo4j"
 )
@@ -59,20 +60,26 @@ func main() {
 
 	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-	st, err := neo4jstore.New(ctx, neo4jstore.Config{
-		URI:      cfg.Neo4jURI,
-		Username: cfg.Neo4jUser,
-		Password: cfg.Neo4jPass,
-		Database: cfg.Neo4jDB,
-	})
-	if err != nil {
-		log.Error("neo4j", slog.String("err", err.Error()))
-		os.Exit(1)
-	}
-	defer st.Close(ctx)
-	if err := st.EnsureSchema(ctx); err != nil {
-		log.Error("schema", slog.String("err", err.Error()))
-		os.Exit(1)
+	var (
+		st  *neo4jstore.Store
+		err error
+	)
+	if opt.IngestMode != config.IngestModeNATS {
+		st, err = neo4jstore.New(ctx, neo4jstore.Config{
+			URI:      cfg.Neo4jURI,
+			Username: cfg.Neo4jUser,
+			Password: cfg.Neo4jPass,
+			Database: cfg.Neo4jDB,
+		})
+		if err != nil {
+			log.Error("neo4j", slog.String("err", err.Error()))
+			os.Exit(1)
+		}
+		defer st.Close(ctx)
+		if err := st.EnsureSchema(ctx); err != nil {
+			log.Error("schema", slog.String("err", err.Error()))
+			os.Exit(1)
+		}
 	}
 
 	var pub *ingestpub.JetStreamPublisher
@@ -85,7 +92,18 @@ func main() {
 		defer pub.Close()
 	}
 
-	runner := usecase.NewRunner(log, st, pub, opt)
+	var cveSrc cvesource.Lister
+	if opt.IngestMode == config.IngestModeNATS {
+		cveSrc, err = cvesource.New(cfg.CVEListFile, cfg.CVEListURL)
+		if err != nil {
+			log.Error("cve list", slog.String("err", err.Error()))
+			os.Exit(1)
+		}
+	} else {
+		cveSrc = st
+	}
+
+	runner := usecase.NewRunner(log, st, cveSrc, pub, opt)
 	if err := runner.Run(ctx); err != nil {
 		log.Error("run", slog.String("err", err.Error()))
 		os.Exit(1)

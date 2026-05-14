@@ -20,13 +20,13 @@ import (
 )
 
 type Ingestor struct {
-	store  *neo4jstore.Store
+	store  graphStore
 	logger *slog.Logger
 	http   *http.Client
 	cache  string
 }
 
-func NewIngestor(store *neo4jstore.Store, logger *slog.Logger, cacheDir string) *Ingestor {
+func NewIngestor(store graphStore, logger *slog.Logger, cacheDir string) *Ingestor {
 	base := http.DefaultTransport.(*http.Transport).Clone()
 	base.TLSHandshakeTimeout = 30 * time.Second
 	var rt http.RoundTripper = base

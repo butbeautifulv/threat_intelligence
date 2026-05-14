@@ -1,6 +1,6 @@
 # Scripts
 
-Host-side helpers for **Neo4j export**, **graph pack** build/import, and **housekeeping**. Compose services (including **`ingest-worker`**) are documented in [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md), not here.
+Host-side helpers for **Neo4j export**, **graph pack** build/import, and **housekeeping**. Compose services (including **`ingest-worker`**) and **smoke / stack** procedures: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md), especially *Scrape / pack-build profile* and *Smoke checklist*.
 
 | Script / doc | Purpose |
 |----------------|---------|

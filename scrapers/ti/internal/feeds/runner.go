@@ -17,20 +17,20 @@ import (
 	"ti/internal/domain"
 	"ti/internal/normalize"
 	"ti/internal/proxypool"
-	neo4jstore "ti/internal/storage/neo4j"
+	"ti/internal/repository"
 )
 
 const kevURL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 
 type Runner struct {
-	Store  *neo4jstore.Store
+	Repo   repository.GraphRepository
 	Logger *slog.Logger
 	HTTP   *http.Client
 	Cache  string
 	Delay  time.Duration
 }
 
-func NewRunner(store *neo4jstore.Store, logger *slog.Logger) *Runner {
+func NewRunner(repo repository.GraphRepository, logger *slog.Logger) *Runner {
 	base := http.DefaultTransport.(*http.Transport).Clone()
 	base.TLSHandshakeTimeout = 30 * time.Second
 	var rt http.RoundTripper = base
@@ -45,7 +45,7 @@ func NewRunner(store *neo4jstore.Store, logger *slog.Logger) *Runner {
 		}
 	}
 	return &Runner{
-		Store:  store,
+		Repo:   repo,
 		Logger: logger,
 		HTTP:   &http.Client{Timeout: 120 * time.Second, Transport: rt},
 		Cache:  firstNonEmpty(os.Getenv("TI_CACHE_DIR"), filepath.Join(".", "data", "cache")),
@@ -92,7 +92,7 @@ func (r *Runner) getBytesCached(ctx context.Context, urlStr, cacheFile string) (
 }
 
 func (r *Runner) Run(ctx context.Context, kinds []string) error {
-	if err := r.Store.EnsureSchema(ctx); err != nil {
+	if err := r.Repo.EnsureSchema(ctx); err != nil {
 		return err
 	}
 	for _, k := range kinds {
@@ -160,7 +160,7 @@ func (r *Runner) runKEV(ctx context.Context) error {
 	}
 	for i := 0; i < limitN; i++ {
 		v := doc.Vulnerabilities[i]
-		if err := r.Store.UpsertKEVVulnerability(ctx, v.CVEID, v.VendorProject, v.Product, v.ShortDesc, v.DateAdded); err != nil {
+		if err := r.Repo.UpsertKEVVulnerability(ctx, v.CVEID, v.VendorProject, v.Product, v.ShortDesc, v.DateAdded); err != nil {
 			return err
 		}
 	}
@@ -214,7 +214,7 @@ func (r *Runner) runPTRSS(ctx context.Context) error {
 			BodyMarkdown: stripHTML(it.Description),
 			Source:       "pt-rss",
 		}
-		if err := r.Store.UpsertReport(ctx, rep); err != nil {
+		if err := r.Repo.UpsertReport(ctx, rep); err != nil {
 			return err
 		}
 		rid := normalize.ReportStableID(it.Link)
@@ -223,10 +223,10 @@ func (r *Runner) runPTRSS(ctx context.Context) error {
 			if !ok {
 				continue
 			}
-			if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+			if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 				return err
 			}
-			if err := r.Store.LinkReportMentionsIOC(ctx, rid, ni); err != nil {
+			if err := r.Repo.LinkReportMentionsIOC(ctx, rid, ni); err != nil {
 				return err
 			}
 		}
@@ -298,7 +298,7 @@ func (r *Runner) runURLhaus(ctx context.Context) error {
 		if !ok {
 			continue
 		}
-		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+		if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 			return err
 		}
 		count++
@@ -359,7 +359,7 @@ func (r *Runner) runThreatFoxAPI(ctx context.Context, authKey string) error {
 		if !ok {
 			continue
 		}
-		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+		if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 			return err
 		}
 		count++
@@ -402,7 +402,7 @@ outer:
 			if !ok {
 				continue
 			}
-			if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+			if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 				return err
 			}
 			count++
@@ -457,7 +457,7 @@ func (r *Runner) runMalwareBazaar(ctx context.Context) error {
 		if row.Sha256 != "" {
 			ioc := domain.IOC{Type: domain.IOCHash, Value: row.Sha256, Source: "malwarebazaar"}
 			if ni, ok := normalize.NormalizeIOC(ioc); ok {
-				if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+				if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 					return err
 				}
 				n++
@@ -467,7 +467,7 @@ func (r *Runner) runMalwareBazaar(ctx context.Context) error {
 		if row.Md5 != "" {
 			ioc := domain.IOC{Type: domain.IOCHash, Value: row.Md5, Source: "malwarebazaar"}
 			if ni, ok := normalize.NormalizeIOC(ioc); ok {
-				if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+				if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 					return err
 				}
 				n++
@@ -511,7 +511,7 @@ func (r *Runner) runFeodo(ctx context.Context) error {
 		if !ok {
 			continue
 		}
-		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+		if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 			return err
 		}
 		count++
@@ -551,7 +551,7 @@ func (r *Runner) runOpenPhish(ctx context.Context) error {
 		if !ok {
 			continue
 		}
-		if err := r.Store.UpsertIOC(ctx, ni); err != nil {
+		if err := r.Repo.UpsertIOC(ctx, ni); err != nil {
 			return err
 		}
 		count++

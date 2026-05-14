@@ -10,5 +10,6 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 COPY --from=build /out/sbom /usr/local/bin/sbom
+COPY --from=build /src/scrapers/sbom/fixtures/cve_list_seed.txt /fixtures/cve_list_seed.txt
 USER nobody
 ENTRYPOINT ["/usr/local/bin/sbom"]

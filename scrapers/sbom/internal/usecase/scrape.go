@@ -8,6 +8,7 @@ import (
 
 	"github.com/butbeautifulv/threat_intelligence/pkg/ingestv1"
 	"ingestpub"
+	"sbom/internal/cvesource"
 	"sbom/internal/feeds/ghsa"
 	"sbom/internal/feeds/osv"
 	"sbom/internal/repository"
@@ -27,13 +28,14 @@ type Options struct {
 // Runner orchestrates SBOM fetch → Neo4j or NATS.
 type Runner struct {
 	log    *slog.Logger
-	store  repository.SBOMWriter
+	store  repository.SBOMWriter // direct mode only
+	cves   cvesource.Lister      // OSV CVE ids: Neo4j in direct, file/URL in nats
 	pub    *ingestpub.JetStreamPublisher
 	opt    Options
 }
 
-func NewRunner(log *slog.Logger, store repository.SBOMWriter, pub *ingestpub.JetStreamPublisher, opt Options) *Runner {
-	return &Runner{log: log, store: store, pub: pub, opt: opt}
+func NewRunner(log *slog.Logger, store repository.SBOMWriter, cves cvesource.Lister, pub *ingestpub.JetStreamPublisher, opt Options) *Runner {
+	return &Runner{log: log, store: store, cves: cves, pub: pub, opt: opt}
 }
 
 func (r *Runner) sourceEnabled(name string) bool {
@@ -49,6 +51,15 @@ func (r *Runner) Run(ctx context.Context) error {
 	if r.opt.IngestMode == "nats" && r.pub == nil {
 		return fmt.Errorf("usecase: INGEST_MODE=nats requires NATS publisher")
 	}
+	if r.opt.IngestMode == "nats" && r.cves == nil {
+		return fmt.Errorf("usecase: INGEST_MODE=nats requires CVE list source (SBOM_CVE_LIST_FILE or SBOM_CVE_LIST_URL)")
+	}
+	if r.opt.IngestMode != "nats" && r.store == nil {
+		return fmt.Errorf("usecase: INGEST_MODE=direct requires Neo4j store")
+	}
+	if r.opt.IngestMode != "nats" && r.cves == nil {
+		return fmt.Errorf("usecase: direct mode requires CVE list source")
+	}
 	if r.sourceEnabled("osv") {
 		if err := r.runOSV(ctx); err != nil {
 			return err
@@ -63,7 +74,7 @@ func (r *Runner) Run(ctx context.Context) error {
 }
 
 func (r *Runner) runOSV(ctx context.Context) error {
-	cves, err := r.store.ListCVEs(ctx, r.opt.MaxCVE)
+	cves, err := r.cves.ListCVEs(ctx, r.opt.MaxCVE)
 	if err != nil {
 		return err
 	}

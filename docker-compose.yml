@@ -93,8 +93,14 @@ services:
     ports:
       - "${NATS_CLIENT_PORT:-4222}:4222"
       - "${NATS_MONITOR_PORT:-8222}:8222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8222/healthz >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 3s
 
-  # Pull consumer: drains ingest.appsec.> and writes to Neo4j (run alongside NATS + scrapers in nats mode).
+  # Pull consumer: drains ingest.> (AppSec + TI + future domains) and writes to Neo4j.
   ingest-worker:
     profiles: ["scrape"]
     build:
@@ -108,14 +114,14 @@ services:
       - NATS_URL=nats://nats:4222
       - NATS_INGEST_STREAM=INGEST
       - NATS_DURABLE=ingest-worker
-      - NATS_SUBSCRIBE_SUBJECT=ingest.appsec.>
+      - NATS_SUBSCRIBE_SUBJECT=${NATS_SUBSCRIBE_SUBJECT:-ingest.>}
       - INGEST_BATCH=${INGEST_BATCH:-10}
       - INGEST_MAX_WAIT=${INGEST_MAX_WAIT:-5s}
     depends_on:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
 
   # --- profile "scrape": proxy pool + live ingest (not started by default `docker compose up`) ---
@@ -140,6 +146,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - VULN_NATS_SUBJECT=${VULN_NATS_SUBJECT:-ingest.vuln.events}
       - NVD_MAX_PAGES=${NVD_MAX_PAGES:-1}
       - VULN_CACHE_DIR=/data/cache
       - VULN_REQUEST_DELAY=${VULN_REQUEST_DELAY:-1200ms}
@@ -148,6 +157,8 @@ services:
       - VULN_EXPLOITDB_MAX_ROWS=${VULN_EXPLOITDB_MAX_ROWS:-4000}
     depends_on:
       neo4j:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     restart: on-failure
     volumes:
@@ -170,11 +181,13 @@ services:
       - INGEST_MODE=${INGEST_MODE:-direct}
       - NATS_URL=${NATS_URL:-nats://nats:4222}
       - SBOM_NATS_SUBJECT=${SBOM_NATS_SUBJECT:-ingest.appsec.sbom}
+      - SBOM_CVE_LIST_FILE=${SBOM_CVE_LIST_FILE:-/fixtures/cve_list_seed.txt}
+      - SBOM_CVE_LIST_URL=${SBOM_CVE_LIST_URL:-}
     depends_on:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -189,6 +202,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - LOLA_NATS_SUBJECT=${LOLA_NATS_SUBJECT:-ingest.lola.events}
       - LOLA_CACHE_DIR=/data/cache
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - LOLA_PROXY_URLS=${LOLA_PROXY_URLS:-}
@@ -199,6 +215,8 @@ services:
       - ./data/cache:/data/cache
     depends_on:
       neo4j:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     restart: on-failure
 
@@ -212,6 +230,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - DS_NATS_SUBJECT=${DS_NATS_SUBJECT:-ingest.ds.events}
       - DS_CACHE_DIR=/data/cache
       - DS_MAX_SIGMA=${DS_MAX_SIGMA:-120}
       - DS_MAX_YARA=${DS_MAX_YARA:-80}
@@ -223,6 +244,8 @@ services:
       - ./data/cache:/data/cache
     depends_on:
       neo4j:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     restart: on-failure
 
@@ -236,6 +259,9 @@ services:
       - NEO4J_USER=neo4j
       - NEO4J_PASS=neo4jpassword
       - NEO4J_DB=neo4j
+      - INGEST_MODE=${INGEST_MODE:-direct}
+      - NATS_URL=${NATS_URL:-nats://nats:4222}
+      - TI_NATS_SUBJECT=${TI_NATS_SUBJECT:-ingest.ti.events}
       - TI_KEV_MAX=${TI_KEV_MAX:-200}
       - TI_PT_MAX=${TI_PT_MAX:-40}
       - TI_URLHAUS_MAX=${TI_URLHAUS_MAX:-300}
@@ -257,6 +283,8 @@ services:
     command: ["--feeds", "${TI_FEEDS:-kev,urlhaus,threatfox,malwarebazaar,feodo}", "--input", "/app/example.jsonl"]
     depends_on:
       neo4j:
+        condition: service_healthy
+      nats:
         condition: service_healthy
     restart: on-failure
     volumes:
@@ -284,7 +312,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache
@@ -309,7 +337,7 @@ services:
       neo4j:
         condition: service_healthy
       nats:
-        condition: service_started
+        condition: service_healthy
     restart: on-failure
     volumes:
       - ./data/cache:/data/cache

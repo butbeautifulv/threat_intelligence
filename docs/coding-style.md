@@ -2,6 +2,8 @@
 
 Conventions for **scrapers**, **`ingest-worker`**, and small **Go services** in this repo. When in doubt, mirror [scrapers/ti](../scrapers/ti) and [scrapers/vuln](../scrapers/vuln).
 
+**Cursor and other agents:** treat this file as the source of truth for code layout and ingest rules; the repo entry point is [AGENTS.md](../AGENTS.md).
+
 ---
 
 ## Layering
@@ -51,8 +53,8 @@ Keep a clear dependency direction (no cycles):
 ## Ingest pipeline (NATS)
 
 - **Envelope:** [pkg/ingestv1](../pkg/ingestv1/) — versioned JSON (`schema_version`, `source`, `kind`, `idempotency_key`, `payload`).
-- **Producers:** `sbom`, `coderules`, `nuclei` in **`INGEST_MODE=nats`** publish via [scrapers/ingestpub](../scrapers/ingestpub/).
-- **Consumer:** [scrapers/ingest-worker](../scrapers/ingest-worker/README.md) applies the same **`storage/neo4j`** writers as **`direct`** mode.
+- **Producers:** `sbom`, `coderules`, `nuclei`, **`ti`**, **`vuln`**, **`lola`**, and **`ds`** in **`INGEST_MODE=nats`** publish via [scrapers/ingestpub](../scrapers/ingestpub/). For **`sbom`** OSV, set **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** so CVE ids are not read from Neo4j in the scraper process.
+- **Consumer:** [scrapers/ingest-worker](../scrapers/ingest-worker/README.md) applies the same **`storage/neo4j`** writers as **`direct`** mode. Subject defaults and kind matrix: [docs/ingest-contract.md](ingest-contract.md).
 - Default **`INGEST_MODE=direct`** keeps `docker compose run sbom` usable without NATS until you opt in.
 
 ---
