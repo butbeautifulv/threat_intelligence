@@ -1,13 +1,8 @@
 go 1.25.0
 
 use (
-	../pkg/nvdparse
-	./contract/ingestv1
-	./internal/normalize/appsec
-	./internal/normalize/ti
-	./internal/normalize/tidomain
-	./internal/normalize/tiingest
-	./internal/normalize/vuln
-	./pipeline_worker
-	./pub
+	../pkg
+	./connector
+	./ned
+	./pkg
 )
