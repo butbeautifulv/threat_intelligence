@@ -3,12 +3,11 @@ FROM golang:1.25-bookworm AS build
 WORKDIR /build
 COPY pkg/ pkg/
 COPY pipeline/ pipeline/
-COPY scrape/contract/ scrape/contract/
 ENV GOWORK=/build/pipeline/go.work
-WORKDIR /build/pipeline/pipeline_worker
+WORKDIR /build/pipeline/ned
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -trimpath -ldflags="-s -w" -o /out/pipeline_worker ./cmd
+    go build -trimpath -ldflags="-s -w" -o /out/pipeline_worker ./cmd/pipeline_worker
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \

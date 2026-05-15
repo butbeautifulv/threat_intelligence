@@ -2,17 +2,18 @@
 
 Host-side helpers for **Neo4j export**, **graph pack** build/import, **stack smoke**, and **housekeeping**. Runtime layout: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
 
-| Script | Purpose |
-|--------|---------|
-| [compose-up-full.sh](compose-up-full.sh) | Full stack: scrape + pipeline + graph (`deploy/*/compose.yml`) |
-| [graph-pack-run-v032.sh](graph-pack-run-v032.sh) | Fast-rich pack profile: all 7 sources, `NVD_MAX_PAGES=1`, `LOFTS_SKIP_ON_ERROR` |
-| [smoke_scrape_e2e.sh](smoke_scrape_e2e.sh) | E2E smoke: scrape → pipeline → ingest → Neo4j (default `SCRAPE_SOURCES=ti,sbom`) |
-| [verify-nvd-enrichment.sh](verify-nvd-enrichment.sh) | Cypher counts for `HAS_CWE` / `AFFECTS` / `CPE` after NVD ingest |
-| [gen-contracts.sh](gen-contracts.sh) | Sync `pipeline/contract/ingestv1` → `graph/contract/ingestv1` |
-| [export-graph-cypher.sh](export-graph-cypher.sh) | Dump Cypher from running Neo4j (needs `NEO4J_apoc_export_file_enabled`) |
-| [build-graph-pack.sh](build-graph-pack.sh) | Build versioned ZIP + `manifest.json` + checksum |
-| [import-graph-pack.sh](import-graph-pack.sh) | Import a pack ZIP into Neo4j |
-| [graph-dedup-cleanup.sh](graph-dedup-cleanup.sh) | Post-scrape dedup and optional stale IOC cleanup |
+These scripts are **not** the pipeline NED runtime ([pipeline/ned](../pipeline/ned/)); they orchestrate compose, verify graph state, or repair Neo4j after ingest.
+
+| Script | Layer | Purpose |
+|--------|-------|---------|
+| [compose-up-full.sh](compose-up-full.sh) | ops | Full stack: scrape + pipeline + graph (`deploy/*/compose.yml`) |
+| [graph-pack-run-v032.sh](graph-pack-run-v032.sh) | ops | Fast-rich pack profile: all 7 sources, `NVD_MAX_PAGES=1`, `LOFTS_SKIP_ON_ERROR` |
+| [smoke_scrape_e2e.sh](smoke_scrape_e2e.sh) | ops | E2E smoke: scrape → pipeline → ingest → Neo4j (default `SCRAPE_SOURCES=ti,sbom`) |
+| [verify-nvd-enrichment.sh](verify-nvd-enrichment.sh) | graph QA | Cypher counts for `HAS_CWE` / `AFFECTS` / `CPE` after NVD ingest |
+| [export-graph-cypher.sh](export-graph-cypher.sh) | ops | Dump Cypher from running Neo4j (needs `NEO4J_apoc_export_file_enabled`) |
+| [build-graph-pack.sh](build-graph-pack.sh) | ops | Build versioned ZIP + `manifest.json` + checksum |
+| [import-graph-pack.sh](import-graph-pack.sh) | ops | Import a pack ZIP into Neo4j |
+| [graph-dedup-cleanup.sh](graph-dedup-cleanup.sh) | graph housekeeping | Post-scrape dedup and optional stale IOC cleanup |
 
 Graph pack and export scripts use the same compose files as smoke (override with `COMPOSE_FILES`):
 
@@ -30,7 +31,7 @@ SCRAPE_SOURCES=ti SMOKE_CLEAN_VOLUMES=0 ./scripts/smoke_scrape_e2e.sh --up
 
 ## `graph-dedup-cleanup.sh`
 
-Neo4j housekeeping after high-volume scrapes.
+Neo4j housekeeping after high-volume scrapes. **Not** pipeline wire-path dedup (that is `commit` idempotency keys in [pipeline/ned](../pipeline/ned/)).
 
 - **Duplicate `HAS_ADVISORY`:** removes parallel edges between the same `Vulnerability` and `SecurityAdvisory`.
 - **Stale isolated IOCs:** counts `IOC` nodes with **no relationships** whose `lastSeen` or `updatedAt` is older than a cutoff (default **90 days**). Optional **destructive** delete is **off by default**.

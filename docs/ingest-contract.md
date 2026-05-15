@@ -1,35 +1,40 @@
-# Ingest contracts (scrapev1 + ingestv1 + JetStream)
+# Ingest contracts (harvest + commit + JetStream)
 
 Veil uses **two NATS streams** between isolated layers:
 
 ```text
-scrape/ → scrape.> (scrapev1) → pipeline/ → ingest.> (ingestv1) → graph/ → Neo4j
+scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ → Neo4j
 ```
 
-**Schema source of truth:** [schemas/scrapev1-envelope.json](schemas/scrapev1-envelope.json), [schemas/ingestv1-envelope.json](schemas/ingestv1-envelope.json). Regenerate Go: `./scripts/gen-contracts.sh` or `make contracts`.
+**Go source of truth:** [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/). **JSON docs:** [schemas/harvest-envelope.json](schemas/harvest-envelope.json), [schemas/commit-envelope.json](schemas/commit-envelope.json) — update manually when pkg types change.
 
-## scrapev1 (scrape → pipeline)
+## harvest (scrape → pipeline)
 
-- **Go (scrape layer):** [scrape/contract/scrapev1](../scrape/contract/scrapev1/)
+- **Go:** [pkg/harvest](../pkg/harvest/)
 - **Stream:** `SCRAPE`, subjects `scrape.>`
-- **Publisher:** [scrape/scrape_worker](../scrape/scrape_worker/)
-- **Consumer:** [pipeline/pipeline_worker](../pipeline/pipeline_worker/)
+- **Publisher:** [scrape/harvest](../scrape/harvest/) (`cmd/scrape_worker`)
+- **Consumer:** [pipeline/ned](../pipeline/ned/) (`cmd/pipeline_worker`)
 - **Dedup (optional):** `Nats-Msg-Id` = `content_key`
 
-## ingestv1 (pipeline → graph)
+## commit (pipeline → graph)
 
-- **Go (pipeline):** [pipeline/contract/ingestv1](../pipeline/contract/ingestv1/)
-- **Go (graph):** [graph/contract/ingestv1](../graph/contract/ingestv1/)
+- **Go:** [pkg/commit](../pkg/commit/) (pipeline + graph)
 - **Stream:** `INGEST`, subjects `ingest.>`
-- **Publisher:** pipeline via [pipeline/pub](../pipeline/pub/)
-- **Consumer:** [graph/ingest_worker](../graph/ingest_worker/)
+- **Publisher:** pipeline via [pipeline/connector](../pipeline/connector/)
+- **Consumer:** [graph/ingest](../graph/ingest/) (`cmd/ingest_worker`)
 - **Dedup:** `Nats-Msg-Id` = `idempotency_key`
+
+### TI commit payloads (NED → graph)
+
+- Upsert kinds (`ti_ioc`, `ti_campaign`, …): payload is **already normalized by NED** (`pipeline/pkg/ti/normalize`).
+- Graph ingest **does not re-normalize**; Neo4j node `id` for IOC/Actor/Report comes from `idempotency_key` (`ti:ioc:…`, `ti:actor:…`, `ti:report:…`) via [pkg/commit/ti_node.go](../pkg/commit/ti_node.go).
+- NVD CWE/CPE parsing runs only in pipeline ([pipeline/pkg/nvd](../pipeline/pkg/nvd/)); harvest publishes raw `scrape_nvd_page` only.
 
 ## Vitess crawl ledger (scrape only)
 
 | Variable | Meaning |
 |----------|---------|
-| `VITESS_DSN` | MySQL-compatible ledger ([scrape/ledger](../scrape/ledger/)) |
+| `VITESS_DSN` | MySQL-compatible ledger ([scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/)) |
 | `SCRAPE_MIN_REFETCH_AFTER` | Default `24h` |
 | `SCRAPE_FORCE_REFETCH` | `1` = ignore ledger |
 
