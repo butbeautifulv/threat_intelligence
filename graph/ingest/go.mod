@@ -1,0 +1,23 @@
+module github.com/butbeautifulv/threat_intelligence/graph/ingest
+
+go 1.25.0
+
+require (
+	github.com/butbeautifulv/threat_intelligence/graph/connector v0.0.0
+	github.com/butbeautifulv/threat_intelligence/pkg v0.0.0
+	github.com/nats-io/nats.go v1.48.0
+	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
+	golang.org/x/sync v0.20.0
+)
+
+require (
+	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/nats-io/nkeys v0.4.11 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+)
+
+replace github.com/butbeautifulv/threat_intelligence/graph/connector => ../connector
+
+replace github.com/butbeautifulv/threat_intelligence/pkg => ../../pkg
