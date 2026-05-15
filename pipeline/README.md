@@ -9,7 +9,7 @@ Consumes `scrape.>`, applies **NED** (normalize, enrichment, deduplication), pub
 | **connector** | [connector/](connector/) | NATS JetStream publish + stream ensure |
 | **ned** | [ned/](ned/) | Transform worker (`pipeline_worker`) |
 
-- **Wire types:** [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/)
+- **Wire types:** [pkg/harvest/](../pkg/harvest/), [pkg/commit/](../pkg/commit/)
 - **Build:** `make test-pipeline` or:
 
 ```bash

@@ -10,7 +10,7 @@ Consumes `ingest.>`, MERGE into Neo4j; HTTP API and MCP read Bolt.
 | **serve** | [serve/](serve/) | HTTP API (`api`) and stdio MCP (`mcp`) |
 | **connector** | [connector/](connector/) | Shared Bolt driver and categorical queries |
 
-- **Wire types:** [pkg/commit](../pkg/commit/)
+- **Wire types:** [pkg/commit/](../pkg/commit/)
 - **Build:** `make test-graph` or:
 
 ```bash

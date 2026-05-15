@@ -13,7 +13,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 ## Core relationships (high value)
 
-- `(:Vulnerability)-[:HAS_CWE]->(:CWE)` — from NVD (`vuln`), parsed in pipeline via [pipeline/pkg/nvd/parse](../pipeline/pkg/nvd/parse/).
+- `(:Vulnerability)-[:HAS_CWE]->(:CWE)` — from NVD (`vuln`), parsed in pipeline via [pipeline/pkg/nvd/parse/](../pipeline/pkg/nvd/parse/).
 - `(:Vulnerability)-[:AFFECTS]->(:CPE)` — from NVD configurations (`vuln`).
 - `(:Vulnerability)-[:AFFECTS_PACKAGE]->(:Package)` — from OSV (`sbom`).
 - `(:Vulnerability)-[:HAS_ADVISORY]->(:SecurityAdvisory)` — from GHSA (`sbom`).
@@ -33,7 +33,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 ## IOC freshness (TI)
 
-IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [scrape/harvest/internal/sources/ti](../scrape/harvest/internal/sources/ti)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
+IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [scrape/harvest/internal/sources/ti/](../scrape/harvest/internal/sources/ti/)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
 
 ## P3 roadmap (SOC-level rules, not implemented as scrapers yet)
 

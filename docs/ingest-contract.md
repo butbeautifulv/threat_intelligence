@@ -6,29 +6,29 @@ Veil uses **two NATS streams** between isolated layers:
 scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ → Neo4j
 ```
 
-**Go source of truth:** [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/). **JSON docs:** [schemas/harvest-envelope.json](schemas/harvest-envelope.json), [schemas/commit-envelope.json](schemas/commit-envelope.json) — update manually when pkg types change.
+**Go source of truth:** [pkg/harvest/](../pkg/harvest/), [pkg/commit/](../pkg/commit/). **JSON docs:** [schemas/harvest-envelope.json](schemas/harvest-envelope.json), [schemas/commit-envelope.json](schemas/commit-envelope.json) — update manually when pkg types change.
 
 ## harvest (scrape → pipeline)
 
-- **Go:** [pkg/harvest](../pkg/harvest/)
+- **Go:** [pkg/harvest/](../pkg/harvest/)
 - **Stream:** `SCRAPE`, subjects `scrape.>`
-- **Publisher:** [scrape/harvest](../scrape/harvest/) (`cmd/scrape_worker`)
-- **Consumer:** [pipeline/ned](../pipeline/ned/) (`cmd/pipeline_worker`)
+- **Publisher:** [scrape/harvest/](../scrape/harvest/) (`cmd/scrape_worker`)
+- **Consumer:** [pipeline/ned/](../pipeline/ned/) (`cmd/pipeline_worker`)
 - **Dedup (optional):** `Nats-Msg-Id` = `content_key`
 
 ## commit (pipeline → graph)
 
-- **Go:** [pkg/commit](../pkg/commit/) (pipeline + graph)
+- **Go:** [pkg/commit/](../pkg/commit/) (pipeline + graph)
 - **Stream:** `INGEST`, subjects `ingest.>`
-- **Publisher:** pipeline via [pipeline/connector](../pipeline/connector/)
-- **Consumer:** [graph/ingest](../graph/ingest/) (`cmd/ingest_worker`)
+- **Publisher:** pipeline via [pipeline/connector/](../pipeline/connector/)
+- **Consumer:** [graph/ingest/](../graph/ingest/) (`cmd/ingest_worker`)
 - **Dedup:** `Nats-Msg-Id` = `idempotency_key`
 
 ### TI commit payloads (NED → graph)
 
 - Upsert kinds (`ti_ioc`, `ti_campaign`, …): payload is **already normalized by NED** (`pipeline/pkg/ti/normalize`).
 - Graph ingest **does not re-normalize**; Neo4j node `id` for IOC/Actor/Report comes from `idempotency_key` (`ti:ioc:…`, `ti:actor:…`, `ti:report:…`) via [pkg/commit/ti_node.go](../pkg/commit/ti_node.go).
-- NVD CWE/CPE parsing runs only in pipeline ([pipeline/pkg/nvd](../pipeline/pkg/nvd/)); harvest publishes raw `scrape_nvd_page` only.
+- NVD CWE/CPE parsing runs only in pipeline ([pipeline/pkg/nvd/](../pipeline/pkg/nvd/)); harvest publishes raw `scrape_nvd_page` only.
 
 ## Vitess crawl ledger (scrape only)
 

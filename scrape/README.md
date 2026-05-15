@@ -10,7 +10,7 @@ Fetches third-party feeds, records fetches in the Vitess/MySQL **ledger**, and p
 | **harvest** | [harvest/](harvest/) | Batch worker (`scrape_worker`) + sources |
 | **proxybroker** | [proxybroker/](proxybroker/) | HTTP proxy pool sidecar |
 
-- **Wire types:** [pkg/harvest](../pkg/harvest/)
+- **Wire types:** [pkg/harvest/](../pkg/harvest/)
 - **Build:** `make test-scrape` or:
 
 ```bash

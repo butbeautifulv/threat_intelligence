@@ -1,0 +1,32 @@
+---
+description: Veil agent end-of-task workflow — style, tests, commit, push
+alwaysApply: true
+---
+
+# Veil agent workflow
+
+Follow [AGENTS.md](../../AGENTS.md) and [docs/coding-style.md](../../docs/coding-style.md) as source of truth.
+
+## Architecture (do not break)
+
+- Three layers: `scrape/`, `pipeline/`, `graph/` — **no cross-layer Go imports**.
+- Integration via NATS only; shared wire types in `pkg/*`.
+- No root `go.work`.
+
+## Required before finishing a task
+
+1. Run `make test-scrape`, `make test-pipeline`, and/or `make test-graph` for touched layers.
+2. If ingest paths changed, run `./scripts/release/bump-graph-version.sh patch` and update `docs/schemas/` when `pkg/harvest` or `pkg/commit` changed.
+3. Run `make check-graph-version` before commit.
+4. **Commit** with a clear message.
+5. **`git push origin HEAD`** unless the user forbade push.
+
+## Git hygiene
+
+- Never commit `data/`, secrets, or `.cursor/plans/`.
+- Prefer `git add -A -- . ':!data'` when `data/` is not writable.
+
+## Versions
+
+- Read [versions.env](../../versions.env) for `APP_VERSION` and `GRAPH_PACK_VERSION`.
+- Do not hardcode graph pack versions in new files; use `scripts/lib/common.sh` helpers.

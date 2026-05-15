@@ -167,7 +167,7 @@ Sources live under [scrape/harvest/internal/sources/](../scrape/harvest/internal
 | `INGEST_BATCH` | `10` | Max messages per fetch |
 | `INGEST_MAX_WAIT` | `5s` | Fetch wait |
 
-JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([pipeline/connector](../pipeline/connector/), [pkg/commit](../pkg/commit)).
+JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([pipeline/connector/](../pipeline/connector/), [pkg/commit/](../pkg/commit/)).
 
 Contract details: [docs/ingest-contract.md](ingest-contract.md).
 

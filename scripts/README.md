@@ -15,6 +15,10 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [graph-pack/import.sh](graph-pack/import.sh) | Import pack (supports legacy `threat-intel-graph-*.zip`) |
 | [graph-pack/profile-fast-rich.sh](graph-pack/profile-fast-rich.sh) | ~25 min crawl profile → compose-up-full |
 | [release/publish-graph-pack.sh](release/publish-graph-pack.sh) | Build + `gh release create veil-graph-vX` |
+| [release/bump-graph-version.sh](release/bump-graph-version.sh) | Bump `GRAPH_PACK_VERSION` in [versions.env](../versions.env) |
+| [release/check-graph-version-bump.sh](release/check-graph-version-bump.sh) | Fail if ingest paths changed without version bump |
+| [housekeeping/sync-github-metadata.sh](housekeeping/sync-github-metadata.sh) | Push [.github/repo-description.txt](../.github/repo-description.txt) to GitHub |
+| [housekeeping/lint-markdown-dir-links.sh](housekeeping/lint-markdown-dir-links.sh) | Lint directory links (trailing `/`) in `*.md` |
 | [test/smoke-scrape-e2e.sh](test/smoke-scrape-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
 | [test/verify-nvd-enrichment.sh](test/verify-nvd-enrichment.sh) | Cypher QA for NVD CWE/CPE |
 | [housekeeping/graph-dedup-cleanup.sh](housekeeping/graph-dedup-cleanup.sh) | Post-ingest Neo4j dedup |
@@ -26,8 +30,8 @@ Deploy profiles: [deploy/profiles/](../deploy/profiles/). Runtime: [docs/threati
 ```bash
 ./scripts/graph-pack/profile-fast-rich.sh    # optional: full crawl
 ./scripts/graph-pack/export-cypher.sh
-GRAPH_PACK_VERSION=v0.4.0 ./scripts/graph-pack/build.sh
-GRAPH_PACK_VERSION=v0.4.0 ./scripts/release/publish-graph-pack.sh --skip-build
+./scripts/graph-pack/build.sh
+./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
 Import locally:

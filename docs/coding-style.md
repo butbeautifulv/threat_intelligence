@@ -1,6 +1,6 @@
 # Coding style (Veil)
 
-Conventions for the three runtime layers — **scrape**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [scrape/harvest/internal/sources/ti](../scrape/harvest/internal/sources/ti) (scrape) and [graph/ingest/internal/sources/ti](../graph/ingest/internal/sources/ti) (graph write path).
+Conventions for the three runtime layers — **scrape**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [scrape/harvest/internal/sources/ti/](../scrape/harvest/internal/sources/ti/) (scrape) and [graph/ingest/internal/sources/ti/](../graph/ingest/internal/sources/ti/) (graph write path).
 
 **Agents:** treat this file as source of truth; entry point [AGENTS.md](../AGENTS.md).
 
@@ -17,7 +17,7 @@ Conventions for the three runtime layers — **scrape**, **pipeline**, **graph**
 
 | Zone | Path | Role |
 |------|------|------|
-| **Knowledge** | [docs/](.) | Schemas, runtime, contracts — no application Go code |
+| **Knowledge** | [docs/](./) | Schemas, runtime, contracts — no application Go code |
 | **Deploy** | [deploy/](../deploy/) | Compose per layer |
 | **Scrape** | [scrape/](../scrape/) | Fetch + ledger → `scrape.>` |
 | **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → NED → `ingest.>` |
@@ -69,7 +69,7 @@ storage/                → adapters at module root (Neo4j in graph; pub in laye
 |-------|--------------|-----------|
 | Scrape source | `internal/sources/<name>/internal/domain/` | [scrape/.../ti/internal/domain](../scrape/harvest/internal/sources/ti/internal/domain/) |
 | Graph ingest source | `internal/sources/<name>/domain/` | [graph/ingest/.../ti/domain](../graph/ingest/internal/sources/ti/domain/) |
-| Graph serve | `internal/domain/` | [graph/serve/internal/domain](../graph/serve/internal/domain/) |
+| Graph serve | `internal/domain/` | [graph/serve/internal/domain/](../graph/serve/internal/domain/) |
 | Pipeline | `internal/sources/<name>/domain/` when entities exist | [pipeline/ned/.../vuln/domain](../pipeline/ned/internal/sources/vuln/domain/) |
 
 Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (`ops/`, `graph-pack/`, `test/`, `housekeeping/` — Neo4j housekeeping is not NED wire dedup). Graph packs: [docs/graph-pack.md](graph-pack.md).
@@ -91,6 +91,33 @@ Before merge, verify all items that apply to your layer:
 | Graph ingest does not import `pipeline/pkg/ti/normalize` | — | NED normalizes TI | ✓ |
 | Idempotency keys via `pkg/commit` helpers only | — | ✓ | ✓ |
 | `graph/serve` does not import NATS or scrape | — | — | ✓ |
+
+### Agent / CI closure
+
+For automated agents and maintainers, before marking work done:
+
+| Step | Command / doc |
+|------|----------------|
+| Tests (touched layers) | `make test-scrape`, `make test-pipeline`, `make test-graph` |
+| Graph version (ingest paths) | `./scripts/release/bump-graph-version.sh patch` → updates [versions.env](../versions.env) |
+| Verify bump when required | `make check-graph-version` |
+| Commit + push | See [AGENTS.md](../AGENTS.md) |
+
+Ingest-affecting paths: `scrape/harvest/internal/sources/`, `pipeline/ned/internal/sources/`, `graph/ingest/internal/sources/`, `pkg/harvest/`, `pkg/commit/`, `docs/schemas/`.
+
+---
+
+## Markdown links (GitHub)
+
+GitHub shows a folder icon only when the link target is a directory **and** the URL ends with `/`.
+
+| Target | Link form |
+|--------|-----------|
+| Directory | `[label](../path/to/dir/)` — trailing `/` required |
+| Layer README | `[Scrape](../scrape/README.md)` |
+| File | `[compose.yml](../deploy/scrape/compose.yml)` — no trailing `/` |
+
+Lint: `./scripts/housekeeping/lint-markdown-dir-links.sh`
 
 ---
 
