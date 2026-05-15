@@ -56,7 +56,7 @@ Partition overlay: [compose.scale.yml](compose.scale.yml) (`scrape_worker_fast`:
 ./scripts/smoke_scrape_e2e.sh --restart-scrape   # ledger pass 2
 ```
 
-Smoke defaults: all seven sources (public GitHub via `raw.githubusercontent.com` + git-tree fallback), `GRAPH_PACK_SKIP=1`, `SMOKE_CLEAN_VOLUMES=1`. Optional `GITHUB_TOKEN` only raises API rate limits.
+Smoke defaults: `SCRAPE_SOURCES=ti,sbom` (minimal), `NVD_MAX_PAGES=1`, `GRAPH_PACK_SKIP=1`, `SMOKE_CLEAN_VOLUMES=1`. Full crawl: `SCRAPE_SOURCES=ds,vuln,lola,ti,sbom,coderules,nuclei`. Optional `GITHUB_TOKEN` raises GitHub API rate limits only.
 
 ```bash
 GRAPH_PACK_SKIP=0 ./scripts/smoke_scrape_e2e.sh --up

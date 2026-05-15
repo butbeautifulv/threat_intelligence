@@ -5,9 +5,11 @@ Host-side helpers for **Neo4j export**, **graph pack** build/import, **stack smo
 | Script | Purpose |
 |--------|---------|
 | [compose-up-full.sh](compose-up-full.sh) | Full stack: scrape + pipeline + graph (`deploy/*/compose.yml`) |
-| [smoke_scrape_e2e.sh](smoke_scrape_e2e.sh) | E2E smoke: scrape → pipeline → ingest → Neo4j |
+| [graph-pack-run-v032.sh](graph-pack-run-v032.sh) | Fast-rich pack profile: all 7 sources, `NVD_MAX_PAGES=1`, `LOFTS_SKIP_ON_ERROR` |
+| [smoke_scrape_e2e.sh](smoke_scrape_e2e.sh) | E2E smoke: scrape → pipeline → ingest → Neo4j (default `SCRAPE_SOURCES=ti,sbom`) |
+| [verify-nvd-enrichment.sh](verify-nvd-enrichment.sh) | Cypher counts for `HAS_CWE` / `AFFECTS` / `CPE` after NVD ingest |
 | [gen-contracts.sh](gen-contracts.sh) | Sync `pipeline/contract/ingestv1` → `graph/contract/ingestv1` |
-| [export-graph-cypher.sh](export-graph-cypher.sh) | Dump Cypher from running Neo4j |
+| [export-graph-cypher.sh](export-graph-cypher.sh) | Dump Cypher from running Neo4j (needs `NEO4J_apoc_export_file_enabled`) |
 | [build-graph-pack.sh](build-graph-pack.sh) | Build versioned ZIP + `manifest.json` + checksum |
 | [import-graph-pack.sh](import-graph-pack.sh) | Import a pack ZIP into Neo4j |
 | [graph-dedup-cleanup.sh](graph-dedup-cleanup.sh) | Post-scrape dedup and optional stale IOC cleanup |

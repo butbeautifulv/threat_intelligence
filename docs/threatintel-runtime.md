@@ -8,19 +8,19 @@ Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape**
 |---------|------|--------|
 | Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
 | HTTP API | 8090 | `API_PORT` to override published port |
-| nginx LB | `${LB_HTTP_PORT:-8888}` | Profile **`deploy`** in [docker-compose.yml](../docker-compose.yml); HTTP to **`api`** replicas (see [docs/deploy.md](deploy.md)) |
-| Proxybroker | 8099 | Only with `--profile scrape`; `PROXYBROKER_PORT` |
-| NATS client | `${NATS_CLIENT_PORT:-4222}` | Only with `--profile scrape`; maps container `4222` |
+| nginx LB | `${LB_HTTP_PORT:-8888}` | Optional; not in default compose — scale **`api`** via replicas manually if needed |
+| Proxybroker | 8099 | Full stack only; `PROXYBROKER_PORT` |
+| NATS client | `${NATS_CLIENT_PORT:-4222}` | Full stack (`compose-up-full`); maps container `4222` |
 | NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP on container `8222`; **`nats`** healthcheck uses **`http://127.0.0.1:8222/healthz`** |
 
 ## Build and environment checklist (repeatable builds)
 
-Use this before relying on a full **`--profile scrape`** run or a reproducible graph pack.
+Use this before a full scrape run or a reproducible graph pack.
 
-1. **`docker compose --profile scrape build`** — may run many `go mod download` steps inside Docker. If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** (and `GOSUMDB` if required) for Docker builds or use a stable corporate proxy; an unstable VPN often shows up here first.
-2. **Bolt / Browser ports** — if `7687` or `7474` are taken on the host, set **`NEO4J_BOLT_PORT`** / **`NEO4J_HTTP_PORT`** (see [Ports](#ports)) and stop duplicate Neo4j containers.
-3. **After `docker compose up --build`** — `cypher-shell` against the published Bolt URL; **`curl -sS http://localhost:${API_PORT:-8090}/health`** (see [HTTP API](#http-api-categorical)).
-4. **Scrape profile** — once **`docker compose --profile scrape build`** succeeds, `docker compose --profile scrape up -d` is the baseline smoke; scrape producers wait for **`nats` healthy**; **`ingest-worker`** waits for **Neo4j** and **NATS**. **`go mod download`** failures with **TLS handshake timeout** or **EOF** inside Docker are network/proxy problems (try **`GOPROXY`**, stable VPN, or retry), not necessarily code defects.
+1. **Full stack build** — `docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml build` (or `./scripts/compose-up-full.sh`). If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** for Docker builds or use a stable proxy.
+2. **Bolt / Browser ports** — if `7687` or `7474` are taken, set **`NEO4J_BOLT_PORT`** / **`NEO4J_HTTP_PORT`** and stop duplicate Neo4j containers.
+3. **Graph-only** — `docker compose up --build -d` then **`curl -sS http://localhost:${API_PORT:-8090}/health`**.
+4. **Full pipeline** — `./scripts/compose-up-full.sh`; **`scrape_worker`** waits for **`nats` healthy**; **`ingest_worker`** waits for **Neo4j** and **NATS**. TLS/EOF during `go mod download` in Docker is usually network/proxy, not application code.
 
 ## Compose service reference
 
@@ -35,7 +35,7 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 | **Purpose** | Graph database; APOC enabled for exports |
 | **Volumes** | `neo4j_data`, `neo4j_logs`; host `./data/neo4j_user_export` → import path |
 | **Health** | `cypher-shell` `RETURN 1` |
-| **Env** | `NEO4J_AUTH`, memory, plugins (see compose file) |
+| **Env** | `NEO4J_AUTH`, `NEO4J_PLUGINS` (APOC), `NEO4J_apoc_export_file_enabled=true` for export |
 
 ### graph-bootstrap
 
@@ -74,7 +74,7 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 
 | | |
 |--|--|
-| **Profile** | `scrape` |
+| **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) (full stack) |
 | **Image** | `nats:2.10-alpine` |
 | **Command** | `-js -m 8222` (JetStream + monitoring) |
 | **Purpose** | Two-stream bus: scrapers → **`scrape.>`** (`SCRAPE`); **pipeline_worker** → **`ingest.>`** (`INGEST`) |
@@ -113,7 +113,7 @@ Use **`ingest_worker`** whenever scrape producers run; without it, messages stay
 
 | | |
 |--|--|
-| **Profile** | `scrape` |
+| **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) |
 | **Build** | [deploy/scrape/docker/proxybroker.Dockerfile](../deploy/scrape/docker/proxybroker.Dockerfile) |
 | **Purpose** | HTTP proxy pool for scrapers (`*_PROXY_URLS`) |
 | **Ports** | `${PROXYBROKER_PORT:-8099}:8099` |
@@ -159,6 +159,8 @@ Sources live under [scrape/sources/](../scrape/sources/). They publish **`scrape
 | `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([scrape/ledger](../scrape/ledger/)); records URL + `content_sha256` |
 | `SCRAPE_MIN_REFETCH_AFTER` | `24h` | Min refetch interval (`periodic` policy) |
 | `SCRAPE_FORCE_REFETCH` | `0` | `1` = ignore ledger (full refetch) |
+| `LOFTS_SKIP_ON_ERROR` | unset | `true` = LOFTS fetch errors are warnings (do not fail `lola`) |
+| `SCRAPE_FAIL_FAST` | unset | `1` = stop all sources on first source error |
 | `NATS_INGEST_STREAM` | `INGEST` | Stream name (worker) |
 | `NATS_DURABLE` | `ingest_worker` | Durable consumer name |
 | `NATS_SUBSCRIBE_SUBJECT` | `ingest.>` | Worker pull filter (AppSec, TI, vuln, lola, ds, …) |
@@ -226,7 +228,7 @@ Resilience env (set in the script and [deploy/scrape/compose.yml](../deploy/scra
 # after scrape_worker finishes and ingest drains:
 ./scripts/graph-dedup-cleanup.sh --dry-run && ./scripts/graph-dedup-cleanup.sh
 ./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.3 ./scripts/build-graph-pack.sh
+GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
 ```
 
 Verify NVD enrichment in Neo4j:
@@ -284,7 +286,7 @@ curl -sS 'http://localhost:8090/v1/categories/vuln/search?q=cve&limit=5' | jq .
 curl -sS 'http://localhost:8090/v1/kinds' | jq .
 ```
 
-Replace `vuln` / `Vulnerability` with other [categories](../graph/query/categories.go) and labels as needed.
+Replace `vuln` / `Vulnerability` with other [categories](../graph/neo4jclient/query/categories.go) and labels as needed.
 
 ## MCP (stdio)
 
@@ -308,7 +310,7 @@ docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -
 
 See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.3.2.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
-Re-importing the same pack into **non-empty** Neo4j data (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` (drops volumes) or a fresh database.
+Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` or import with **`ingest_worker` stopped** (it may create constraints before bootstrap). Testpack flow: start **`neo4j`**, run **`graph-bootstrap`** once (`docker compose run --rm graph-bootstrap`), then **`GRAPH_PACK_SKIP=1 docker compose up api -d`**.
 
 Create `docker-compose.override.yml` (gitignored by convention or not committed) with:
 

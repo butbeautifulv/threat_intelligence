@@ -1,23 +1,20 @@
 # MCP (Go) server for Threat Intelligence graph
 
-Stdio **MCP** server over **Neo4j**: agents call tools to list categories, kinds, nodes, search, and neighbors—same categorical logic as the HTTP **API** ([graph/query](../graph/query)).
+Stdio **MCP** server over **Neo4j**: agents call tools to list categories, kinds, nodes, search, and neighbors—same categorical logic as the HTTP **API** ([graph/neo4jclient/query](../neo4jclient/query)).
 
 | Field | Value |
 |--------|--------|
-| **Compose** | Not in default [deploy/graph/compose.yml](../../deploy/graph/compose.yml); dev / optional profile only |
+| **Compose** | Not in default [deploy/graph/compose.yml](../../deploy/graph/compose.yml); run from source |
 | **Build** | `cd graph/mcp && go build -o mcp ./cmd` |
 | **Runtime doc** | [docs/threatintel-runtime.md](../../docs/threatintel-runtime.md) |
 | **Depends on** | Running Neo4j (same env as `api`) |
-
----
 
 ## Run (source)
 
 From repo root:
 
 ```bash
-cd mcp
-go run ./cmd
+cd graph/mcp && go run ./cmd
 ```
 
 Environment (same family as other services):
@@ -29,16 +26,12 @@ Environment (same family as other services):
 | `NEO4J_PASS` | `neo4jpassword` |
 | `NEO4J_DB` | `neo4j` |
 
----
-
----
-
 ## Tools
 
 **Category-first** (preferred for agents):
 
 - `ti_list_categories`
-- `ti_list_kinds_in_category` (`category`: any key from `GET /v1/categories` / [graph/query/categories.go](../graph/query/categories.go), e.g. `vuln`, `ti`, `sbom`, `code_rules`)
+- `ti_list_kinds_in_category` (`category`: e.g. `vuln`, `ti`, `sbom`, `code_rules` — see [graph/neo4jclient/query/categories.go](../neo4jclient/query/categories.go))
 - `ti_nodes_by_category` (`category`, `kind`, `limit`, `offset`)
 - `ti_search_in_category` (`category`, `query`, optional `kind`, `limit`)
 
@@ -51,4 +44,4 @@ Environment (same family as other services):
 - `ti_search` (`query`, optional `kind`, `limit`)
 - `ti_health`
 
-Implementation: shared categorical queries live in [graph/query](../graph/query); MCP wraps the same service as the HTTP API.
+Implementation: shared categorical queries in [graph/neo4jclient/query](../neo4jclient/query); MCP wraps the same service as the HTTP API.

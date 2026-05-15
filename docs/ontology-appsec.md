@@ -13,7 +13,8 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 ## Core relationships (high value)
 
-- `(:Vulnerability)-[:HAS_CWE]->(:CWE)` — from NVD (`vuln`).
+- `(:Vulnerability)-[:HAS_CWE]->(:CWE)` — from NVD (`vuln`), parsed in pipeline via [pkg/nvdparse](../pkg/nvdparse/).
+- `(:Vulnerability)-[:AFFECTS]->(:CPE)` — from NVD configurations (`vuln`).
 - `(:Vulnerability)-[:AFFECTS_PACKAGE]->(:Package)` — from OSV (`sbom`).
 - `(:Vulnerability)-[:HAS_ADVISORY]->(:SecurityAdvisory)` — from GHSA (`sbom`).
 - `(:SecurityAdvisory)-[:AFFECTS_PACKAGE]->(:Package)` — from GHSA (`sbom`).
