@@ -1,15 +1,9 @@
 #!/usr/bin/env bash
-# graph-dedup-cleanup.sh — Neo4j maintenance: duplicate rels, optional stale isolated IOCs.
-#
-# Usage:
-#   ./scripts/graph-dedup-cleanup.sh [--dry-run]
-#   GRAPH_DELETE_STALE_ISOLATED_IOCS=1 ./scripts/graph-dedup-cleanup.sh
-#
-# Env:
-#   NEO4J_URI, NEO4J_USER, NEO4J_PASS, NEO4J_DB
-#   GRAPH_IOC_STALE_DAYS  (default 90) — ISO lastSeen/updatedAt string compare cutoff
-#   GRAPH_DELETE_STALE_ISOLATED_IOCS (default 0) — set to 1 to DETACH DELETE matching IOCs (never with --dry-run)
+# Neo4j maintenance: duplicate rels, optional stale isolated IOCs.
+# Usage: ./scripts/housekeeping/graph-dedup-cleanup.sh [--dry-run]
 set -euo pipefail
+# shellcheck source=../lib/common.sh
+source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 
 DRY_RUN=0
 while [[ $# -gt 0 ]]; do
@@ -27,10 +21,6 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-NEO4J_URI="${NEO4J_URI:-neo4j://localhost:7687}"
-NEO4J_USER="${NEO4J_USER:-neo4j}"
-NEO4J_PASS="${NEO4J_PASS:-neo4jpassword}"
-NEO4J_DB="${NEO4J_DB:-neo4j}"
 STALE_DAYS="${GRAPH_IOC_STALE_DAYS:-90}"
 DELETE_ISOLATED="${GRAPH_DELETE_STALE_ISOLATED_IOCS:-0}"
 
@@ -45,7 +35,6 @@ run_cypher() {
     cypher-shell --non-interactive -a "$NEO4J_URI" -u "$NEO4J_USER" -p "$NEO4J_PASS" -d "$NEO4J_DB" "$q"
   else
     echo "cypher-shell not found; install Neo4j tools or run inside neo4j container:" >&2
-    echo "  docker compose exec neo4j cypher-shell -u $NEO4J_USER -p \"\$NEO4J_PASS\" -d $NEO4J_DB \"$q\"" >&2
     exit 1
   fi
 }
@@ -65,8 +54,7 @@ FOREACH (x IN tail(rels) | DELETE x)'
   run_cypher "$Q_DUP_FIX"
 fi
 
-echo "== Isolated IOCs (no relationships), stale vs cutoff $CUTOFF (lastSeen/updatedAt) =="
-# Degree 0: no rels in either direction. Compare coalesce(lastSeen, updatedAt) lexicographically (RFC3339Nano UTC).
+echo "== Isolated IOCs (no relationships), stale vs cutoff $CUTOFF =="
 Q_ISO_COUNT="MATCH (i:IOC)
 WHERE NOT (i)--()
 WITH i, coalesce(i.lastSeen, i.updatedAt, '1970-01-01T00:00:00.000000000+00:00') AS ts
@@ -80,7 +68,7 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
 fi
 
 if [[ "$DELETE_ISOLATED" == "1" ]]; then
-  echo "== DETACH DELETE stale isolated IOCs (GRAPH_DELETE_STALE_ISOLATED_IOCS=1) =="
+  echo "== DETACH DELETE stale isolated IOCs =="
   Q_ISO_DEL="MATCH (i:IOC)
 WHERE NOT (i)--()
 WITH i, coalesce(i.lastSeen, i.updatedAt, '1970-01-01T00:00:00.000000000+00:00') AS ts
@@ -88,7 +76,7 @@ WHERE ts < '$CUTOFF'
 DETACH DELETE i"
   run_cypher "$Q_ISO_DEL"
 else
-  echo "Set GRAPH_DELETE_STALE_ISOLATED_IOCS=1 to remove stale isolated IOCs (see scripts/README.md)."
+  echo "Set GRAPH_DELETE_STALE_ISOLATED_IOCS=1 to remove stale isolated IOCs."
 fi
 
 echo "Done."

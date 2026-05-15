@@ -55,7 +55,7 @@ export NVD_MAX_PAGES=1
 cd scrape/harvest && go run ./cmd/scrape_worker
 ```
 
-Full stack: `./scripts/compose-up-full.sh` from repo root.
+Full stack: `./scripts/ops/compose-up-full.sh` from repo root.
 
 ## Further reading
 

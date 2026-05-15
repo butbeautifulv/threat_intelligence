@@ -9,7 +9,7 @@
 ## Full stack
 
 ```bash
-./scripts/compose-up-full.sh
+./scripts/ops/compose-up-full.sh
 ```
 
 Equivalent:
@@ -33,9 +33,9 @@ Docker build context is the repository root; each Dockerfile copies only its lay
 Examples:
 
 ```bash
-PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/compose-up-full.sh
+PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/ops/compose-up-full.sh
 
-SCRAPE_WORKER_PARTITION=1 ./scripts/compose-up-full.sh
+SCRAPE_WORKER_PARTITION=1 ./scripts/ops/compose-up-full.sh
 ```
 
 Manual scale (without the script):
@@ -52,20 +52,20 @@ Partition overlay: [compose.scale.yml](compose.scale.yml) (`scrape_worker_fast`:
 ## E2E smoke
 
 ```bash
-./scripts/smoke_scrape_e2e.sh --up
-./scripts/smoke_scrape_e2e.sh --restart-scrape   # ledger pass 2
+./scripts/test/smoke-scrape-e2e.sh --up
+./scripts/test/smoke-scrape-e2e.sh --restart-scrape   # ledger pass 2
 ```
 
 Smoke defaults: `SCRAPE_SOURCES=ti,sbom` (minimal), `NVD_MAX_PAGES=1`, `GRAPH_PACK_SKIP=1`, `SMOKE_CLEAN_VOLUMES=1`. Full crawl: `SCRAPE_SOURCES=ds,vuln,lola,ti,sbom,coderules,nuclei`. Optional `GITHUB_TOKEN` raises GitHub API rate limits only.
 
 ```bash
-GRAPH_PACK_SKIP=0 ./scripts/smoke_scrape_e2e.sh --up
+GRAPH_PACK_SKIP=0 ./scripts/test/smoke-scrape-e2e.sh --up
 ```
 
 With scaled workers:
 
 ```bash
-PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/smoke_scrape_e2e.sh --up
+PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/test/smoke-scrape-e2e.sh --up
 ```
 
 ## Docker builds
@@ -83,18 +83,21 @@ Root [docker-compose.yml](../docker-compose.yml) includes only the graph layer.
 
 ## Graph pack releases
 
+Naming: ZIP **`veil-graph-vX.Y.Z.zip`**, GitHub tag **`veil-graph-vX.Y.Z`**. See [docs/graph-pack.md](../docs/graph-pack.md).
+
 | Release | Notes |
 |---------|--------|
-| [v0.3.2-graph-pack](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) | Fast-rich partial crawl; **without** pipeline CWE/CPE fix |
-| Current `main` | Use [pipeline/pkg/nvd/parse](../pipeline/pkg/nvd/parse/) + rebuild for full `HAS_CWE` / `AFFECTS` |
+| [veil-graph-v0.4.0](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.0) | Target format on `main` (publish when built) |
+| [v0.3.2-graph-pack](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) | Legacy `threat-intel-graph-v0.3.2.zip` (redirects) |
 
 Build:
 
 ```bash
-./scripts/graph-pack-run-v032.sh   # or compose-up-full with env overrides
-./scripts/graph-dedup-cleanup.sh
-./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
+./scripts/graph-pack/profile-fast-rich.sh
+./scripts/housekeeping/graph-dedup-cleanup.sh
+./scripts/graph-pack/export-cypher.sh
+GRAPH_PACK_VERSION=v0.4.0 ./scripts/graph-pack/build.sh
+GRAPH_PACK_VERSION=v0.4.0 ./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
-Runtime details: [docs/threatintel-runtime.md](../docs/threatintel-runtime.md). Script reference: [scripts/README.md](../scripts/README.md).
+Script index: [scripts/README.md](../scripts/README.md).

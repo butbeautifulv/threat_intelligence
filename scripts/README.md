@@ -1,56 +1,46 @@
 # Scripts
 
-Host-side helpers for **Neo4j export**, **graph pack** build/import, **stack smoke**, and **housekeeping**. Runtime layout: [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md).
+Host-side helpers for **Neo4j export**, **graph pack** releases, **stack ops**, **E2E smoke**, and **housekeeping**. Not the pipeline NED runtime ([pipeline/ned](../pipeline/ned/)).
 
-These scripts are **not** the pipeline NED runtime ([pipeline/ned](../pipeline/ned/)); they orchestrate compose, verify graph state, or repair Neo4j after ingest.
+Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pack naming `veil-graph-v*`).
 
-| Script | Layer | Purpose |
-|--------|-------|---------|
-| [compose-up-full.sh](compose-up-full.sh) | ops | Full stack: scrape + pipeline + graph (`deploy/*/compose.yml`) |
-| [graph-pack-run-v032.sh](graph-pack-run-v032.sh) | ops | Fast-rich pack profile: all 7 sources, `NVD_MAX_PAGES=1`, `LOFTS_SKIP_ON_ERROR` |
-| [smoke_scrape_e2e.sh](smoke_scrape_e2e.sh) | ops | E2E smoke: scrape → pipeline → ingest → Neo4j (default `SCRAPE_SOURCES=ti,sbom`) |
-| [verify-nvd-enrichment.sh](verify-nvd-enrichment.sh) | graph QA | Cypher counts for `HAS_CWE` / `AFFECTS` / `CPE` after NVD ingest |
-| [export-graph-cypher.sh](export-graph-cypher.sh) | ops | Dump Cypher from running Neo4j (needs `NEO4J_apoc_export_file_enabled`) |
-| [build-graph-pack.sh](build-graph-pack.sh) | ops | Build versioned ZIP + `manifest.json` + checksum |
-| [import-graph-pack.sh](import-graph-pack.sh) | ops | Import a pack ZIP into Neo4j |
-| [graph-dedup-cleanup.sh](graph-dedup-cleanup.sh) | graph housekeeping | Post-scrape dedup and optional stale IOC cleanup |
+## Layout
 
-Graph pack and export scripts use the same compose files as smoke (override with `COMPOSE_FILES`):
+| Path | Purpose |
+|------|---------|
+| [lib/common.sh](lib/common.sh) | Compose helpers, `veil-graph-v*` pack names, profiles |
+| [ops/compose-up-full.sh](ops/compose-up-full.sh) | Full stack up (optional worker scale / scrape partition) |
+| [graph-pack/export-cypher.sh](graph-pack/export-cypher.sh) | APOC export → `data/neo4j_user_export/graph.cypher` |
+| [graph-pack/build.sh](graph-pack/build.sh) | ZIP + `manifest.json` → `data/.../releases/veil-graph-vX.zip` |
+| [graph-pack/import.sh](graph-pack/import.sh) | Import pack (supports legacy `threat-intel-graph-*.zip`) |
+| [graph-pack/profile-fast-rich.sh](graph-pack/profile-fast-rich.sh) | ~25 min crawl profile → compose-up-full |
+| [release/publish-graph-pack.sh](release/publish-graph-pack.sh) | Build + `gh release create veil-graph-vX` |
+| [test/smoke-scrape-e2e.sh](test/smoke-scrape-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
+| [test/verify-nvd-enrichment.sh](test/verify-nvd-enrichment.sh) | Cypher QA for NVD CWE/CPE |
+| [housekeeping/graph-dedup-cleanup.sh](housekeeping/graph-dedup-cleanup.sh) | Post-ingest Neo4j dedup |
 
-```bash
-COMPOSE_FILES="-f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml"
-```
+Deploy profiles: [deploy/profiles/](../deploy/profiles/). Runtime: [docs/threatintel-runtime.md](../docs/threatintel-runtime.md). Graph pack workflow: [docs/graph-pack.md](../docs/graph-pack.md).
 
-Quick smoke (minimal scrape, no heavy downloads):
-
-```bash
-SCRAPE_SOURCES=ti SMOKE_CLEAN_VOLUMES=0 ./scripts/smoke_scrape_e2e.sh --up
-```
-
----
-
-## `graph-dedup-cleanup.sh`
-
-Neo4j housekeeping after high-volume scrapes. **Not** pipeline wire-path dedup (that is `commit` idempotency keys in [pipeline/ned](../pipeline/ned/)).
-
-- **Duplicate `HAS_ADVISORY`:** removes parallel edges between the same `Vulnerability` and `SecurityAdvisory`.
-- **Stale isolated IOCs:** counts `IOC` nodes with **no relationships** whose `lastSeen` or `updatedAt` is older than a cutoff (default **90 days**). Optional **destructive** delete is **off by default**.
-
-### Usage
+## Graph pack workflow
 
 ```bash
-./scripts/graph-dedup-cleanup.sh --dry-run
-./scripts/graph-dedup-cleanup.sh
-GRAPH_DELETE_STALE_ISOLATED_IOCS=1 GRAPH_IOC_STALE_DAYS=120 ./scripts/graph-dedup-cleanup.sh
+./scripts/graph-pack/profile-fast-rich.sh    # optional: full crawl
+./scripts/graph-pack/export-cypher.sh
+GRAPH_PACK_VERSION=v0.4.0 ./scripts/graph-pack/build.sh
+GRAPH_PACK_VERSION=v0.4.0 ./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
-Requires `cypher-shell` on `PATH`, or run via `docker compose` against the same project as the running stack.
+Import locally:
 
-### Environment
+```bash
+USE_DOCKER_COMPOSE=1 ./scripts/graph-pack/import.sh \
+  data/neo4j_user_export/releases/veil-graph-v0.4.0.zip
+```
 
-| Variable | Default | Meaning |
-|----------|---------|--------|
-| `NEO4J_URI` | `neo4j://localhost:7687` | Bolt/Neo4j URI |
-| `NEO4J_USER` / `NEO4J_PASS` / `NEO4J_DB` | `neo4j` / `neo4jpassword` / `neo4j` | Auth |
-| `GRAPH_IOC_STALE_DAYS` | `90` | Age threshold for stale isolated IOCs |
-| `GRAPH_DELETE_STALE_ISOLATED_IOCS` | `0` | Set to `1` to delete stale isolated IOCs when not using `--dry-run` |
+## Quick commands
+
+```bash
+./scripts/ops/compose-up-full.sh
+./scripts/test/smoke-scrape-e2e.sh --up
+PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/ops/compose-up-full.sh
+```

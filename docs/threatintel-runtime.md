@@ -1,6 +1,6 @@
 # Threat Intel runtime (Docker Compose)
 
-Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape** (fetch + ledger + NATS publish), **pipeline** (normalize → `ingest.>`), **graph** (Neo4j ingest + API). Default graph stack: **Neo4j** → **graph-bootstrap** → **HTTP API**. Full pipeline: [`./scripts/compose-up-full.sh`](../scripts/compose-up-full.sh) or merged compose files (see [deploy/README.md](../deploy/README.md)). Worker scaling: `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE` in [deploy/README.md](../deploy/README.md).
+Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape** (fetch + ledger + NATS publish), **pipeline** (normalize → `ingest.>`), **graph** (Neo4j ingest + API). Default graph stack: **Neo4j** → **graph-bootstrap** → **HTTP API**. Full pipeline: [`./scripts/ops/compose-up-full.sh`](../scripts/ops/compose-up-full.sh) or merged compose files (see [deploy/README.md](../deploy/README.md)). Worker scaling: `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE` in [deploy/README.md](../deploy/README.md).
 
 ## Ports
 
@@ -17,10 +17,10 @@ Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape**
 
 Use this before a full scrape run or a reproducible graph pack.
 
-1. **Full stack build** — `docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml build` (or `./scripts/compose-up-full.sh`). If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** for Docker builds or use a stable proxy.
+1. **Full stack build** — `docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml build` (or `./scripts/ops/compose-up-full.sh`). If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** for Docker builds or use a stable proxy.
 2. **Bolt / Browser ports** — if `7687` or `7474` are taken, set **`NEO4J_BOLT_PORT`** / **`NEO4J_HTTP_PORT`** and stop duplicate Neo4j containers.
 3. **Graph-only** — `docker compose up --build -d` then **`curl -sS http://localhost:${API_PORT:-8090}/health`**.
-4. **Full pipeline** — `./scripts/compose-up-full.sh`; **`scrape_worker`** waits for **`nats` healthy**; **`ingest_worker`** waits for **Neo4j** and **NATS**. TLS/EOF during `go mod download` in Docker is usually network/proxy, not application code.
+4. **Full pipeline** — `./scripts/ops/compose-up-full.sh`; **`scrape_worker`** waits for **`nats` healthy**; **`ingest_worker`** waits for **Neo4j** and **NATS**. TLS/EOF during `go mod download` in Docker is usually network/proxy, not application code.
 
 ## Compose service reference
 
@@ -187,63 +187,29 @@ Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 | `GRAPH_PACK_SKIP` | `0` | `1` = exit 0 without importing |
 | `GRAPH_PACK_DEFAULT` | `1` | `0` = do not download the default release ZIP when no file/URL |
 | `GRAPH_PACK_URL` | empty | HTTP(S) URL of the pack ZIP |
-| `GRAPH_PACK_DEFAULT_URL` | built-in GitHub asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
+| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.0` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
+| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.0` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
 | `GRAPH_PACK_FILE` | empty | Path **inside** the bootstrap container (mount a volume if needed) |
 
 Compose passes these from the host for `graph-bootstrap` (see [docker-compose.yml](../docker-compose.yml) `environment`).
 
-Checksum: `manifest.json` `sha256` must match `graph.cypher` (same rules as [scripts/import-graph-pack.sh](../scripts/import-graph-pack.sh)).
+Checksum: `manifest.json` `sha256` must match `graph.cypher` (same rules as [scripts/graph-pack/import.sh](../scripts/graph-pack/import.sh)).
 
 ## Full scrape stack
 
 ```bash
-./scripts/compose-up-full.sh
-# or: docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
+./scripts/ops/compose-up-full.sh
 ```
 
-Starts **`proxybroker`**, **`crawl-db`**, **`nats`**, **`pipeline_worker`**, **`ingest_worker`**, **`scrape_worker`** (default `SCRAPE_SOURCES=ds,vuln,lola,ti,sbom,coderules,nuclei`). A **second** scrape run should log skipped/unchanged feeds. TI normalization runs in **`pipeline_worker`**. Scale consumers: `PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/compose-up-full.sh`.
+Worker scaling and scrape partition: [deploy/README.md](../deploy/README.md#worker-scaling-parallel-nats-consumers). Graph pack export, fast-rich profile (~25 min), and releases: [docs/graph-pack.md](graph-pack.md).
 
-Verify ledger: `docker compose exec crawl-db mysql -uveil -pveilpass veil_ledger -e 'SELECT resource_key, fetch_policy, last_fetched_at FROM crawl_resource LIMIT 20;'`
-
-After data is in Neo4j, export a pack from the host:
-
-```bash
-./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
-```
-
-### Fast-rich graph pack profile (~25 min)
-
-For a **richer** pack than smoke/seed without a full NVD crawl, use [scripts/graph-pack-run-v032.sh](../scripts/graph-pack-run-v032.sh): all seven `SCRAPE_SOURCES`, `NVD_MAX_PAGES=1` (~2000 CVE), no Atomic/Metasploit bulk, boosted Sigma/YARA/OSV/GHSA/coderules/nuclei limits. NVD **CWE/CPE enrichment** runs in pipeline NED ([pipeline/pkg/nvd/parse](../pipeline/pkg/nvd/parse) via `sources/vuln/enrich`) → graph `HAS_CWE` / `AFFECTS`.
-
-Resilience env (set in the script and [deploy/scrape/compose.yml](../deploy/scrape/compose.yml)):
-
-| Variable | Purpose |
-|----------|---------|
-| `LOFTS_SKIP_ON_ERROR=true` | LOFTS DNS failures do not abort `lola` |
-| `SCRAPE_FAIL_FAST=1` | Stop on first source error (default: continue other sources, exit 1 if any failed) |
-
-```bash
-./scripts/graph-pack-run-v032.sh
-# after scrape_worker finishes and ingest drains:
-./scripts/graph-dedup-cleanup.sh --dry-run && ./scripts/graph-dedup-cleanup.sh
-./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
-```
-
-Verify NVD enrichment in Neo4j:
-
-```bash
-./scripts/verify-nvd-enrichment.sh
-```
-
-Neo4j must have `NEO4J_apoc_export_file_enabled=true` (set in [deploy/graph/compose.yml](../deploy/graph/compose.yml)).
+Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compose.yml](../deploy/graph/compose.yml)).
 
 ### Smoke checklist
 
 1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
-2. **Graph pack without GitHub download:** place **`threat-intel-graph-v0.3.2.zip`** under `data/neo4j_user_export/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
-3. **Scrape + NATS:** `./scripts/smoke_scrape_e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
+2. **Graph pack without GitHub download:** place **`veil-graph-v0.4.0.zip`** under `data/neo4j_user_export/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+3. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
 4. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
 
 ### E2E scrape smoke (slice 8 v2)
@@ -251,9 +217,9 @@ Neo4j must have `NEO4J_apoc_export_file_enabled=true` (set in [deploy/graph/comp
 Automated checks for the full scrape → pipeline → ingest path:
 
 ```bash
-./scripts/smoke_scrape_e2e.sh --up          # compose up scrape stack, wait for scrape_worker exit
-./scripts/smoke_scrape_e2e.sh               # NATS health, crawl_resource rows, Neo4j counts, API /health
-./scripts/smoke_scrape_e2e.sh --restart-scrape   # pass 2: ledger unchanged / skip publish
+./scripts/test/smoke-scrape-e2e.sh --up          # compose up scrape stack, wait for scrape_worker exit
+./scripts/test/smoke-scrape-e2e.sh               # NATS health, crawl_resource rows, Neo4j counts, API /health
+./scripts/test/smoke-scrape-e2e.sh --restart-scrape   # pass 2: ledger unchanged / skip publish
 ```
 
 Env overrides: `SCRAPE_SVC`, `PIPELINE_SVC`, `INGEST_SVC`, `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE`, `SCRAPE_WORKER_PARTITION`, `NATS_MON`, `API_URL`, `CRAWL_MYSQL`, `SMOKE_WAIT_SEC`.
@@ -308,7 +274,7 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.3.2.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/veil-graph-v0.4.0.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
 Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` or import with **`ingest_worker` stopped** (it may create constraints before bootstrap). Testpack flow: start **`neo4j`**, run **`graph-bootstrap`** once (`docker compose run --rm graph-bootstrap`), then **`GRAPH_PACK_SKIP=1 docker compose up api -d`**.
 

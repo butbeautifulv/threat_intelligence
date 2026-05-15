@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/butbeautifulv/veil/docs/graph-pack-manifest.schema.json",
-  "title": "Threat Intelligence graph pack manifest",
+  "title": "Veil graph pack manifest",
   "type": "object",
   "required": [
     "schema",
@@ -14,7 +14,7 @@
   "properties": {
     "schema": {
       "type": "string",
-      "const": "threat-intelligence.graph-pack/1"
+      "enum": ["veil.graph-pack/1", "threat-intelligence.graph-pack/1"]
     },
     "graphVersion": {
       "type": "string",

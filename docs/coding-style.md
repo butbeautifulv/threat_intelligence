@@ -72,7 +72,7 @@ storage/                → adapters at module root (Neo4j in graph; pub in laye
 | Graph serve | `internal/domain/` | [graph/serve/internal/domain](../graph/serve/internal/domain/) |
 | Pipeline | `internal/sources/<name>/domain/` when entities exist | [pipeline/ned/.../vuln/domain](../pipeline/ned/internal/sources/vuln/domain/) |
 
-Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (Neo4j housekeeping is not NED wire dedup).
+Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (`ops/`, `graph-pack/`, `test/`, `housekeeping/` — Neo4j housekeeping is not NED wire dedup). Graph packs: [docs/graph-pack.md](graph-pack.md).
 
 ---
 

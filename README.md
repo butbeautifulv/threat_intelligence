@@ -51,7 +51,7 @@ docker compose up --build -d
 | Neo4j Browser | http://localhost:7474 (`neo4j` / `neo4jpassword`) |
 | HTTP API | http://localhost:8090 |
 
-`graph-bootstrap` imports the default [graph pack v0.3.2](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
+`graph-bootstrap` imports the default [veil-graph-v0.4.0](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.0) pack when published, unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
 
 ```bash
 curl -sS http://localhost:8090/health
@@ -61,19 +61,17 @@ curl -sS http://localhost:8090/v1/categories | jq .
 ### Full scrape pipeline
 
 ```bash
-./scripts/compose-up-full.sh
-# or:
-# docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
+./scripts/ops/compose-up-full.sh
 ```
 
 E2E smoke (minimal sources by default):
 
 ```bash
-./scripts/smoke_scrape_e2e.sh --up
-./scripts/smoke_scrape_e2e.sh
+./scripts/test/smoke-scrape-e2e.sh --up
+./scripts/test/smoke-scrape-e2e.sh
 ```
 
-Fast-rich graph pack build (~25 min): [scripts/graph-pack-run-v032.sh](scripts/graph-pack-run-v032.sh) — see [docs/threatintel-runtime.md](docs/threatintel-runtime.md#fast-rich-graph-pack-profile-25-min).
+Fast-rich graph pack (~25 min): [scripts/graph-pack/profile-fast-rich.sh](scripts/graph-pack/profile-fast-rich.sh) — [docs/graph-pack.md](docs/graph-pack.md).
 
 ## Documentation index
 
@@ -91,19 +89,16 @@ Fast-rich graph pack build (~25 min): [scripts/graph-pack-run-v032.sh](scripts/g
 | [docs/ingest-contract.md](docs/ingest-contract.md) | `harvest` / `commit`, JetStream |
 | [graph/serve/](graph/serve/) | HTTP API + stdio MCP |
 | [scripts/README.md](scripts/README.md) | Export, packs, smoke, dedup |
+| [docs/graph-pack.md](docs/graph-pack.md) | Graph pack export, release, import |
 
 ## Graph packs
 
-After Neo4j has data from scrape or a prior import:
+See [docs/graph-pack.md](docs/graph-pack.md). Quick path:
 
 ```bash
-./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
+./scripts/graph-pack/export-cypher.sh
+GRAPH_PACK_VERSION=v0.4.0 ./scripts/graph-pack/build.sh
 ```
-
-Import: [scripts/import-graph-pack.sh](scripts/import-graph-pack.sh). Verify NVD enrichment: [scripts/verify-nvd-enrichment.sh](scripts/verify-nvd-enrichment.sh).
-
-**Note:** Pack **v0.3.2** on GitHub was built before the pipeline enrichment fix; see [deploy/README.md](deploy/README.md#graph-pack-releases) for rebuild guidance.
 
 ## MCP
 

@@ -1,4 +1,4 @@
-.PHONY: test-scrape test-pipeline test-graph
+.PHONY: test-scrape test-pipeline test-graph graph-pack-export graph-pack-build graph-pack-publish test-smoke
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-scrape:
@@ -19,3 +19,15 @@ test-graph:
 	cd graph && env GOWORK=$$(pwd)/go.work go build -o /dev/null ./connector/...
 	cd graph/ingest && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/ingest_worker
 	cd graph/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp
+
+graph-pack-export:
+	./scripts/graph-pack/export-cypher.sh
+
+graph-pack-build:
+	./scripts/graph-pack/build.sh $(GRAPH_PACK_VERSION)
+
+graph-pack-publish:
+	./scripts/release/publish-graph-pack.sh
+
+test-smoke:
+	./scripts/test/smoke-scrape-e2e.sh
