@@ -1,19 +1,9 @@
 go 1.25.0
 
 use (
-	../pkg/nvdparse
-	./contract/scrapev1
-	./factory
-	./feeds
-	./ledger
+	../pkg
+	./connector
+	./harvest
+	./pkg
 	./proxybroker
-	./pub
-	./scrape_worker
-	./sources/coderules
-	./sources/ds
-	./sources/lola
-	./sources/nuclei
-	./sources/sbom
-	./sources/ti
-	./sources/vuln
 )
