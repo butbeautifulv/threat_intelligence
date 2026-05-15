@@ -1,61 +1,45 @@
-# Deploy and scale (v0.3.1)
+# Deploy and scale
 
-Stack version: see [VERSION](../VERSION). Graph pack release tag on GitHub: **`v0.3.1-graph-pack`** (asset `threat-intel-graph-v0.3.1.zip`).
+Per-layer compose lives under [deploy/](../deploy/). See [deploy/README.md](../deploy/README.md) for the full stack and worker scaling.
 
-**Graph pack size:** if two ZIP releases look the same size, compare `sha256` for `graph.cypher` in each `manifest.json`. [scripts/build-graph-pack.sh](../scripts/build-graph-pack.sh) packages whatever is already at `data/neo4j_user_export/graph.cypher`; bump **`GRAPH_PACK_VERSION`** only after a fresh [scripts/export-graph-cypher.sh](../scripts/export-graph-cypher.sh) so the manifest hash changes.
-
-## HTTP API behind nginx (load balancing)
-
-Use profile **`deploy`** in [docker-compose.yml](../docker-compose.yml):
+## Full stack
 
 ```bash
-docker compose --profile deploy up --build -d
+./scripts/compose-up-full.sh
 ```
 
-- Public entry: **`http://localhost:${LB_HTTP_PORT:-8888}`** (nginx).
-- Upstream uses Docker embedded DNS (**`127.0.0.11`**) with a **variable** in **`proxy_pass`** so scaled **`api`** replicas are re-resolved (plain nginx OSS has no **`resolve`** on `server` in `upstream`).
+## Scale pipeline and ingest workers
 
-Scale API replicas (stateless Bolt readers; all hit the same Neo4j):
+JetStream pull consumers share a **durable name**; multiple replicas compete for messages (safe scale-out).
 
 ```bash
-docker compose --profile deploy up -d --scale api=3
+PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/compose-up-full.sh
 ```
 
-Hardening in [docker/nginx/nginx.conf](../docker/nginx/nginx.conf): **`server_tokens off`**, security headers, **`limit_req`**, **`limit_conn`**, body size and proxy timeouts.
-
-## Scale `ingest-worker` (NATS → Neo4j)
-
-With **`--profile scrape`**, run several workers with the **same** `NATS_DURABLE` (default `ingest-worker`): JetStream shares messages across competing pull subscribers.
+Or manually:
 
 ```bash
-docker compose --profile scrape up -d --scale ingest-worker=3
+docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml \
+  up -d --scale pipeline_worker=3 --scale ingest_worker=3
 ```
 
-Do **not** scale the same **scraper** service (e.g. `vuln`) without a deliberate partitioning strategy: duplicate scrapers repeat the same work unless feeds are sharded externally.
+Do **not** scale `scrape_worker` with the same `SCRAPE_SOURCES` on multiple replicas. Use `SCRAPE_WORKER_PARTITION=1` (see [deploy/compose.scale.yml](../deploy/compose.scale.yml)) or split `SCRAPE_SOURCES` per container.
 
-## Multistage Go images and BuildKit cache
-
-Dockerfiles use a **build** stage plus minimal runtime image. Enable BuildKit for faster rebuilds:
+## Graph-only (API + Neo4j)
 
 ```bash
-DOCKER_BUILDKIT=1 docker compose build api
+docker compose -f deploy/graph/compose.yml up --build -d
 ```
 
-`go mod download` / `go build` use **`--mount=type=cache`** where the Dockerfile was updated (see `docker/*.Dockerfile`).
+Root [docker-compose.yml](../docker-compose.yml) is a thin include of the graph layer.
 
-## GitHub graph pack release
-
-1. Produce `data/neo4j_user_export/graph.cypher` (running Neo4j + [scripts/export-graph-cypher.sh](../scripts/export-graph-cypher.sh)).
-2. `GRAPH_PACK_VERSION=v0.3.1 ./scripts/build-graph-pack.sh`
-3. Create GitHub **Release** tag **`v0.3.1-graph-pack`** and attach **`data/neo4j_user_export/releases/threat-intel-graph-v0.3.1.zip`** so [docker/graph-bootstrap.sh](../docker/graph-bootstrap.sh) default URL resolves.
-
-Example with GitHub CLI (needs `gh auth login`):
+## E2E smoke
 
 ```bash
-gh release create v0.3.1-graph-pack \
-  --title "Graph pack v0.3.1" \
-  --notes "Neo4j bootstrap ZIP (manifest + graph.cypher)." \
-  data/neo4j_user_export/releases/threat-intel-graph-v0.3.1.zip
+./scripts/smoke_scrape_e2e.sh --up
+PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/smoke_scrape_e2e.sh --up
 ```
 
-Repository app tag **`v0.3.1`** tracks the codebase / compose / docs line used for this release wave.
+## Graph pack release
+
+See [threatintel-runtime.md](threatintel-runtime.md) and [scripts/build-graph-pack.sh](../scripts/build-graph-pack.sh).

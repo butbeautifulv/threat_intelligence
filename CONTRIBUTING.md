@@ -6,12 +6,10 @@ Thank you for improving this project. Small, focused changes are easier to revie
 
 1. Read **[docs/coding-style.md](docs/coding-style.md)** — layers (`cmd` → `usecase` → `repository` → `storage` / `feeds`), `slog`, and ingest conventions. **Automated agents:** follow **[AGENTS.md](AGENTS.md)** so changes stay consistent with this doc.
 2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** in issues, reviews, and discussions.
-3. Run tests for the modules you touched, for example:
-   - `go test ./pkg/ingestv1/... ./scrapers/ingestpub/... ./scrapers/sbom/... ./scrapers/coderules/... ./scrapers/nuclei/... ./scrapers/ingest-worker/... ./scrapers/ti/... ./scrapers/vuln/... ./scrapers/lola/... ./scrapers/ds/... ./api/... ./graph/... ./mcp/...`
-   - or from a single scraper directory: `go test ./...`
-4. **Read layer sanity (API / MCP):** they must not import NATS or ingest packages. From repo root, expect **no output** (and `grep` exit status **1**):
-   - `grep -R --include='*.go' -E 'ingestv1|ingestpub|nats\\.io|NATS_' api mcp`
-5. If you change Compose behaviour or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)** and **[scrapers/README.md](scrapers/README.md)** in the same PR.
+3. If you change [docs/schemas/](docs/schemas/), run **`make contracts`** and commit generated packages under `scrape/contract/`, `pipeline/contract/`, `graph/contract/`.
+4. Run tests in the **layer** you touched (`make test-scrape`, `test-pipeline`, or `test-graph`), or build the binary: `cd scrape && go build ./scrape_worker/...` (same for `pipeline/`, `graph/`).
+5. **Graph read path:** `graph/api` and `graph/mcp` must not import NATS or scrape packages.
+6. If you change Compose or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)** and **[deploy/](deploy/)** in the same PR.
 
 ## Commits and branches
 

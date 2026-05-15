@@ -1,9 +1,10 @@
 # Guidance for automated agents (Cursor, CI bots, etc.)
 
-When you change **application code**, **scrapers**, **`ingest-worker`**, **Compose**, or **graph ingest** in this repository:
+When you change application code, deploy, or contracts in this repository:
 
-1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** before writing or reviewing Go: layering (`cmd` → `usecase` → `repository` → `storage`), `log/slog`, lifecycle (`errgroup` + cancel on shutdown for long-running binaries), NATS envelopes in [pkg/ingestv1](pkg/ingestv1).
-2. Use **[CONTRIBUTING.md](CONTRIBUTING.md)** for tests to run and docs to update when behaviour or env vars change.
-3. Runtime and service matrix: **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**; ingest contract (kinds, subjects, ack rules): **[docs/ingest-contract.md](docs/ingest-contract.md)**; scraper matrix: **[scrapers/README.md](scrapers/README.md)**.
+1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** — CLEAN CODE, DRY, KISS, DDD; three isolated layers (`scrape/`, `pipeline/`, `graph/`); mandatory `internal/domain/`; schema-first contracts.
+2. **Do not add root `go.work`** or cross-layer Go imports. Layers integrate via NATS only.
+3. Use **[CONTRIBUTING.md](CONTRIBUTING.md)** for tests; run `scripts/gen-contracts.sh` when [docs/schemas/](docs/schemas/) change.
+4. Runtime and deploy: **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**, **[docs/ingest-contract.md](docs/ingest-contract.md)**, **[deploy/](deploy/)**.
 
-Do not invent a parallel style: mirror existing modules cited in `docs/coding-style.md` (for example [scrapers/ti](scrapers/ti), [scrapers/vuln](scrapers/vuln)).
+Reference modules: [scrape/sources/ti](scrape/sources/ti), [graph/sources/ti](graph/sources/ti), [pipeline/pipeline_worker](pipeline/pipeline_worker).

@@ -1,6 +1,6 @@
 # Threat Intel runtime (Docker Compose)
 
-Default stack: **Neo4j** → **graph-bootstrap** (import graph pack) → **HTTP API**. Live scraping, **NATS**, **ingest-worker**, and **proxybroker** are opt-in via the **`scrape`** profile. **MCP** uses **`profiles: ["mcp"]`**. Optional **nginx** load balancer in front of the API: profile **`deploy`** in the same [docker-compose.yml](../docker-compose.yml) — see [docs/deploy.md](deploy.md).
+Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape** (fetch + ledger + NATS publish), **pipeline** (normalize → `ingest.>`), **graph** (Neo4j ingest + API). Default graph stack: **Neo4j** → **graph-bootstrap** → **HTTP API**. Full pipeline: [`./scripts/compose-up-full.sh`](../scripts/compose-up-full.sh) or merged compose files (see [deploy/README.md](../deploy/README.md)). Worker scaling: `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE` in [deploy.md](deploy.md).
 
 ## Ports
 
@@ -24,7 +24,7 @@ Use this before relying on a full **`--profile scrape`** run or a reproducible g
 
 ## Compose service reference
 
-All definitions live in [docker-compose.yml](../docker-compose.yml). Optional local graph pack: [docker-compose.testpack.yml](../docker-compose.testpack.yml). **Binary / module docs:** see links in each subsection.
+Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), [deploy/pipeline/compose.yml](../deploy/pipeline/compose.yml), [deploy/graph/compose.yml](../deploy/graph/compose.yml). Root [docker-compose.yml](../docker-compose.yml) includes graph only. Optional local graph pack: [docker-compose.testpack.yml](../docker-compose.testpack.yml).
 
 ### neo4j
 
@@ -42,7 +42,7 @@ All definitions live in [docker-compose.yml](../docker-compose.yml). Optional lo
 | | |
 |--|--|
 | **Profile** | *(none)* |
-| **Build** | [docker/graph-bootstrap.Dockerfile](../docker/graph-bootstrap.Dockerfile) |
+| **Build** | [deploy/graph/docker/graph-bootstrap.Dockerfile](../deploy/graph/docker/graph-bootstrap.Dockerfile) |
 | **Purpose** | One-shot import of a graph pack ZIP before API starts |
 | **Depends on** | `neo4j` healthy |
 | **Restart** | `no` |
@@ -53,7 +53,7 @@ All definitions live in [docker-compose.yml](../docker-compose.yml). Optional lo
 | | |
 |--|--|
 | **Profile** | *(none)* |
-| **Build** | [docker/api.Dockerfile](../docker/api.Dockerfile) |
+| **Build** | [deploy/graph/docker/api.Dockerfile](../deploy/graph/docker/api.Dockerfile) |
 | **Purpose** | Categorical REST API over Neo4j |
 | **Ports** | `${API_PORT:-8090}:8090` |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
@@ -65,7 +65,7 @@ All definitions live in [docker-compose.yml](../docker-compose.yml). Optional lo
 | | |
 |--|--|
 | **Profile** | `mcp` |
-| **Build** | [docker/mcp.Dockerfile](../docker/mcp.Dockerfile) |
+| **Build** | dev-only: build from [graph/mcp/](../graph/mcp/) (not in default `deploy/` compose) |
 | **Purpose** | Stdio MCP tools (same queries as API) — [mcp/README.md](../mcp/README.md) |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
 | **Env** | `NEO4J_*` |
@@ -77,69 +77,95 @@ All definitions live in [docker-compose.yml](../docker-compose.yml). Optional lo
 | **Profile** | `scrape` |
 | **Image** | `nats:2.10-alpine` |
 | **Command** | `-js -m 8222` (JetStream + monitoring) |
-| **Purpose** | Message bus for scrape producers (`sbom`, `coderules`, `nuclei`, **`ti`**, **`vuln`**, **`lola`**, **`ds`**) publishing **`ingestv1`** envelopes |
+| **Purpose** | Two-stream bus: scrapers → **`scrape.>`** (`SCRAPE`); **pipeline_worker** → **`ingest.>`** (`INGEST`) |
 | **Ports** | Client and monitoring (see [Ports](#ports)) |
 | **Health** | `wget` on `http://127.0.0.1:8222/healthz` (JetStream monitoring) |
-| **Stream** | Created by publishers or **`ingest-worker`**: name **`INGEST`**, subjects **`ingest.>`** |
+| **Streams** | **`SCRAPE`** (`scrape.>`), **`INGEST`** (`ingest.>`) — ensured by **scrapepub** / **pipeline_worker** / **ingest_worker** |
 
-### ingest-worker
+### pipeline_worker
 
 | | |
 |--|--|
-| **Profile** | `scrape` |
-| **Build** | [docker/ingest-worker.Dockerfile](../docker/ingest-worker.Dockerfile) |
-| **Module** | [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) |
-| **Purpose** | Long-running **JetStream pull consumer**: reads `ingestv1` envelopes from **`ingest.>`**, writes **Neo4j** using the same `MERGE` paths as the scrapers’ Neo4j storage packages (AppSec, **`ti`**, **`vuln`**, **`lola`**, **`ds`**) |
-| **Depends on** | `neo4j` healthy, **`nats` healthy** |
-| **Restart** | `on-failure` |
-| **Env** | `NEO4J_*`, `NATS_URL` (Compose: `nats://nats:4222`), `NATS_INGEST_STREAM`, `NATS_DURABLE`, `NATS_SUBSCRIBE_SUBJECT`, `INGEST_BATCH`, `INGEST_MAX_WAIT` — full table in [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) |
+| **Compose** | [deploy/pipeline/compose.yml](../deploy/pipeline/compose.yml) |
+| **Build** | [deploy/pipeline/docker/pipeline_worker.Dockerfile](../deploy/pipeline/docker/pipeline_worker.Dockerfile) |
+| **Module** | [pipeline/pipeline_worker/](../pipeline/pipeline_worker/) |
+| **Purpose** | Pull **`scrape.>`**, normalize/dedup **`scrapev1`** → **`ingestv1`**, publish **`ingest.>`** (per-domain subjects via `*_INGEST_SUBJECT`) |
+| **Depends on** | **`nats` healthy** (when scrape layer is merged) |
+| **Scale** | `PIPELINE_WORKER_SCALE` — shared durable `pipeline_worker` |
+| **Env** | `NATS_URL`, `NATS_SCRAPE_STREAM`, `NATS_SCRAPE_DURABLE`, `NATS_SCRAPE_SUBSCRIBE_SUBJECT`, `PIPELINE_BATCH`, `PIPELINE_MAX_WAIT`, `DS_INGEST_SUBJECT`, `TI_INGEST_SUBJECT`, … |
 
-Use **`ingest-worker`** whenever the **`scrape`** profile is up with NATS producers; without the worker, messages stay in JetStream until drained.
+### ingest_worker
+
+| | |
+|--|--|
+| **Compose** | [deploy/graph/compose.yml](../deploy/graph/compose.yml) |
+| **Build** | [deploy/graph/docker/ingest_worker.Dockerfile](../deploy/graph/docker/ingest_worker.Dockerfile) |
+| **Module** | [graph/ingest_worker/README.md](../graph/ingest_worker/README.md) |
+| **Purpose** | Long-running **JetStream pull consumer**: reads `ingestv1` from **`ingest.>`**, writes **Neo4j** (AppSec via `graph/storage/*`; ti/vuln/lola/ds via `graph/sources/*` + `graph/workeringest/*`) |
+| **Depends on** | `neo4j` healthy, **`nats` healthy** (full stack) |
+| **Restart** | `unless-stopped` |
+| **Scale** | `INGEST_WORKER_SCALE` — shared durable `ingest_worker` |
+| **Env** | `NEO4J_*`, `NATS_URL`, `NATS_INGEST_STREAM`, `NATS_DURABLE`, `NATS_SUBSCRIBE_SUBJECT`, `INGEST_BATCH`, `INGEST_MAX_WAIT` |
+
+Use **`ingest_worker`** whenever scrape producers run; without it, messages stay in JetStream until drained.
 
 ### proxybroker
 
 | | |
 |--|--|
 | **Profile** | `scrape` |
-| **Build** | [docker/proxybroker.Dockerfile](../docker/proxybroker.Dockerfile) |
+| **Build** | [deploy/scrape/docker/proxybroker.Dockerfile](../deploy/scrape/docker/proxybroker.Dockerfile) |
 | **Purpose** | HTTP proxy pool for scrapers (`*_PROXY_URLS`) |
 | **Ports** | `${PROXYBROKER_PORT:-8099}:8099` |
 
-### Scrape ingest services (NATS publishers)
+### scrape_worker (factory orchestrator)
 
-| Compose service | Dockerfile | Notes |
-|-----------------|------------|--------|
-| `vuln` | [docker/vuln.Dockerfile](../docker/vuln.Dockerfile) | NVD, Metasploit, Exploit-DB, optional Vulners; **`VULN_NATS_SUBJECT`**; volume `data/cache`; depends on **`nats` healthy** |
-| `lola` | [docker/lola.Dockerfile](../docker/lola.Dockerfile) | LOLBAS, GTFOBins, LOFTS, MITRE STIX; **`LOLA_NATS_SUBJECT`**; depends on **`nats` healthy** |
-| `ds` | [docker/ds.Dockerfile](../docker/ds.Dockerfile) | Sigma, YARA, Atomic, Caldera; **`DS_NATS_SUBJECT`**; depends on **`nats` healthy** |
-| `ti` | [docker/ti.Dockerfile](../docker/ti.Dockerfile) | KEV, URLhaus, ThreatFox, …; **`TI_NATS_SUBJECT`**; depends on **`nats` healthy** |
-| `sbom` | [docker/sbom.Dockerfile](../docker/sbom.Dockerfile) | OSV + GHSA via NATS; **`SBOM_NATS_SUBJECT`**; **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for OSV CVE ids; depends on **`nats` healthy** |
-| `coderules` | [docker/coderules.Dockerfile](../docker/coderules.Dockerfile) | CWE, Semgrep, CodeQL; **`CODERULES_NATS_SUBJECT`**; depends on **`nats` healthy** |
-| `nuclei` | [docker/nuclei.Dockerfile](../docker/nuclei.Dockerfile) | Nuclei templates; **`NUCLEI_NATS_SUBJECT`**; depends on **`nats` healthy** |
+| | |
+|--|--|
+| **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) |
+| **Build** | [deploy/scrape/docker/scrape_worker.Dockerfile](../deploy/scrape/docker/scrape_worker.Dockerfile) |
+| **Module** | [scrape/scrape_worker/](../scrape/scrape_worker/) |
+| **Purpose** | Runs selected sources via [scrape/factory](../scrape/factory/); publishes **`scrapev1`** to **`scrape.>`** (batch job, exits 0) |
+| **Depends on** | **`nats` healthy** |
+| **Partition** | `SCRAPE_WORKER_PARTITION=1` → `scrape_worker_fast` + `scrape_worker_slow` ([deploy/compose.scale.yml](../deploy/compose.scale.yml)) |
+| **Env** | **`SCRAPE_SOURCES`**, **`TI_FEEDS`**, **`TI_JSONL_FILE`**, **`SBOM_CVE_LIST_FILE`**, **`VITESS_DSN`**, per-source scrape subjects; optional `GITHUB_TOKEN` (rate limits only) |
 
-Scrapers do **not** open Bolt; **`ingest-worker`** is the only writer from the scrape pipeline. See [scrapers/README.md](../scrapers/README.md) for per-feed env vars.
+Sources live under [scrape/sources/](../scrape/sources/). They publish **`scrapev1`** only (no Bolt). **`pipeline_worker`** → **`ingestv1`**; **`ingest_worker`** → Neo4j. See [scrape/README.md](../scrape/README.md).
 
-### NATS publish subjects (producers)
+### NATS subjects
 
 | Variable | Default | Meaning |
 |----------|---------|--------|
-| `NATS_URL` | `nats://nats:4222` in Compose | NATS client URL for publishers and **ingest-worker** |
-| `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
-| `SBOM_CVE_LIST_FILE` | empty (Compose scrape sets image default) | CVE list for OSV (one `CVE-…` per line; `#` comments allowed) |
+| `SCRAPE_SOURCES` | `ds,vuln,lola,ti,sbom,coderules,nuclei` | Comma-separated sources for **`scrape_worker`** |
+| `TI_FEEDS` | `kev,urlhaus,threatfox,malwarebazaar,feodo` | Feed list when `ti` is enabled |
+| `TI_JSONL_FILE` | `/app/example.jsonl` (Compose) | Optional JSONL path; empty to skip |
+| `NATS_URL` | `nats://nats:4222` in Compose | NATS client URL |
+| `VULN_SCRAPE_SUBJECT` | `scrape.vuln.events` | Scraper publish subject for **`vuln`** |
+| `LOLA_SCRAPE_SUBJECT` | `scrape.lola.events` | Scraper publish for **`lola`** |
+| `DS_SCRAPE_SUBJECT` | `scrape.ds.events` | Scraper publish for **`ds`** |
+| `TI_SCRAPE_SUBJECT` | `scrape.ti.events` | Scraper publish for **`ti`** |
+| `SBOM_SCRAPE_SUBJECT` | `scrape.appsec.sbom` | Scraper publish for `sbom` |
+| `CODERULES_SCRAPE_SUBJECT` | `scrape.appsec.coderules` | Scraper publish for `coderules` |
+| `NUCLEI_SCRAPE_SUBJECT` | `scrape.appsec.nuclei` | Scraper publish for `nuclei` |
+| `DS_INGEST_SUBJECT` | `ingest.ds.events` | **pipeline_worker** publish for DS |
+| `TI_INGEST_SUBJECT` | `ingest.ti.events` | pipeline publish for TI |
+| `VULN_INGEST_SUBJECT` | `ingest.vuln.events` | pipeline publish for vuln |
+| `LOLA_INGEST_SUBJECT` | `ingest.lola.events` | pipeline publish for lola |
+| `SBOM_INGEST_SUBJECT` | `ingest.appsec.sbom` | pipeline publish for sbom |
+| `CODERULES_INGEST_SUBJECT` | `ingest.appsec.coderules` | pipeline publish for coderules |
+| `NUCLEI_INGEST_SUBJECT` | `ingest.appsec.nuclei` | pipeline publish for nuclei |
+| `SBOM_CVE_LIST_FILE` | `/fixtures/cve_list_seed.txt` in Compose | CVE list for OSV (one `CVE-…` per line; `#` comments allowed) |
 | `SBOM_CVE_LIST_URL` | empty | Alternative CVE list URL if file unset |
-| `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
-| `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
-| `TI_NATS_SUBJECT` | `ingest.ti.events` | Publish subject for **`ti`** |
-| `VULN_NATS_SUBJECT` | `ingest.vuln.events` | Publish subject for **`vuln`** |
-| `LOLA_NATS_SUBJECT` | `ingest.lola.events` | Publish subject for **`lola`** |
-| `DS_NATS_SUBJECT` | `ingest.ds.events` | Publish subject for **`ds`** |
+| `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([scrape/ledger](../scrape/ledger/)); records URL + `content_sha256` |
+| `SCRAPE_MIN_REFETCH_AFTER` | `24h` | Min refetch interval (`periodic` policy) |
+| `SCRAPE_FORCE_REFETCH` | `0` | `1` = ignore ledger (full refetch) |
 | `NATS_INGEST_STREAM` | `INGEST` | Stream name (worker) |
-| `NATS_DURABLE` | `ingest-worker` | Durable consumer name |
+| `NATS_DURABLE` | `ingest_worker` | Durable consumer name |
 | `NATS_SUBSCRIBE_SUBJECT` | `ingest.>` | Worker pull filter (AppSec, TI, vuln, lola, ds, …) |
 | `INGEST_BATCH` | `10` | Max messages per fetch |
 | `INGEST_MAX_WAIT` | `5s` | Fetch wait |
 
-JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([scrapers/ingestpub](../scrapers/ingestpub), [pkg/ingestv1](../pkg/ingestv1)).
+JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([pipeline/pub](../pipeline/pub), [pipeline/contract/ingestv1](../pipeline/contract/ingestv1)).
 
 Contract details: [docs/ingest-contract.md](ingest-contract.md).
 
@@ -166,27 +192,69 @@ Compose passes these from the host for `graph-bootstrap` (see [docker-compose.ym
 
 Checksum: `manifest.json` `sha256` must match `graph.cypher` (same rules as [scripts/import-graph-pack.sh](../scripts/import-graph-pack.sh)).
 
-## Scrape / pack-build profile
+## Full scrape stack
 
 ```bash
-docker compose --profile scrape up --build -d
+./scripts/compose-up-full.sh
+# or: docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
 ```
 
-Starts **`proxybroker`**, **`nats`**, **`ingest-worker`**, **`vuln`**, **`lola`**, **`ds`**, **`ti`**, **`sbom`**, **`coderules`**, **`nuclei`**. Configure scrapers to use the broker via `VULN_PROXY_URLS`, `LOLA_PROXY_URLS`, `DS_PROXY_URLS`, `TI_PROXY_URLS` (e.g. `http://proxybroker:8099`) in your override if needed.
+Starts **`proxybroker`**, **`crawl-db`**, **`nats`**, **`pipeline_worker`**, **`ingest_worker`**, **`scrape_worker`** (default `SCRAPE_SOURCES=ds,vuln,lola,ti,sbom,coderules,nuclei`). A **second** scrape run should log skipped/unchanged feeds. TI normalization runs in **`pipeline_worker`**. Scale consumers: `PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/compose-up-full.sh`.
+
+Verify ledger: `docker compose exec crawl-db mysql -uveil -pveilpass veil_ledger -e 'SELECT resource_key, fetch_policy, last_fetched_at FROM crawl_resource LIMIT 20;'`
 
 After data is in Neo4j, export a pack from the host:
 
 ```bash
 ./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.1 ./scripts/build-graph-pack.sh
+GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
 ```
+
+### Fast-rich graph pack profile (~25 min)
+
+For a **richer** pack than smoke/seed without a full NVD crawl, use [scripts/graph-pack-run-v032.sh](../scripts/graph-pack-run-v032.sh): all seven `SCRAPE_SOURCES`, `NVD_MAX_PAGES=1` (~2000 CVE), no Atomic/Metasploit bulk, boosted Sigma/YARA/OSV/GHSA/coderules/nuclei limits. NVD **CWE/CPE enrichment** flows through shared [pkg/nvdparse](../pkg/nvdparse) (pipeline `vulnFromNVDPage` → graph `HAS_CWE` / `AFFECTS`).
+
+Resilience env (set in the script and [deploy/scrape/compose.yml](../deploy/scrape/compose.yml)):
+
+| Variable | Purpose |
+|----------|---------|
+| `LOFTS_SKIP_ON_ERROR=true` | LOFTS DNS failures do not abort `lola` |
+| `SCRAPE_FAIL_FAST=1` | Stop on first source error (default: continue other sources, exit 1 if any failed) |
+
+```bash
+./scripts/graph-pack-run-v032.sh
+# after scrape_worker finishes and ingest drains:
+./scripts/graph-dedup-cleanup.sh --dry-run && ./scripts/graph-dedup-cleanup.sh
+./scripts/export-graph-cypher.sh
+GRAPH_PACK_VERSION=v0.3.3 ./scripts/build-graph-pack.sh
+```
+
+Verify NVD enrichment in Neo4j:
+
+```bash
+./scripts/verify-nvd-enrichment.sh
+```
+
+Neo4j must have `NEO4J_apoc_export_file_enabled=true` (set in [deploy/graph/compose.yml](../deploy/graph/compose.yml)).
 
 ### Smoke checklist
 
 1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
-2. **Graph pack without GitHub download:** place **`threat-intel-graph-v0.3.1.zip`** under `data/neo4j_user_export/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
-3. **Scrape + NATS:** with **`ingest-worker`** and publishers (e.g. `sbom`); confirm JetStream drains and Neo4j gains expected nodes (sample Cypher per domain in [scrapers/README.md](../scrapers/README.md) / per-module README).
-4. **Release asset:** the default URL in [docker/graph-bootstrap.sh](../docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
+2. **Graph pack without GitHub download:** place **`threat-intel-graph-v0.3.2.zip`** under `data/neo4j_user_export/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+3. **Scrape + NATS:** `./scripts/smoke_scrape_e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
+4. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
+
+### E2E scrape smoke (slice 8 v2)
+
+Automated checks for the full scrape → pipeline → ingest path:
+
+```bash
+./scripts/smoke_scrape_e2e.sh --up          # compose up scrape stack, wait for scrape_worker exit
+./scripts/smoke_scrape_e2e.sh               # NATS health, crawl_resource rows, Neo4j counts, API /health
+./scripts/smoke_scrape_e2e.sh --restart-scrape   # pass 2: ledger unchanged / skip publish
+```
+
+Env overrides: `SCRAPE_SVC`, `PIPELINE_SVC`, `INGEST_SVC`, `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE`, `SCRAPE_WORKER_PARTITION`, `NATS_MON`, `API_URL`, `CRAWL_MYSQL`, `SMOKE_WAIT_SEC`.
 
 ## HTTP API (categorical)
 
@@ -220,26 +288,13 @@ Replace `vuln` / `Vulnerability` with other [categories](../graph/query/categori
 
 ## MCP (stdio)
 
-Same categorical logic as the API (shared [graph/query](../graph/query) package). Run against a running Neo4j (after bootstrap or scrape).
+Same categorical logic as the API. Module: [graph/mcp/](../graph/mcp/). Run against a running Neo4j (after bootstrap or scrape).
 
-**Compose (recommended):** start the default stack, then attach MCP on the Compose network (hostname `neo4j`):
-
-```bash
-docker compose up --build -d
-docker compose --profile mcp run --rm -i mcp
-```
-
-**Standalone image** (Neo4j on the host, published Bolt `7687`):
+From source:
 
 ```bash
-docker build -f docker/mcp.Dockerfile -t threat_intelligence-mcp .
-docker run --rm -i --network host \
-  -e NEO4J_URI=neo4j://127.0.0.1:7687 \
-  -e NEO4J_USER=neo4j -e NEO4J_PASS=neo4jpassword \
-  threat_intelligence-mcp
+cd graph/mcp && go run ./cmd
 ```
-
-Or from source: `cd mcp && go run ./cmd`.
 
 Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nodes_by_category`, `ti_search_in_category`; legacy tools remain for raw label access.
 
@@ -251,7 +306,7 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.3.1.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/threat-intel-graph-v0.3.2.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
 Re-importing the same pack into **non-empty** Neo4j data (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` (drops volumes) or a fresh database.
 

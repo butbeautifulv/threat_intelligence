@@ -13,6 +13,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE="${1:?usage: $0 <https://.../*.zip | /path/to/*.zip>}"
 
+COMPOSE="${COMPOSE:-docker compose}"
+COMPOSE_FILES="${COMPOSE_FILES:--f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml}"
+
 NEO4J_URI="${NEO4J_URI:-neo4j://localhost:7687}"
 NEO4J_USER="${NEO4J_USER:-neo4j}"
 NEO4J_PASS="${NEO4J_PASS:-neo4jpassword}"
@@ -44,10 +47,15 @@ if [[ "${EXP}" != "${GOT}" ]]; then
 fi
 echo "Checksum OK (graphVersion=$(python3 -c "import json; print(json.load(open('${M}'))['graphVersion'])"))"
 
+compose() {
+  # shellcheck disable=SC2086
+  (cd "${ROOT}" && $COMPOSE $COMPOSE_FILES "$@")
+}
+
 run_shell() {
   if [[ "${USE_DOCKER_COMPOSE:-}" == "1" ]]; then
-    ( cd "${ROOT}" && docker compose exec -T neo4j cypher-shell \
-      -a "${NEO4J_URI}" -u "${NEO4J_USER}" -p "${NEO4J_PASS}" -d "${NEO4J_DB}" "$@" )
+    compose exec -T neo4j cypher-shell \
+      -a "${NEO4J_URI}" -u "${NEO4J_USER}" -p "${NEO4J_PASS}" -d "${NEO4J_DB}" "$@"
   else
     if command -v cypher-shell >/dev/null 2>&1; then
       cypher-shell -a "${NEO4J_URI}" -u "${NEO4J_USER}" -p "${NEO4J_PASS}" -d "${NEO4J_DB}" "$@"

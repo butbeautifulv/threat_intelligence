@@ -1,67 +1,133 @@
-# Coding style (threat_intelligence)
+# Coding style (Veil)
 
-Conventions for **scrapers**, **`ingest-worker`**, and small **Go services** in this repo. When in doubt, mirror [scrapers/ti](../scrapers/ti) and [scrapers/vuln](../scrapers/vuln).
+Conventions for the three runtime layers — **scrape**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [scrape/sources/ti](../scrape/sources/ti) (scrape) and [graph/sources/ti](../graph/sources/ti) (graph).
 
-**Cursor and other agents:** treat this file as the source of truth for code layout and ingest rules; the repo entry point is [AGENTS.md](../AGENTS.md).
+## Design principles
+
+| Principle | Rule in this repo |
+|-----------|-------------------|
+| **CLEAN CODE** | Small functions, clear names, one level of abstraction; `cmd/` is wiring only |
+| **DRY** | Shared fetch/ledger only in `scrape/`; normalize only in `pipeline/`; MERGE only in `graph/`; cross-layer types only via [docs/schemas](schemas/) + codegen |
+| **KISS** | One long-running binary per layer at runtime; no speculative abstractions |
+| **DDD** | **`internal/domain/` is required** in every source module and worker; domain types must not import Neo4j, NATS, or HTTP clients |
+
+## Repository layout
+
+| Zone | Path | Integration |
+|------|------|-------------|
+| **Knowledge** | [docs/](.) | Schemas, runtime, contracts — no application Go code |
+| **Deploy** | [deploy/scrape](../deploy/scrape/), [deploy/pipeline](../deploy/pipeline/), [deploy/graph](../deploy/graph/) | Compose per layer only |
+| **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` (`scrapev1`) |
+| **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → normalize → `ingest.>` (`ingestv1`) |
+| **Graph** | [graph/](../graph/) | Consume `ingest.>` → Neo4j; API/MCP read |
+
+Layers communicate **only via NATS** and documented JSON schemas. No Go imports across `scrape/`, `pipeline/`, `graph/`.
+
+**Agents:** treat this file as source of truth; entry point [AGENTS.md](../AGENTS.md).
 
 ---
 
-## Layering
+## Three runtime contexts
 
-Keep a clear dependency direction (no cycles):
+| Context | Code | NATS | Must not |
+|---------|------|------|----------|
+| **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` | `ingestv1`, Bolt, normalize |
+| **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt |
+| **Graph** | [graph/](../graph/) | Consume `ingest.>` | `scrapev1`, feeds, Vitess |
 
-1. **`cmd/`** — wiring only: parse flags/env, build `config`, open connections, construct `usecase`, call `Run(ctx)`. No Cypher in `cmd`.
-2. **`internal/domain/`** *(optional)* — plain types, enums, validation rules that do not depend on Neo4j or HTTP clients.
-3. **`internal/repository/`** — **interfaces** (“ports”) that `usecase` calls: `UpsertX`, `ListY`, etc. Implementations live under **`storage/`** at module root.
-4. **`internal/usecase/`** — orchestration: loops, limits, backoff, calling `repository` and JetStream publisher where applicable.
-5. **`internal/feeds/`** (or `internal/connector/`) — outbound HTTP, GitHub API, OSV, zip download: return DTOs or raw bytes / maps for parsers.
-6. **`storage/`** (package at module root, **not** under `internal/`) — Neo4j **implementations** of `repository` so another module (**`ingest-worker`**) can import the same writers without violating `internal` rules.
+Shared fetch policy (scrape only): [scrape/feeds](../scrape/feeds/), [scrape/ledger](../scrape/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
 
-`internal/*` is private to that Go module; anything another module must call should be under a non-`internal` path (typically **`storage/`**).
+---
+
+## Layering (required packages)
+
+Dependency direction — no cycles:
+
+```
+cmd/                    → wiring only (flags, env, construct usecase, Run)
+internal/domain/        → entities, value objects, validation (no I/O)
+internal/repository/    → ports (interfaces)
+internal/usecase/       → orchestration
+internal/feeds/         → outbound HTTP/GitHub (scrape sources only)
+storage/                → adapters at module root (Neo4j in graph; pub in layer pub/)
+```
+
+`internal/*` is private to the Go module. Code another binary must import lives outside `internal/` (e.g. `storage/`, `scrapesource/`).
+
+**PR checklist:** `cmd` has no Cypher; `usecase` has no NATS subject strings; scrape does not import `ingestv1`; graph does not import `scrapev1`; no imports across layers.
+
+---
+
+## Source module template (scrape)
+
+Each [scrape/sources/&lt;name&gt;/](../scrape/sources/):
+
+| Package | Responsibility |
+|---------|----------------|
+| `internal/domain/` | Domain entities for this feed |
+| `internal/feeds/` | HTTP/GitHub fetch |
+| `internal/usecase/` | Orchestration |
+| `internal/scrapepub/` | Map domain → `scrapev1` kinds |
+| `scrapesource/` | `factory.Register` |
+
+## Graph source template
+
+Each [graph/sources/&lt;name&gt;/](../graph/sources/):
+
+| Package | Responsibility |
+|---------|----------------|
+| `internal/domain/` | Graph-side domain types (or contract DTOs only) |
+| `graph/sources/<name>/ingest/` | MERGE handlers from `ingestv1` payload (graph layer) |
+| `storage/neo4j/` | Cypher implementations |
+
+---
+
+## Contracts (schema-first)
+
+- **Source of truth:** [docs/schemas/scrapev1-envelope.json](schemas/scrapev1-envelope.json), [docs/schemas/ingestv1-envelope.json](schemas/ingestv1-envelope.json)
+- **Generated Go:** `scrape/contract/scrapev1`, `pipeline/contract/ingestv1`, `graph/contract/ingestv1` via `scripts/gen-contracts.sh`
+- Do not hand-edit `*.gen.go` files
+- Human contract matrix: [ingest-contract.md](ingest-contract.md)
+
+---
+
+## Naming
+
+- Compose services / binaries: **`snake_case`** (`scrape_worker`, `pipeline_worker`, `ingest_worker`)
+- NATS durable consumers: **`snake_case`** (`pipeline_worker`, `ingest_worker`)
+- Go module path: `github.com/butbeautifulv/threat_intelligence/...` (unchanged)
 
 ---
 
 ## Logging and lifecycle
 
-- Use **`log/slog`** with structured attributes (`slog.String("feed", …)`).
-- Long-running binaries: **`errgroup`** + `context` cancel on **SIGINT/SIGTERM** (see `scrapers/vuln/cmd`).
-- Prefer explicit **timeouts** on HTTP clients (`http.Client{Timeout: …}`).
+- **`log/slog`** with structured attributes
+- Long-running binaries: **`errgroup`** + cancel on **SIGINT/SIGTERM**
+- Explicit **timeouts** on HTTP clients
 
 ---
 
 ## Errors
 
-- Wrap with `%w` when crossing package boundaries; log once at a sensible boundary (`usecase` or `cmd`), not inside every helper.
-- Do not silently ignore fetch errors without at least a debug/info log.
+- Wrap with `%w` across package boundaries; log once at `usecase` or `cmd`
+- Do not silently ignore fetch errors
 
 ---
 
 ## Configuration
 
-- Environment variables with sensible defaults; flags may override for local runs.
-- Document new env vars in [scrapers/README.md](../scrapers/README.md) and [threatintel-runtime.md](threatintel-runtime.md) when behaviour is user-visible.
+- Environment variables with sensible defaults
+- Document new env vars in [docs/threatintel-runtime.md](threatintel-runtime.md)
 
 ---
 
 ## Tests
 
-- **Table-driven** unit tests for pure logic: parsing, normalization, idempotency keys, envelope validation ([pkg/ingestv1](../pkg/ingestv1/)).
-- Neo4j integration tests are optional; use a build tag (e.g. `integration`) if added later.
+- Table-driven unit tests for parsing, normalization, idempotency keys, envelope validation
+- Neo4j integration tests: optional, build tag `integration`
 
 ---
-
-## Ingest pipeline (NATS)
-
-- **Envelope:** [pkg/ingestv1](../pkg/ingestv1/) — versioned JSON (`schema_version`, `source`, `kind`, `idempotency_key`, `payload`).
-- **Producers:** `sbom`, `coderules`, `nuclei`, **`ti`**, **`vuln`**, **`lola`**, and **`ds`** publish via [scrapers/ingestpub](../scrapers/ingestpub/). For **`sbom`** OSV, set **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for CVE ids.
-- **Consumer:** [scrapers/ingest-worker](../scrapers/ingest-worker/README.md) applies the same **`storage/neo4j`** writers as the historical in-process scraper path. Subject defaults and kind matrix: [docs/ingest-contract.md](ingest-contract.md).
-
----
-
-## Git
-
-After meaningful chunks of work: **commit** with a clear message and **push** the branch to avoid losing work.
 
 ## License
 
-Project license: **MIT** — see [LICENSE](../LICENSE) in the repository root. Contributing implies acceptance of that license; see [CONTRIBUTING.md](../CONTRIBUTING.md).
+**MIT** — [LICENSE](../LICENSE), [CONTRIBUTING.md](../CONTRIBUTING.md)

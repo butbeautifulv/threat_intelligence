@@ -1,8 +1,10 @@
-# Threat Intelligence
+# Veil (Vulnerability Exploitation Intelligence Layer)
+
+![Veil](docs/veil.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Neo4j-backed graph of vulnerabilities, LOLbins-style artifacts, detection content (Sigma/YARA/Atomic/Caldera), and TI feeds. The repository splits **graph + HTTP API + MCP** (root modules) from **scrapers and ingest** ([scrapers/README.md](scrapers/README.md)).
+**Veil** is a Neo4j-backed threat-intelligence graph: vulnerabilities, LOLbins-style artifacts, detection content (Sigma/YARA/Atomic/Caldera), and TI feeds. The repo is split into three runtime contexts — **scrape**, **pipeline**, and **graph** — connected by two NATS JetStream streams (`scrape.>` → `ingest.>`). See [scrapers/README.md](scrapers/README.md) and [ingest/graph/README.md](ingest/graph/README.md).
 
 **License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Agents / AI:** [AGENTS.md](AGENTS.md) · **Security:** [SECURITY.md](SECURITY.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
@@ -21,14 +23,16 @@ flowchart TB
   end
   subgraph scrape_profile["Profile: scrape"]
     NATS[NATS JetStream]
+    Pipeline[pipeline-worker]
     Worker[ingest-worker]
     Proxy[proxybroker]
     S["Scrapers: vuln, lola, ds"]
     TI["ti"]
     A["AppSec: sbom, coderules, nuclei"]
-    S -->|"publish"| NATS
-    TI -->|"publish"| NATS
-    A -->|"publish"| NATS
+    S -->|"scrape.>"| NATS
+    TI -->|"scrape.>"| NATS
+    A -->|"scrape.>"| NATS
+    NATS -->|"scrape.>"| Pipeline -->|"ingest.>"| NATS
     NATS -->|"ingest.>"| Worker -->|"MERGE"| Neo4j
     S -.->|optional *_PROXY_URLS| Proxy
     TI -.->|optional *_PROXY_URLS| Proxy
@@ -36,13 +40,15 @@ flowchart TB
   end
   subgraph modules["Shared Go packages"]
     GQ[graph/query]
+    SV1[pkg/scrapev1]
     IV1[pkg/ingestv1]
     API --> GQ
     MCP[Optional profile mcp: stdio MCP] --> GQ
     MCP --> Neo4j
-    A -.-> IV1
-    TI -.-> IV1
-    S -.-> IV1
+    S -.-> SV1
+    TI -.-> SV1
+    A -.-> SV1
+    Pipeline -.-> IV1
     Worker -.-> IV1
   end
 ```
@@ -53,14 +59,14 @@ flowchart TB
 docker compose up --build
 ```
 
-Default stack: **Neo4j** → **graph-bootstrap** (imports a [graph pack](docs/threatintel-runtime.md#graph-bootstrap-usage-mode); skip with `GRAPH_PACK_SKIP=1`) → **HTTP API**. Scrapers, NATS, and **ingest-worker** are **not** started unless you use the **`scrape`** profile.
+Default stack: **Neo4j** → **graph-bootstrap** (imports a [graph pack](docs/threatintel-runtime.md#graph-bootstrap-usage-mode); skip with `GRAPH_PACK_SKIP=1`) → **HTTP API**. Scrapers, **pipeline-worker**, NATS, and **ingest-worker** are **not** started unless you use the **`scrape`** profile.
 
 | Endpoint | Default | Notes |
 |----------|---------|--------|
 | Neo4j Browser | `http://localhost:7474` | User `neo4j` / `neo4jpassword`; APOC enabled |
 | HTTP API | `http://localhost:8090` | `API_PORT` overrides published port |
 
-**Fill the graph by scraping** (includes optional **NATS** + **ingest-worker** for queue-backed AppSec ingest):
+**Fill the graph by scraping** (NATS `scrape.>` → **pipeline-worker** → `ingest.>` → **ingest-worker** → Neo4j):
 
 ```bash
 docker compose --profile scrape up --build -d
@@ -114,7 +120,6 @@ Import: [scripts/import-graph-pack.sh](scripts/import-graph-pack.sh) — details
 ```bash
 docker compose --profile mcp run --rm -i mcp
 ```
-
 Details: [docs/threatintel-runtime.md](docs/threatintel-runtime.md#mcp-stdio) and [mcp/README.md](mcp/README.md).
 
 ## Smoke Cypher
@@ -129,3 +134,4 @@ MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS c ORDER BY c DESC;
 - **[docs/coding-style.md](docs/coding-style.md)** — scraper and worker layering, `slog`, NATS ingest.
 - **[scrapers/README.md](scrapers/README.md)** — source matrix, NATS ingest, TI JSONL, roadmap.
 - **[docs/ingest-contract.md](docs/ingest-contract.md)** — JetStream stream/subjects, kind matrix, ack policy.
+

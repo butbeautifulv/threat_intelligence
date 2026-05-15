@@ -1,6 +1,6 @@
 # AppSec graph ontology (threat_intelligence)
 
-This document summarizes **normalized node labels**, **relationships** introduced by scrapers, and the **roadmap** for DAST / SOC classes. It complements live category metadata from [`graph/query/categories.go`](../graph/query/categories.go).
+This document summarizes **normalized node labels**, **relationships** introduced by scrape sources, and the **roadmap** for DAST / SOC classes. It complements live category metadata from the graph API layer.
 
 ## Four data classes (coverage map)
 
@@ -27,12 +27,12 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 - Hard **limits** via environment variables on every high-cardinality feed (`*_MAX_*`).
 - **MERGE** on canonical keys (`id`, `cve`, `Package.id`, `SemgrepRule.id`, …).
-- Optional **NATS JetStream** path for AppSec scrapers (`sbom`, `coderules`, `nuclei`): producers publish `ingestv1` envelopes to **`ingest.appsec.*`**; **`ingest-worker`** normalizes and writes Neo4j with the same MERGE semantics as direct mode (see [threatintel-runtime.md](threatintel-runtime.md#ingest-worker) and [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md)). The same pipeline applies to **`ti`**, **`vuln`**, **`lola`**, and **`ds`** on their subjects under **`ingest.>`** — full kind and subject matrix: [ingest-contract.md](ingest-contract.md).
+- **NATS JetStream** path: scrape sources publish **`scrapev1`** to **`scrape.>`**; **`pipeline_worker`** normalizes to **`ingestv1`** on **`ingest.>`**; **`ingest_worker`** MERGEs into Neo4j (AppSec via `graph/storage/*`, domains via `graph/sources/*`). Subject matrix: [ingest-contract.md](ingest-contract.md).
 - Optional **cleanup** scripts under [`scripts/`](../scripts/) (duplicate relationships, stale isolated IOCs) with `--dry-run` first.
 
 ## IOC freshness (TI)
 
-IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [`scrapers/README.md`](../scrapers/README.md) TTL section). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
+IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [scrape/sources/ti](../scrape/sources/ti)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
 
 ## P3 roadmap (SOC-level rules, not implemented as scrapers yet)
 
@@ -63,13 +63,8 @@ A read-side or batch **enrichment engine** (outside the Neo4j write path) can ma
 
 ## Related documentation
 
-- [threatintel-runtime.md](threatintel-runtime.md) — Compose services, NATS, **ingest-worker**
-- [scrapers/README.md](../scrapers/README.md) — Scraper env vars and NATS subjects
-- [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) — Consumer binary details
-
-## Related documentation
-
-- [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, MCP, **`nats`**, **`ingest-worker`**
-- [scrapers/README.md](../scrapers/README.md) — source matrix, NATS ingest, local runs
-- [coding-style.md](coding-style.md) — scraper and worker layering
-- [CONTRIBUTING.md](../CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) — community and PR expectations
+- [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, NATS, **`ingest_worker`**
+- [scrape/README.md](../scrape/README.md) — scrape sources and env vars
+- [graph/ingest_worker/README.md](../graph/ingest_worker/README.md) — graph consumer
+- [deploy.md](deploy.md) — worker scaling
+- [coding-style.md](coding-style.md) — three-layer layout

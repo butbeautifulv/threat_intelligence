@@ -1,0 +1,21 @@
+go 1.25.0
+
+use (
+	./api
+	./contract/ingestv1
+	./ingest_worker
+	./internal/natsensure
+	./mcp
+	./neo4jclient
+	./sources/ds
+	./sources/lola
+	./sources/ti
+	./sources/vuln
+	./storage/coderules
+	./storage/nuclei
+	./storage/sbom
+	./workeringest/ds
+	./workeringest/lola
+	./workeringest/ti
+	./workeringest/vuln
+)
