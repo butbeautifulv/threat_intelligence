@@ -1,6 +1,6 @@
 # Threat Intel runtime (Docker Compose)
 
-Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape** (fetch + ledger + NATS publish), **pipeline** (normalize → `ingest.>`), **graph** (Neo4j ingest + API). Default graph stack: **Neo4j** → **graph-bootstrap** → **HTTP API**. Full pipeline: [`./scripts/compose-up-full.sh`](../scripts/compose-up-full.sh) or merged compose files (see [deploy/README.md](../deploy/README.md)). Worker scaling: `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE` in [deploy.md](deploy.md).
+Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape** (fetch + ledger + NATS publish), **pipeline** (normalize → `ingest.>`), **graph** (Neo4j ingest + API). Default graph stack: **Neo4j** → **graph-bootstrap** → **HTTP API**. Full pipeline: [`./scripts/compose-up-full.sh`](../scripts/compose-up-full.sh) or merged compose files (see [deploy/README.md](../deploy/README.md)). Worker scaling: `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE` in [deploy/README.md](../deploy/README.md).
 
 ## Ports
 
@@ -65,8 +65,8 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 | | |
 |--|--|
 | **Profile** | `mcp` |
-| **Build** | dev-only: build from [graph/mcp/](../graph/mcp/) (not in default `deploy/` compose) |
-| **Purpose** | Stdio MCP tools (same queries as API) — [mcp/README.md](../mcp/README.md) |
+| **Build** | dev-only: `cd graph/serve && go build ./cmd/mcp` (not in default `deploy/` compose) |
+| **Purpose** | Stdio MCP tools (same queries as API) — [graph/serve/](../graph/serve/) |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
 | **Env** | `NEO4J_*` |
 
@@ -88,8 +88,8 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 |--|--|
 | **Compose** | [deploy/pipeline/compose.yml](../deploy/pipeline/compose.yml) |
 | **Build** | [deploy/pipeline/docker/pipeline_worker.Dockerfile](../deploy/pipeline/docker/pipeline_worker.Dockerfile) |
-| **Module** | [pipeline/pipeline_worker/](../pipeline/pipeline_worker/) |
-| **Purpose** | Pull **`scrape.>`**, normalize/dedup **`scrapev1`** → **`ingestv1`**, publish **`ingest.>`** (per-domain subjects via `*_INGEST_SUBJECT`) |
+| **Module** | [pipeline/ned/README.md](../pipeline/ned/README.md) |
+| **Purpose** | Pull **`scrape.>`**, normalize/dedup **`harvest`** → **`commit`**, publish **`ingest.>`** (per-domain subjects via `*_INGEST_SUBJECT`) |
 | **Depends on** | **`nats` healthy** (when scrape layer is merged) |
 | **Scale** | `PIPELINE_WORKER_SCALE` — shared durable `pipeline_worker` |
 | **Env** | `NATS_URL`, `NATS_SCRAPE_STREAM`, `NATS_SCRAPE_DURABLE`, `NATS_SCRAPE_SUBSCRIBE_SUBJECT`, `PIPELINE_BATCH`, `PIPELINE_MAX_WAIT`, `DS_INGEST_SUBJECT`, `TI_INGEST_SUBJECT`, … |
@@ -100,8 +100,8 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 |--|--|
 | **Compose** | [deploy/graph/compose.yml](../deploy/graph/compose.yml) |
 | **Build** | [deploy/graph/docker/ingest_worker.Dockerfile](../deploy/graph/docker/ingest_worker.Dockerfile) |
-| **Module** | [graph/ingest_worker/README.md](../graph/ingest_worker/README.md) |
-| **Purpose** | Long-running **JetStream pull consumer**: reads `ingestv1` from **`ingest.>`**, writes **Neo4j** (AppSec via `graph/storage/*`; ti/vuln/lola/ds via `graph/sources/*` + `graph/workeringest/*`) |
+| **Module** | [graph/ingest/README.md](../graph/ingest/README.md) |
+| **Purpose** | Long-running **JetStream pull consumer**: reads `commit` from **`ingest.>`**, writes **Neo4j** (AppSec via `graph/ingest/internal/appsec/*`; ti/vuln/lola/ds via `graph/ingest/internal/sources/*`) |
 | **Depends on** | `neo4j` healthy, **`nats` healthy** (full stack) |
 | **Restart** | `unless-stopped` |
 | **Scale** | `INGEST_WORKER_SCALE` — shared durable `ingest_worker` |
@@ -124,13 +124,13 @@ Use **`ingest_worker`** whenever scrape producers run; without it, messages stay
 |--|--|
 | **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) |
 | **Build** | [deploy/scrape/docker/scrape_worker.Dockerfile](../deploy/scrape/docker/scrape_worker.Dockerfile) |
-| **Module** | [scrape/scrape_worker/](../scrape/scrape_worker/) |
-| **Purpose** | Runs selected sources via [scrape/factory](../scrape/factory/); publishes **`scrapev1`** to **`scrape.>`** (batch job, exits 0) |
+| **Module** | [scrape/harvest/README.md](../scrape/harvest/README.md) |
+| **Purpose** | Runs selected sources via [scrape/harvest/internal/factory](../scrape/harvest/internal/factory/); publishes **`harvest`** to **`scrape.>`** (batch job, exits 0) |
 | **Depends on** | **`nats` healthy** |
 | **Partition** | `SCRAPE_WORKER_PARTITION=1` → `scrape_worker_fast` + `scrape_worker_slow` ([deploy/compose.scale.yml](../deploy/compose.scale.yml)) |
 | **Env** | **`SCRAPE_SOURCES`**, **`TI_FEEDS`**, **`TI_JSONL_FILE`**, **`SBOM_CVE_LIST_FILE`**, **`VITESS_DSN`**, per-source scrape subjects; optional `GITHUB_TOKEN` (rate limits only) |
 
-Sources live under [scrape/sources/](../scrape/sources/). They publish **`scrapev1`** only (no Bolt). **`pipeline_worker`** → **`ingestv1`**; **`ingest_worker`** → Neo4j. See [scrape/README.md](../scrape/README.md).
+Sources live under [scrape/harvest/internal/sources/](../scrape/harvest/internal/sources/). They publish **`harvest`** only (no Bolt). **`pipeline_worker`** → **`commit`**; **`ingest_worker`** → Neo4j. See [scrape/README.md](../scrape/README.md).
 
 ### NATS subjects
 
@@ -156,7 +156,7 @@ Sources live under [scrape/sources/](../scrape/sources/). They publish **`scrape
 | `NUCLEI_INGEST_SUBJECT` | `ingest.appsec.nuclei` | pipeline publish for nuclei |
 | `SBOM_CVE_LIST_FILE` | `/fixtures/cve_list_seed.txt` in Compose | CVE list for OSV (one `CVE-…` per line; `#` comments allowed) |
 | `SBOM_CVE_LIST_URL` | empty | Alternative CVE list URL if file unset |
-| `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([scrape/ledger](../scrape/ledger/)); records URL + `content_sha256` |
+| `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/)); records URL + `content_sha256` |
 | `SCRAPE_MIN_REFETCH_AFTER` | `24h` | Min refetch interval (`periodic` policy) |
 | `SCRAPE_FORCE_REFETCH` | `0` | `1` = ignore ledger (full refetch) |
 | `LOFTS_SKIP_ON_ERROR` | unset | `true` = LOFTS fetch errors are warnings (do not fail `lola`) |
@@ -167,7 +167,7 @@ Sources live under [scrape/sources/](../scrape/sources/). They publish **`scrape
 | `INGEST_BATCH` | `10` | Max messages per fetch |
 | `INGEST_MAX_WAIT` | `5s` | Fetch wait |
 
-JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([pipeline/pub](../pipeline/pub), [pipeline/contract/ingestv1](../pipeline/contract/ingestv1)).
+JetStream dedup: **`Nats-Msg-Id`** from envelope **`idempotency_key`** ([pipeline/connector](../pipeline/connector/), [pkg/commit](../pkg/commit)).
 
 Contract details: [docs/ingest-contract.md](ingest-contract.md).
 
@@ -214,7 +214,7 @@ GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
 
 ### Fast-rich graph pack profile (~25 min)
 
-For a **richer** pack than smoke/seed without a full NVD crawl, use [scripts/graph-pack-run-v032.sh](../scripts/graph-pack-run-v032.sh): all seven `SCRAPE_SOURCES`, `NVD_MAX_PAGES=1` (~2000 CVE), no Atomic/Metasploit bulk, boosted Sigma/YARA/OSV/GHSA/coderules/nuclei limits. NVD **CWE/CPE enrichment** flows through shared [pkg/nvdparse](../pkg/nvdparse) (pipeline `vulnFromNVDPage` → graph `HAS_CWE` / `AFFECTS`).
+For a **richer** pack than smoke/seed without a full NVD crawl, use [scripts/graph-pack-run-v032.sh](../scripts/graph-pack-run-v032.sh): all seven `SCRAPE_SOURCES`, `NVD_MAX_PAGES=1` (~2000 CVE), no Atomic/Metasploit bulk, boosted Sigma/YARA/OSV/GHSA/coderules/nuclei limits. NVD **CWE/CPE enrichment** runs in pipeline NED ([pipeline/pkg/nvd/parse](../pipeline/pkg/nvd/parse) via `sources/vuln/enrich`) → graph `HAS_CWE` / `AFFECTS`.
 
 Resilience env (set in the script and [deploy/scrape/compose.yml](../deploy/scrape/compose.yml)):
 
@@ -286,16 +286,16 @@ curl -sS 'http://localhost:8090/v1/categories/vuln/search?q=cve&limit=5' | jq .
 curl -sS 'http://localhost:8090/v1/kinds' | jq .
 ```
 
-Replace `vuln` / `Vulnerability` with other [categories](../graph/neo4jclient/query/categories.go) and labels as needed.
+Replace `vuln` / `Vulnerability` with other [categories](../graph/connector/query/categories.go) and labels as needed.
 
 ## MCP (stdio)
 
-Same categorical logic as the API. Module: [graph/mcp/](../graph/mcp/). Run against a running Neo4j (after bootstrap or scrape).
+Same categorical logic as the API. Module: [graph/serve/](../graph/serve/) (`cmd/mcp`). Run against a running Neo4j (after bootstrap or scrape).
 
 From source:
 
 ```bash
-cd graph/mcp && go run ./cmd
+cd graph/serve && go run ./cmd/mcp
 ```
 
 Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nodes_by_category`, `ti_search_in_category`; legacy tools remain for raw label access.

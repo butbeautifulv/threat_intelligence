@@ -14,12 +14,12 @@
 flowchart LR
   subgraph scrape [scrape]
     SW[scrape_worker]
-    SW -->|scrapev1| NATS1[NATS SCRAPE]
+    SW -->|harvest| NATS1[NATS SCRAPE]
   end
   subgraph pipeline [pipeline]
     PW[pipeline_worker]
     NATS1 --> PW
-    PW -->|ingestv1| NATS2[NATS INGEST]
+    PW -->|commit| NATS2[NATS INGEST]
   end
   subgraph graph [graph]
     IW[ingest_worker]
@@ -32,9 +32,9 @@ flowchart LR
 
 | Layer | Path | Role |
 |-------|------|------|
-| **Scrape** | [scrape/](scrape/) | Fetch feeds, Vitess ledger, publish `scrapev1` |
-| **Pipeline** | [pipeline/](pipeline/) | Normalize/dedup → `ingestv1` (incl. NVD CWE/CPE via [pkg/nvdparse](pkg/nvdparse/)) |
-| **Graph** | [graph/](graph/) | MERGE into Neo4j; [api/](graph/api/), [mcp/](graph/mcp/) read Bolt |
+| **Scrape** | [scrape/](scrape/) | Fetch feeds, Vitess ledger, publish `harvest` |
+| **Pipeline** | [pipeline/](pipeline/) | Normalize/dedup → `commit` (incl. NVD CWE/CPE via [pipeline/pkg/nvd/parse](pipeline/pkg/nvd/parse/)) |
+| **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) HTTP API + MCP read Bolt |
 
 Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Runtime: [docs/threatintel-runtime.md](docs/threatintel-runtime.md)
 
@@ -80,30 +80,17 @@ Fast-rich graph pack build (~25 min): [scripts/graph-pack-run-v032.sh](scripts/g
 | Document | Contents |
 |----------|----------|
 | [AGENTS.md](AGENTS.md) | Cursor/agents: read [docs/coding-style.md](docs/coding-style.md) first |
-| [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose, ports, env, bootstrap, API, MCP, NATS, graph packs |
-| [docs/deploy.md](docs/deploy.md) | Worker scaling, full stack, releases |
-| [deploy/README.md](deploy/README.md) | Per-layer compose files |
+| [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose, ports, env, bootstrap, API, MCP, NATS |
+| [deploy/README.md](deploy/README.md) | Per-layer compose, scaling, smoke, graph pack releases |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
-| [graph/ingest_worker/README.md](graph/ingest_worker/README.md) | JetStream → Neo4j consumer |
-| [docs/coding-style.md](docs/coding-style.md) | Three layers, DDD, contracts |
+| [graph/ingest/README.md](graph/ingest/README.md) | JetStream → Neo4j consumer |
+| [docs/coding-style.md](docs/coding-style.md) | Architecture, layering, PR checklist |
 | [docs/ontology-appsec.md](docs/ontology-appsec.md) | Labels, relationships, roadmap |
-| [docs/ingest-contract.md](docs/ingest-contract.md) | `scrapev1` / `ingestv1`, JetStream |
-| [graph/mcp/README.md](graph/mcp/README.md) | Stdio MCP tools |
+| [docs/ingest-contract.md](docs/ingest-contract.md) | `harvest` / `commit`, JetStream |
+| [graph/serve/](graph/serve/) | HTTP API + stdio MCP |
 | [scripts/README.md](scripts/README.md) | Export, packs, smoke, dedup |
-
-## Repository layout
-
-| Path | Role |
-|------|------|
-| [scrape/](scrape/) | `scrape_worker`, [sources/](scrape/sources/), [feeds/](scrape/feeds/), [ledger/](scrape/ledger/), [contract/scrapev1](scrape/contract/scrapev1/) |
-| [pipeline/](pipeline/) | `pipeline_worker`, [internal/normalize/](pipeline/internal/normalize/), [contract/ingestv1](pipeline/contract/ingestv1/) |
-| [graph/](graph/) | `ingest_worker`, [sources/](graph/sources/), [storage/](graph/storage/), [neo4jclient/](graph/neo4jclient/), [api/](graph/api/), [mcp/](graph/mcp/) |
-| [pkg/nvdparse/](pkg/nvdparse/) | Shared NVD JSON parser (CWE, CPE, CVSS) for scrape + pipeline |
-| [deploy/](deploy/) | Per-layer Docker Compose and Dockerfiles |
-| [scripts/](scripts/) | `compose-up-full.sh`, smoke, export/pack, dedup |
-| [docs/](docs/) | Runtime, ontology, JSON schemas |
 
 ## Graph packs
 
@@ -116,15 +103,15 @@ GRAPH_PACK_VERSION=v0.3.2 ./scripts/build-graph-pack.sh
 
 Import: [scripts/import-graph-pack.sh](scripts/import-graph-pack.sh). Verify NVD enrichment: [scripts/verify-nvd-enrichment.sh](scripts/verify-nvd-enrichment.sh).
 
-**Note:** Pack **v0.3.2** on GitHub was built before the pipeline enrichment fix; rebuild with current `main` for full `HAS_CWE` / `AFFECTS` / `CPE` in exports.
+**Note:** Pack **v0.3.2** on GitHub was built before the pipeline enrichment fix; see [deploy/README.md](deploy/README.md#graph-pack-releases) for rebuild guidance.
 
 ## MCP
 
 ```bash
-cd graph/mcp && go run ./cmd
+cd graph/serve && go run ./cmd/mcp
 ```
 
-Details: [graph/mcp/README.md](graph/mcp/README.md), [docs/threatintel-runtime.md](docs/threatintel-runtime.md#mcp-stdio).
+Details: [graph/serve/](graph/serve/), [docs/threatintel-runtime.md](docs/threatintel-runtime.md#mcp-stdio).
 
 ## Smoke Cypher
 
@@ -137,7 +124,6 @@ MATCH (v:Vulnerability)-[:AFFECTS]->(:CPE) RETURN count(*) AS affects;
 ## Tests
 
 ```bash
-make contracts    # sync graph/contract/ingestv1 from pipeline
 make test-scrape
 make test-pipeline
 make test-graph

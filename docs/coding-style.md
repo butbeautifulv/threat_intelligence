@@ -1,41 +1,50 @@
 # Coding style (Veil)
 
-Conventions for the three runtime layers — **scrape**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [scrape/sources/ti](../scrape/sources/ti) (scrape) and [graph/sources/ti](../graph/sources/ti) (graph).
+Conventions for the three runtime layers — **scrape**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [scrape/harvest/internal/sources/ti](../scrape/harvest/internal/sources/ti) (scrape) and [graph/ingest/internal/sources/ti](../graph/ingest/internal/sources/ti) (graph write path).
+
+**Agents:** treat this file as source of truth; entry point [AGENTS.md](../AGENTS.md).
 
 ## Design principles
 
 | Principle | Rule in this repo |
 |-----------|-------------------|
 | **CLEAN CODE** | Small functions, clear names, one level of abstraction; `cmd/` is wiring only |
-| **DRY** | Shared fetch/ledger only in `scrape/`; normalize only in `pipeline/`; MERGE only in `graph/`; cross-layer types only via [docs/schemas](schemas/) + codegen |
+| **DRY** | Shared fetch/ledger only in `scrape/`; normalize only in `pipeline/`; MERGE only in `graph/`; cross-layer types in `pkg/*` (wire envelopes, NATS helpers, TI helpers) |
 | **KISS** | One long-running binary per layer at runtime; no speculative abstractions |
-| **DDD** | **`internal/domain/` is required** in every source module and worker; domain types must not import Neo4j, NATS, or HTTP clients |
+| **DDD** | Domain package per source module, no I/O (no Neo4j, NATS, HTTP clients in domain types) |
 
-## Repository layout
+## Repository map
 
-| Zone | Path | Integration |
-|------|------|-------------|
+| Zone | Path | Role |
+|------|------|------|
 | **Knowledge** | [docs/](.) | Schemas, runtime, contracts — no application Go code |
-| **Deploy** | [deploy/scrape](../deploy/scrape/), [deploy/pipeline](../deploy/pipeline/), [deploy/graph](../deploy/graph/) | Compose per layer only |
-| **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` (`scrapev1`) |
-| **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → normalize → `ingest.>` (`ingestv1`) |
+| **Deploy** | [deploy/](../deploy/) | Compose per layer |
+| **Scrape** | [scrape/](../scrape/) | Fetch + ledger → `scrape.>` |
+| **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → NED → `ingest.>` |
 | **Graph** | [graph/](../graph/) | Consume `ingest.>` → Neo4j; API/MCP read |
+| **Wire types** | [pkg/](../pkg/) | `harvest`, `commit`, `natsjet`, `ti/*` |
 
-Layers communicate **only via NATS** and documented JSON schemas. No Go imports across `scrape/`, `pipeline/`, `graph/`.
+Layers communicate **only via NATS** and documented JSON schemas. No Go imports across `scrape/`, `pipeline/`, `graph/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
 
-**Agents:** treat this file as source of truth; entry point [AGENTS.md](../AGENTS.md).
+Layer-specific layout, env vars, and build commands:
 
----
+| Layer | Docs |
+|-------|------|
+| Scrape | [scrape/README.md](../scrape/README.md), [scrape/harvest/README.md](../scrape/harvest/README.md) |
+| Pipeline | [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md) |
+| Graph | [graph/README.md](../graph/README.md), [graph/ingest/README.md](../graph/ingest/README.md) |
 
 ## Three runtime contexts
 
 | Context | Code | NATS | Must not |
 |---------|------|------|----------|
-| **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` | `ingestv1`, Bolt, normalize |
-| **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt |
-| **Graph** | [graph/](../graph/) | Consume `ingest.>` | `scrapev1`, feeds, Vitess |
+| **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` | `commit`, Bolt, normalize |
+| **Pipeline (NED)** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt, MERGE |
+| **Graph** | [graph/](../graph/) | Consume `ingest.>` | `harvest`, feeds, Vitess |
 
-Shared fetch policy (scrape only): [scrape/feeds](../scrape/feeds/), [scrape/ledger](../scrape/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
+Shared fetch policy (scrape only): [scrape/harvest/internal/feeds](../scrape/harvest/internal/feeds/), [scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
+
+Wire contracts: [ingest-contract.md](ingest-contract.md). Go SOT: [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/).
 
 ---
 
@@ -45,49 +54,61 @@ Dependency direction — no cycles:
 
 ```
 cmd/                    → wiring only (flags, env, construct usecase, Run)
-internal/domain/        → entities, value objects, validation (no I/O)
-internal/repository/    → ports (interfaces)
+domain/                 → entities, value objects, validation (no I/O)
+internal/repository/    → ports (interfaces) — where used
 internal/usecase/       → orchestration
 internal/feeds/         → outbound HTTP/GitHub (scrape sources only)
-storage/                → adapters at module root (Neo4j in graph; pub in layer pub/)
+storage/                → adapters at module root (Neo4j in graph; pub in layer connector)
 ```
 
 `internal/*` is private to the Go module. Code another binary must import lives outside `internal/` (e.g. `storage/`, `scrapesource/`).
 
-**PR checklist:** `cmd` has no Cypher; `usecase` has no NATS subject strings; scrape does not import `ingestv1`; graph does not import `scrapev1`; no imports across layers.
+### Domain package paths (by layer)
+
+| Layer | Typical path | Reference |
+|-------|--------------|-----------|
+| Scrape source | `internal/sources/<name>/internal/domain/` | [scrape/.../ti/internal/domain](../scrape/harvest/internal/sources/ti/internal/domain/) |
+| Graph ingest source | `internal/sources/<name>/domain/` | [graph/ingest/.../ti/domain](../graph/ingest/internal/sources/ti/domain/) |
+| Graph serve | `internal/domain/` | [graph/serve/internal/domain](../graph/serve/internal/domain/) |
+| Pipeline | `internal/sources/<name>/domain/` when entities exist | [pipeline/ned/.../vuln/domain](../pipeline/ned/internal/sources/vuln/domain/) |
+
+Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (Neo4j housekeeping is not NED wire dedup).
 
 ---
 
-## Source module template (scrape)
+## PR checklist
 
-Each [scrape/sources/&lt;name&gt;/](../scrape/sources/):
+Before merge, verify all items that apply to your layer:
 
-| Package | Responsibility |
-|---------|----------------|
-| `internal/domain/` | Domain entities for this feed |
-| `internal/feeds/` | HTTP/GitHub fetch |
-| `internal/usecase/` | Orchestration |
-| `internal/scrapepub/` | Map domain → `scrapev1` kinds |
-| `scrapesource/` | `factory.Register` |
-
-## Graph source template
-
-Each [graph/sources/&lt;name&gt;/](../graph/sources/):
-
-| Package | Responsibility |
-|---------|----------------|
-| `internal/domain/` | Graph-side domain types (or contract DTOs only) |
-| `graph/sources/<name>/ingest/` | MERGE handlers from `ingestv1` payload (graph layer) |
-| `storage/neo4j/` | Cypher implementations |
+| Rule | Scrape | Pipeline (NED) | Graph |
+|------|--------|----------------|-------|
+| `cmd/` has no business logic (no HTTP, Cypher, per-source transform) | ✓ | ✓ | ✓ |
+| `usecase` has no NATS subject strings | ✓ | ✓ | ✓ |
+| No `commit` / Bolt in scrape | ✓ | — | — |
+| No `harvest` / feeds / Vitess in graph | — | — | ✓ |
+| No cross-layer Go imports | ✓ | ✓ | ✓ |
+| NVD parse only in pipeline (`pipeline/pkg/nvd`) | harvest publishes raw page only | ✓ enrich in `sources/vuln/enrich` | ingest does not re-parse NVD |
+| Graph ingest does not import `pipeline/pkg/ti/normalize` | — | NED normalizes TI | ✓ |
+| Idempotency keys via `pkg/commit` helpers only | — | ✓ | ✓ |
+| `graph/serve` does not import NATS or scrape | — | — | ✓ |
 
 ---
 
-## Contracts (schema-first)
+## Go style (Google)
 
-- **Source of truth:** [docs/schemas/scrapev1-envelope.json](schemas/scrapev1-envelope.json), [docs/schemas/ingestv1-envelope.json](schemas/ingestv1-envelope.json)
-- **Generated Go:** `scrape/contract/scrapev1`, `pipeline/contract/ingestv1`, `graph/contract/ingestv1` via `scripts/gen-contracts.sh`
-- Do not hand-edit `*.gen.go` files
-- Human contract matrix: [ingest-contract.md](ingest-contract.md)
+Follow the [Google Go Style Guide](https://google.github.io/styleguide/go/guide) and [best practices](https://google.github.io/styleguide/go/best-practices):
+
+| Principle | In this repo |
+|-----------|----------------|
+| **Clarity** | Names and structure explain what and why; comments for rationale, not restating code |
+| **Simplicity** | Prefer standard library over extra abstractions |
+| **Consistency** | `gofmt`, **MixedCaps**, match neighboring files |
+| **Package names** | Short, no `v1` in directory names; version only in `schema_version` |
+| **Avoid repetition** | Do not repeat package name in exported symbols (`harvest.Envelope`, not `harvest.HarvestEnvelope`) |
+| **Errors** | Wrap with `%w`; stable prefixes (`harvest:`, `commit:`); no `panic` in libraries; log once at `usecase` or `cmd` |
+| **Tests** | Table-driven where useful; `testdata/` next to the package; Neo4j integration: build tag `integration` |
+
+`pkg/` layout: one module ([pkg/go.mod](../pkg/go.mod)); scrape-only helpers under [scrape/pkg/](../scrape/pkg/).
 
 ---
 
@@ -107,24 +128,10 @@ Each [graph/sources/&lt;name&gt;/](../graph/sources/):
 
 ---
 
-## Errors
-
-- Wrap with `%w` across package boundaries; log once at `usecase` or `cmd`
-- Do not silently ignore fetch errors
-
----
-
 ## Configuration
 
 - Environment variables with sensible defaults
 - Document new env vars in [docs/threatintel-runtime.md](threatintel-runtime.md)
-
----
-
-## Tests
-
-- Table-driven unit tests for parsing, normalization, idempotency keys, envelope validation
-- Neo4j integration tests: optional, build tag `integration`
 
 ---
 

@@ -13,7 +13,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 ## Core relationships (high value)
 
-- `(:Vulnerability)-[:HAS_CWE]->(:CWE)` — from NVD (`vuln`), parsed in pipeline via [pkg/nvdparse](../pkg/nvdparse/).
+- `(:Vulnerability)-[:HAS_CWE]->(:CWE)` — from NVD (`vuln`), parsed in pipeline via [pipeline/pkg/nvd/parse](../pipeline/pkg/nvd/parse/).
 - `(:Vulnerability)-[:AFFECTS]->(:CPE)` — from NVD configurations (`vuln`).
 - `(:Vulnerability)-[:AFFECTS_PACKAGE]->(:Package)` — from OSV (`sbom`).
 - `(:Vulnerability)-[:HAS_ADVISORY]->(:SecurityAdvisory)` — from GHSA (`sbom`).
@@ -28,12 +28,12 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 - Hard **limits** via environment variables on every high-cardinality feed (`*_MAX_*`).
 - **MERGE** on canonical keys (`id`, `cve`, `Package.id`, `SemgrepRule.id`, …).
-- **NATS JetStream** path: scrape sources publish **`scrapev1`** to **`scrape.>`**; **`pipeline_worker`** normalizes to **`ingestv1`** on **`ingest.>`**; **`ingest_worker`** MERGEs into Neo4j (AppSec via `graph/storage/*`, domains via `graph/sources/*`). Subject matrix: [ingest-contract.md](ingest-contract.md).
+- Ingest path (harvest → commit → Neo4j): [ingest-contract.md](ingest-contract.md).
 - Optional **cleanup** scripts under [`scripts/`](../scripts/) (duplicate relationships, stale isolated IOCs) with `--dry-run` first.
 
 ## IOC freshness (TI)
 
-IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [scrape/sources/ti](../scrape/sources/ti)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
+IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [scrape/harvest/internal/sources/ti](../scrape/harvest/internal/sources/ti)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
 
 ## P3 roadmap (SOC-level rules, not implemented as scrapers yet)
 
@@ -66,6 +66,6 @@ A read-side or batch **enrichment engine** (outside the Neo4j write path) can ma
 
 - [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, NATS, **`ingest_worker`**
 - [scrape/README.md](../scrape/README.md) — scrape sources and env vars
-- [graph/ingest_worker/README.md](../graph/ingest_worker/README.md) — graph consumer
-- [deploy.md](deploy.md) — worker scaling
-- [coding-style.md](coding-style.md) — three-layer layout
+- [graph/ingest/README.md](../graph/ingest/README.md) — graph consumer
+- [deploy/README.md](../deploy/README.md) — compose, scaling, graph packs
+- [coding-style.md](coding-style.md) — architecture and PR checklist
