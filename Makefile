@@ -1,4 +1,4 @@
-.PHONY: test-scrape test-pipeline test-graph graph-pack-export graph-pack-build graph-pack-publish test-smoke
+.PHONY: test-scrape test-pipeline test-graph graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-scrape:
@@ -31,3 +31,9 @@ graph-pack-publish:
 
 test-smoke:
 	./scripts/test/smoke-scrape-e2e.sh
+
+check-graph-version:
+	./scripts/release/check-graph-version-bump.sh
+
+bump-graph-patch:
+	./scripts/release/bump-graph-version.sh patch

@@ -6,6 +6,9 @@ if [[ -z "${VEIL_ROOT:-}" ]]; then
   VEIL_ROOT="$(cd "${_veil_lib_dir}/../.." && pwd)"
 fi
 
+# shellcheck disable=SC1091
+source "${VEIL_ROOT}/versions.env"
+
 COMPOSE="${COMPOSE:-docker compose}"
 VEIL_COMPOSE_FILES="-f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml"
 COMPOSE_FILES="${COMPOSE_FILES:-${VEIL_COMPOSE_FILES}}"
@@ -13,7 +16,7 @@ COMPOSE_FILES="${COMPOSE_FILES:-${VEIL_COMPOSE_FILES}}"
 PACK_BASENAME="veil-graph"
 PACK_SCHEMA="veil.graph-pack/1"
 PACK_SCHEMA_LEGACY="threat-intelligence.graph-pack/1"
-GRAPH_PACK_DEFAULT_VERSION="${GRAPH_PACK_DEFAULT_VERSION:-v0.4.0}"
+GRAPH_PACK_DEFAULT_VERSION="${GRAPH_PACK_DEFAULT_VERSION:-${GRAPH_PACK_VERSION}}"
 
 NEO4J_EXPORT_HOST_DIR="${NEO4J_EXPORT_HOST_DIR:-${VEIL_ROOT}/data/neo4j_user_export}"
 NEO4J_EXPORT_CYPHER="${NEO4J_EXPORT_HOST_DIR}/graph.cypher"

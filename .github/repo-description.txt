@@ -1,0 +1,1 @@
+Veil — Neo4j threat-intelligence graph (CVE/CWE/CPE, TI feeds, Sigma/YARA). Three-layer NATS pipeline: scrape → pipeline → graph. Graph packs via veil-graph-v* releases.
