@@ -26,12 +26,9 @@ flowchart TB
     S["Scrapers: vuln, lola, ds"]
     TI["ti"]
     A["AppSec: sbom, coderules, nuclei"]
-    S -->|"direct: MERGE"| Neo4j
-    S -->|"INGEST_MODE=nats"| NATS
-    TI -->|"direct: MERGE"| Neo4j
-    TI -->|"INGEST_MODE=nats"| NATS
-    A -->|"direct: MERGE"| Neo4j
-    A -->|"INGEST_MODE=nats"| NATS
+    S -->|"publish"| NATS
+    TI -->|"publish"| NATS
+    A -->|"publish"| NATS
     NATS -->|"ingest.>"| Worker -->|"MERGE"| Neo4j
     S -.->|optional *_PROXY_URLS| Proxy
     TI -.->|optional *_PROXY_URLS| Proxy
@@ -76,9 +73,9 @@ Full service matrix, ports, and environment variables: **[docs/threatintel-runti
 | Document | Contents |
 |----------|----------|
 | [AGENTS.md](AGENTS.md) | **Cursor / agents:** mandatory pointer to [docs/coding-style.md](docs/coding-style.md) before code changes |
-| [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose services (including **ingest-worker**), ports, bootstrap, API, MCP, NATS / `INGEST_MODE` |
-| [docs/deploy.md](docs/deploy.md) | **v0.3.0** deploy: nginx LB, scale API / `ingest-worker`, BuildKit cache, GitHub graph-pack release |
-| [scrapers/README.md](scrapers/README.md) | Scraper sources matrix, env vars, `direct` vs `nats`, local `go run` |
+| [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose services (including **ingest-worker**), ports, bootstrap, API, MCP, NATS |
+| [docs/deploy.md](docs/deploy.md) | **v0.3.1** deploy: nginx LB, scale API / `ingest-worker`, BuildKit cache, GitHub graph-pack release |
+| [scrapers/README.md](scrapers/README.md) | Scraper sources matrix, env vars, NATS → worker, local `go run` |
 | [scrapers/ingest-worker/README.md](scrapers/ingest-worker/README.md) | JetStream consumer: env, local run, Compose examples |
 | [docs/coding-style.md](docs/coding-style.md) | Layering, logging, ingest conventions for PRs |
 | [docs/ontology-appsec.md](docs/ontology-appsec.md) | AppSec labels, relationships, roadmap |
@@ -107,7 +104,7 @@ After Neo4j has been filled once, ship a versioned ZIP for air-gapped installs. 
 
 ```bash
 ./scripts/export-graph-cypher.sh
-GRAPH_PACK_VERSION=v0.3.0 ./scripts/build-graph-pack.sh
+GRAPH_PACK_VERSION=v0.3.1 ./scripts/build-graph-pack.sh
 ```
 
 Import: [scripts/import-graph-pack.sh](scripts/import-graph-pack.sh) — details in [scrapers/README.md](scrapers/README.md) (*Graph export and packs*).
@@ -129,6 +126,6 @@ MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS c ORDER BY c DESC;
 
 ## Further reading
 
-- **[docs/coding-style.md](docs/coding-style.md)** — scraper and worker layering, `slog`, optional NATS ingest.
-- **[scrapers/README.md](scrapers/README.md)** — source matrix, `INGEST_MODE`, TI JSONL, roadmap.
+- **[docs/coding-style.md](docs/coding-style.md)** — scraper and worker layering, `slog`, NATS ingest.
+- **[scrapers/README.md](scrapers/README.md)** — source matrix, NATS ingest, TI JSONL, roadmap.
 - **[docs/ingest-contract.md](docs/ingest-contract.md)** — JetStream stream/subjects, kind matrix, ack policy.

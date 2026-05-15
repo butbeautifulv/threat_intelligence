@@ -11,7 +11,6 @@ import (
 	"sbom/internal/cvesource"
 	"sbom/internal/feeds/ghsa"
 	"sbom/internal/feeds/osv"
-	"sbom/internal/repository"
 )
 
 // Options overrides env defaults for one run (from CLI flags).
@@ -20,22 +19,20 @@ type Options struct {
 	MaxCVE      int
 	MaxGHSA     int
 	GHSAMinYear int
-	IngestMode  string
 	NATSURL     string
 	NATSSubject string
 }
 
-// Runner orchestrates SBOM fetch → Neo4j or NATS.
+// Runner orchestrates SBOM fetch → NATS envelopes (ingest-worker → Neo4j).
 type Runner struct {
-	log    *slog.Logger
-	store  repository.SBOMWriter // direct mode only
-	cves   cvesource.Lister      // OSV CVE ids: Neo4j in direct, file/URL in nats
-	pub    *ingestpub.JetStreamPublisher
-	opt    Options
+	log   *slog.Logger
+	cves  cvesource.Lister
+	pub   *ingestpub.JetStreamPublisher
+	opt   Options
 }
 
-func NewRunner(log *slog.Logger, store repository.SBOMWriter, cves cvesource.Lister, pub *ingestpub.JetStreamPublisher, opt Options) *Runner {
-	return &Runner{log: log, store: store, cves: cves, pub: pub, opt: opt}
+func NewRunner(log *slog.Logger, cves cvesource.Lister, pub *ingestpub.JetStreamPublisher, opt Options) *Runner {
+	return &Runner{log: log, cves: cves, pub: pub, opt: opt}
 }
 
 func (r *Runner) sourceEnabled(name string) bool {
@@ -48,17 +45,11 @@ func (r *Runner) sourceEnabled(name string) bool {
 }
 
 func (r *Runner) Run(ctx context.Context) error {
-	if r.opt.IngestMode == "nats" && r.pub == nil {
-		return fmt.Errorf("usecase: INGEST_MODE=nats requires NATS publisher")
+	if r.pub == nil {
+		return fmt.Errorf("usecase: NATS publisher required")
 	}
-	if r.opt.IngestMode == "nats" && r.cves == nil {
-		return fmt.Errorf("usecase: INGEST_MODE=nats requires CVE list source (SBOM_CVE_LIST_FILE or SBOM_CVE_LIST_URL)")
-	}
-	if r.opt.IngestMode != "nats" && r.store == nil {
-		return fmt.Errorf("usecase: INGEST_MODE=direct requires Neo4j store")
-	}
-	if r.opt.IngestMode != "nats" && r.cves == nil {
-		return fmt.Errorf("usecase: direct mode requires CVE list source")
+	if r.cves == nil {
+		return fmt.Errorf("usecase: set SBOM_CVE_LIST_FILE or SBOM_CVE_LIST_URL for CVE list")
 	}
 	if r.sourceEnabled("osv") {
 		if err := r.runOSV(ctx); err != nil {
@@ -93,21 +84,15 @@ func (r *Runner) runOSV(ctx context.Context) error {
 				packs = append(packs, m)
 			}
 		}
-		if r.opt.IngestMode == "nats" {
-			key := "sbom:osv:" + cve
-			env, err := ingestv1.NewEnvelope(ingestv1.SourceSBOM, ingestv1.KindSBOMOSVRecord, key, ingestv1.SBOMOSVPayload{
-				OSVID: id, CVE: cve, Affected: packs,
-			})
-			if err != nil {
-				return err
-			}
-			if err := r.pub.PublishJSON(ctx, r.opt.NATSSubject, env); err != nil {
-				return fmt.Errorf("publish osv %s: %w", cve, err)
-			}
-		} else {
-			if err := r.store.UpsertFromOSVVuln(ctx, id, cve, packs); err != nil {
-				return fmt.Errorf("store osv %s: %w", cve, err)
-			}
+		key := "sbom:osv:" + cve
+		env, err := ingestv1.NewEnvelope(ingestv1.SourceSBOM, ingestv1.KindSBOMOSVRecord, key, ingestv1.SBOMOSVPayload{
+			OSVID: id, CVE: cve, Affected: packs,
+		})
+		if err != nil {
+			return err
+		}
+		if err := r.pub.PublishJSON(ctx, r.opt.NATSSubject, env); err != nil {
+			return fmt.Errorf("publish osv %s: %w", cve, err)
 		}
 		if (i+1)%20 == 0 {
 			r.log.Info("osv progress", slog.Int("done", i+1), slog.Int("total", len(cves)))
@@ -129,18 +114,12 @@ func (r *Runner) runGHSA(ctx context.Context) error {
 			r.log.Warn("ghsa fetch", slog.String("path", p), slog.String("err", err.Error()))
 			continue
 		}
-		if r.opt.IngestMode == "nats" {
-			env, err := ingestv1.NewEnvelope(ingestv1.SourceSBOM, ingestv1.KindSBOMGHSADocument, ingestv1.SBOMGHSAIdempotencyKey(p), ingestv1.SBOMGHSAPathPayload{Path: p, Doc: doc})
-			if err != nil {
-				return err
-			}
-			if err := r.pub.PublishJSON(ctx, r.opt.NATSSubject, env); err != nil {
-				return fmt.Errorf("publish ghsa %s: %w", p, err)
-			}
-		} else {
-			if err := r.store.UpsertGHSA(ctx, doc); err != nil {
-				return fmt.Errorf("store ghsa %s: %w", p, err)
-			}
+		env, err := ingestv1.NewEnvelope(ingestv1.SourceSBOM, ingestv1.KindSBOMGHSADocument, ingestv1.SBOMGHSAIdempotencyKey(p), ingestv1.SBOMGHSAPathPayload{Path: p, Doc: doc})
+		if err != nil {
+			return err
+		}
+		if err := r.pub.PublishJSON(ctx, r.opt.NATSSubject, env); err != nil {
+			return fmt.Errorf("publish ghsa %s: %w", p, err)
 		}
 		if (i+1)%10 == 0 {
 			r.log.Info("ghsa progress", slog.Int("done", i+1), slog.Int("total", len(paths)))

@@ -13,7 +13,7 @@ Keep a clear dependency direction (no cycles):
 1. **`cmd/`** — wiring only: parse flags/env, build `config`, open connections, construct `usecase`, call `Run(ctx)`. No Cypher in `cmd`.
 2. **`internal/domain/`** *(optional)* — plain types, enums, validation rules that do not depend on Neo4j or HTTP clients.
 3. **`internal/repository/`** — **interfaces** (“ports”) that `usecase` calls: `UpsertX`, `ListY`, etc. Implementations live under **`storage/`** at module root.
-4. **`internal/usecase/`** — orchestration: loops, limits, backoff, **`INGEST_MODE`** (`direct` vs `nats`), calling `repository` and optional JetStream publisher.
+4. **`internal/usecase/`** — orchestration: loops, limits, backoff, calling `repository` and JetStream publisher where applicable.
 5. **`internal/feeds/`** (or `internal/connector/`) — outbound HTTP, GitHub API, OSV, zip download: return DTOs or raw bytes / maps for parsers.
 6. **`storage/`** (package at module root, **not** under `internal/`) — Neo4j **implementations** of `repository` so another module (**`ingest-worker`**) can import the same writers without violating `internal` rules.
 
@@ -53,9 +53,8 @@ Keep a clear dependency direction (no cycles):
 ## Ingest pipeline (NATS)
 
 - **Envelope:** [pkg/ingestv1](../pkg/ingestv1/) — versioned JSON (`schema_version`, `source`, `kind`, `idempotency_key`, `payload`).
-- **Producers:** `sbom`, `coderules`, `nuclei`, **`ti`**, **`vuln`**, **`lola`**, and **`ds`** in **`INGEST_MODE=nats`** publish via [scrapers/ingestpub](../scrapers/ingestpub/). For **`sbom`** OSV, set **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** so CVE ids are not read from Neo4j in the scraper process.
-- **Consumer:** [scrapers/ingest-worker](../scrapers/ingest-worker/README.md) applies the same **`storage/neo4j`** writers as **`direct`** mode. Subject defaults and kind matrix: [docs/ingest-contract.md](ingest-contract.md).
-- Default **`INGEST_MODE=direct`** keeps `docker compose run sbom` usable without NATS until you opt in.
+- **Producers:** `sbom`, `coderules`, `nuclei`, **`ti`**, **`vuln`**, **`lola`**, and **`ds`** publish via [scrapers/ingestpub](../scrapers/ingestpub/). For **`sbom`** OSV, set **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for CVE ids.
+- **Consumer:** [scrapers/ingest-worker](../scrapers/ingest-worker/README.md) applies the same **`storage/neo4j`** writers as the historical in-process scraper path. Subject defaults and kind matrix: [docs/ingest-contract.md](ingest-contract.md).
 
 ---
 

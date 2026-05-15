@@ -41,7 +41,7 @@ func NewRunner(repo repository.GraphRepository, logger *slog.Logger) *Runner {
 			rt = proxypool.NewTransport(base, p, only)
 			logger.Info("ti proxy pool enabled", slog.Int("count", len(proxypool.SplitEnvList(env))))
 		} else {
-			logger.Warn("ti proxy pool invalid; running direct", slog.String("err", err.Error()))
+			logger.Warn("ti proxy pool invalid; running without proxy", slog.String("err", err.Error()))
 		}
 	}
 	return &Runner{

@@ -1,6 +1,6 @@
 # Scrapers (ingest → Neo4j)
 
-Go binaries that pull public data and write into the shared Neo4j database. Images are built from [docker/](../docker/) with the **repository root** as build context.
+Go binaries that pull public data and publish **`ingestv1`** envelopes to **NATS**; [ingest-worker](ingest-worker/README.md) consumes and writes **Neo4j**. Images are built from [docker/](../docker/) with the **repository root** as build context.
 
 **Before a PR:** read [../docs/coding-style.md](../docs/coding-style.md) (layers, `slog`, NATS ingest).
 
@@ -17,7 +17,7 @@ Go binaries that pull public data and write into the shared Neo4j database. Imag
 | [sbom/](sbom/) | `sbom` | OSV per-CVE package ranges, GHSA JSON → `Package`, `SecurityAdvisory`, links to `Vulnerability` |
 | [coderules/](coderules/) | `coderules` | MITRE CWE catalog (zip), Semgrep rules, sample CodeQL → `CWE`, `SemgrepRule`, `CodeQLRule` |
 | [nuclei/](nuclei/) | `nuclei` (image binary `nuclei-scrape`) | [nuclei-templates](https://github.com/projectdiscovery/nuclei-templates) CVE YAML subset → `NucleiTemplate` |
-| [ingest-worker/](ingest-worker/README.md) | **`ingest-worker`** | **Consumer:** JetStream pull on `ingest.>` → Neo4j (same writers as direct mode for AppSec, TI, vuln, lola, ds). See dedicated [ingest-worker README](ingest-worker/README.md). |
+| [ingest-worker/](ingest-worker/README.md) | **`ingest-worker`** | **Consumer:** JetStream pull on `ingest.>` → Neo4j (same MERGE writers as scraper storage packages). See dedicated [ingest-worker README](ingest-worker/README.md). |
 | [ingestpub/](ingestpub/) | *(library)* | Shared JetStream publisher + stream bootstrap (`INGEST` / `ingest.>`). |
 | [proxybroker/](proxybroker/) | `proxybroker` | HTTP proxy pool for scrapers |
 | [cue_schemas/](cue_schemas/) | — | Cue schemas (`merge.cue` imports `schema/ds.cue`) |
@@ -26,7 +26,7 @@ Go binaries that pull public data and write into the shared Neo4j database. Imag
 
 ## ingest-worker (queue → Neo4j)
 
-**`ingest-worker`** is a first-class scrape-profile service (see [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker)). It does **not** fetch from the public internet; it **consumes** envelopes produced by scrapers when **`INGEST_MODE=nats`** (AppSec, TI, vuln, lola, ds).
+**`ingest-worker`** is a first-class scrape-profile service (see [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker)). It does **not** fetch from the public internet; it **consumes** envelopes produced by scrapers (AppSec, TI, vuln, lola, ds).
 
 | Topic | Doc |
 |--------|-----|
@@ -62,7 +62,7 @@ Go binaries that pull public data and write into the shared Neo4j database. Imag
 | Feodo Tracker IP blocklist | `ti` | Implemented | Default: `https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt` | `TI_FEODO_MAX`, optional `FEODO_BLOCKLIST_URL` |
 | OpenPhish URL feed | `ti` | Implemented | Default: `https://openphish.com/feed.txt` | `TI_OPENPHISH_MAX`, optional `OPENPHISH_FEED_URL` |
 | TI JSONL (local / mounted file) | `ti` | Implemented | — | `--input path.jsonl` (compose mounts [example.jsonl](ti/example.jsonl) as `/app/example.jsonl`) |
-| OSV API (per CVE) | `sbom` | Implemented | `https://api.osv.dev/v1/vulns/{CVE}` | `-sources osv`, `-max-cves` / `SBOM_MAX_CVES`; links `Vulnerability`→`Package` when CVE exists in graph |
+| OSV API (per CVE) | `sbom` | Implemented | `https://api.osv.dev/v1/vulns/{CVE}` | `-sources osv`, `-max-cves` / `SBOM_MAX_CVES`; **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for CVE ids |
 | GitHub Advisory Database (raw JSON) | `sbom` | Implemented | `https://raw.githubusercontent.com/github/advisory-database/main/...` | `-sources ghsa`, `GITHUB_TOKEN` (recommended), `SBOM_MAX_GHSA`, `SBOM_GHSA_MIN_YEAR` |
 | MITRE CWE catalog (zip) | `coderules` | Implemented | `https://cwe.mitre.org/data/xml/cwec_latest.xml.zip` | `CODERULES_MAX_CWE`; enriches `CWE` (`name`, `description`, `status` from MITRE) |
 | Semgrep rules (GitHub API) | `coderules` | Implemented | `https://api.github.com/repos/semgrep/semgrep-rules/contents/...` | `CODERULES_MAX_SEMGREP`; optional `MAPS_TO_CWE` when rule metadata lists CWEs |
@@ -73,28 +73,21 @@ Go binaries that pull public data and write into the shared Neo4j database. Imag
 
 ---
 
-## Optional NATS queue (`INGEST_MODE`)
+## NATS producers (JetStream)
 
 Primary doc for the consumer: **[ingest-worker/README.md](ingest-worker/README.md)** and [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#ingest-worker).
 
-For **`sbom`**, **`coderules`**, **`nuclei`**, **`ti`**, **`vuln`**, **`lola`**, and **`ds`**, set **`INGEST_MODE=nats`** to publish versioned JSON envelopes to NATS JetStream instead of writing Neo4j from the scraper process. The scrape profile starts **`nats`** and **`ingest-worker`**; run the worker whenever producers use `nats` mode.
-
-To drop **`NEO4J_*`** from producer containers in Compose while keeping **`ingest-worker`** on Bolt, add **`docker-compose.scrape-nats.yml`** (see [../docs/threatintel-runtime.md](../docs/threatintel-runtime.md#nats-only-producers-optional-override)):
-
-```bash
-INGEST_MODE=nats docker compose -f docker-compose.yml -f docker-compose.scrape-nats.yml --profile scrape up --build -d
-```
+Scrapers publish versioned JSON envelopes to NATS JetStream; the scrape profile starts **`nats`** and **`ingest-worker`**. **`sbom`** needs **`SBOM_CVE_LIST_FILE`** or **`SBOM_CVE_LIST_URL`** for OSV CVE ids (not read from Neo4j in the scraper).
 
 | Variable | Default | Meaning |
 |----------|---------|--------|
-| `INGEST_MODE` | `direct` | `direct` = write Neo4j from the scraper; `nats` = publish only (`coderules` / `nuclei` / **`sbom`** / **`ti`** / **`vuln`** / **`lola`** / **`ds`** skip Neo4j client when `nats`) |
 | `NATS_URL` | `nats://localhost:4222` | Client URL; in Compose use `nats://nats:4222` |
 | `SBOM_NATS_SUBJECT` | `ingest.appsec.sbom` | Publish subject for `sbom` |
-| `SBOM_CVE_LIST_FILE` | *(Compose: `/fixtures/cve_list_seed.txt` in image)* | One `CVE-…` id per line (`#` comments allowed). Required for **`sbom`** OSV when `INGEST_MODE=nats` (replaces Neo4j `ListCVEs`). |
+| `SBOM_CVE_LIST_FILE` | *(Compose: `/fixtures/cve_list_seed.txt` in image)* | One `CVE-…` id per line (`#` comments allowed). Required for **`sbom`** OSV. |
 | `SBOM_CVE_LIST_URL` | empty | Alternative: HTTP(S) document with the same line format (used if **`SBOM_CVE_LIST_FILE`** is unset). |
 | `CODERULES_NATS_SUBJECT` | `ingest.appsec.coderules` | Publish subject for `coderules` |
 | `NUCLEI_NATS_SUBJECT` | `ingest.appsec.nuclei` | Publish subject for `nuclei` |
-| `TI_NATS_SUBJECT` | `ingest.ti.events` | Publish subject for **`ti`** (`--feeds` / `--input` in `nats` mode) |
+| `TI_NATS_SUBJECT` | `ingest.ti.events` | Publish subject for **`ti`** (`--feeds` / `--input`) |
 | `VULN_NATS_SUBJECT` | `ingest.vuln.events` | Publish subject for **`vuln`** |
 | `LOLA_NATS_SUBJECT` | `ingest.lola.events` | Publish subject for **`lola`** |
 | `DS_NATS_SUBJECT` | `ingest.ds.events` | Publish subject for **`ds`** |

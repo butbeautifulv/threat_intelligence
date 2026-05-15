@@ -11,37 +11,29 @@ import (
 
 	gh "nuclei/internal/feeds/github"
 	"nuclei/internal/parse"
-	"nuclei/internal/repository"
-
-	neo4jstore "nuclei/storage/neo4j"
 )
 
 // Options for one run (CLI overrides env).
 type Options struct {
 	MaxTemplates         int
 	YearsCSV             string
-	IngestMode           string
 	NATSURL, NATSSubject string
 }
 
-// Runner runs nuclei template ingest (direct Neo4j or NATS publish).
+// Runner runs nuclei template ingest via NATS (ingest-worker → Neo4j).
 type Runner struct {
-	log   *slog.Logger
-	store repository.NucleiWriter
-	pub   *ingestpub.JetStreamPublisher
-	opt   Options
+	log *slog.Logger
+	pub *ingestpub.JetStreamPublisher
+	opt Options
 }
 
-func NewRunner(log *slog.Logger, store repository.NucleiWriter, pub *ingestpub.JetStreamPublisher, opt Options) *Runner {
-	return &Runner{log: log, store: store, pub: pub, opt: opt}
+func NewRunner(log *slog.Logger, pub *ingestpub.JetStreamPublisher, opt Options) *Runner {
+	return &Runner{log: log, pub: pub, opt: opt}
 }
 
 func (r *Runner) Run(ctx context.Context) error {
-	if r.opt.IngestMode == "nats" && r.pub == nil {
-		return fmt.Errorf("nuclei: INGEST_MODE=nats requires NATS publisher")
-	}
-	if r.opt.IngestMode != "nats" && r.store == nil {
-		return fmt.Errorf("nuclei: direct mode requires Neo4j store")
+	if r.pub == nil {
+		return fmt.Errorf("nuclei: NATS publisher required")
 	}
 
 	g := gh.NewClient()
@@ -76,23 +68,15 @@ func (r *Runner) Run(ctx context.Context) error {
 			if err != nil || p.TemplateID == "" {
 				continue
 			}
-			id := neo4jstore.StableID("nuclei", it.Path)
-			md := fmt.Sprintf("# %s\n\n**id:** `%s`  \n**path:** `%s`\n\n```yaml\n%s\n```\n", p.Name, p.TemplateID, it.Path, string(raw))
-			if r.opt.IngestMode == "nats" {
-				env, err := ingestv1.NewEnvelope(ingestv1.SourceNuclei, ingestv1.KindNucleiTemplate, ingestv1.NucleiTemplateIdempotencyKey(it.Path), ingestv1.NucleiTemplatePayload{
-					Path: it.Path, TemplateID: p.TemplateID, Name: p.Name, Severity: p.Severity, TagsJSON: p.TagsJSON,
-					CVE: p.CVE, CWE: p.CWE, RawYAML: string(raw),
-				})
-				if err != nil {
-					return err
-				}
-				if err := r.pub.PublishJSON(ctx, r.opt.NATSSubject, env); err != nil {
-					return err
-				}
-			} else {
-				if err := r.store.UpsertNucleiTemplate(ctx, id, p.TemplateID, it.Path, p.Name, p.Severity, p.TagsJSON, p.CVE, p.CWE, md); err != nil {
-					return err
-				}
+			env, err := ingestv1.NewEnvelope(ingestv1.SourceNuclei, ingestv1.KindNucleiTemplate, ingestv1.NucleiTemplateIdempotencyKey(it.Path), ingestv1.NucleiTemplatePayload{
+				Path: it.Path, TemplateID: p.TemplateID, Name: p.Name, Severity: p.Severity, TagsJSON: p.TagsJSON,
+				CVE: p.CVE, CWE: p.CWE, RawYAML: string(raw),
+			})
+			if err != nil {
+				return err
+			}
+			if err := r.pub.PublishJSON(ctx, r.opt.NATSSubject, env); err != nil {
+				return err
 			}
 			n++
 		}

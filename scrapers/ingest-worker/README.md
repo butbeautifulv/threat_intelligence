@@ -1,6 +1,6 @@
 # ingest-worker
 
-Long-running **JetStream pull consumer** that reads **`ingestv1`** envelopes from NATS and writes to **Neo4j** using the same semantics as **`INGEST_MODE=direct`** scrapers:
+Long-running **JetStream pull consumer** that reads **`ingestv1`** envelopes from NATS and writes to **Neo4j** using the same semantics as the scrapers’ **`storage/neo4j`** packages:
 
 - **AppSec:** `sbom`, `coderules`, `nuclei` (subjects `ingest.appsec.*`)
 - **TI:** `ti` feeds / JSONL (`ingest.ti.*` or default `ingest.ti.events`)
@@ -8,7 +8,7 @@ Long-running **JetStream pull consumer** that reads **`ingestv1`** envelopes fro
 
 The binary follows the same lifecycle pattern as other long-running scrapers: **`golang.org/x/sync/errgroup`** with a context cancelled on **SIGINT/SIGTERM** (see [docs/coding-style.md](../../docs/coding-style.md)). Envelope **`source`** must match **`kind`**; unknown kinds are logged and **acked** so newer producers do not block the consumer (see [docs/ingest-contract.md](../../docs/ingest-contract.md) for the full matrix and ack vs NAK rules).
 
-Use this service when scrapers run with **`INGEST_MODE=nats`** (publish-only). Without the worker, messages accumulate in the stream until a consumer drains them.
+Use this service with the **`scrape`** profile whenever producers publish to JetStream. Without the worker, messages accumulate in the stream until a consumer drains them.
 
 ## Related code
 
@@ -45,7 +45,7 @@ If you previously used **`NATS_SUBSCRIBE_SUBJECT=ingest.appsec.>`**, switch to *
 
 ## Run locally
 
-Requires Neo4j, NATS with JetStream, and optionally messages from a scraper in `nats` mode:
+Requires Neo4j, NATS with JetStream, and messages from a scraper:
 
 ```bash
 cd scrapers/ingest-worker
@@ -60,4 +60,4 @@ From repo root with `go.work` synced.
 docker compose --profile scrape up --build -d neo4j nats ingest-worker sbom
 ```
 
-Add **`ti`**, **`vuln`**, **`lola`**, or **`ds`** when those services use **`INGEST_MODE=nats`** for queue-backed ingest.
+Add **`ti`**, **`vuln`**, **`lola`**, or **`ds`** alongside **`ingest-worker`** for queue-backed ingest of those domains.

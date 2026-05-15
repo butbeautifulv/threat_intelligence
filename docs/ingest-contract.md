@@ -44,7 +44,7 @@ Subjects must remain under `ingest.>` so they match stream **`INGEST`**.
 
 ## Kind matrix (producer → worker → storage)
 
-Worker entry: [scrapers/ingest-worker/cmd/main.go](../scrapers/ingest-worker/cmd/main.go). Storage packages are the same MERGE logic as `INGEST_MODE=direct`.
+Worker entry: [scrapers/ingest-worker/cmd/main.go](../scrapers/ingest-worker/cmd/main.go). Storage packages are the same MERGE logic as the scrapers’ Neo4j writers used by **`ingest-worker`**.
 
 | `source` | `kind` | Worker path | Neo4j / graph write package |
 |----------|--------|-------------|----------------------------|
@@ -63,6 +63,6 @@ Literal kind strings are the `ingestv1.Kind*` constants in [pkg/ingestv1/envelop
 
 ## Related docs
 
-- [docs/threatintel-runtime.md](threatintel-runtime.md) — ports, Compose, `INGEST_MODE`, NATS-only override file.
+- [docs/threatintel-runtime.md](threatintel-runtime.md) — ports, Compose, NATS, graph-bootstrap.
 - [scrapers/README.md](../scrapers/README.md) — per-scraper env and feeds.
 - [scrapers/ingest-worker/README.md](../scrapers/ingest-worker/README.md) — consumer env and local run.

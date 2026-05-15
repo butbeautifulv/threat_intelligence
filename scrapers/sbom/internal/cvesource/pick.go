@@ -15,5 +15,5 @@ func New(filePath, httpURL string) (Lister, error) {
 	if u != "" {
 		return FromHTTP{URL: u}, nil
 	}
-	return nil, fmt.Errorf("cvesource: set SBOM_CVE_LIST_FILE or SBOM_CVE_LIST_URL for INGEST_MODE=nats")
+	return nil, fmt.Errorf("cvesource: set SBOM_CVE_LIST_FILE or SBOM_CVE_LIST_URL")
 }

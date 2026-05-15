@@ -37,7 +37,7 @@ func NewIngestor(store graphStore, logger *slog.Logger, cacheDir string) *Ingest
 			rt = proxypool.NewTransport(base, p, only)
 			logger.Info("ds proxy pool enabled", slog.Int("count", len(proxypool.SplitEnvList(env))))
 		} else {
-			logger.Warn("ds proxy pool invalid; running direct", slog.String("err", err.Error()))
+			logger.Warn("ds proxy pool invalid; running without proxy", slog.String("err", err.Error()))
 		}
 	}
 	return &Ingestor{store: store, logger: logger, http: &http.Client{Timeout: 120 * time.Second, Transport: rt}, cache: cacheDir}

@@ -15,7 +15,7 @@ import (
 	"ti/internal/repository"
 )
 
-// Publisher publishes TI graph operations as JetStream messages (INGEST_MODE=nats).
+// Publisher publishes TI graph operations as JetStream messages.
 type Publisher struct {
 	pub     *ingestpub.JetStreamPublisher
 	subject string
