@@ -9,9 +9,9 @@ import (
 
 	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/connector/neo4j"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/lola/domain"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/lola/repository"
+	"github.com/butbeautifulv/veil/graph/connector/neo4j"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/domain"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/repository"
 )
 
 type Store struct {

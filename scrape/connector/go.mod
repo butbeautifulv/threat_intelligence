@@ -1,9 +1,9 @@
-module github.com/butbeautifulv/threat_intelligence/scrape/connector
+module github.com/butbeautifulv/veil/scrape/connector
 
 go 1.25.0
 
 require (
-	github.com/butbeautifulv/threat_intelligence/pkg v0.0.0
+	github.com/butbeautifulv/veil/pkg v0.0.0
 	github.com/nats-io/nats.go v1.48.0
 )
 
@@ -15,4 +15,4 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 )
 
-replace github.com/butbeautifulv/threat_intelligence/pkg => ../../pkg
+replace github.com/butbeautifulv/veil/pkg => ../../pkg

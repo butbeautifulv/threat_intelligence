@@ -14,12 +14,12 @@ import (
 	"strings"
 	"time"
 
-	scrapefeeds "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	scrapefeeds "github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/domain"
-	"github.com/butbeautifulv/threat_intelligence/scrape/pkg/proxypool"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/repository"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/domain"
+	"github.com/butbeautifulv/veil/scrape/pkg/proxypool"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/repository"
 )
 
 const kevURL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"

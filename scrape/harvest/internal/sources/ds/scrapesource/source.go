@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/factory"
-	dsscrapepub "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ds/internal/scrapepub"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ds/internal/usecase"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/factory"
+	dsscrapepub "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ds/internal/scrapepub"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ds/internal/usecase"
 )
 
 func init() {

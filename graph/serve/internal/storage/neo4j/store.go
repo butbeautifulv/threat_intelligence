@@ -5,7 +5,7 @@ import (
 
 	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 
-	graphneo4j "github.com/butbeautifulv/threat_intelligence/graph/connector/neo4j"
+	graphneo4j "github.com/butbeautifulv/veil/graph/connector/neo4j"
 )
 
 type Config = graphneo4j.Config

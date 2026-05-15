@@ -51,7 +51,7 @@ docker compose up --build -d
 | Neo4j Browser | http://localhost:7474 (`neo4j` / `neo4jpassword`) |
 | HTTP API | http://localhost:8090 |
 
-`graph-bootstrap` imports the default [graph pack v0.3.2](https://github.com/butbeautifulv/threat_intelligence/releases/tag/v0.3.2-graph-pack) unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
+`graph-bootstrap` imports the default [graph pack v0.3.2](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
 
 ```bash
 curl -sS http://localhost:8090/health

@@ -1,4 +1,4 @@
-module github.com/butbeautifulv/threat_intelligence/pkg
+module github.com/butbeautifulv/veil/pkg
 
 go 1.25.0
 

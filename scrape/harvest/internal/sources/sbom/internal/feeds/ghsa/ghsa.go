@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 )
 
 const rawBase = "https://raw.githubusercontent.com/github/advisory-database/main"

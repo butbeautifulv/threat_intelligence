@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
+	"github.com/butbeautifulv/veil/pkg/harvest"
 )
 
 // DomainPublisher publishes harvest envelopes for one domain source and subject.

@@ -4,8 +4,8 @@ package scrapepub
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	connats "github.com/butbeautifulv/threat_intelligence/scrape/connector/nats"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 )
 
 type rawPublisher interface {

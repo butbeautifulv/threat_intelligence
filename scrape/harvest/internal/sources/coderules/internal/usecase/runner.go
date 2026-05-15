@@ -9,11 +9,11 @@ import (
 
 	"net/http"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/pkg/harvest"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/coderules/internal/feeds/cwe"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/coderules/internal/feeds/cwe"
 )
 
 // Options for one run (CLI overrides env).

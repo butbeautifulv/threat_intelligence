@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 )
 
 // FetchResult is the outcome of FetchIfDue.

@@ -9,8 +9,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
 	"golang.org/x/net/html"
 )
@@ -30,7 +30,7 @@ func (u *ScraperUsecase) IngestLOFTS(ctx context.Context) error {
 			if err != nil {
 				return nil, err
 			}
-			req.Header.Set("User-Agent", "threat_intelligence-lola/1.0")
+			req.Header.Set("User-Agent", "veil-lola/1.0")
 			return req, nil
 		})
 		if err != nil {
@@ -57,7 +57,7 @@ func (u *ScraperUsecase) IngestLOFTS(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		req.Header.Set("User-Agent", "threat_intelligence-lola/1.0")
+		req.Header.Set("User-Agent", "veil-lola/1.0")
 		resp, err := u.http.Do(req)
 		if err != nil {
 			if skip {

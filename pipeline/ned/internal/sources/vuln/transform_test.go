@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/vuln/domain"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln/domain"
 )
 
 func TestTransform_NVDPage_CWEAndCPE(t *testing.T) {

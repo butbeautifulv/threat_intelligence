@@ -4,9 +4,9 @@ package scrapesource
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/factory"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/nuclei/internal/config"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/nuclei/internal/usecase"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/factory"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/nuclei/internal/config"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/nuclei/internal/usecase"
 )
 
 func init() {

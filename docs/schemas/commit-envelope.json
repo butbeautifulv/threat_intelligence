@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/butbeautifulv/threat_intelligence/docs/schemas/ingestv1-envelope.json",
+  "$id": "https://github.com/butbeautifulv/veil/docs/schemas/ingestv1-envelope.json",
   "title": "ingestv1.Envelope",
   "description": "Normalized ingest envelope published to NATS ingest.> subjects. Source of truth for pipeline → graph boundary.",
   "type": "object",

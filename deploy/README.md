@@ -85,7 +85,7 @@ Root [docker-compose.yml](../docker-compose.yml) includes only the graph layer.
 
 | Release | Notes |
 |---------|--------|
-| [v0.3.2-graph-pack](https://github.com/butbeautifulv/threat_intelligence/releases/tag/v0.3.2-graph-pack) | Fast-rich partial crawl; **without** pipeline CWE/CPE fix |
+| [v0.3.2-graph-pack](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) | Fast-rich partial crawl; **without** pipeline CWE/CPE fix |
 | Current `main` | Use [pipeline/pkg/nvd/parse](../pipeline/pkg/nvd/parse/) + rebuild for full `HAS_CWE` / `AFFECTS` |
 
 Build:

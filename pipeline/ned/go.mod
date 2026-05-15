@@ -1,11 +1,11 @@
-module github.com/butbeautifulv/threat_intelligence/pipeline/ned
+module github.com/butbeautifulv/veil/pipeline/ned
 
 go 1.25.0
 
 require (
-	github.com/butbeautifulv/threat_intelligence/pipeline/connector v0.0.0
-	github.com/butbeautifulv/threat_intelligence/pipeline/pkg v0.0.0
-	github.com/butbeautifulv/threat_intelligence/pkg v0.0.0
+	github.com/butbeautifulv/veil/pipeline/connector v0.0.0
+	github.com/butbeautifulv/veil/pipeline/pkg v0.0.0
+	github.com/butbeautifulv/veil/pkg v0.0.0
 	github.com/nats-io/nats.go v1.48.0
 	golang.org/x/sync v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -19,8 +19,8 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 )
 
-replace github.com/butbeautifulv/threat_intelligence/pipeline/connector => ../connector
+replace github.com/butbeautifulv/veil/pipeline/connector => ../connector
 
-replace github.com/butbeautifulv/threat_intelligence/pipeline/pkg => ../pkg
+replace github.com/butbeautifulv/veil/pipeline/pkg => ../pkg
 
-replace github.com/butbeautifulv/threat_intelligence/pkg => ../../pkg
+replace github.com/butbeautifulv/veil/pkg => ../../pkg

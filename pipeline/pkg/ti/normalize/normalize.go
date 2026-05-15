@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/ti/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 )
 
 var (

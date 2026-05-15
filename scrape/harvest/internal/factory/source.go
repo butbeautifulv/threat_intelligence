@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 )
 
 // FetchPolicy aliases ledger policies for sources.

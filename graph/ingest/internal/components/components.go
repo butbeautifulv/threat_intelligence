@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"log/slog"
 
-	coderulesneo "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/appsec/coderules"
-	nucleineo "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/appsec/nuclei"
-	sbomneo "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/appsec/sbom"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/config"
-	dsingest "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ds/envelope"
-	lolaingest "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/lola/envelope"
-	tiingest "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/envelope"
-	vulningest "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/vuln/envelope"
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	coderulesneo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/coderules"
+	nucleineo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/nuclei"
+	sbomneo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/sbom"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/config"
+	dsingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/ds/envelope"
+	lolaingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/envelope"
+	tiingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/envelope"
+	vulningest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/envelope"
+	"github.com/butbeautifulv/veil/pkg/commit"
 )
 
 // Runtime holds Neo4j writers and domain appliers for the ingest worker.

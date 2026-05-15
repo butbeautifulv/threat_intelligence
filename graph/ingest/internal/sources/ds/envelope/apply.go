@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/commit"
 
-	neo4jstore "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ds/storage"
+	neo4jstore "github.com/butbeautifulv/veil/graph/ingest/internal/sources/ds/storage"
 )
 
 // ApplyEnvelope applies ds kinds to Neo4j.

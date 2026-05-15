@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/commit"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/domain"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/jsonl"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/repository"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/usecase"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/domain"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/jsonl"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/repository"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/usecase"
 )
 
 // ApplyEnvelope applies a TI envelope after Validate + source checks.

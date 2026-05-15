@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/butbeautifulv/threat_intelligence/pipeline/pkg/nvd/parse"
+	"github.com/butbeautifulv/veil/pipeline/pkg/nvd/parse"
 )
 
 func TestParsePage_CWEAndCPE(t *testing.T) {

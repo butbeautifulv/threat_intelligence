@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/harvest"
 	"gopkg.in/yaml.v3"
 )
 

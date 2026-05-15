@@ -3,7 +3,7 @@ package nats
 import (
 	"testing"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
+	"github.com/butbeautifulv/veil/pkg/harvest"
 )
 
 func TestNewDomainPublisher_trimsSubject(t *testing.T) {

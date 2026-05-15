@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/domain"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/domain"
 )
 
 // iocFromThreatFoxExport maps ThreatFox export / API row fields to a domain IOC (normalize in pipeline).

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/harvest"
 )
 
 // Transform maps harvest lola events to commit envelopes.

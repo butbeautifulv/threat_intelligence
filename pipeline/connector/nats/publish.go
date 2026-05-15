@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/natsjet"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/natsjet"
 	natsgo "github.com/nats-io/nats.go"
 )
 

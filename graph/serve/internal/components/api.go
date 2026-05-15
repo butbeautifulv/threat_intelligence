@@ -3,9 +3,9 @@ package components
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/config"
-	neo4jstore "github.com/butbeautifulv/threat_intelligence/graph/serve/internal/storage/neo4j"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/usecase"
+	"github.com/butbeautifulv/veil/graph/serve/internal/config"
+	neo4jstore "github.com/butbeautifulv/veil/graph/serve/internal/storage/neo4j"
+	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 )
 
 type APIComponents struct {

@@ -6,15 +6,15 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/factory"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/factory"
 
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/coderules/scrapesource"
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ds/scrapesource"
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/lola/scrapesource"
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/nuclei/scrapesource"
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/sbom/scrapesource"
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/scrapesource"
-	_ "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/coderules/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ds/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/nuclei/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/sbom/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/scrapesource"
+	_ "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/scrapesource"
 )
 
 func main() {

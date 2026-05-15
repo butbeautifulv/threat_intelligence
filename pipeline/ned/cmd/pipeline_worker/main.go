@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/components"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/components"
 )
 
 func main() {

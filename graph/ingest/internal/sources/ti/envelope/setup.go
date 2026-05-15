@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/commit"
 
-	neo4jstore "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/storage"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/usecase"
+	neo4jstore "github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/storage"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/usecase"
 )
 
 // NeoConfig is Bolt credentials for the TI Neo4j writer.

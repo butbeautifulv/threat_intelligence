@@ -1,4 +1,4 @@
-module github.com/butbeautifulv/threat_intelligence/graph/connector
+module github.com/butbeautifulv/veil/graph/connector
 
 go 1.25.0
 

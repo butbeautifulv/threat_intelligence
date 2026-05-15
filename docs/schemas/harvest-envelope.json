@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/butbeautifulv/threat_intelligence/docs/schemas/scrapev1-envelope.json",
+  "$id": "https://github.com/butbeautifulv/veil/docs/schemas/scrapev1-envelope.json",
   "title": "scrapev1.Envelope",
   "description": "Raw scrape envelope published to NATS scrape.> subjects. Source of truth for scrape → pipeline boundary.",
   "type": "object",

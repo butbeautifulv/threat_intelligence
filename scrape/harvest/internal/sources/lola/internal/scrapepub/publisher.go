@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	connats "github.com/butbeautifulv/threat_intelligence/scrape/connector/nats"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/lola/internal/domain"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/lola/internal/repository"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/domain"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/repository"
 )
 
 type rawPublisher interface {

@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/factory"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/feeds"
-	tiscrapepub "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/scrapepub"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/factory"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/feeds"
+	tiscrapepub "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/scrapepub"
 )
 
 func init() {

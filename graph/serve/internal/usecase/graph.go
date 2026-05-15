@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/connector/query"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/domain"
+	"github.com/butbeautifulv/veil/graph/connector/query"
+	"github.com/butbeautifulv/veil/graph/serve/internal/domain"
 )
 
 // GraphUsecase exposes read-only graph operations for the HTTP API.

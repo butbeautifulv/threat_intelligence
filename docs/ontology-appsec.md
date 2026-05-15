@@ -1,4 +1,4 @@
-# AppSec graph ontology (threat_intelligence)
+# AppSec graph ontology (Veil)
 
 This document summarizes **normalized node labels**, **relationships** introduced by scrape sources, and the **roadmap** for DAST / SOC classes. It complements live category metadata from the graph API layer.
 

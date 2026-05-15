@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"runtime"
 
-	gq "github.com/butbeautifulv/threat_intelligence/graph/connector/query"
+	gq "github.com/butbeautifulv/veil/graph/connector/query"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/usecase"
+	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 )
 
 type Server struct {

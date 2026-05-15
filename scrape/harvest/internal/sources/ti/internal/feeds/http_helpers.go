@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	scrapefeeds "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	scrapefeeds "github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 )
 
-const tiUserAgent = "threat_intelligence-ti/1.0"
+const tiUserAgent = "veil-ti/1.0"
 
 // preNetworkDelay sleeps the configured base delay plus a small random jitter (reduces thundering herd).
 func (r *Runner) preNetworkDelay() {

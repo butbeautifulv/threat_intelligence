@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	tidomain "github.com/butbeautifulv/threat_intelligence/pkg/ti/domain"
-	tinormalize "github.com/butbeautifulv/threat_intelligence/pipeline/pkg/ti/normalize"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	tidomain "github.com/butbeautifulv/veil/pkg/ti/domain"
+	tinormalize "github.com/butbeautifulv/veil/pipeline/pkg/ti/normalize"
 )
 
 // Transform maps harvest TI events to commit envelopes.

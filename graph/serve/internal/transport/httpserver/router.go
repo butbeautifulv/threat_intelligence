@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/domain"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/usecase"
+	"github.com/butbeautifulv/veil/graph/serve/internal/domain"
+	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 )
 
 func Register(mux *http.ServeMux, uc *usecase.GraphUsecase) {
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "service": "threat-intel-api"})
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "service": "veil-api"})
 	})
 	mux.HandleFunc("GET /v1/categories", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"categories": uc.ListCategoryMeta()})

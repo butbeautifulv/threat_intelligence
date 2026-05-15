@@ -8,10 +8,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/components"
-	coderulesneo "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/appsec/coderules"
-	nucleineo "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/appsec/nuclei"
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/components"
+	coderulesneo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/coderules"
+	nucleineo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/nuclei"
+	"github.com/butbeautifulv/veil/pkg/commit"
 	"github.com/nats-io/nats.go"
 )
 

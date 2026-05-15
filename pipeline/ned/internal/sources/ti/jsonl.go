@@ -1,6 +1,6 @@
 package ti
 
-import tidomain "github.com/butbeautifulv/threat_intelligence/pkg/ti/domain"
+import tidomain "github.com/butbeautifulv/veil/pkg/ti/domain"
 
 // JSONLEnvelope is a single TI JSONL record (ioc, campaign, cluster, actor, or report).
 type JSONLEnvelope struct {

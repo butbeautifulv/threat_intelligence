@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/pkg/proxypool"
+	"github.com/butbeautifulv/veil/scrape/pkg/proxypool"
 )
 
 type Ingestor struct {

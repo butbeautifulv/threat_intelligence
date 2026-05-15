@@ -1,10 +1,10 @@
-module github.com/butbeautifulv/threat_intelligence/graph/ingest
+module github.com/butbeautifulv/veil/graph/ingest
 
 go 1.25.0
 
 require (
-	github.com/butbeautifulv/threat_intelligence/graph/connector v0.0.0
-	github.com/butbeautifulv/threat_intelligence/pkg v0.0.0
+	github.com/butbeautifulv/veil/graph/connector v0.0.0
+	github.com/butbeautifulv/veil/pkg v0.0.0
 	github.com/nats-io/nats.go v1.48.0
 	github.com/neo4j/neo4j-go-driver/v5 v5.28.4
 	golang.org/x/sync v0.20.0
@@ -18,6 +18,6 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 )
 
-replace github.com/butbeautifulv/threat_intelligence/graph/connector => ../connector
+replace github.com/butbeautifulv/veil/graph/connector => ../connector
 
-replace github.com/butbeautifulv/threat_intelligence/pkg => ../../pkg
+replace github.com/butbeautifulv/veil/pkg => ../../pkg

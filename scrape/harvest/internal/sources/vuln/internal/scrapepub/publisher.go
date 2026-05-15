@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	connats "github.com/butbeautifulv/threat_intelligence/scrape/connector/nats"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/internal/domain"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/internal/repository"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/domain"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/repository"
 )
 
 type rawPublisher interface {

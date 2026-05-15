@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/butbeautifulv/threat_intelligence/docs/graph-pack-manifest.schema.json",
+  "$id": "https://github.com/butbeautifulv/veil/docs/graph-pack-manifest.schema.json",
   "title": "Threat Intelligence graph pack manifest",
   "type": "object",
   "required": [

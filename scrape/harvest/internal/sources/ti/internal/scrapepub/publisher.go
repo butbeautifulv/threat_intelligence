@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	connats "github.com/butbeautifulv/threat_intelligence/scrape/connector/nats"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/domain"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/ti/internal/repository"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/domain"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/repository"
 )
 
 type rawPublisher interface {

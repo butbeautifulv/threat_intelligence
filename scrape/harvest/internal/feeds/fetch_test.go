@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 )
 
 type memLedger struct {

@@ -116,7 +116,7 @@ Follow the [Google Go Style Guide](https://google.github.io/styleguide/go/guide)
 
 - Compose services / binaries: **`snake_case`** (`scrape_worker`, `pipeline_worker`, `ingest_worker`)
 - NATS durable consumers: **`snake_case`** (`pipeline_worker`, `ingest_worker`)
-- Go module path: `github.com/butbeautifulv/threat_intelligence/...` (unchanged)
+- Go module path: `github.com/butbeautifulv/veil/...` (unchanged)
 
 ---
 

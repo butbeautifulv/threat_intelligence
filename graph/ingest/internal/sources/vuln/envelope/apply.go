@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/commit"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/vuln/domain"
-	neo4jstore "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/vuln/storage"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/domain"
+	neo4jstore "github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/storage"
 )
 
 // ApplyEnvelope applies vuln kinds to Neo4j.

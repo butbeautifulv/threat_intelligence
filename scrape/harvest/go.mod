@@ -1,11 +1,11 @@
-module github.com/butbeautifulv/threat_intelligence/scrape/harvest
+module github.com/butbeautifulv/veil/scrape/harvest
 
 go 1.25.0
 
 require (
-	github.com/butbeautifulv/threat_intelligence/pkg v0.0.0
-	github.com/butbeautifulv/threat_intelligence/scrape/connector v0.0.0
-	github.com/butbeautifulv/threat_intelligence/scrape/pkg v0.0.0
+	github.com/butbeautifulv/veil/pkg v0.0.0
+	github.com/butbeautifulv/veil/scrape/connector v0.0.0
+	github.com/butbeautifulv/veil/scrape/pkg v0.0.0
 	github.com/go-sql-driver/mysql v1.9.3
 	golang.org/x/net v0.49.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -21,8 +21,8 @@ require (
 	golang.org/x/sys v0.41.0 // indirect
 )
 
-replace github.com/butbeautifulv/threat_intelligence/scrape/connector => ../connector
+replace github.com/butbeautifulv/veil/scrape/connector => ../connector
 
-replace github.com/butbeautifulv/threat_intelligence/pkg => ../../pkg
+replace github.com/butbeautifulv/veil/pkg => ../../pkg
 
-replace github.com/butbeautifulv/threat_intelligence/scrape/pkg => ../pkg
+replace github.com/butbeautifulv/veil/scrape/pkg => ../pkg

@@ -4,11 +4,11 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/pkg/githubraw"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/pkg/githubraw"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
-	gh "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/coderules/internal/feeds/github"
+	gh "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/coderules/internal/feeds/github"
 )
 
 func coderulesGitRef() string {

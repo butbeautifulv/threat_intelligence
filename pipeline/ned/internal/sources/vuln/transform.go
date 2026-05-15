@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/vuln/domain"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/vuln/enrich"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln/domain"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln/enrich"
 )
 
 // Transform maps harvest vuln events to commit envelopes.

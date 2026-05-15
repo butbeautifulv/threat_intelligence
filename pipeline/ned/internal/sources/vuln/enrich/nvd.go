@@ -3,10 +3,10 @@ package enrich
 import (
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	nvdmap "github.com/butbeautifulv/threat_intelligence/pipeline/pkg/nvd/map"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/pkg/nvd/parse"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/vuln/domain"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	nvdmap "github.com/butbeautifulv/veil/pipeline/pkg/nvd/map"
+	"github.com/butbeautifulv/veil/pipeline/pkg/nvd/parse"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln/domain"
 )
 
 // FromNVDPage parses an NVD API page JSON and returns enriched vuln upsert envelopes.

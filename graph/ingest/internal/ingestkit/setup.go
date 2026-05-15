@@ -4,7 +4,7 @@ package ingestkit
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/commit"
 )
 
 // NeoConfig is Bolt credentials shared by domain ingest packages.

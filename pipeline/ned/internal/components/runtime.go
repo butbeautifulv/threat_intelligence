@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/butbeautifulv/threat_intelligence/pipeline/connector/nats"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/config"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/consumer"
+	"github.com/butbeautifulv/veil/pipeline/connector/nats"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/config"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/consumer"
 	natsgo "github.com/nats-io/nats.go"
 	"golang.org/x/sync/errgroup"
 )

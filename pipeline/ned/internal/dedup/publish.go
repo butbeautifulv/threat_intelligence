@@ -3,10 +3,10 @@ package dedup
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	connats "github.com/butbeautifulv/threat_intelligence/pipeline/connector/nats"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/transform"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	connats "github.com/butbeautifulv/veil/pipeline/connector/nats"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/transform"
 )
 
 // PublishIngest publishes envelopes with JetStream dedup via Nats-Msg-Id (idempotency_key).

@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/pkg/githubraw"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/pkg/githubraw"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
-	gh "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/nuclei/internal/feeds/github"
+	gh "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/nuclei/internal/feeds/github"
 )
 
 func nucleiGitRef() string {

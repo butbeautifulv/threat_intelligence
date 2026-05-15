@@ -16,10 +16,10 @@ import (
 
 	"log/slog"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
-	"github.com/butbeautifulv/threat_intelligence/scrape/pkg/proxypool"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/internal/repository"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/pkg/proxypool"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/repository"
 )
 
 const nvdBaseURL = "https://services.nvd.nist.gov/rest/json/cves/2.0"

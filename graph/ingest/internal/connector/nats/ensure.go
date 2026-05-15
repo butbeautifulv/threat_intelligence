@@ -2,7 +2,7 @@
 package nats
 
 import (
-	"github.com/butbeautifulv/threat_intelligence/pkg/natsjet"
+	"github.com/butbeautifulv/veil/pkg/natsjet"
 	"github.com/nats-io/nats.go"
 )
 

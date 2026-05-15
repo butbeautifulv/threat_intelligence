@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/components"
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/config"
-	graphnats "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/connector/nats"
-	ingestloop "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/ingest"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/components"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/config"
+	graphnats "github.com/butbeautifulv/veil/graph/ingest/internal/connector/nats"
+	ingestloop "github.com/butbeautifulv/veil/graph/ingest/internal/ingest"
 	"github.com/nats-io/nats.go"
 	"golang.org/x/sync/errgroup"
 )

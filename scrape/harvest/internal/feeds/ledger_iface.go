@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 )
 
 // CrawlLedger is the ledger surface used by FetchIfDue (*ledger.Store implements it).

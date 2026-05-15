@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/ti/domain"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/domain"
 )
 
 // Envelope is a single JSONL record.

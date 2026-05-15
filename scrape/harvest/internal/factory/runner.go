@@ -9,8 +9,8 @@ import (
 	"strings"
 	"syscall"
 
-	connats "github.com/butbeautifulv/threat_intelligence/scrape/connector/nats"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
+	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 )
 
 // RunOptions configures a scrape-worker run.

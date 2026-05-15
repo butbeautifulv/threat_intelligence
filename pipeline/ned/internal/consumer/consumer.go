@@ -8,10 +8,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	connats "github.com/butbeautifulv/threat_intelligence/pipeline/connector/nats"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/config"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/dedup"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	connats "github.com/butbeautifulv/veil/pipeline/connector/nats"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/config"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/dedup"
 	"github.com/nats-io/nats.go"
 )
 

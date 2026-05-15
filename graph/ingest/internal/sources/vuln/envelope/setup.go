@@ -3,10 +3,10 @@ package ingest
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/ingestkit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/ingestkit"
+	"github.com/butbeautifulv/veil/pkg/commit"
 
-	neo4jstore "github.com/butbeautifulv/threat_intelligence/graph/ingest/internal/sources/vuln/storage"
+	neo4jstore "github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/storage"
 )
 
 // NeoConfig is Bolt credentials.

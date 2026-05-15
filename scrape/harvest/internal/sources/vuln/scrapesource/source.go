@@ -4,10 +4,10 @@ package scrapesource
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/factory"
-	vulnscrapepub "github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/internal/scrapepub"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/internal/config"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/vuln/internal/usecase"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/factory"
+	vulnscrapepub "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/scrapepub"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/config"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/usecase"
 )
 
 func init() {

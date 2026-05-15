@@ -14,12 +14,12 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/lola/internal/domain"
-	"github.com/butbeautifulv/threat_intelligence/scrape/pkg/proxypool"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/lola/internal/repository"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/domain"
+	"github.com/butbeautifulv/veil/scrape/pkg/proxypool"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/repository"
 )
 
 const (
@@ -226,7 +226,7 @@ func (u *ScraperUsecase) fetchBytesDirect(ctx context.Context, downloadURL, cach
 		if err != nil {
 			return nil, err
 		}
-		req.Header.Set("User-Agent", "threat_intelligence-lola/1.0")
+		req.Header.Set("User-Agent", "veil-lola/1.0")
 		resp, err := u.http.Do(req)
 		if err != nil {
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {

@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/components"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/config"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/transport/httpserver"
+	"github.com/butbeautifulv/veil/graph/serve/internal/components"
+	"github.com/butbeautifulv/veil/graph/serve/internal/config"
+	"github.com/butbeautifulv/veil/graph/serve/internal/transport/httpserver"
 )
 
 func main() {

@@ -4,10 +4,10 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/config"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/connector"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/transport/mcpserver"
-	"github.com/butbeautifulv/threat_intelligence/graph/serve/internal/usecase"
+	"github.com/butbeautifulv/veil/graph/serve/internal/config"
+	"github.com/butbeautifulv/veil/graph/serve/internal/connector"
+	"github.com/butbeautifulv/veil/graph/serve/internal/transport/mcpserver"
+	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 )
 
 type MCPComponents struct {

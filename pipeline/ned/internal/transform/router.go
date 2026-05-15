@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/butbeautifulv/threat_intelligence/pkg/commit"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/appsec"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/ds"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/lola"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/ti"
-	"github.com/butbeautifulv/threat_intelligence/pipeline/ned/internal/sources/vuln"
+	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/appsec"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/ds"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/lola"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/ti"
+	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln"
 )
 
 // ScrapeToIngest applies NED (normalize, enrich, dedup keys) and returns commit envelopes.

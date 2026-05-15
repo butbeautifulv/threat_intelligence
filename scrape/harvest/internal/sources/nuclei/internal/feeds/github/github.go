@@ -3,7 +3,7 @@ package github
 import (
 	"context"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 )
 
 type Content = feeds.GHContent

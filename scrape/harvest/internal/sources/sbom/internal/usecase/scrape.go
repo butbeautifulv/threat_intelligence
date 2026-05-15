@@ -8,11 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/feeds"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/ledger"
-	"github.com/butbeautifulv/threat_intelligence/pkg/harvest"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/sbom/internal/cvesource"
-	"github.com/butbeautifulv/threat_intelligence/scrape/harvest/internal/sources/sbom/internal/feeds/ghsa"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/pkg/harvest"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/sbom/internal/cvesource"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/sbom/internal/feeds/ghsa"
 )
 
 // Options overrides env defaults for one run (from CLI flags).

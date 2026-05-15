@@ -1,7 +1,7 @@
 // Package nvdmap converts NVD API vulnerabilities into the shared canonical shape.
 package nvdmap
 
-import "github.com/butbeautifulv/threat_intelligence/pipeline/pkg/nvd/parse"
+import "github.com/butbeautifulv/veil/pipeline/pkg/nvd/parse"
 
 // Vulnerability is the canonical NVD-derived vulnerability shape shared across layers.
 type Vulnerability struct {
