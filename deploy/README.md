@@ -87,7 +87,7 @@ Naming: ZIP **`veil-graph-vX.Y.Z.zip`**, GitHub tag **`veil-graph-vX.Y.Z`**. See
 
 | Release | Notes |
 |---------|--------|
-| [veil-graph-v0.4.0](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.0) | Target format on `main` (publish when built) |
+| [veil-graph-v0.4.1](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.1) | Target format on `main` (publish when built) |
 | [v0.3.2-graph-pack](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) | Legacy `threat-intel-graph-v0.3.2.zip` (redirects) |
 
 Build:
@@ -96,8 +96,8 @@ Build:
 ./scripts/graph-pack/profile-fast-rich.sh
 ./scripts/housekeeping/graph-dedup-cleanup.sh
 ./scripts/graph-pack/export-cypher.sh
-GRAPH_PACK_VERSION=v0.4.0 ./scripts/graph-pack/build.sh
-GRAPH_PACK_VERSION=v0.4.0 ./scripts/release/publish-graph-pack.sh --skip-build
+GRAPH_PACK_VERSION=v0.4.1 ./scripts/graph-pack/build.sh
+GRAPH_PACK_VERSION=v0.4.1 ./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
 Script index: [scripts/README.md](../scripts/README.md).

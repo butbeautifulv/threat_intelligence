@@ -38,7 +38,7 @@ Import locally:
 
 ```bash
 USE_DOCKER_COMPOSE=1 ./scripts/graph-pack/import.sh \
-  data/neo4j_user_export/releases/veil-graph-v0.4.0.zip
+  data/neo4j_user_export/releases/veil-graph-v0.4.1.zip
 ```
 
 ## Quick commands

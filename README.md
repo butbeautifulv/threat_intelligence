@@ -51,7 +51,7 @@ docker compose up --build -d
 | Neo4j Browser | http://localhost:7474 (`neo4j` / `neo4jpassword`) |
 | HTTP API | http://localhost:8090 |
 
-`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently [veil-graph-v0.4.0](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.0)) when published, unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
+`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently [veil-graph-v0.4.1](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.1)) when published, unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
 
 ```bash
 curl -sS http://localhost:8090/health
@@ -97,7 +97,7 @@ See [docs/graph-pack.md](docs/graph-pack.md). Quick path:
 
 ```bash
 ./scripts/graph-pack/export-cypher.sh
-# version from versions.env or: GRAPH_PACK_VERSION=v0.4.0
+# version from versions.env or: GRAPH_PACK_VERSION=v0.4.1
 ./scripts/graph-pack/build.sh
 ```
 
