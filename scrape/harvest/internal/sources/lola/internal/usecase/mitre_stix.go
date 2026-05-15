@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -51,6 +52,7 @@ func (u *ScraperUsecase) IngestMITREEnterprise(ctx context.Context) error {
 	u.logger.Info("ingesting MITRE ATT&CK STIX", slog.String("url", url))
 
 	cacheRel := "mitre/enterprise-attack.json"
+	var stixReader io.Reader
 	if u.feeds != nil {
 		res, err := feeds.FetchIfDue(ctx, u.feeds, u.ledger, "lola:mitre:enterprise-stix", "lola", url, ledger.PolicyStatic, cacheRel, func() (*http.Request, error) {
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -67,23 +69,28 @@ func (u *ScraperUsecase) IngestMITREEnterprise(ctx context.Context) error {
 			u.logger.Info("MITRE STIX unchanged, skip publish")
 			return nil
 		}
-		if res.Skipped && len(res.Body) == 0 {
+		if len(res.Body) > 0 {
+			stixReader = bytes.NewReader(res.Body)
+		} else if res.Skipped {
 			return fmt.Errorf("lola:mitre skipped by ledger without cache")
 		}
 	} else if err := u.downloadToCache(ctx, url, filepath.Join(u.cache, cacheRel)); err != nil {
 		return err
 	}
-
-	f, err := os.Open(filepath.Join(u.cache, cacheRel))
-	if err != nil {
-		return err
+	if stixReader == nil {
+		cacheFile := filepath.Join(u.cache, cacheRel)
+		f, err := os.Open(cacheFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		stixReader = f
 	}
-	defer f.Close()
 
 	stixToExt := map[string]string{}
 	var rels []stixRel
 
-	dec := json.NewDecoder(f)
+	dec := json.NewDecoder(stixReader)
 	tok, err := dec.Token()
 	if err != nil {
 		return err

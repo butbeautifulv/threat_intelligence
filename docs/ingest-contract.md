@@ -32,11 +32,16 @@ scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ �
 
 ## Vitess crawl ledger (scrape only)
 
+Persistent on host at `var/veil/ledger/mysql/` (bind mount). HTTP bodies: `var/veil/blobs/`. See [graph-pack.md](graph-pack.md#persistent-crawl-state-varveil).
+
 | Variable | Meaning |
 |----------|---------|
 | `VITESS_DSN` | MySQL-compatible ledger ([scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/)) |
 | `SCRAPE_MIN_REFETCH_AFTER` | Default `24h` |
 | `SCRAPE_FORCE_REFETCH` | `1` = ignore ledger |
+| `SCRAPE_CACHE_DIR` | Disk cache root (`/data/cache` in compose → `var/veil/blobs` on host) |
+
+If ledger says skip but cache file is missing, [FetchIfDue](../scrape/harvest/internal/feeds/fetch.go) refetches over HTTP instead of failing silently.
 
 ## Deploy
 

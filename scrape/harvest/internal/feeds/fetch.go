@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -52,7 +53,13 @@ func FetchIfDue(
 				unchanged := prevSHA != "" && prevSHA == sha
 				return FetchResult{Body: b, SHA256: sha, Skipped: true, Unchanged: unchanged}, nil
 			}
-			return FetchResult{Skipped: true}, nil
+			if c.Log != nil {
+				c.Log.Info("ledger skip but cache miss; refetching",
+					slog.String("resource_key", resourceKey),
+					slog.String("cache_path", cachePath),
+				)
+			}
+			// Fall through to HTTP fetch — ledger without blob is invalid.
 		}
 	}
 

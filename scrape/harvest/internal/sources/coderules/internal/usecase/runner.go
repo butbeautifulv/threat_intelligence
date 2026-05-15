@@ -145,7 +145,12 @@ func (r *Runner) runCodeQL(ctx context.Context) error {
 	const path = "javascript/ql/src/Security/CWE-079"
 	items, err := r.githubListDir(ctx, owner, repo, path)
 	if err != nil {
-		return err
+		r.log.Warn("codeql list failed; skipping CodeQL subset", slog.String("path", path), slog.String("err", err.Error()))
+		return nil
+	}
+	if len(items) == 0 {
+		r.log.Warn("codeql list empty; skipping", slog.String("path", path))
+		return nil
 	}
 	n := 0
 	for _, it := range items {

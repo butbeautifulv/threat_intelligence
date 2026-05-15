@@ -9,13 +9,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"log/slog"
 
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/cache"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 	"github.com/butbeautifulv/veil/scrape/pkg/proxypool"
@@ -51,7 +51,7 @@ func NewScraperUsecase(repo repository.VulnerabilityRepository, logger *slog.Log
 		}
 	}
 
-	cache := firstNonEmpty(os.Getenv("VULN_CACHE_DIR"), filepath.Join(".", "data", "cache"))
+	cache := firstNonEmpty(os.Getenv("VULN_CACHE_DIR"), cache.DefaultDir())
 	if fc == nil {
 		fc = feeds.NewClient(cache, logger)
 	}
@@ -192,7 +192,12 @@ func nvdPageStats(data []byte) (totalResults, itemCount int, err error) {
 func (u *ScraperUsecase) ScrapeNVD(ctx context.Context) error {
 	u.logger.Info("starting NVD scraping")
 
-	const pageSize = 2000
+	pageSize := 2000
+	if v := strings.TrimSpace(os.Getenv("NVD_RESULTS_PER_PAGE")); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			pageSize = n
+		}
+	}
 	start := 0
 	total := -1
 	count := 0

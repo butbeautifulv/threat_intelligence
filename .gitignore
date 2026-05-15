@@ -24,10 +24,14 @@ out/
 .turbo/
 .vite/
 
-# Project data caches
-data/cache/
+# Persistent local state (crawl blobs, ledger, graph packs)
+var/veil/blobs/
+var/veil/ledger/
+var/veil/graph/
+!var/veil/**/.gitkeep
 
-# Neo4j export artifacts (optional: keep small manifests locally if you want)
+# Legacy paths (migrate to var/veil/)
+data/cache/
 data/neo4j_export/graph.cypher
 data/neo4j_export/releases/
 data/neo4j_user_export/graph.cypher

@@ -34,6 +34,12 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
 resolve_zip() {
+  local rel="/pack/releases/veil-graph-${GRAPH_PACK_DEFAULT_VERSION}.zip"
+  if [[ -f "${rel}" ]] && [[ -s "${rel}" ]]; then
+    echo "Using local pack ${rel}"
+    cp "${rel}" "${TMP}/pack.zip"
+    return
+  fi
   if [[ -f /pack/host.zip ]] && [[ -s /pack/host.zip ]]; then
     echo "Using bind-mounted /pack/host.zip"
     cp /pack/host.zip "${TMP}/pack.zip"

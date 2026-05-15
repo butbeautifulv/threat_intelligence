@@ -9,11 +9,11 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	scrapecache "github.com/butbeautifulv/veil/scrape/harvest/internal/cache"
 	scrapefeeds "github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
@@ -48,7 +48,7 @@ func NewRunner(repo repository.GraphRepository, logger *slog.Logger, fc *scrapef
 			logger.Warn("ti proxy pool invalid; running without proxy", slog.String("err", err.Error()))
 		}
 	}
-	cache := firstNonEmpty(os.Getenv("TI_CACHE_DIR"), filepath.Join(".", "data", "cache"))
+	cache := firstNonEmpty(os.Getenv("TI_CACHE_DIR"), scrapecache.DefaultDir())
 	if fc == nil {
 		fc = scrapefeeds.NewClient(cache, logger)
 	}

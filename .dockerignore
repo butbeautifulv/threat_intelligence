@@ -3,8 +3,12 @@
 **/dist
 .git
 **/.git
+var/veil/blobs/*
+!var/veil/**/.gitkeep
+var/veil/ledger
+var/veil/graph
+# Legacy bind-mount dirs
 data/cache/*
 !data/cache/.gitkeep
-# Neo4j bind-mount dirs (may be root-owned from older runs; ignore for Docker build context).
 data/neo4j_export
 data/neo4j_user_export

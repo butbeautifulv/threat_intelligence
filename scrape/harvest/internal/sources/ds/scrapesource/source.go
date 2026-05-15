@@ -4,9 +4,9 @@ package scrapesource
 import (
 	"context"
 	"os"
-	"path/filepath"
 	"strings"
 
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/cache"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/factory"
 	dsscrapepub "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ds/internal/scrapepub"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ds/internal/usecase"
@@ -37,8 +37,5 @@ func cacheDir() string {
 	if v := strings.TrimSpace(os.Getenv("DS_CACHE_DIR")); v != "" {
 		return v
 	}
-	if v := strings.TrimSpace(os.Getenv("SCRAPE_CACHE_DIR")); v != "" {
-		return v
-	}
-	return filepath.Join(".", "data", "cache")
+	return cache.DefaultDir()
 }

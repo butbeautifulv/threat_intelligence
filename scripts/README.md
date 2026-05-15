@@ -10,10 +10,14 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 |------|---------|
 | [lib/common.sh](lib/common.sh) | Compose helpers, `veil-graph-v*` pack names, profiles |
 | [ops/compose-up-full.sh](ops/compose-up-full.sh) | Full stack up (optional worker scale / scrape partition) |
-| [graph-pack/export-cypher.sh](graph-pack/export-cypher.sh) | APOC export → `data/neo4j_user_export/graph.cypher` |
-| [graph-pack/build.sh](graph-pack/build.sh) | ZIP + `manifest.json` → `data/.../releases/veil-graph-vX.zip` |
+| [ops/compose-down-ephemeral.sh](ops/compose-down-ephemeral.sh) | `down` keeping `var/veil` ledger + blobs |
+| [crawl/status.sh](crawl/status.sh) | Ledger summary + blob dir size |
+| [crawl/ledger-dump.sh](crawl/ledger-dump.sh) | Export `crawl_resource` to JSON |
+| [graph-pack/export-cypher.sh](graph-pack/export-cypher.sh) | APOC export → `var/veil/graph/graph.cypher` |
+| [graph-pack/build.sh](graph-pack/build.sh) | ZIP + `manifest.json` → `var/veil/graph/releases/veil-graph-vX.zip` |
 | [graph-pack/import.sh](graph-pack/import.sh) | Import pack (supports legacy `threat-intel-graph-*.zip`) |
-| [graph-pack/profile-fast-rich.sh](graph-pack/profile-fast-rich.sh) | ~25 min crawl profile → compose-up-full |
+| [graph-pack/profile-incremental-pack.sh](graph-pack/profile-incremental-pack.sh) | Seed from BASE pack + delta crawl (recommended) |
+| [graph-pack/profile-fast-rich.sh](graph-pack/profile-fast-rich.sh) | ~25 min crawl; `--full` wipes `var/veil` + force refetch |
 | [release/publish-graph-pack.sh](release/publish-graph-pack.sh) | Build + `gh release create veil-graph-vX` |
 | [release/bump-graph-version.sh](release/bump-graph-version.sh) | Bump `GRAPH_PACK_VERSION` in [versions.env](../versions.env) |
 | [release/check-graph-version-bump.sh](release/check-graph-version-bump.sh) | Fail if ingest paths changed without version bump |
@@ -28,7 +32,9 @@ Deploy profiles: [deploy/profiles/](../deploy/profiles/). Runtime: [docs/threati
 ## Graph pack workflow
 
 ```bash
-./scripts/graph-pack/profile-fast-rich.sh    # optional: full crawl
+./scripts/graph-pack/profile-incremental-pack.sh   # seed + delta crawl (recommended)
+# or: ./scripts/graph-pack/profile-fast-rich.sh
+./scripts/crawl/status.sh
 ./scripts/graph-pack/export-cypher.sh
 ./scripts/graph-pack/build.sh
 ./scripts/release/publish-graph-pack.sh --skip-build
@@ -38,7 +44,7 @@ Import locally:
 
 ```bash
 USE_DOCKER_COMPOSE=1 ./scripts/graph-pack/import.sh \
-  data/neo4j_user_export/releases/veil-graph-v0.4.1.zip
+  var/veil/graph/releases/veil-graph-v0.4.2.zip
 ```
 
 ## Quick commands

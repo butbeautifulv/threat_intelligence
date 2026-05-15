@@ -33,7 +33,7 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 | **Profile** | *(none — starts with default `docker compose up`)* |
 | **Image** | `neo4j:5` |
 | **Purpose** | Graph database; APOC enabled for exports |
-| **Volumes** | `neo4j_data`, `neo4j_logs`; host `./data/neo4j_user_export` → import path |
+| **Volumes** | `neo4j_data` (ephemeral); host `var/veil/graph` → Neo4j import/export path |
 | **Health** | `cypher-shell` `RETURN 1` |
 | **Env** | `NEO4J_AUTH`, `NEO4J_PLUGINS` (APOC), `NEO4J_apoc_export_file_enabled=true` for export |
 
@@ -158,7 +158,8 @@ Sources live under [scrape/harvest/internal/sources/](../scrape/harvest/internal
 | `SBOM_CVE_LIST_URL` | empty | Alternative CVE list URL if file unset |
 | `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/)); records URL + `content_sha256` |
 | `SCRAPE_MIN_REFETCH_AFTER` | `24h` | Min refetch interval (`periodic` policy) |
-| `SCRAPE_FORCE_REFETCH` | `0` | `1` = ignore ledger (full refetch) |
+| `SCRAPE_FORCE_REFETCH` | `0` | `1` = ignore ledger (full refetch). Graph-pack profiles use `0` except `full-rebuild` / `--full`. |
+| `SCRAPE_CACHE_DIR` | `/data/cache` in compose | Host bind: `var/veil/blobs` |
 | `LOFTS_SKIP_ON_ERROR` | unset | `true` = LOFTS fetch errors are warnings (do not fail `lola`) |
 | `SCRAPE_FAIL_FAST` | unset | `1` = stop all sources on first source error |
 | `NATS_INGEST_STREAM` | `INGEST` | Stream name (worker) |
@@ -175,10 +176,11 @@ Contract details: [docs/ingest-contract.md](ingest-contract.md).
 
 Init container `graph-bootstrap` runs once after Neo4j is healthy. Pack resolution order:
 
-1. Bind mount **`/pack/host.zip`** inside the container (optional; add under `graph-bootstrap.volumes` in a local override file).
-2. **`GRAPH_PACK_FILE`** — path *inside the container* to a `.zip` (if you extend the service with a volume).
-3. **`GRAPH_PACK_URL`** — HTTP(S) URL to a pack ZIP.
-4. If **`GRAPH_PACK_DEFAULT=1`** (default): download **`GRAPH_PACK_DEFAULT_URL`**, or the built-in default release asset if unset.
+1. **`/pack/releases/veil-graph-${GRAPH_PACK_DEFAULT_VERSION}.zip`** (host `var/veil/graph/releases/`, bind-mounted).
+2. Bind mount **`/pack/host.zip`** (e.g. [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+3. **`GRAPH_PACK_FILE`** — path *inside the container* to a `.zip`.
+4. **`GRAPH_PACK_URL`** — HTTP(S) URL to a pack ZIP.
+5. If **`GRAPH_PACK_DEFAULT=1`**: download **`GRAPH_PACK_DEFAULT_URL`** or the built-in release asset.
 
 Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 
@@ -187,8 +189,8 @@ Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 | `GRAPH_PACK_SKIP` | `0` | `1` = exit 0 without importing |
 | `GRAPH_PACK_DEFAULT` | `1` | `0` = do not download the default release ZIP when no file/URL |
 | `GRAPH_PACK_URL` | empty | HTTP(S) URL of the pack ZIP |
-| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.1` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
-| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.1` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
+| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.2` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
+| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.2` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
 | `GRAPH_PACK_FILE` | empty | Path **inside** the bootstrap container (mount a volume if needed) |
 
 Compose passes these from the host for `graph-bootstrap` (see [docker-compose.yml](../docker-compose.yml) `environment`).
@@ -208,7 +210,7 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compo
 ### Smoke checklist
 
 1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
-2. **Graph pack without GitHub download:** place **`veil-graph-v0.4.1.zip`** under `data/neo4j_user_export/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+2. **Graph pack without GitHub download:** place **`veil-graph-v0.4.2.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
 3. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
 4. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
 
@@ -274,9 +276,9 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `data/neo4j_user_export/releases/veil-graph-v0.4.1.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.2.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
-Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. For a clean ZIP import use `docker compose … down -v` or import with **`ingest_worker` stopped** (it may create constraints before bootstrap). Testpack flow: start **`neo4j`**, run **`graph-bootstrap`** once (`docker compose run --rm graph-bootstrap`), then **`GRAPH_PACK_SKIP=1 docker compose up api -d`**.
+Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. Use `./scripts/ops/compose-down-ephemeral.sh` (keeps `var/veil` ledger/blobs) before a clean import. **`ingest_worker`** waits for **`graph-bootstrap`** to finish ([deploy/graph/compose.yml](../deploy/graph/compose.yml)).
 
 Create `docker-compose.override.yml` (gitignored by convention or not committed) with:
 

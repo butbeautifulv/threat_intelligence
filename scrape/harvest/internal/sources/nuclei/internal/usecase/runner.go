@@ -51,6 +51,10 @@ func (r *Runner) Run(ctx context.Context) error {
 			r.log.Warn("list dir", slog.String("base", base), slog.String("err", err.Error()))
 			continue
 		}
+		if len(items) == 0 {
+			r.log.Warn("nuclei list empty", slog.String("base", base))
+			continue
+		}
 		for _, it := range items {
 			if n >= r.opt.MaxTemplates {
 				break
@@ -69,6 +73,10 @@ func (r *Runner) Run(ctx context.Context) error {
 			n++
 		}
 	}
-	r.log.Info("nuclei templates ingested", slog.Int("count", n))
+	if n == 0 {
+		r.log.Warn("nuclei templates ingested", slog.Int("count", 0), slog.String("years", r.opt.YearsCSV))
+	} else {
+		r.log.Info("nuclei templates ingested", slog.Int("count", n))
+	}
 	return nil
 }

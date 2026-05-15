@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Export Neo4j graph to data/neo4j_user_export/graph.cypher (requires APOC).
+# Export Neo4j graph to var/veil/graph/graph.cypher (requires APOC).
 set -euo pipefail
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/butbeautifulv/veil/scrape/pkg/githubraw"
@@ -10,10 +11,6 @@ import (
 
 	gh "github.com/butbeautifulv/veil/scrape/harvest/internal/sources/coderules/internal/feeds/github"
 )
-
-func coderulesGitRef() string {
-	return "master"
-}
 
 func (r *Runner) githubListDir(ctx context.Context, owner, repo, path string) ([]gh.Content, error) {
 	fc := r.feeds
@@ -24,8 +21,6 @@ func (r *Runner) githubListDir(ctx context.Context, owner, repo, path string) ([
 }
 
 func (r *Runner) fetchGitHubFile(ctx context.Context, owner, repo, ghPath, cacheRel string) ([]byte, bool, error) {
-	ref := coderulesGitRef()
-	rawURL := feeds.GitHubRawURL(owner, repo, ref, ghPath)
 	fc := r.feeds
 	if fc == nil {
 		fc = feeds.NewClient("", r.log)
@@ -37,13 +32,25 @@ func (r *Runner) fetchGitHubFile(ctx context.Context, owner, repo, ghPath, cache
 			return githubraw.FetchResult{Body: res.Body, Skipped: res.Skipped, Unchanged: res.Unchanged}, err
 		}
 	}
-	return githubraw.FetchFile(githubraw.FileParams{
-		Ctx: ctx, Owner: owner, Repo: repo, Ref: ref, Path: ghPath,
-		RawURL: rawURL, CacheRel: cacheRel, LedgerKey: "gh:file:" + owner + ":" + repo + ":" + ghPath, Source: "coderules",
-		UserAgent: "veil-scrape/1.0", Ledger: ledgerFn,
-		FetchRaw: func(ctx context.Context, o, rep, rf, p string) ([]byte, error) {
-			return feeds.GitHubFetchRaw(ctx, fc, o, rep, rf, p)
-		},
-		SkipErrFmt: "download %s skipped without cache",
-	})
+	var lastErr error
+	for _, ref := range feeds.GitHubRefs() {
+		rawURL := feeds.GitHubRawURL(owner, repo, ref, ghPath)
+		body, unchanged, err := githubraw.FetchFile(githubraw.FileParams{
+			Ctx: ctx, Owner: owner, Repo: repo, Ref: ref, Path: ghPath,
+			RawURL: rawURL, CacheRel: cacheRel, LedgerKey: "gh:file:" + owner + ":" + repo + ":" + ghPath, Source: "coderules",
+			UserAgent: "veil-scrape/1.0", Ledger: ledgerFn,
+			FetchRaw: func(ctx context.Context, o, rep, rf, p string) ([]byte, error) {
+				return feeds.GitHubFetchRaw(ctx, fc, o, rep, rf, p)
+			},
+			SkipErrFmt: "download %s skipped without cache",
+		})
+		if err == nil {
+			return body, unchanged, nil
+		}
+		lastErr = err
+	}
+	if lastErr != nil {
+		return nil, false, lastErr
+	}
+	return nil, false, fmt.Errorf("download %s: no ref succeeded", ghPath)
 }

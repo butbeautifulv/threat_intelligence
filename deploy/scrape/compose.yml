@@ -9,7 +9,7 @@ services:
       MYSQL_USER: veil
       MYSQL_PASSWORD: ${CRAWL_DB_PASSWORD:-veilpass}
     volumes:
-      - crawl_db_data:/var/lib/mysql
+      - ../../var/veil/ledger/mysql:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uveil", "-pveilpass"]
       interval: 5s
@@ -68,12 +68,12 @@ services:
       LOLA_MITRE_MAX_TECHNIQUES: ${LOLA_MITRE_MAX_TECHNIQUES:-}
       LOFTS_SKIP_ON_ERROR: ${LOFTS_SKIP_ON_ERROR:-}
       SCRAPE_FAIL_FAST: ${SCRAPE_FAIL_FAST:-}
+      SCRAPE_CACHE_DIR: /data/cache
     volumes:
-      - ../../data/cache:/data/cache
+      - ../../var/veil/blobs:/data/cache
     depends_on:
       nats:
         condition: service_healthy
 
 volumes:
-  crawl_db_data:
   nats_data:

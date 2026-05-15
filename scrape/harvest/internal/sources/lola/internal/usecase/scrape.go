@@ -152,6 +152,10 @@ func (u *ScraperUsecase) IngestGTFOBins(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if len(items) == 0 {
+		u.logger.Warn("GTFOBins list empty", slog.String("path", gtfobinsPath))
+		return nil
+	}
 	n := 0
 	for _, it := range items {
 		if it.Type != "file" || !strings.HasSuffix(it.Name, ".md") {

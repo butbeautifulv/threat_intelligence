@@ -28,7 +28,12 @@ func gitHubRepoKey(owner, repo string) string {
 }
 
 func gitHubRefs() []string {
-	return []string{"master", "main"}
+	return []string{"main", "master"}
+}
+
+// GitHubRefs returns branch names tried for codeload/raw GitHub fetches (main first).
+func GitHubRefs() []string {
+	return gitHubRefs()
 }
 
 // GHContent is a file or directory entry under a GitHub repo path.

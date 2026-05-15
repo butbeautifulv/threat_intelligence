@@ -157,3 +157,38 @@ func TestFetchIfDue_postUnchangedOnSecondFetch(t *testing.T) {
 		t.Fatal("second POST fetch with same body should be unchanged")
 	}
 }
+
+func TestFetchIfDue_ledgerSkipCacheMissRefetches(t *testing.T) {
+	body := []byte(`{"refetch":true}`)
+	hits := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits++
+		_, _ = w.Write(body)
+	}))
+	defer srv.Close()
+
+	dir := t.TempDir()
+	c := NewClient(dir, nil)
+	led := newMemLedger()
+	key := "lola:mitre:enterprise-stix"
+	sum := sha256.Sum256(body)
+	sha := hex.EncodeToString(sum[:])
+	led.sha[key] = sha
+	led.fetched[key] = time.Now().UTC()
+
+	res, err := FetchIfDue(context.Background(), c, led, key, "lola", srv.URL, ledger.PolicyStatic, "mitre/enterprise-attack.json", func() (*http.Request, error) {
+		return http.NewRequest(http.MethodGet, srv.URL, nil)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Skipped || len(res.Body) == 0 {
+		t.Fatalf("expected refetch body, Skipped=%v len=%d", res.Skipped, len(res.Body))
+	}
+	if hits != 1 {
+		t.Fatalf("HTTP hits = %d, want 1", hits)
+	}
+	if _, hit := c.ReadCache("mitre/enterprise-attack.json"); !hit {
+		t.Fatal("expected cache write after refetch")
+	}
+}
