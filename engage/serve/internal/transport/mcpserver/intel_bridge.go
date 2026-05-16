@@ -32,6 +32,228 @@ func IsIntelBridgeTool(name string, spec tool.Spec) bool {
 	return spec.Category == toolid.CategoryIntel
 }
 
+type intelBridgeHandler func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error)
+
+var intelBridgeHandlers = map[string]intelBridgeHandler{
+	"analyze_target_intelligence": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		_ = args
+		out := s.intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
+		return toolJSONResult(out)
+	},
+	"create_attack_chain_ai": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		obj := argString(args, "objective", "comprehensive")
+		out := s.intel.CreateAttackChain(ctx, target, obj)
+		return toolJSONResult(out)
+	},
+	"intelligent_smart_scan": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = spec
+		if s.workflows == nil {
+			return nil, rpcErrf(codeToolError, "workflow service not configured")
+		}
+		out := s.workflows.SmartScan(ctx, subject, workflow.SmartScanRequest{
+			Target:    target,
+			Objective: argString(args, "objective", "comprehensive"),
+			MaxTools:  argInt(args, "max_tools", 5),
+			Async:     argBool(args, "async"),
+		})
+		return toolJSONResult(out)
+	},
+	"comprehensive_api_audit": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = spec
+		out := s.intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
+			BaseURL:         firstNonEmpty(argString(args, "base_url", ""), target),
+			SchemaURL:       argString(args, "schema_url", ""),
+			JWTToken:        argString(args, "jwt_token", ""),
+			GraphQLEndpoint: argString(args, "graphql_endpoint", ""),
+		})
+		return toolJSONResult(out)
+	},
+	"api_schema_analyzer": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = spec
+		url := firstNonEmpty(argString(args, "schema_url", ""), target)
+		out := map[string]any{"schema_url": url, "note": "use comprehensive_api_audit with schema_url for full audit"}
+		if url != "" {
+			out["analysis"] = s.intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
+				BaseURL:   target,
+				SchemaURL: url,
+			})
+		}
+		return toolJSONResult(out)
+	},
+	"jwt_analyzer": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = ctx
+		_ = subject
+		_ = target
+		_ = spec
+		tok := argString(args, "jwt_token", "")
+		if tok == "" {
+			tok = argString(args, "token", "")
+		}
+		return toolJSONResult(intelligence.JWTAnalysis(tok))
+	},
+	"correlate_threat_intelligence": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		_ = spec
+		return toolJSONResult(s.intel.CorrelateThreatIntelligence(ctx, target, argString(args, "indicators", "")))
+	},
+	"target_timeline_intelligence": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		_ = spec
+		return toolJSONResult(s.intel.TargetTimeline(ctx, intelligence.TargetTimelineRequest{
+			Target:       target,
+			Limit:        argInt(args, "limit", 50),
+			IncludeGraph: argString(args, "include_graph", "true") != "false",
+		}))
+	},
+	"discover_attack_chains": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		_ = spec
+		return toolJSONResult(s.intel.DiscoverAttackChains(ctx, target, argString(args, "objective", "comprehensive")))
+	},
+	"ai_vulnerability_assessment": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = spec
+		return toolJSONResult(s.intel.AIVulnerabilityAssessment(ctx, subject, target, argInt(args, "max_tools", 6)))
+	},
+	"vulnerability_intelligence_dashboard": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		_ = args
+		_ = spec
+		analysis := s.intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
+		return toolJSONResult(map[string]any{
+			"target":       target,
+			"risk_level":   analysis.RiskLevel,
+			"technologies": analysis.Technologies,
+			"confidence":   analysis.Confidence,
+			"metadata":     analysis.Metadata,
+			"dashboard":    "summary",
+			"success":      true,
+		})
+	},
+	"bugbounty_reconnaissance_workflow": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "reconnaissance", target)
+	},
+	"bugbounty_vulnerability_hunting": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "vuln-hunt", target)
+	},
+	"bugbounty_business_logic_testing": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "business-logic", target)
+	},
+	"bugbounty_osint_gathering": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "osint", target)
+	},
+	"bugbounty_file_upload_testing": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "file-upload", target)
+	},
+	"bugbounty_comprehensive_assessment": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "comprehensive", target)
+	},
+	"bugbounty_authentication_bypass_testing": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = args
+		_ = spec
+		return s.callBugbountyWorkflow(ctx, subject, "business-logic", target)
+	},
+	"run_playbook": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = spec
+		return s.callPlaybook(ctx, subject, argString(args, "playbook", argString(args, "name", "")), target, argBool(args, "async"))
+	},
+}
+
+type cveBridgeHandler func(ctx context.Context, s *Server, args map[string]any) (any, error)
+
+var cveBridgeHandlers = map[string]cveBridgeHandler{
+	"monitor_cve_feeds": func(ctx context.Context, s *Server, args map[string]any) (any, error) {
+		return toolJSONResult(s.cve.MonitorFromBody(ctx, args))
+	},
+	"generate_exploit_from_cve": func(ctx context.Context, s *Server, args map[string]any) (any, error) {
+		return toolJSONResult(s.cve.GenerateExploitFromCVE(ctx, args))
+	},
+}
+
+type ctfBridgeHandler func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error)
+
+var ctfBridgeHandlers = map[string]ctfBridgeHandler{
+	"ctf_create_challenge_workflow": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		ch := ctf.ChallengeFromBody(args)
+		ch.Name = firstNonEmpty(ch.Name, target, "challenge")
+		ch.Target = firstNonEmpty(ch.Target, target)
+		out, err := s.ctf.CreateChallengeWorkflow(ch)
+		if err != nil {
+			return nil, rpcErrf(codeToolError, "%v", err)
+		}
+		return toolJSONResult(out)
+	},
+	"ctf_auto_solve_challenge": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		ch := ctf.ChallengeFromBody(args)
+		ch.Name = firstNonEmpty(ch.Name, target, "challenge")
+		ch.Target = firstNonEmpty(ch.Target, target)
+		exec := argString(args, "execute_tools", "true") != "false"
+		out, err := s.ctf.AutoSolve(ctx, subject, ch, exec, argInt(args, "max_steps", 8))
+		if err != nil {
+			return nil, rpcErrf(codeToolError, "%v", err)
+		}
+		return toolJSONResult(out)
+	},
+	"ctf_suggest_tools": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		_ = ctx
+		_ = subject
+		desc := argString(args, "description", "")
+		if desc == "" {
+			return nil, rpcErrf(codeToolError, "description required")
+		}
+		return toolJSONResult(s.ctf.SuggestTools(desc, argString(args, "category", "misc"), target))
+	},
+	"ctf_team_strategy": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		_ = ctx
+		_ = subject
+		_ = target
+		_ = args
+		return toolJSONResult(map[string]any{
+			"success": true,
+			"note":    "use HTTP POST /api/ctf/team-strategy with challenges[] and team_skills",
+		})
+	},
+	"ctf_cryptography_solver": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		_ = target
+		text := argString(args, "cipher_text", "")
+		if text == "" {
+			return nil, rpcErrf(codeToolError, "cipher_text required")
+		}
+		return toolJSONResult(s.ctf.AnalyzeCrypto(text, argString(args, "cipher_type", "unknown"),
+			argString(args, "key_hint", ""), argString(args, "known_plaintext", ""),
+			argString(args, "additional_info", "")))
+	},
+	"ctf_forensics_analyzer": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		_ = target
+		path := argString(args, "file_path", "")
+		if path == "" {
+			return nil, rpcErrf(codeToolError, "file_path required")
+		}
+		return toolJSONResult(s.ctf.AnalyzeForensics(ctx, subject, path, ctf.ForensicsOptions{}))
+	},
+	"ctf_binary_analyzer": func(ctx context.Context, s *Server, subject, target string, args map[string]any) (map[string]any, error) {
+		_ = target
+		path := argString(args, "binary_path", "")
+		if path == "" {
+			return nil, rpcErrf(codeToolError, "binary_path required")
+		}
+		return toolJSONResult(s.ctf.AnalyzeBinary(ctx, subject, path, ctf.BinaryOptions{}))
+	},
+}
+
 func (s *Server) callIntelBridge(ctx context.Context, name string, spec tool.Spec, args map[string]any) (any, error) {
 	subject := ""
 	if sub, ok := auth.SubjectFromContext(ctx); ok {
@@ -49,112 +271,19 @@ func (s *Server) callIntelBridge(ctx context.Context, name string, spec tool.Spe
 		return nil, rpcErrf(codeToolError, "intelligence service not configured")
 	}
 
-	switch name {
-	case "analyze_target_intelligence":
-		out := s.intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
-		return toolJSONResult(out)
-
-	case "create_attack_chain_ai":
-		obj := argString(args, "objective", "comprehensive")
-		out := s.intel.CreateAttackChain(ctx, target, obj)
-		return toolJSONResult(out)
-
-	case "intelligent_smart_scan":
-		if s.workflows == nil {
-			return nil, rpcErrf(codeToolError, "workflow service not configured")
-		}
-		out := s.workflows.SmartScan(ctx, subject, workflow.SmartScanRequest{
-			Target:    target,
-			Objective: argString(args, "objective", "comprehensive"),
-			MaxTools:  argInt(args, "max_tools", 5),
-			Async:     argBool(args, "async"),
-		})
-		return toolJSONResult(out)
-
-	case "comprehensive_api_audit":
-		out := s.intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
-			BaseURL:         firstNonEmpty(argString(args, "base_url", ""), target),
-			SchemaURL:       argString(args, "schema_url", ""),
-			JWTToken:        argString(args, "jwt_token", ""),
-			GraphQLEndpoint: argString(args, "graphql_endpoint", ""),
-		})
-		return toolJSONResult(out)
-
-	case "api_schema_analyzer":
-		url := firstNonEmpty(argString(args, "schema_url", ""), target)
-		out := map[string]any{"schema_url": url, "note": "use comprehensive_api_audit with schema_url for full audit"}
-		if url != "" {
-			out["analysis"] = s.intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
-				BaseURL:   target,
-				SchemaURL: url,
-			})
-		}
-		return toolJSONResult(out)
-
-	case "jwt_analyzer":
-		tok := argString(args, "jwt_token", "")
-		if tok == "" {
-			tok = argString(args, "token", "")
-		}
-		return toolJSONResult(intelligence.JWTAnalysis(tok))
-
-	case "correlate_threat_intelligence":
-		return toolJSONResult(s.intel.CorrelateThreatIntelligence(ctx, target, argString(args, "indicators", "")))
-
-	case "target_timeline_intelligence":
-		return toolJSONResult(s.intel.TargetTimeline(ctx, intelligence.TargetTimelineRequest{
-			Target:       target,
-			Limit:        argInt(args, "limit", 50),
-			IncludeGraph: argString(args, "include_graph", "true") != "false",
-		}))
-
-	case "discover_attack_chains":
-		return toolJSONResult(s.intel.DiscoverAttackChains(ctx, target, argString(args, "objective", "comprehensive")))
-
-	case "ai_vulnerability_assessment":
-		return toolJSONResult(s.intel.AIVulnerabilityAssessment(ctx, subject, target, argInt(args, "max_tools", 6)))
-
-	case "vulnerability_intelligence_dashboard":
-		analysis := s.intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
-		return toolJSONResult(map[string]any{
-			"target":        target,
-			"risk_level":    analysis.RiskLevel,
-			"technologies":  analysis.Technologies,
-			"confidence":    analysis.Confidence,
-			"metadata":      analysis.Metadata,
-			"dashboard":     "summary",
-			"success":       true,
-		})
-
-	case "bugbounty_reconnaissance_workflow":
-		return s.callBugbountyWorkflow(ctx, subject, "reconnaissance", target)
-	case "bugbounty_vulnerability_hunting":
-		return s.callBugbountyWorkflow(ctx, subject, "vuln-hunt", target)
-	case "bugbounty_business_logic_testing":
-		return s.callBugbountyWorkflow(ctx, subject, "business-logic", target)
-	case "bugbounty_osint_gathering":
-		return s.callBugbountyWorkflow(ctx, subject, "osint", target)
-	case "bugbounty_file_upload_testing":
-		return s.callBugbountyWorkflow(ctx, subject, "file-upload", target)
-	case "bugbounty_comprehensive_assessment":
-		return s.callBugbountyWorkflow(ctx, subject, "comprehensive", target)
-	case "bugbounty_authentication_bypass_testing":
-		return s.callBugbountyWorkflow(ctx, subject, "business-logic", target)
-
-	case "run_playbook":
-		return s.callPlaybook(ctx, subject, argString(args, "playbook", argString(args, "name", "")), target, argBool(args, "async"))
+	if h, ok := intelBridgeHandlers[name]; ok {
+		return h(ctx, s, subject, target, args, spec)
 	}
 
 	if out, ok, err := s.tryPlaybookByName(ctx, subject, name, target, argBool(args, "async")); ok {
 		return out, err
 	}
 
-	// Unknown intelligence tool: return guidance instead of bogus subprocess.
 	return toolJSONResult(map[string]any{
-		"tool":    name,
-		"target":  target,
-		"success": false,
-		"error":   "intelligence tool not mapped; use HTTP /api/intelligence/* or enable subprocess binary",
+		"tool":     name,
+		"target":   target,
+		"success":  false,
+		"error":    "intelligence tool not mapped; use HTTP /api/intelligence/* or enable subprocess binary",
 		"category": string(spec.Category),
 	})
 }
@@ -163,60 +292,10 @@ func (s *Server) callCTFBridge(ctx context.Context, name, subject, target string
 	if s.ctf == nil {
 		return nil, rpcErrf(codeToolError, "ctf service not configured")
 	}
-	switch name {
-	case "ctf_create_challenge_workflow":
-		ch := ctf.ChallengeFromBody(args)
-		ch.Name = firstNonEmpty(ch.Name, target, "challenge")
-		ch.Target = firstNonEmpty(ch.Target, target)
-		out, err := s.ctf.CreateChallengeWorkflow(ch)
-		if err != nil {
-			return nil, rpcErrf(codeToolError, "%v", err)
-		}
-		return toolJSONResult(out)
-	case "ctf_auto_solve_challenge":
-		ch := ctf.ChallengeFromBody(args)
-		ch.Name = firstNonEmpty(ch.Name, target, "challenge")
-		ch.Target = firstNonEmpty(ch.Target, target)
-		exec := argString(args, "execute_tools", "true") != "false"
-		out, err := s.ctf.AutoSolve(ctx, subject, ch, exec, argInt(args, "max_steps", 8))
-		if err != nil {
-			return nil, rpcErrf(codeToolError, "%v", err)
-		}
-		return toolJSONResult(out)
-	case "ctf_suggest_tools":
-		desc := argString(args, "description", "")
-		if desc == "" {
-			return nil, rpcErrf(codeToolError, "description required")
-		}
-		return toolJSONResult(s.ctf.SuggestTools(desc, argString(args, "category", "misc"), target))
-	case "ctf_team_strategy":
-		return toolJSONResult(map[string]any{
-			"success": true,
-			"note":    "use HTTP POST /api/ctf/team-strategy with challenges[] and team_skills",
-		})
-	case "ctf_cryptography_solver":
-		text := argString(args, "cipher_text", "")
-		if text == "" {
-			return nil, rpcErrf(codeToolError, "cipher_text required")
-		}
-		return toolJSONResult(s.ctf.AnalyzeCrypto(text, argString(args, "cipher_type", "unknown"),
-			argString(args, "key_hint", ""), argString(args, "known_plaintext", ""),
-			argString(args, "additional_info", "")))
-	case "ctf_forensics_analyzer":
-		path := argString(args, "file_path", "")
-		if path == "" {
-			return nil, rpcErrf(codeToolError, "file_path required")
-		}
-		return toolJSONResult(s.ctf.AnalyzeForensics(ctx, subject, path, ctf.ForensicsOptions{}))
-	case "ctf_binary_analyzer":
-		path := argString(args, "binary_path", "")
-		if path == "" {
-			return nil, rpcErrf(codeToolError, "binary_path required")
-		}
-		return toolJSONResult(s.ctf.AnalyzeBinary(ctx, subject, path, ctf.BinaryOptions{}))
-	default:
-		return nil, rpcErrf(codeMethodNotFound, "unknown ctf tool: %s", name)
+	if h, ok := ctfBridgeHandlers[name]; ok {
+		return h(ctx, s, subject, target, args)
 	}
+	return nil, rpcErrf(codeMethodNotFound, "unknown ctf tool: %s", name)
 }
 
 func (s *Server) callBugbountyWorkflow(ctx context.Context, subject, wf, target string) (any, error) {
@@ -344,14 +423,10 @@ func (s *Server) callCVEBridge(ctx context.Context, name string, args map[string
 	if s.cve == nil {
 		return nil, rpcErrf(codeToolError, "CVE service not configured")
 	}
-	switch name {
-	case "monitor_cve_feeds":
-		return toolJSONResult(s.cve.MonitorFromBody(ctx, args))
-	case "generate_exploit_from_cve":
-		return toolJSONResult(s.cve.GenerateExploitFromCVE(ctx, args))
-	default:
-		return nil, rpcErrf(codeToolError, "unknown CVE tool %q", name)
+	if h, ok := cveBridgeHandlers[name]; ok {
+		return h(ctx, s, args)
 	}
+	return nil, rpcErrf(codeToolError, "unknown CVE tool %q", name)
 }
 
 func isBugBountyPlaybookName(workflow, name string) bool {
