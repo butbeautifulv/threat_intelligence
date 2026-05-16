@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Download GAIA from Hugging Face (gated — requires HF token). Does not commit data."""
+"""Optional: download GAIA splits from Hugging Face (gated — needs HF_TOKEN).
+
+Normative methodology: https://arxiv.org/abs/2311.12983 — Veil CI does not use this script.
+"""
 from __future__ import annotations
 
 import argparse
@@ -21,9 +24,11 @@ def main() -> int:
     token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGING_FACE_HUB_TOKEN")
     if not token:
         print(
-            "GAIA is gated on Hugging Face. Set HF_TOKEN and accept the dataset terms:\n"
-            "  https://huggingface.co/datasets/gaia-benchmark/GAIA\n"
-            "Do not commit downloaded files or publish validation/test answers.",
+            "HF_TOKEN not set. Veil does not require Hugging Face for agent eval.\n"
+            "  Methodology: https://arxiv.org/pdf/2311.12983\n"
+            "  Offline CI: make test-agent-eval-pilot test-agent-eval-paper\n"
+            "Optional HF download: accept terms at https://huggingface.co/datasets/gaia-benchmark/GAIA\n"
+            "  then set HF_TOKEN. Do not commit splits or answers.",
             file=sys.stderr,
         )
         return 2

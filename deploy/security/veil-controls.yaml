@@ -28,9 +28,9 @@ sources:
     path: .external/agent-store
     scope: agent metadata patterns only; not executed in CI
   - id: gaia
-    title: GAIA benchmark (Hugging Face)
-    path: https://huggingface.co/datasets/gaia-benchmark/GAIA
-    scope: general-assistant agent evaluation metrics
+    title: GAIA benchmark (arXiv:2311.12983)
+    path: https://arxiv.org/abs/2311.12983
+    scope: general-assistant agent evaluation; HF dataset optional
 
 controls:
   # --- Engage / agentic (active defense) ---
@@ -129,8 +129,8 @@ controls:
     docs: [docs/agent-evaluation-gaia.md]
 
   - id: VEIL-EVAL-002
-    title: GAIA gated data not committed; HF load opt-in
-    frameworks: [gaia:contamination-policy]
+    title: GAIA splits not in git; arXiv methodology primary, HF optional
+    frameworks: [gaia:contamination-policy, gaia:arxiv-2311.12983]
     level: L2
     verify: [eval_gaia_data_gitignored]
-    docs: [docs/agent-evaluation-gaia.md, deploy/eval/gaia.env.example]
+    docs: [docs/agent-evaluation-gaia.md, deploy/eval/gaia.env.example, eval/gaia/paper/system-prompt.txt]

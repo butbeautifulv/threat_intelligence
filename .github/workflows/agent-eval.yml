@@ -1,12 +1,6 @@
 name: agent-eval
 
 on:
-  workflow_dispatch:
-    inputs:
-      run_hf_download:
-        description: Download gated GAIA split (requires HF_TOKEN secret)
-        type: boolean
-        default: false
   push:
     branches: [main, master]
     paths:
@@ -36,35 +30,15 @@ jobs:
       - name: Agent eval registry audit
         run: python3 scripts/eval/agent-eval-registry-audit.py
 
-      - name: GAIA pilot (offline fixtures)
+      - name: GAIA pilot (offline)
         run: make test-agent-eval-pilot
 
-      - name: Upload pilot metrics
+      - name: GAIA paper examples (arXiv Fig. 1 format harness)
+        run: make test-agent-eval-paper
+
+      - name: Upload metrics
         uses: actions/upload-artifact@v4
         with:
-          name: gaia-pilot-metrics
-          path: eval/gaia/results/pilot-metrics.json
+          name: gaia-eval-metrics
+          path: eval/gaia/results/*-metrics.json
           if-no-files-found: warn
-
-  gaia-hf:
-    if: github.event_name == 'workflow_dispatch' && inputs.run_hf_download == true
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install HF clients
-        run: pip install huggingface_hub datasets
-
-      - name: Download GAIA split (gated)
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python3 scripts/eval/gaia/load_hf.py
-
-      - name: Note
-        run: |
-          echo "Full GAIA scoring is manual: configure GAIA_SOLVER and run score.py locally."
-          echo "Do not upload validation/test answers as public artifacts."

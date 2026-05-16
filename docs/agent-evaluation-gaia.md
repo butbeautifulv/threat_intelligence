@@ -1,85 +1,105 @@
 # Agent evaluation — GAIA benchmark
 
-[GAIA](https://huggingface.co/datasets/gaia-benchmark/GAIA) measures **general AI assistants** (tooling, search, multi-step reasoning) with short, unambiguous answers. Veil uses GAIA for **agent/orchestrator quality**, separate from **engage tool parity** (HexStrike catalog) and **security hardening** audits.
+**Canonical methodology:** [GAIA: A Benchmark for General AI Assistants](https://arxiv.org/pdf/2311.12983) (arXiv:2311.12983).
 
-| Concern | Artifact | CI default |
-|---------|----------|------------|
-| Pipeline smoke (no HF) | `eval/gaia/fixtures/pilot/` | `make test-agent-eval-pilot` |
-| Full GAIA split | `eval/gaia/data/` (local, gitignored) | `workflow_dispatch` only |
-| Security tools / MCP | `make test-engage-parity` | every engage PR |
+GAIA measures **general AI assistants** (reasoning, multi-modality, web browsing, tool use) with short, **unambiguous factual answers**. Veil uses it for **agent/orchestrator quality**, separate from **engage tool parity** and **security hardening**.
 
-## Dataset policy (required)
+| Concern | Artifact | CI (no HF token) |
+|---------|----------|------------------|
+| Harness smoke | `eval/gaia/fixtures/pilot/` | `make test-agent-eval-pilot` |
+| Paper-aligned format | `eval/gaia/fixtures/paper-examples/` | `make test-agent-eval-paper` |
+| Full 466 questions | Local JSONL only | not in CI |
+| Security tools | `make test-engage-parity` | engage PRs |
 
-GAIA is **gated** on Hugging Face. You must:
+## Hugging Face — optional, not required for Veil
 
-1. Log in and **accept the dataset terms** on the [dataset page](https://huggingface.co/datasets/gaia-benchmark/GAIA).
-2. Set `HF_TOKEN` (or `HUGGING_FACE_HUB_TOKEN`) locally.
-3. **Never commit** validation/test rows, attachments, or answers to this repo (contamination / leakage).
-4. **Do not reshare** splits outside a private/gated HF repo per dataset license.
+The [HF dataset](https://huggingface.co/datasets/gaia-benchmark/GAIA) hosts the leaderboard splits. It is **gated** (not the same as API “rate limits”):
 
-Parquet layout (2025+): `metadata.parquet`, levels 1–3, columns `task_id`, `Question`, `Level`, `Final answer`, `file_name`, `file_path`.
+| Mechanism | What it means |
+|-----------|----------------|
+| **Gating** | You must log in, accept dataset terms (contact info / anti-leakage policy), then download. No token ⇒ no automated download. |
+| **Rate limits** | HF Hub may throttle anonymous vs authenticated requests; irrelevant if you do not use HF at all. |
+| **Contamination policy** | Do not commit validation/test rows or answers; do not publish private splits in crawlable form. |
+
+**Veil default:** follow the **paper** (§3.1–3.4, §3.2 scoring, Figure 2 prompt). HF is an optional convenience for anyone who already has access.
+
+### Without a token you can still
+
+1. Run CI harness: `make test-agent-eval-pilot` and `make test-agent-eval-paper`.
+2. Use the **system prompt** from the paper: `eval/gaia/paper/system-prompt.txt`.
+3. Score any JSONL you create manually (`task_id`, `Question`, `Level`, `Final answer`) with `scripts/eval/gaia/score.py`.
+4. Extend fixtures using the paper’s **question-design guidelines** (§3.4) — curated, unambiguous, single correct answer.
+
+### With HF access (optional)
+
+```bash
+cp deploy/eval/gaia.env.example deploy/eval/gaia.env
+# HF_TOKEN=...   # only if you accepted https://huggingface.co/datasets/gaia-benchmark/GAIA
+pip install huggingface_hub datasets
+python3 scripts/eval/gaia/load_hf.py   # writes eval/gaia/data/ (gitignored)
+```
+
+## Methodology (from the paper)
+
+- **466 questions**, 3 **levels** (more steps / tools ⇒ harder). Human annotators ≈ **92%** vs best LLM+plugins ≈ **15–30%** on early tasks ([§1](https://arxiv.org/pdf/2311.12983)).
+- **Developer set:** 166 questions with public annotations; **~300** held for leaderboard ([§1](https://arxiv.org/pdf/2311.12983)).
+- **Answer types:** number, short string, or comma-separated list; **one** correct answer ([§3.2](https://arxiv.org/pdf/2311.12983)).
+- **Scoring:** quasi **exact match** after normalization tied to answer type ([§3.2](https://arxiv.org/pdf/2311.12983)).
+- **Prompt template:** `FINAL ANSWER: …` — see `eval/gaia/paper/system-prompt.txt` (Figure 2).
+
+Public examples in **Figure 1** (used in-repo only to validate the scorer, not to claim model scores):
+
+| Level | Illustrative answer shape |
+|-------|---------------------------|
+| 1 | Integer (`90`) |
+| 2 | Signed decimal (`+4.6`) |
+| 3 | `LastName; minutes` (`White; 5876`) |
+
+Running those tasks against a **live agent** requires web/files; CI uses a **stub solver** to verify the pipeline only.
 
 ## Repository layout
 
 ```
 eval/gaia/
-  schema/task.schema.json      # JSONL row shape
-  fixtures/pilot/              # synthetic pilot (CI-safe)
-  results/                     # generated metrics (gitignored outputs ok locally)
-  data/                        # HF download cache (gitignored)
+  paper/system-prompt.txt
+  fixtures/pilot/              # synthetic CI smoke
+  fixtures/paper-examples/     # arXiv Fig. 1 (public)
+  schema/task.schema.json
+  results/                     # gitignored outputs
+  data/                        # optional HF cache (gitignored)
 scripts/eval/gaia/
-  run-pilot.sh                 # offline pilot run
-  score.py                     # normalized exact match
-  load_hf.py                   # optional gated download
-  solvers/stub.sh              # pilot infra (100% on fixtures)
-  solvers/mcp-engage.sh        # hook for real MCP agent (manual)
+  score.py                     # §3.2 quasi-exact-match + FINAL ANSWER extraction
+  run-pilot.sh / run-paper-examples.sh
+  load_hf.py                   # optional
 deploy/eval/gaia.env.example
 ```
 
 ## Commands
 
 ```bash
-# Registry + pilot (no network, no HF)
 make test-agent-eval-registry
 make test-agent-eval-pilot
-
-# Optional: download after accepting HF terms
-cp deploy/eval/gaia.env.example deploy/eval/gaia.env
-# edit HF_TOKEN
-pip install huggingface_hub datasets
-source deploy/eval/gaia.env
-python3 scripts/eval/gaia/load_hf.py
-
-# Run pilot scorer
-./scripts/eval/gaia/run-pilot.sh
+make test-agent-eval-paper
 ```
-
-## Scoring
-
-`scripts/eval/gaia/score.py` uses **normalized exact match** (strip, lowercase, light punctuation) aligned with common GAIA leaderboard practice. Predictions are JSONL: `{"task_id":"...","prediction":"..."}`.
 
 ## Wiring agents (MCP)
 
-Production evaluation should call your **veil-engage** (and optionally **veil-graph**) MCP client:
+1. Prefix with `eval/gaia/paper/system-prompt.txt`.
+2. Run via **veil-engage** / **veil-graph** MCP (secure profile for network).
+3. Collect `FINAL ANSWER:` lines → JSONL predictions.
+4. `python3 scripts/eval/gaia/score.py --tasks … --predictions …`
 
-1. Load question (+ attachment path under `GAIA_DATA_DIR` when `file_path` is set).
-2. Let the agent use allowed tools only (secure profile for anything network-facing).
-3. Emit one final short answer per `task_id`.
-4. Score with `score.py`; archive metrics under `eval/gaia/results/` locally — do not publish private test answers.
+Do not weaken engage hardening for eval.
 
-`scripts/eval/gaia/solvers/mcp-engage.sh` is a **placeholder**; implement your client in a private runner or extend the script without weakening engage hardening.
-
-## Controls and critic gate
+## Controls
 
 | Control | Meaning |
 |---------|---------|
-| `VEIL-EVAL-001` | Pilot fixture + scorer present; CI can detect regressions in eval harness |
-| `VEIL-EVAL-002` | GAIA data stays out of git; HF load is opt-in |
-
-Critic/orchestrator should treat **GAIA level-1 pilot pass** as necessary for eval-infra changes, and **full GAIA scores** as release metrics (manual or dispatch workflow), not as a substitute for `make test-engage-hardening`.
+| `VEIL-EVAL-001` | Pilot + paper-example harness in CI |
+| `VEIL-EVAL-002` | No gated HF data in git; arXiv is normative reference |
 
 ## Related
 
-- [external-agent-store.md](external-agent-store.md) — why third-party agent repos are not vendored into runtime
-- [engage-agentic-threats.md](engage-agentic-threats.md) — MCP/tool threats during eval runs
-- [mcp-agents.md](mcp-agents.md) — MCP setup
+- [external-agent-store.md](external-agent-store.md)
+- [engage-agentic-threats.md](engage-agentic-threats.md)
+- [mcp-agents.md](mcp-agents.md)

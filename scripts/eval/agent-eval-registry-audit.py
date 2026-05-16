@@ -13,6 +13,8 @@ def main() -> int:
     failed = []
     checks = [
         (ROOT / "eval/gaia/fixtures/pilot/metadata.jsonl", "pilot fixture"),
+        (ROOT / "eval/gaia/fixtures/paper-examples/metadata.jsonl", "paper examples"),
+        (ROOT / "eval/gaia/paper/system-prompt.txt", "paper system prompt"),
         (ROOT / "eval/gaia/schema/task.schema.json", "task schema"),
         (ROOT / "scripts/eval/gaia/score.py", "scorer"),
         (ROOT / "scripts/eval/gaia/run-pilot.sh", "pilot runner"),
@@ -41,6 +43,8 @@ def main() -> int:
         for cid in ("VEIL-EVAL-001", "VEIL-EVAL-002"):
             if cid not in body:
                 failed.append(f"veil-controls missing {cid}")
+        if "2311.12983" not in body and "arxiv" not in body.lower():
+            failed.append("veil-controls should cite arXiv GAIA paper")
 
     if failed:
         for f in failed:

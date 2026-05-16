@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Score GAIA-style tasks: normalized exact match (GAIA leaderboard convention)."""
+"""Score GAIA-style tasks per arXiv:2311.12983 §3.2 (quasi exact match + normalization)."""
 from __future__ import annotations
 
 import argparse
@@ -8,12 +8,28 @@ import re
 import sys
 from pathlib import Path
 
+# Paper: https://arxiv.org/abs/2311.12983 — evaluation via quasi exact match on short factual answers.
+FINAL_ANSWER_RE = re.compile(r"final answer:\s*(.+)", re.IGNORECASE | re.DOTALL)
+
+
+def extract_prediction(text: str) -> str:
+    """Strip model reasoning; keep line after FINAL ANSWER: (Figure 2 template)."""
+    m = FINAL_ANSWER_RE.search(text or "")
+    if m:
+        return m.group(1).strip().split("\n")[0].strip()
+    return (text or "").strip()
+
 
 def normalize_answer(text: str) -> str:
-    s = (text or "").strip().lower()
+    """Light normalization aligned with GAIA leaderboard / paper §3.2."""
+    s = extract_prediction(text)
+    s = s.strip().lower()
     s = re.sub(r"\s+", " ", s)
     s = re.sub(r"[\"'`]", "", s)
     s = re.sub(r"\.$", "", s)
+    # Numbers: drop thousands separators (paper: no commas in numbers unless list)
+    if re.fullmatch(r"[+\-]?\d[\d,]*\.?\d*", s.replace(" ", "")):
+        s = s.replace(",", "")
     return s
 
 
@@ -42,7 +58,8 @@ def main() -> int:
         if not line:
             continue
         row = json.loads(line)
-        preds[row["task_id"]] = row.get("prediction", row.get("answer", ""))
+        raw = row.get("prediction", row.get("answer", ""))
+        preds[row["task_id"]] = extract_prediction(str(raw))
 
     correct = 0
     by_level: dict[int, list[bool]] = {}
@@ -58,6 +75,7 @@ def main() -> int:
 
     total = len(gold)
     metrics = {
+        "methodology": "arXiv:2311.12983 §3.2 quasi-exact-match",
         "accuracy": correct / total if total else 0.0,
         "correct": correct,
         "total": total,
