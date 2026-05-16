@@ -158,6 +158,8 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) | Scrape + closed loop (P4b) |
 | [docs/engage-audit-report.md](docs/engage-audit-report.md) | HexStrike migration sign-off |
 | [docs/engage-hardening.md](docs/engage-hardening.md) | Active-defense hardening + safe self-test |
+| [docs/external-security-frameworks.md](docs/external-security-frameworks.md) | JCSF / DAF / OWASP → Veil control map |
+| [docs/engage-agentic-threats.md](docs/engage-agentic-threats.md) | Agentic AI / MCP threats ↔ mitigations |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |

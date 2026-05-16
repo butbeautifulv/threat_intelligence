@@ -2,6 +2,8 @@
 
 Veil **engage** runs offensive tooling inside a **protected perimeter** for active threat countermeasures. Hardening assumes attackers may probe the API/MCP surface; the host and graph must not become pivot points.
 
+**Framework alignment:** Jet [JCSF](../.external/Jet-Container-Security-Framework-main/), [DAF](../.external/DevSecOps-Assessment-Framework-main/) (+ MLSO for agentic), OWASP GenAI agentic/red-team landscapes — see [external-security-frameworks.md](external-security-frameworks.md) and [engage-agentic-threats.md](engage-agentic-threats.md). Enforced catalog: [deploy/security/veil-controls.yaml](../deploy/security/veil-controls.yaml).
+
 ## Threat model
 
 | Threat | Impact | Mitigations in repo |
@@ -29,6 +31,7 @@ Use [deploy/profiles/secure-engage.env](../deploy/profiles/secure-engage.env) wi
 | `ENGAGE_RUNNER_CONTAINER` | `engage-runner` | Toolbox isolation |
 | `VEIL_REQUIRE_AUTH` | `1` | Fail closed without auth |
 | `ENGAGE_MCP_HTTP_AUTH_STRICT` | `1` | Bearer on MCP HTTP |
+| `ENGAGE_TARGET_GUARD` | `block` | Block metadata/RFC1918/loopback tool targets |
 
 Overlay: TLS nginx only on host ([docs/deploy-secure.md](deploy-secure.md)).
 
@@ -75,4 +78,10 @@ ENGAGE_HARDENING_FAIL_ON=high ENGAGE_ENV=prod ...
 - [ ] Central audit logs (`ENGAGE_AUDIT_*`, webhook with secret)
 - [ ] Regular image digest pins and runner image rebuilds
 
-See also [SECURITY.md](../SECURITY.md), [engage-runtime.md](engage-runtime.md), [deploy-platform-hybrid.md](deploy-platform-hybrid.md) (runner node pool isolation).
+## External frameworks (JCSF, DAF, OWASP Agentic)
+
+- [external-security-frameworks.md](external-security-frameworks.md) — reference index (`.external/` read-only)
+- [engage-agentic-threats.md](engage-agentic-threats.md) — agent/MCP threats ↔ controls
+- [deploy/security/veil-controls.yaml](../deploy/security/veil-controls.yaml) — `python3 scripts/engage/hardening-framework-audit.py`
+
+See also [SECURITY.md](../SECURITY.md), [engage-runtime.md](engage-runtime.md), [deploy-platform-hybrid.md](deploy-platform-hybrid.md).

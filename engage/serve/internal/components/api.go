@@ -141,12 +141,13 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 	}
 	resultCache := cache.New(15 * time.Minute)
 	toolRunner := &toolsuc.Runner{
-		Registry: reg,
-		Exec:     exec,
-		Audit:    auditLog,
-		Auth:     stack,
-		Cache:    resultCache,
-		Recovery: recovery.Default(),
+		Registry:    reg,
+		Exec:        exec,
+		Audit:       auditLog,
+		Auth:        stack,
+		Cache:       resultCache,
+		Recovery:    recovery.Default(),
+		TargetGuard: security.ParseTargetGuardMode(os.Getenv),
 	}
 	veil := veilgraph.New(veilgraph.Config{
 		BaseURL:      cfg.VeilAPI.BaseURL,

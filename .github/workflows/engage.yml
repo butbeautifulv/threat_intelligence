@@ -69,6 +69,7 @@ jobs:
         run: |
           cd engage/serve && go test ./internal/security/... -count=1
           python3 scripts/engage/hardening-compose-audit.py
+          python3 scripts/engage/hardening-framework-audit.py
 
       - name: HexStrike parity benchmark JSON
         run: |

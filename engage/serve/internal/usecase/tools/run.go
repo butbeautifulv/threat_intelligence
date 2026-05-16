@@ -9,6 +9,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
+	"github.com/butbeautifulv/veil/engage/serve/internal/security"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cache"
@@ -24,7 +25,8 @@ type Runner struct {
 	Audit    *audit.Logger
 	Auth     *auth.Stack
 	Cache    *cache.Store
-	Recovery *recovery.Handler
+	Recovery    *recovery.Handler
+	TargetGuard security.TargetGuardMode
 }
 
 func (r *Runner) recovery() *recovery.Handler {
@@ -118,6 +120,20 @@ func (r *Runner) runOnce(ctx context.Context, subject string, name string, req c
 	if err != nil {
 		r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-err-%d", name, time.Now().UnixNano()), false, err.Error())
 		return contract.ToolRunResponse{Success: false, Tool: name, Error: err.Error()}
+	}
+	guardMode := r.TargetGuard
+	if guardMode == "" {
+		guardMode = security.TargetGuardOff
+	}
+	if blocked, reason := security.CheckTarget(req.Target); blocked {
+		switch guardMode {
+		case security.TargetGuardBlock:
+			msg := "target blocked by ENGAGE_TARGET_GUARD: " + reason
+			r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-block-%d", name, time.Now().UnixNano()), false, msg)
+			return contract.ToolRunResponse{Success: false, Tool: name, Error: msg}
+		case security.TargetGuardWarn:
+			// allow but audit note is optional — emit as failed=false with stderr prefix in output only on block
+		}
 	}
 	bin, err := runner.LookupBinary(spec.Binary)
 	if err != nil {

@@ -150,8 +150,11 @@ test-engage-secure:
 	./scripts/test/smoke-engage-secure.sh
 
 test-engage-hardening:
-	chmod +x ./scripts/test/engage-hardening-selftest.sh ./scripts/engage/hardening-compose-audit.py
+	chmod +x ./scripts/test/engage-hardening-selftest.sh ./scripts/engage/hardening-compose-audit.py ./scripts/engage/hardening-framework-audit.py
 	./scripts/test/engage-hardening-selftest.sh
+
+test-engage-framework-audit:
+	python3 ./scripts/engage/hardening-framework-audit.py
 
 test-engage-metrics:
 	chmod +x ./scripts/test/smoke-engage-metrics.sh

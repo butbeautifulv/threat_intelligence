@@ -24,6 +24,12 @@ log "unit: command guard + config security"
 log "static: compose/profile audit"
 python3 "${VEIL_ROOT}/scripts/engage/hardening-compose-audit.py"
 
+log "static: framework control catalog (JCSF/DAF/OWASP mappings)"
+python3 "${VEIL_ROOT}/scripts/engage/hardening-framework-audit.py"
+
+log "static: framework control catalog (JCSF/DAF/OWASP mappings)"
+python3 "${VEIL_ROOT}/scripts/engage/hardening-framework-audit.py"
+
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
   log "docker: secure overlay smoke (optional)"
   chmod +x ./scripts/test/smoke-engage-secure.sh
