@@ -68,6 +68,8 @@ Environment:
 
 Related smokes: `make test-engage-veil-stack-ci`, `make test-engage-events-pipeline`, `make test-graph-engage-category`.
 
+**CI:** GitHub Actions [`.github/workflows/platform.yml`](../.github/workflows/platform.yml) runs `make test-platform-p0` on every matching PR; `make test-platform-closed-loop` on push to `main`/`master`.
+
 ## Full loop (with discovery)
 
 To include **discover → enrich** for the same host class, run the full stack (`./scripts/ops/compose-up-full.sh` or merged compose files), publish TI/vuln harvest for indicators matching the host, then run engage workflows. Policy: enrich graph first when `TargetGraph` shows `ti`/`vuln` hits; act when surface score or objective requires validation.
