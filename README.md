@@ -159,6 +159,8 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [docs/engage-audit-report.md](docs/engage-audit-report.md) | HexStrike migration sign-off |
 | [docs/engage-hardening.md](docs/engage-hardening.md) | Active-defense hardening + safe self-test |
 | [docs/external-security-frameworks.md](docs/external-security-frameworks.md) | JCSF / DAF / OWASP → Veil control map |
+| [docs/external-agent-store.md](docs/external-agent-store.md) | openJiuwen Agent Store (reference; not runtime) |
+| [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) | GAIA benchmark for agent quality metrics |
 | [docs/engage-agentic-threats.md](docs/engage-agentic-threats.md) | Agentic AI / MCP threats ↔ mitigations |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |

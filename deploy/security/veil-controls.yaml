@@ -23,6 +23,14 @@ sources:
     title: OWASP Red Teaming AI Landscape Q2/2026
     path: .external/Cheat-Sheet-Red-Teaming-AI-Solution-Landscape-Q226.pdf
     scope: red-team / evaluate phase
+  - id: agent-store
+    title: openJiuwen Agent Store (catalog reference)
+    path: .external/agent-store
+    scope: agent metadata patterns only; not executed in CI
+  - id: gaia
+    title: GAIA benchmark (Hugging Face)
+    path: https://huggingface.co/datasets/gaia-benchmark/GAIA
+    scope: general-assistant agent evaluation metrics
 
 controls:
   # --- Engage / agentic (active defense) ---
@@ -111,3 +119,18 @@ controls:
     level: L2
     verify: [script_graph_pack_checksum]
     docs: [docs/graph-pack.md]
+
+  # --- Agent evaluation (GAIA + registry) ---
+  - id: VEIL-EVAL-001
+    title: GAIA pilot harness (offline fixtures + scorer)
+    frameworks: [owasp-red-team-ai:evaluate, gaia:level1]
+    level: L1
+    verify: [eval_gaia_pilot_harness, workflow_agent_eval_pilot]
+    docs: [docs/agent-evaluation-gaia.md]
+
+  - id: VEIL-EVAL-002
+    title: GAIA gated data not committed; HF load opt-in
+    frameworks: [gaia:contamination-policy]
+    level: L2
+    verify: [eval_gaia_data_gitignored]
+    docs: [docs/agent-evaluation-gaia.md, deploy/eval/gaia.env.example]

@@ -15,6 +15,7 @@ Thank you for improving this project. Small, focused changes are easier to revie
    | Pipeline | `make test-pipeline` |
    | Graph | `make test-graph`, `make test-graph-serve` |
    | Engage | `make test-engage`, `make test-engage-parity` (catalog changes), `make test-engage-hardening` (security guards) |
+   | Agent eval (GAIA) | `make test-agent-eval-registry`, `make test-agent-eval-pilot` (offline); full GAIA needs `HF_TOKEN` — see [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
    | Platform bus / loop | `make test-platform-p0`, optional `make test-platform-closed-loop` |
    | Deploy (Helm/Ansible) | `make deploy-helm-template`, `make deploy-ansible-check` |
 

@@ -132,6 +132,35 @@ def check_script_graph_pack_checksum() -> tuple[bool, str]:
     return True, "ok"
 
 
+def check_eval_gaia_pilot_harness() -> tuple[bool, str]:
+    needed = [
+        ROOT / "eval/gaia/fixtures/pilot/metadata.jsonl",
+        ROOT / "scripts/eval/gaia/score.py",
+        ROOT / "scripts/eval/gaia/run-pilot.sh",
+    ]
+    missing = [str(p.relative_to(ROOT)) for p in needed if not p.exists()]
+    if missing:
+        return False, "missing: " + ", ".join(missing)
+    return True, "ok"
+
+
+def check_eval_gaia_data_gitignored() -> tuple[bool, str]:
+    gi = read(ROOT / "eval/gaia/.gitignore")
+    if "data/" not in gi:
+        return False, "eval/gaia/.gitignore should ignore data/"
+    return True, "ok"
+
+
+def check_workflow_agent_eval_pilot() -> tuple[bool, str]:
+    p = ROOT / ".github/workflows/agent-eval.yml"
+    if not p.exists():
+        return False, "agent-eval.yml missing"
+    body = read(p)
+    if "test-agent-eval-pilot" not in body:
+        return False, "agent-eval.yml should run make test-agent-eval-pilot"
+    return True, "ok"
+
+
 VERIFY = {
     "engage_deny_raw_in_secure_profile": check_engage_deny_raw_in_secure_profile,
     "engage_runner_mode_docker_in_secure_profile": check_engage_runner_mode_docker_in_secure_profile,
@@ -148,6 +177,9 @@ VERIFY = {
     "workflow_engage_hardening": check_workflow_engage_hardening,
     "workflow_engage_secure": check_workflow_engage_secure,
     "script_graph_pack_checksum": check_script_graph_pack_checksum,
+    "eval_gaia_pilot_harness": check_eval_gaia_pilot_harness,
+    "eval_gaia_data_gitignored": check_eval_gaia_data_gitignored,
+    "workflow_agent_eval_pilot": check_workflow_agent_eval_pilot,
 }
 
 

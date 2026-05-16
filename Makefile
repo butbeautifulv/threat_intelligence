@@ -1,4 +1,4 @@
- .PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata
+ .PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-platform-p0:
@@ -43,6 +43,17 @@ deploy-ansible-check:
 sync-github-metadata:
 	chmod +x ./scripts/housekeeping/sync-github-metadata.sh
 	./scripts/housekeeping/sync-github-metadata.sh
+
+external-clone-agent-store:
+	chmod +x ./scripts/external/clone-agent-store.sh
+	./scripts/external/clone-agent-store.sh
+
+test-agent-eval-registry:
+	python3 ./scripts/eval/agent-eval-registry-audit.py
+
+test-agent-eval-pilot:
+	chmod +x ./scripts/eval/gaia/run-pilot.sh ./scripts/eval/gaia/solvers/stub.sh
+	./scripts/eval/gaia/run-pilot.sh
 
 test-scrape:
 	cd pkg && env -u GOWORK go test ./harvest/... ./commit/...

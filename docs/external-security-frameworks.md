@@ -19,6 +19,8 @@ Veil **does not ship** full JCSF/DAF spreadsheets in `.external/` — those dire
 | [.external/Cheat-Sheet-Agentic-AI-Solution-Landscape-Q226-1-1.pdf](../.external/Cheat-Sheet-Agentic-AI-Solution-Landscape-Q226-1-1.pdf) | **OWASP GenAI** | Agentic lifecycle SecOps → MCP/tooling controls |
 | [.external/Cheat-Sheet-Red-Teaming-AI-Solution-Landscape-Q226.pdf](../.external/Cheat-Sheet-Red-Teaming-AI-Solution-Landscape-Q226.pdf) | **OWASP Red Team AI** | Test/evaluate phase → self-test scope (no host attacks) |
 | [.external/Карта инструментов DevSecOps.pdf](../.external/Карта%20инструментов%20DevSecOps.pdf) | Tool landscape | Informative; Veil **implements** tools via engage catalog, not every box on the map |
+| [.external/agent-store/](../.external/agent-store/) | **openJiuwen Agent Store** | Catalog/metadata patterns only — see [external-agent-store.md](external-agent-store.md) |
+| [GAIA](https://huggingface.co/datasets/gaia-benchmark/GAIA) | **GAIA benchmark** | General-assistant agent eval — see [agent-evaluation-gaia.md](agent-evaluation-gaia.md) |
 
 ## Adoption principles (critical)
 
@@ -32,6 +34,7 @@ Veil **does not ship** full JCSF/DAF spreadsheets in `.external/` — those dire
 ```bash
 make test-engage-hardening          # unit + compose + veil-controls audit
 python3 scripts/engage/hardening-framework-audit.py
+make test-agent-eval-pilot          # GAIA offline pilot (no HF token)
 ```
 
 ## Maturity targets (Veil-specific)

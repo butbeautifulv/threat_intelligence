@@ -41,6 +41,16 @@ agents:
       Run `make test-scrape` and/or `make test-pipeline` as applicable.
       No imports from graph/ or engage/ into scrape/pipeline.
 
+  - id: agent-eval-runner
+    description: GAIA / agent evaluation harness maintainer
+    branch_prefix: eval/
+    subagent_type: generalPurpose
+    template: |
+      Maintain GAIA eval harness under eval/gaia/ and scripts/eval/.
+      Run `make test-agent-eval-registry` and `make test-agent-eval-pilot`.
+      Do not commit HF dataset files or GAIA validation/test answers.
+      Docs: docs/agent-evaluation-gaia.md. Do not merge without critic APPROVE.
+
   - id: docs-only
     description: Post-merge documentation pass
     branch_prefix: docs/
