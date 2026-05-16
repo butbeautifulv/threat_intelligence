@@ -88,9 +88,9 @@ flowchart LR
 | 25 | `engage/phase-25-execution-100` | done | implementer | orchestrator chat | `7a24e26` |
 | 26 | `engage/phase-26-golden-parity` | done | subagent stream-B | orchestrator chat | `9a585ac` |
 | 27 | `engage/phase-27-findings-dedup` | done | subagent stream-C | orchestrator chat | `4f82630` |
-| 28 | — | pending | — | — | — |
-| 29 | — | pending | — | — | — |
-| 30 | — | pending | — | — | — |
+| 28 | `engage/phase-28-browser-obs` | in_progress | subagent stream-D | orchestrator chat | — |
+| 29 | `engage/phase-29-refactor` | in_progress | subagent stream-E | orchestrator chat | — |
+| 30 | `engage/phase-30-decommission` | in_progress | subagent stream-F | orchestrator chat | — |
 
 - **Implementer** (Task / отдельный чат): одна ветка = одна фаза, PR в `main`, без merge самостоятельно.
 - **Critic & compliance** (оркестратор / этот чат): ревью PR, вердикт APPROVE / REQUEST_CHANGES, обновление таблицы после merge.
