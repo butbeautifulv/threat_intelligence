@@ -9,28 +9,10 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/pkg/commit"
+	engageevents "github.com/butbeautifulv/veil/pkg/engage/events"
 	"github.com/butbeautifulv/veil/pkg/natsjet"
 	natsgo "github.com/nats-io/nats.go"
 )
-
-// engageAuditWire matches engage/serve/internal/events.AuditEvent JSON.
-type engageAuditWire struct {
-	Source  string    `json:"source"`
-	Tool    string    `json:"tool"`
-	Target  string    `json:"target"`
-	Subject string    `json:"subject"`
-	Success bool      `json:"success"`
-	At      time.Time `json:"at"`
-}
-
-// engageFindingWire matches engage/serve/internal/events.FindingEvent JSON.
-type engageFindingWire struct {
-	Tool        string `json:"tool"`
-	Target      string `json:"target"`
-	Title       string `json:"title"`
-	Severity    string `json:"severity"`
-	Description string `json:"description"`
-}
 
 // EnsureEngageEventsStream creates the ENGAGE_EVENTS stream for audit/finding subjects.
 func EnsureEngageEventsStream(js natsgo.JetStreamContext) error {
@@ -87,7 +69,7 @@ func handleEngageMsg(ctx context.Context, pub *JetStreamPublisher, ingestToolRun
 }
 
 func handleEngageToolRun(ctx context.Context, pub *JetStreamPublisher, ingestSubject string, m *natsgo.Msg) error {
-	var wire engageAuditWire
+	var wire engageevents.AuditEvent
 	if err := json.Unmarshal(m.Data, &wire); err != nil {
 		return err
 	}
@@ -120,12 +102,12 @@ func handleEngageToolRun(ctx context.Context, pub *JetStreamPublisher, ingestSub
 }
 
 func handleEngageFinding(ctx context.Context, pub *JetStreamPublisher, ingestSubject string, m *natsgo.Msg) error {
-	var wire engageFindingWire
+	var wire engageevents.FindingEvent
 	if err := json.Unmarshal(m.Data, &wire); err != nil {
 		return err
 	}
-	if strings.TrimSpace(wire.Title) == "" {
-		return fmt.Errorf("empty finding title")
+	if strings.TrimSpace(wire.Tool) == "" || strings.TrimSpace(wire.Title) == "" {
+		return fmt.Errorf("empty tool or title")
 	}
 	payload, err := json.Marshal(commit.EngageFindingPayload{
 		Tool:        wire.Tool,

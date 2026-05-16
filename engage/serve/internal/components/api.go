@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
-	"github.com/butbeautifulv/veil/engage/serve/internal/events"
+	engageevents "github.com/butbeautifulv/veil/pkg/engage/events"
 	"github.com/butbeautifulv/veil/engage/serve/internal/client/veilgraph"
 	"github.com/butbeautifulv/veil/engage/serve/internal/config"
 	"github.com/butbeautifulv/veil/engage/serve/internal/ports"
@@ -130,11 +130,11 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		auditAppender = audit.NewMultiStore(auditAppenders...)
 	}
 	auditLog := audit.NewWithStore(nil, auditAppender)
-	var eventPub *events.Publisher
+	var eventPub *engageevents.Publisher
 	if cfg.EventsNATSEnabled && cfg.NATSURL != "" {
-		if pub, err := events.Connect(cfg.NATSURL, cfg.EventsNATSSubject); err == nil {
+		if pub, err := engageevents.Connect(cfg.NATSURL, cfg.EventsNATSSubject); err == nil {
 			eventPub = pub
-			auditLog.SetEventPublisher(eventBridge{pub: pub})
+			auditLog.SetEventPublisher(pub)
 		} else if logger != nil {
 			logger.Info("engage events NATS connect failed", "url", cfg.NATSURL, "err", err.Error())
 		}

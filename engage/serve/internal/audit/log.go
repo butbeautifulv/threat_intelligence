@@ -5,21 +5,13 @@ import (
 	"log/slog"
 	"time"
 
+	engageevents "github.com/butbeautifulv/veil/pkg/engage/events"
 	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
 )
 
 // EventPublisher optional cross-layer bus (e.g. NATS).
 type EventPublisher interface {
-	PublishAudit(ctx context.Context, e AuditEvent) error
-}
-
-// AuditEvent mirrors events.AuditEvent without import cycle.
-type AuditEvent struct {
-	Tool    string
-	Target  string
-	Subject string
-	Success bool
-	At      time.Time
+	PublishAudit(ctx context.Context, e engageevents.AuditEvent) error
 }
 
 // Logger records tool invocations to slog and optional JSONL store.
@@ -66,7 +58,7 @@ func (a *Logger) ToolRun(subject, tool, target, jobID string, success bool, errM
 		})
 	}
 	if a != nil && a.events != nil {
-		_ = a.events.PublishAudit(context.Background(), AuditEvent{
+		_ = a.events.PublishAudit(context.Background(), engageevents.AuditEvent{
 			Tool: tool, Target: target, Subject: subject, Success: success, At: at,
 		})
 	}

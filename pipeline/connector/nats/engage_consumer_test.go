@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/pkg/commit"
+	engageevents "github.com/butbeautifulv/veil/pkg/engage/events"
 	natsgo "github.com/nats-io/nats.go"
 )
 
 func TestHandleEngageFinding_buildsEnvelope(t *testing.T) {
-	wire := engageFindingWire{
+	wire := engageevents.FindingEvent{
 		Tool: "nuclei", Target: "https://example.com", Title: "xss", Severity: "high",
 	}
 	b, _ := json.Marshal(wire)
@@ -36,13 +37,12 @@ func TestHandleEngageFinding_buildsEnvelope(t *testing.T) {
 }
 
 func TestHandleEngageMsg_buildsEnvelope(t *testing.T) {
-	wire := engageAuditWire{
+	wire := engageevents.AuditEvent{
 		Tool: "nmap", Target: "127.0.0.1", Subject: "test", Success: true,
 		At: time.Now().UTC(),
 	}
 	b, _ := json.Marshal(wire)
 	pub := &JetStreamPublisher{conn: nil}
-	// dry-run mapping without publish
 	var got commit.Envelope
 	atStr := wire.At.UTC().Format(time.RFC3339)
 	payload, err := json.Marshal(commit.EngageToolRunPayload{
