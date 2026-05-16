@@ -19,6 +19,10 @@ The HTTP API and MCP (stdio and Streamable HTTP) support **optional** JWT valida
 
 For production-style deployments (TLS edge, distroless images, fail-closed auth, no published Neo4j ports), use the secure compose overlay and checklist in [docs/deploy-secure.md](docs/deploy-secure.md). Set `VEIL_REQUIRE_AUTH=1` so services refuse to start without Keycloak when auth is mandatory.
 
+## Engage (active tooling layer)
+
+The **engage** layer executes third-party security tools. For secured infrastructure (active threat countermeasures), use [docs/engage-hardening.md](docs/engage-hardening.md): Docker-isolated runner, deny raw `/api/command`, auth required, and `make test-engage-hardening` (safe self-test — no host exploitation).
+
 ## Supported versions
 
 Security fixes are applied on a best-effort basis on the default development branch. There is no separate LTS branch unless documented explicitly in the future.

@@ -2,6 +2,7 @@ package command
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
@@ -9,6 +10,19 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/pkg/engage/toolid"
 )
+
+func TestRunner_rejectsShellMetachar(t *testing.T) {
+	reg := tools.NewRegistry(nil)
+	r := New(&runner.Executor{WorkDir: t.TempDir()}, reg, false)
+	out := r.Run(context.Background(), "id; rm -rf /", false, nil)
+	if out["success"] != false {
+		t.Fatalf("expected failure: %v", out)
+	}
+	errMsg, _ := out["error"].(string)
+	if !strings.Contains(errMsg, "metachar") {
+		t.Fatalf("expected metachar error: %v", out)
+	}
+}
 
 func TestRunner_allowlist(t *testing.T) {
 	reg := tools.NewRegistry([]tool.Spec{

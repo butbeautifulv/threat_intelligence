@@ -13,6 +13,9 @@ on:
       - 'scripts/engage/**'
       - 'scripts/benchmark/**'
       - 'scripts/test/smoke-engage*.sh'
+      - 'scripts/test/engage-hardening-selftest.sh'
+      - 'scripts/engage/hardening-compose-audit.py'
+      - 'docs/engage-hardening.md'
       - 'scripts/test/smoke-veil-engage-stack.sh'
       - 'scripts/test/smoke-veil-engage-stack-ci.sh'
       - 'scripts/test/smoke-platform-closed-loop.sh'
@@ -32,6 +35,9 @@ on:
       - 'scripts/engage/**'
       - 'scripts/benchmark/**'
       - 'scripts/test/smoke-engage*.sh'
+      - 'scripts/test/engage-hardening-selftest.sh'
+      - 'scripts/engage/hardening-compose-audit.py'
+      - 'docs/engage-hardening.md'
       - 'scripts/test/smoke-veil-engage-stack.sh'
       - 'scripts/test/smoke-veil-engage-stack-ci.sh'
       - 'scripts/test/smoke-platform-closed-loop.sh'
@@ -58,6 +64,11 @@ jobs:
 
       - name: Unit tests and build
         run: make test-engage
+
+      - name: Hardening self-test (in-process + static audit)
+        run: |
+          cd engage/serve && go test ./internal/security/... -count=1
+          python3 scripts/engage/hardening-compose-audit.py
 
       - name: HexStrike parity benchmark JSON
         run: |

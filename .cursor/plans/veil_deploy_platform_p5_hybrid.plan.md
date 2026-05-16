@@ -11,6 +11,9 @@ todos:
   - id: p5-skeleton
     content: "Hybrid skeleton on main (TF/Ansible/Helm) + deploy-platform.yml CI"
     status: completed
+  - id: p5-engage-hardening
+    content: "Engage hardening self-test + guards (active defense infra)"
+    status: completed
   - id: p5b-tf-foundation
     content: "P5b: TF modules foundation (network, compute, storage, secrets outputs)"
     status: pending

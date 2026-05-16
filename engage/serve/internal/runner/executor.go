@@ -161,9 +161,15 @@ func LookupBinary(name string) (string, error) {
 }
 
 func filterEnv(env []string) []string {
+	strict := os.Getenv("ENGAGE_STRICT_ENV") == "1" ||
+		strings.EqualFold(strings.TrimSpace(os.Getenv("ENGAGE_ENV")), "prod")
 	allow := map[string]bool{
-		"PATH": true, "HOME": true, "USER": true, "LANG": true, "LC_ALL": true,
+		"PATH": true, "LANG": true, "LC_ALL": true,
 		"TMPDIR": true, "TMP": true, "TEMP": true,
+	}
+	if !strict {
+		allow["HOME"] = true
+		allow["USER"] = true
 	}
 	var out []string
 	for _, e := range env {

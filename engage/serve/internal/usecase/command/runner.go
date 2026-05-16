@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
+	"github.com/butbeautifulv/veil/engage/serve/internal/security"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cache"
 )
@@ -40,6 +41,12 @@ func (r *Runner) Run(ctx context.Context, command string, useCache bool, c *cach
 	command = strings.TrimSpace(command)
 	if command == "" {
 		return map[string]any{"success": false, "error": "command is required"}
+	}
+	if !r.AllowRaw && security.ContainsShellMetacharacters(command) {
+		return map[string]any{
+			"success": false,
+			"error":   "shell metacharacters are not allowed in /api/command; use POST /api/tools/{name}",
+		}
 	}
 	if useCache && c != nil {
 		if v, ok := c.Get(command); ok {

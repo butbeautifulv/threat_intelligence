@@ -49,7 +49,7 @@ flowchart LR
 | **Scrape** | [scrape/](scrape/) | Fetch feeds, Vitess ledger, publish `harvest` | — |
 | **Pipeline** | [pipeline/](pipeline/) | NED → `commit`; [engage-events/](pipeline/engage-events/) bridges `engage.events.>` → `ingest.engage.*` | — |
 | **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) read API + MCP | `veil-mcp` (read-only) |
-| **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports | `veil-engage` (exec) |
+| **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports (hardened for secured infra) | `veil-engage` (exec) |
 
 Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph runtime: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage runtime: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
 
@@ -101,7 +101,7 @@ curl -sS http://localhost:8890/api/tools | jq .
 | veil-engage MCP | stdio or :8892 | [engage.stdio.json.example](examples/mcp/engage.stdio.json.example) |
 | engage-runner | — | `docker compose --profile runner` + `ENGAGE_RUNNER_MODE=docker` |
 
-Docs: [engage/README.md](engage/README.md) · [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md)
+Docs: [engage/README.md](engage/README.md) · [docs/engage-hardening.md](docs/engage-hardening.md) · [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md)
 
 **Events bus (optional):** tool runs and findings publish to NATS when `ENGAGE_EVENTS_NATS_ENABLED=1`; pipeline bridges to `ingest.engage.*` and graph ingest persists `EngageToolRun` / `EngageFinding` nodes.
 
@@ -157,6 +157,7 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) | Act → learn → remember → decide (engage + graph) |
 | [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) | Scrape + closed loop (P4b) |
 | [docs/engage-audit-report.md](docs/engage-audit-report.md) | HexStrike migration sign-off |
+| [docs/engage-hardening.md](docs/engage-hardening.md) | Active-defense hardening + safe self-test |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
@@ -189,6 +190,8 @@ make test-graph-serve        # graph/serve unit tests (-race)
 make test-graph-read-smoke   # Docker: Neo4j + API + MCP HTTP
 make test-engage             # engage layer unit tests + build
 make test-engage-parity      # catalog 150 tools vs legacy MCP reference
+make test-engage-hardening   # safe self-test (no host attacks)
+make test-engage-secure      # Docker TLS overlay smoke
 make test-engage-compose     # Docker: async jobs + runner profile
 make test-engage-events-pipeline  # Docker: engage.events → ingest.engage.*
 make test-platform-p0             # Platform bus unit tests

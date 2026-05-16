@@ -13,6 +13,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/config"
 	"github.com/butbeautifulv/veil/engage/serve/internal/ports"
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
+	"github.com/butbeautifulv/veil/engage/serve/internal/security"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cache"
 	cmduc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/command"
@@ -67,6 +68,14 @@ type APIComponents struct {
 func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*APIComponents, error) {
 	if err := config.ValidateSecurity(cfg.Security, cfg.Auth.Enabled); err != nil {
 		return nil, err
+	}
+	if findings := security.RunSelfTest(cfg.Security, cfg.Auth.Enabled); len(findings) > 0 {
+		logger.Info(security.FormatReport(findings))
+		if os.Getenv("ENGAGE_HARDENING_FAIL_ON") == "high" {
+			if err := security.FailOn(findings, security.SeverityHigh); err != nil {
+				return nil, err
+			}
+		}
 	}
 	wd, _ := os.Getwd()
 	catalogPath := cfg.CatalogPath

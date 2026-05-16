@@ -25,6 +25,12 @@ func Harden(sec config.SecurityConfig, maxBody int64, next http.Handler) http.Ha
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Referrer-Policy", "no-referrer")
+		w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+		w.Header().Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+		if sec.Prod {
+			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+		}
 		if origin := r.Header.Get("Origin"); origin != "" {
 			if len(sec.CORSAllowedOrigins) == 0 {
 				http.Error(w, "cors not allowed", http.StatusForbidden)

@@ -20,6 +20,7 @@ Documentation is part of the **agent chain**, not an optional cleanup. After cod
 | **Contracts** (`docs/ingest-contract.md`, `docs/schemas/`) | `pkg/harvest`, `pkg/commit` wire changes |
 | **Platform / deploy** ([docs/platform-closed-loop-pilot.md](../../docs/platform-closed-loop-pilot.md), [docs/deploy-platform-hybrid.md](../../docs/deploy-platform-hybrid.md)) | Bus, loop smokes, TF/Ansible/Helm |
 | **Parity / audit** (`docs/engage-*.md`, CSV matrices) | Routes, catalog, MCP triangle changes |
+| **Engage hardening** ([docs/engage-hardening.md](../../docs/engage-hardening.md)) | Runner isolation, self-test, secure profile env |
 
 Do **not** edit `.external/` or duplicate HexStrike prose; link to Veil docs instead.
 
