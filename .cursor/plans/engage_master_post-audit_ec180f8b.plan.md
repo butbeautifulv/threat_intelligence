@@ -80,7 +80,7 @@ flowchart LR
 
 ## Agent coordination (parallel streams)
 
-Правила: [AGENTS.md](../../AGENTS.md), [veil-agent-parallel-branches.mdc](../../.cursor/rules/veil-agent-parallel-branches.mdc), [veil-agent-critic.mdc](../../.cursor/rules/veil-agent-critic.mdc).
+Правила: [AGENTS.md](../../AGENTS.md), [veil-karpathy-guidelines.mdc](../../.cursor/rules/veil-karpathy-guidelines.mdc), [veil-agent-parallel-branches.mdc](../../.cursor/rules/veil-agent-parallel-branches.mdc), [veil-agent-critic.mdc](../../.cursor/rules/veil-agent-critic.mdc).
 
 | Phase | Branch | Status | Owner / stream | Critic | Merge SHA |
 |-------|--------|--------|----------------|--------|-----------|

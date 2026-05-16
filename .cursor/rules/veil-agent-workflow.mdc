@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Veil agent workflow
 
-Follow [AGENTS.md](../../AGENTS.md) and [docs/coding-style.md](../../docs/coding-style.md) as source of truth.
+Follow [AGENTS.md](../../AGENTS.md), [docs/coding-style.md](../../docs/coding-style.md), and [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) as source of truth.
 
 ## Architecture (do not break)
 

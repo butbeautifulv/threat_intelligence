@@ -11,6 +11,8 @@ Switch to implementer mode only when the user explicitly assigns you a phase bra
 
 ## Responsibilities
 
+Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) when reviewing: flag over-engineering, drive-by edits, and missing verifiable DoD.
+
 1. **Plan compliance** — diff and commits match the active **phase plan** scope; nothing out-of-scope unless justified in the PR.
 2. **Master plan** — phase status, branch name, and dependencies are consistent; block merge if a dependency phase is not on `main`.
 3. **Architecture** — [AGENTS.md](../../AGENTS.md): no cross-layer Go imports; engage → graph via HTTP only; no root `go.work`; `.external/` untouched.
