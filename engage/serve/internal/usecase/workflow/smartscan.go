@@ -6,19 +6,19 @@ import (
 	"sync"
 	"time"
 
+	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
 // SmartScanRequest configures intelligent multi-tool execution.
 type SmartScanRequest struct {
-	Target           string
-	Objective        string
-	MaxTools         int
-	Async            bool
-	RateLimitCheck   bool
+	Target            string
+	Objective         string
+	MaxTools          int
+	Async             bool
+	RateLimitCheck    bool
 	effectiveParallel int // set after rate-limit probe
 }
 
@@ -101,7 +101,7 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 
 	executed := s.runToolsParallel(ctx, subject, target, analysis.TargetType, selected, scanID, req.effectiveParallel)
 	out["tools_executed"] = executed
-	allFindings := aggregateFindings(executed, target)
+	allFindings := findings.DedupeFindings(aggregateFindings(executed, target))
 	out["findings"] = allFindings
 	out["total_vulnerabilities"] = len(allFindings)
 	out["status"] = "completed"

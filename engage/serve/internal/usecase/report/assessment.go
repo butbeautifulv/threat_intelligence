@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	domain "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	findinguc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
 )
 
 // SeverityBreakdown counts findings by severity.
@@ -43,15 +44,15 @@ func FromSmartScan(target string, scan map[string]any) SummaryReport {
 	} else if tools, ok := scan["tools_executed"].([]any); ok {
 		sections["tools_executed"] = tools
 	}
-	var findings []domain.Finding
+	var rawFindings []domain.Finding
 	if raw, ok := scan["findings"].([]domain.Finding); ok {
-		findings = raw
+		rawFindings = raw
 	} else if raw, ok := scan["findings"].([]any); ok {
 		b, _ := json.Marshal(raw)
-		_ = json.Unmarshal(b, &findings)
+		_ = json.Unmarshal(b, &rawFindings)
 	}
-	sections["severity_breakdown"] = SeverityBreakdown(findings)
-	summary := NewSummary(target, sections, findings)
+	rawFindings = findinguc.DedupeFindings(rawFindings)
+	sections["severity_breakdown"] = SeverityBreakdown(rawFindings)
+	summary := NewSummary(target, sections, rawFindings)
 	return summary
 }
-
