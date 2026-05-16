@@ -17,7 +17,7 @@ import (
 
 // IsIntelBridgeTool returns true when tools/call should use in-process intelligence handlers.
 func IsIntelBridgeTool(name string, spec tool.Spec) bool {
-	if name == "comprehensive_api_audit" || name == "target_timeline_intelligence" {
+	if name == "comprehensive_api_audit" || name == "target_timeline_intelligence" || name == "target_graph_context" {
 		return true
 	}
 	if name == "monitor_cve_feeds" || name == "generate_exploit_from_cve" {
@@ -97,6 +97,11 @@ var intelBridgeHandlers = map[string]intelBridgeHandler{
 		_ = subject
 		_ = spec
 		return toolJSONResult(s.intel.CorrelateThreatIntelligence(ctx, target, argString(args, "indicators", "")))
+	},
+	"target_graph_context": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = subject
+		_ = spec
+		return toolJSONResult(s.intel.TargetGraph(ctx, target, argString(args, "indicators", "")))
 	},
 	"target_timeline_intelligence": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
 		_ = subject

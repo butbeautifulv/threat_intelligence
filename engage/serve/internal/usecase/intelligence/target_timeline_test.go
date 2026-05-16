@@ -31,12 +31,24 @@ type mockVeilTimeline struct {
 
 func (m *mockVeilTimeline) Enabled() bool { return true }
 
+func (m *mockVeilTimeline) Categories(context.Context) (json.RawMessage, error) {
+	return nil, nil
+}
+
 func (m *mockVeilTimeline) Search(_ context.Context, cat, _ string) (json.RawMessage, error) {
 	return m.search[cat], nil
 }
 
 func (m *mockVeilTimeline) EngageContext(_ context.Context, _ string) (json.RawMessage, error) {
 	return m.ctx, nil
+}
+
+func (m *mockVeilTimeline) GetNode(context.Context, string) (json.RawMessage, error) {
+	return nil, nil
+}
+
+func (m *mockVeilTimeline) Neighbors(context.Context, string, int) (json.RawMessage, error) {
+	return nil, nil
 }
 
 func TestTargetTimeline_mergesAuditAndGraph(t *testing.T) {
@@ -59,8 +71,21 @@ func TestTargetTimeline_mergesAuditAndGraph(t *testing.T) {
 	}
 }
 
-func TestNormalizeEngageHost_matchesGraph(t *testing.T) {
-	if normalizeEngageHost("https://Foo.COM") != "foo.com" {
-		t.Fatal("normalize mismatch")
+func TestTargetTimeline_withGraphReader(t *testing.T) {
+	ctxRaw := json.RawMessage(`{"found":true,"context":{"tool_runs":[{"props":{"at":"2026-01-01T00:00:00Z","tool":"nmap"}}]}}`)
+	s := &Service{
+		Veil: &mockVeilTimeline{
+			search: map[string]json.RawMessage{"engage": json.RawMessage(`{}`)},
+			ctx:    ctxRaw,
+		},
+	}
+	out := s.TargetTimeline(context.Background(), TargetTimelineRequest{
+		Target: "https://example.com", Limit: 10, IncludeGraph: true,
+	})
+	if out.Host != "example.com" {
+		t.Fatalf("host %q", out.Host)
+	}
+	if len(out.EngageContext) == 0 {
+		t.Fatal("expected engage context")
 	}
 }

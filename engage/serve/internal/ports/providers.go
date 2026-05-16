@@ -19,6 +19,7 @@ type IntelProvider interface {
 	TechnologyDetection(ctx context.Context, target string) map[string]any
 	ComprehensiveAPIAudit(ctx context.Context, subject string, req intelligence.ComprehensiveAPIAuditRequest) map[string]any
 	CorrelateThreatIntelligence(ctx context.Context, target, indicators string) map[string]any
+	TargetGraph(ctx context.Context, target, indicators string) intelligence.TargetGraphState
 	TargetTimeline(ctx context.Context, req intelligence.TargetTimelineRequest) intelligence.TargetTimelineResponse
 	DiscoverAttackChains(ctx context.Context, target, objective string) map[string]any
 	ExecuteAttackChain(ctx context.Context, subject, target, objective string, parallel bool) map[string]any

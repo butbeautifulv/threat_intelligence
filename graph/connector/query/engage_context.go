@@ -2,8 +2,8 @@ package query
 
 import (
 	"context"
-	"strings"
 
+	"github.com/butbeautifulv/veil/pkg/engage/hostnorm"
 	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
@@ -24,7 +24,7 @@ type EngageTargetContext struct {
 
 // EngageTargetContext loads EngageTarget, tool runs, findings, and MAY_RELATE_TO CVE links.
 func (s *Service) EngageTargetContext(ctx context.Context, host string) (*EngageTargetContext, error) {
-	host = NormalizeEngageHost(host)
+	host = hostnorm.NormalizeHost(host)
 	if host == "" {
 		return nil, nil
 	}
@@ -134,14 +134,5 @@ RETURN elementId(f) AS fid, labels(f) AS flabels, properties(f) AS fprops,
 
 // NormalizeEngageHost strips scheme/path for EngageTarget.name lookup.
 func NormalizeEngageHost(target string) string {
-	t := strings.TrimSpace(target)
-	t = strings.TrimPrefix(t, "https://")
-	t = strings.TrimPrefix(t, "http://")
-	if i := strings.Index(t, "/"); i >= 0 {
-		t = t[:i]
-	}
-	if i := strings.Index(t, ":"); i >= 0 {
-		t = t[:i]
-	}
-	return strings.ToLower(strings.TrimSpace(t))
+	return hostnorm.NormalizeHost(target)
 }

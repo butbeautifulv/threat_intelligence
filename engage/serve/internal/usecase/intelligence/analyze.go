@@ -2,7 +2,6 @@ package intelligence
 
 import (
 	"context"
-	"net/url"
 	"strings"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
@@ -19,7 +18,7 @@ type ParallelToolRunner interface {
 
 // Service provides target analysis and tool selection.
 type Service struct {
-	Veil            *veilgraph.Client
+	Veil            veilgraph.Reader
 	Registry        *tools.Registry
 	Engine          *DecisionEngine
 	Tools           *toolsuc.Runner
@@ -87,45 +86,26 @@ func (s *Service) BuildProfileFromTarget(ctx context.Context, target string) Tar
 }
 
 func (s *Service) enrichGraph(ctx context.Context, target string, meta map[string]any) {
-	host := graphSearchQuery(target)
-	if host == "" {
-		return
-	}
-	hits := map[string]any{}
-	for _, cat := range []string{"vuln", "ti", "engage"} {
-		if raw, err := s.Veil.Search(ctx, cat, host); err == nil && len(raw) > 2 && string(raw) != "null" {
-			hits[cat] = raw
-		}
-	}
-	if len(hits) > 0 {
-		meta["graph_hits"] = hits
+	state := LoadTargetGraph(ctx, s.Veil, target, TargetGraphLoadOpts{})
+	if len(state.Hits) > 0 {
+		meta["graph_hits"] = state.Hits
 		meta["graph_vuln_context"] = true
+		meta["graph_host"] = state.Host
 	}
-}
-
-func graphSearchQuery(target string) string {
-	if u, err := url.Parse(target); err == nil && u.Host != "" {
-		return u.Host
-	}
-	return strings.TrimSpace(target)
 }
 
 func (s *Service) graphBoost(ctx context.Context, target string) map[string]float64 {
-	if s.Veil == nil || !s.Veil.Enabled() {
-		return nil
-	}
-	host := graphSearchQuery(target)
-	if host == "" {
+	state := LoadTargetGraph(ctx, s.Veil, target, TargetGraphLoadOpts{})
+	if !state.GraphEnabled || state.Host == "" {
 		return nil
 	}
 	boost := map[string]float64{}
 	for cat, tools := range map[string][]string{
-		"vuln":    {"nuclei", "nikto", "sqlmap"},
-		"ti":      {"nuclei", "httpx"},
-		"engage":  {"nuclei", "nmap", "httpx"},
+		"vuln":   {"nuclei", "nikto", "sqlmap"},
+		"ti":     {"nuclei", "httpx"},
+		"engage": {"nuclei", "nmap", "httpx"},
 	} {
-		raw, err := s.Veil.Search(ctx, cat, host)
-		if err != nil || len(raw) <= 2 || string(raw) == "null" {
+		if _, ok := state.Hits[cat]; !ok {
 			continue
 		}
 		for _, t := range tools {

@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: p2-graph-target-state
     content: "P2: graph read API для engage decisions"
-    status: pending
+    status: completed
   - id: p3-closed-loop
     content: "P3: policy pilot scrape→graph→engage→events"
     status: pending
@@ -44,5 +44,5 @@ No cross-import `scrape`/`pipeline`/`graph`/`engage`. Shared code only in `pkg/*
 |-------|--------|-----|
 | P0 | `platform/p0-contract-consumer-tests` | merged `8bdf4c4` — `make test-platform-p0` green |
 | P1 | `platform/p1-nats-dry` | merged `167e58c` — `pkg/natsjet` Ensure* streams + `RunPullLoop` |
-| P2 | `platform/p2-graph-target` | engage uses graph context consistently |
+| P2 | `platform/p2-graph-target` | `TargetGraphState` + `/api/intelligence/target-graph` |
 | P3 | `platform/p3-closed-loop` | one target-class pilot documented |

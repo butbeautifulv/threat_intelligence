@@ -9,7 +9,17 @@ import (
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
+	"github.com/butbeautifulv/veil/pkg/engage/hostnorm"
 )
+
+// TargetGraph returns unified veil-api graph state for agents and workflows.
+func (s *Service) TargetGraph(ctx context.Context, target, indicators string) TargetGraphState {
+	opts := TargetGraphLoadOpts{IncludeEngageContext: true}
+	if q := strings.TrimSpace(indicators); q != "" {
+		opts.SearchQuery = q
+	}
+	return LoadTargetGraph(ctx, s.Veil, target, opts)
+}
 
 // CorrelateThreatIntelligence merges target analysis with veil-graph search hits.
 func (s *Service) CorrelateThreatIntelligence(ctx context.Context, target, indicators string) map[string]any {
@@ -20,34 +30,30 @@ func (s *Service) CorrelateThreatIntelligence(ctx context.Context, target, indic
 		"indicators": indicators,
 		"success":    true,
 	}
-	query := graphSearchQuery(target)
+	query := hostnorm.NormalizeHost(target)
 	if indicators != "" {
 		query = strings.TrimSpace(indicators)
 	}
-	if s.Veil != nil && s.Veil.Enabled() && query != "" {
-		hits := map[string]json.RawMessage{}
-		for _, cat := range []string{"ti", "vuln", "engage"} {
-			if raw, err := s.Veil.Search(ctx, cat, query); err == nil && len(raw) > 2 && string(raw) != "null" {
-				hits[cat] = raw
-			}
-		}
-		if raw, err := s.Veil.Search(ctx, "engage", graphSearchQuery(target)); err == nil && len(raw) > 2 && string(raw) != "null" {
-			out["engage_findings"] = raw
-		}
-		var related []string
-		if raw, err := s.Veil.EngageContext(ctx, graphSearchQuery(target)); err == nil && len(raw) > 2 {
-			out["engage_context"] = raw
-			related = extractRelatedCVEIDs(raw)
-			out["related_cves"] = related
-		}
-		if len(hits) > 0 {
-			out["graph_hits"] = hits
+	state := LoadTargetGraph(ctx, s.Veil, target, TargetGraphLoadOpts{
+		IncludeEngageContext: true,
+		SearchQuery:          query,
+	})
+	if state.GraphEnabled && query != "" {
+		if len(state.Hits) > 0 {
+			out["graph_hits"] = state.Hits
 			out["correlation"] = "veil-graph"
 		} else {
 			out["correlation"] = "no_graph_hits"
 		}
+		if len(state.EngageContext) > 0 {
+			out["engage_context"] = state.EngageContext
+			out["related_cves"] = state.RelatedCVEs
+		}
+		if raw, ok := state.Hits["engage"]; ok {
+			out["engage_findings"] = raw
+		}
 		if s.CVE != nil {
-			details, merged := s.CVE.EnrichCorrelation(ctx, indicators, related)
+			details, merged := s.CVE.EnrichCorrelation(ctx, indicators, state.RelatedCVEs)
 			if len(merged) > 0 {
 				out["related_cves"] = merged
 			}
@@ -69,6 +75,7 @@ func (s *Service) CorrelateThreatIntelligence(ctx context.Context, target, indic
 			}
 		}
 	}
+	out["graph_host"] = state.Host
 	return out
 }
 
@@ -94,7 +101,6 @@ func slimCVEDetails(details []map[string]any) []map[string]any {
 				row["severity"] = a["severity"]
 			}
 		default:
-			// analysis may be struct before JSON round-trip; marshal via generic path
 			if b, err := json.Marshal(d["analysis"]); err == nil {
 				var m map[string]any
 				if json.Unmarshal(b, &m) == nil {
@@ -106,35 +112,6 @@ func slimCVEDetails(details []map[string]any) []map[string]any {
 		}
 		if row["cve_id"] != nil {
 			out = append(out, row)
-		}
-	}
-	return out
-}
-
-func extractRelatedCVEIDs(raw json.RawMessage) []string {
-	var wrap struct {
-		Context struct {
-			Vulnerabilities []struct {
-				Props map[string]any `json:"props"`
-			} `json:"vulnerabilities"`
-		} `json:"context"`
-	}
-	if err := json.Unmarshal(raw, &wrap); err != nil {
-		return nil
-	}
-	seen := map[string]struct{}{}
-	var out []string
-	for _, v := range wrap.Context.Vulnerabilities {
-		if v.Props == nil {
-			continue
-		}
-		for _, key := range []string{"cve", "id"} {
-			if c, ok := v.Props[key].(string); ok && c != "" {
-				if _, dup := seen[c]; !dup {
-					seen[c] = struct{}{}
-					out = append(out, c)
-				}
-			}
 		}
 	}
 	return out
@@ -152,21 +129,21 @@ func (s *Service) DiscoverAttackChains(ctx context.Context, target, objective st
 		"attack_chain": chain,
 		"success":      true,
 	}
-	var cveIDs []string
-	if s.Veil != nil && s.Veil.Enabled() {
-		host := graphSearchQuery(target)
-		if host != "" {
-			if raw, err := s.Veil.Search(ctx, "vuln", host); err == nil && len(raw) > 2 {
-				out["graph_vuln_context"] = raw
-				cveIDs = append(cveIDs, cve.ParseCVEIDs(string(raw))...)
-			}
-			if raw, err := s.Veil.Search(ctx, "engage", host); err == nil && len(raw) > 2 {
-				out["graph_engage_context"] = raw
-				if ec, err := s.Veil.EngageContext(ctx, host); err == nil {
-					cveIDs = append(cveIDs, extractRelatedCVEIDs(ec)...)
-				}
-			}
+	state := LoadTargetGraph(ctx, s.Veil, target, TargetGraphLoadOpts{IncludeEngageContext: true})
+	if state.GraphEnabled && state.Host != "" {
+		if raw, ok := state.Hits["vuln"]; ok {
+			out["graph_vuln_context"] = raw
 		}
+		if raw, ok := state.Hits["engage"]; ok {
+			out["graph_engage_context"] = raw
+		}
+		if len(state.EngageContext) > 0 {
+			out["engage_context"] = state.EngageContext
+		}
+	}
+	cveIDs := append([]string{}, state.RelatedCVEs...)
+	if raw, ok := state.Hits["vuln"]; ok {
+		cveIDs = append(cveIDs, cve.ParseCVEIDs(string(raw))...)
 	}
 	cveIDs = append(cveIDs, cve.ParseCVEIDs(target)...)
 	cveIDs = append(cveIDs, cve.ParseCVEIDs(objective)...)
@@ -218,10 +195,10 @@ func cveStagesFromPaths(paths []map[string]any) []map[string]any {
 	stages := make([]map[string]any, 0, len(paths))
 	for _, p := range paths {
 		stages = append(stages, map[string]any{
-			"cve_id":              p["cve_id"],
-			"severity":            p["severity"],
+			"cve_id":               p["cve_id"],
+			"severity":             p["severity"],
 			"exploitability_score": p["exploitability_score"],
-			"exploit_available":   p["exploit_template_available"],
+			"exploit_available":    p["exploit_template_available"],
 		})
 	}
 	return stages
@@ -249,23 +226,23 @@ func (s *Service) AIVulnerabilityAssessment(ctx context.Context, subject, target
 		}
 	}
 	out := map[string]any{
-		"target":            target,
-		"analysis":          analysis,
-		"tools_selected":    selected,
-		"tools_executed":    len(results),
-		"results":           results,
-		"assessment_mode":   "deterministic_ranked_scan",
-		"note":              "not an LLM; uses DecisionEngine + catalog tools",
-		"success":           true,
+		"target":          target,
+		"analysis":        analysis,
+		"tools_selected":  selected,
+		"tools_executed":  len(results),
+		"results":         results,
+		"assessment_mode": "deterministic_ranked_scan",
+		"note":            "not an LLM; uses DecisionEngine + catalog tools",
+		"success":         true,
 	}
-	if s.Veil != nil && s.Veil.Enabled() {
-		host := graphSearchQuery(target)
-		if host != "" {
-			if raw, err := s.Veil.Search(ctx, "vuln", host); err == nil {
-				out["graph_context"] = json.RawMessage(raw)
-			}
-		}
+	state := LoadTargetGraph(ctx, s.Veil, target, TargetGraphLoadOpts{IncludeEngageContext: true})
+	if raw, ok := state.Hits["vuln"]; ok {
+		out["graph_context"] = raw
 	}
+	if len(state.EngageContext) > 0 {
+		out["engage_context"] = state.EngageContext
+	}
+	out["graph_host"] = state.Host
 	var failed int
 	for _, r := range results {
 		if !r.Success {

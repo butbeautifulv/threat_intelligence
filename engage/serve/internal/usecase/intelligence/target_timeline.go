@@ -42,7 +42,8 @@ type TargetTimelineResponse struct {
 // TargetTimeline builds a unified view for agents after scans.
 func (s *Service) TargetTimeline(ctx context.Context, req TargetTimelineRequest) TargetTimelineResponse {
 	target := strings.TrimSpace(req.Target)
-	host := normalizeEngageHost(target)
+	graphState := LoadTargetGraph(ctx, s.Veil, target, TargetGraphLoadOpts{IncludeEngageContext: true})
+	host := graphState.Host
 	limit := req.Limit
 	if limit <= 0 {
 		limit = 50
@@ -80,20 +81,20 @@ func (s *Service) TargetTimeline(ctx context.Context, req TargetTimelineRequest)
 		}
 	}
 
-	if s.Veil != nil && s.Veil.Enabled() && host != "" {
-		for _, cat := range []string{"engage", "vuln", "ti"} {
-			if raw, err := s.Veil.Search(ctx, cat, host); err == nil && len(raw) > 2 && string(raw) != "null" {
-				resp.Graph[cat] = json.RawMessage(raw)
-			}
-		}
-		if raw, err := s.Veil.EngageContext(ctx, host); err == nil && len(raw) > 2 {
-			resp.EngageContext = raw
-			resp.RelatedCVECount = countRelatedCVEs(raw)
-			appendEngageContextTimeline(&resp, raw)
-		}
+	if graphState.GraphEnabled && host != "" {
+		resp.Host = host
 	}
-	if !req.IncludeGraph {
+	if req.IncludeGraph {
+		for cat, raw := range graphState.Hits {
+			resp.Graph[cat] = raw
+		}
+	} else {
 		resp.Graph = nil
+	}
+	if len(graphState.EngageContext) > 0 {
+		resp.EngageContext = graphState.EngageContext
+		resp.RelatedCVECount = graphState.RelatedCVECount
+		appendEngageContextTimeline(&resp, graphState.EngageContext)
 	}
 	resp.Correlation = s.CorrelateThreatIntelligence(ctx, target, "")
 	sort.Slice(resp.Timeline, func(i, j int) bool {
@@ -116,43 +117,11 @@ func auditMatchesHost(e audit.Event, host, target string) bool {
 	return strings.Contains(t, strings.ToLower(target))
 }
 
-func normalizeEngageHost(target string) string {
-	t := strings.TrimSpace(target)
-	t = strings.TrimPrefix(t, "https://")
-	t = strings.TrimPrefix(t, "http://")
-	if i := strings.Index(t, "/"); i >= 0 {
-		t = t[:i]
-	}
-	if i := strings.Index(t, ":"); i >= 0 {
-		t = t[:i]
-	}
-	return strings.ToLower(strings.TrimSpace(t))
-}
-
 func boolStr(b bool) string {
 	if b {
 		return "true"
 	}
 	return "false"
-}
-
-func countRelatedCVEs(raw json.RawMessage) int {
-	var wrap struct {
-		Context struct {
-			Vulnerabilities []any `json:"vulnerabilities"`
-			Findings        []struct {
-				RelatedVulnerabilities []any `json:"related_vulnerabilities"`
-			} `json:"findings"`
-		} `json:"context"`
-	}
-	if err := json.Unmarshal(raw, &wrap); err != nil {
-		return 0
-	}
-	n := len(wrap.Context.Vulnerabilities)
-	for _, f := range wrap.Context.Findings {
-		n += len(f.RelatedVulnerabilities)
-	}
-	return n
 }
 
 func appendEngageContextTimeline(resp *TargetTimelineResponse, raw json.RawMessage) {

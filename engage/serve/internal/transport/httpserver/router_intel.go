@@ -71,6 +71,13 @@ func registerIntel(mux *http.ServeMux, c *components.APIComponents) {
 	postJSON(mux, "POST /api/intelligence/correlate-threat", func(r *http.Request, body map[string]any) (any, int) {
 		return c.Intel.CorrelateThreatIntelligence(r.Context(), toString(body["target"]), toString(body["indicators"])), http.StatusOK
 	})
+	postJSON(mux, "POST /api/intelligence/target-graph", func(r *http.Request, body map[string]any) (any, int) {
+		return c.Intel.TargetGraph(r.Context(), toString(body["target"]), toString(body["indicators"])), http.StatusOK
+	})
+	mux.HandleFunc("GET /api/intelligence/target-graph", func(w http.ResponseWriter, r *http.Request) {
+		out := c.Intel.TargetGraph(r.Context(), r.URL.Query().Get("target"), r.URL.Query().Get("indicators"))
+		writeJSON(w, http.StatusOK, out)
+	})
 	postJSON(mux, "POST /api/intelligence/target-timeline", func(r *http.Request, body map[string]any) (any, int) {
 		return c.Intel.TargetTimeline(r.Context(), intelligence.TargetTimelineRequest{
 			Target:       toString(body["target"]),
