@@ -41,20 +41,28 @@ func (c *Client) Enabled() bool {
 	return c.cfg.BaseURL != ""
 }
 
+func (c *Client) oauthConfigured() bool {
+	return strings.TrimSpace(c.cfg.ClientID) != "" &&
+		strings.TrimSpace(c.cfg.ClientSecret) != "" &&
+		strings.TrimSpace(c.cfg.TokenURL) != ""
+}
+
 func (c *Client) GetJSON(ctx context.Context, path string) (json.RawMessage, error) {
 	if !c.Enabled() {
 		return nil, fmt.Errorf("veil api client not configured")
-	}
-	tok, err := c.bearer(ctx)
-	if err != nil {
-		return nil, err
 	}
 	url := c.cfg.BaseURL + path
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+tok)
+	if c.oauthConfigured() {
+		tok, err := c.bearer(ctx)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+tok)
+	}
 	req.Header.Set("Accept", "application/json")
 	resp, err := c.cfg.HTTPClient.Do(req)
 	if err != nil {
