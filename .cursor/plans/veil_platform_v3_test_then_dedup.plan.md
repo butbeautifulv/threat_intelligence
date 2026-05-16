@@ -44,5 +44,5 @@ No cross-import `scrape`/`pipeline`/`graph`/`engage`. Shared code only in `pkg/*
 |-------|--------|-----|
 | P0 | `platform/p0-contract-consumer-tests` | merged `8bdf4c4` — `make test-platform-p0` green |
 | P1 | `platform/p1-nats-dry` | merged `167e58c` — `pkg/natsjet` Ensure* streams + `RunPullLoop` |
-| P2 | `platform/p2-graph-target` | `TargetGraphState` + `/api/intelligence/target-graph` |
+| P2 | `platform/p2-graph-target` | merged `793ba60` — `TargetGraphState` + target-graph API |
 | P3 | `platform/p3-closed-loop` | one target-class pilot documented |
