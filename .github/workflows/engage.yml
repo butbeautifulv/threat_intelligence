@@ -11,6 +11,7 @@ on:
       - 'graph/connector/**'
       - 'graph/ingest/**'
       - 'scripts/engage/**'
+      - 'scripts/benchmark/**'
       - 'scripts/test/smoke-engage*.sh'
       - 'scripts/test/smoke-veil-engage-stack.sh'
       - 'scripts/test/smoke-veil-engage-stack-ci.sh'
@@ -27,6 +28,7 @@ on:
       - 'graph/connector/**'
       - 'graph/ingest/**'
       - 'scripts/engage/**'
+      - 'scripts/benchmark/**'
       - 'scripts/test/smoke-engage*.sh'
       - 'scripts/test/smoke-veil-engage-stack.sh'
       - 'scripts/test/smoke-veil-engage-stack-ci.sh'
@@ -52,6 +54,18 @@ jobs:
 
       - name: Unit tests and build
         run: make test-engage
+
+      - name: HexStrike parity benchmark JSON
+        run: |
+          chmod +x ./scripts/benchmark/engage-hexstrike-parity.sh
+          ENGAGE_BENCHMARK_EXECUTE=0 ./scripts/benchmark/engage-hexstrike-parity.sh
+
+      - name: Upload benchmark JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engage-hexstrike-benchmark
+          path: scripts/benchmark/results/latest.json
+          if-no-files-found: warn
 
       - name: Catalog parity
         run: make test-engage-parity

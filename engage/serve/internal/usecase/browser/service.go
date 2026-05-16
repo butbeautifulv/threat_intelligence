@@ -22,13 +22,14 @@ type InspectRequest struct {
 
 // InspectResult is the normalized browser inspect response.
 type InspectResult struct {
-	Success           bool           `json:"success"`
-	PageInfo          map[string]any `json:"page_info,omitempty"`
-	SecurityAnalysis  map[string]any `json:"security_analysis,omitempty"`
-	Technologies      []string       `json:"technologies,omitempty"`
-	Screenshot        string         `json:"screenshot,omitempty"`
-	Timestamp         string         `json:"timestamp,omitempty"`
-	Error             string         `json:"error,omitempty"`
+	Success          bool             `json:"success"`
+	Forms            []map[string]any `json:"forms,omitempty"`
+	PageInfo         map[string]any   `json:"page_info,omitempty"`
+	SecurityAnalysis map[string]any   `json:"security_analysis,omitempty"`
+	Technologies     []string         `json:"technologies,omitempty"`
+	Screenshot       string           `json:"screenshot,omitempty"`
+	Timestamp        string           `json:"timestamp,omitempty"`
+	Error            string           `json:"error,omitempty"`
 }
 
 // Service calls the Playwright browser sidecar.
@@ -63,13 +64,13 @@ func (s *Service) Inspect(ctx context.Context, req InspectRequest) InspectResult
 		return InspectResult{Success: false, Error: "url required"}
 	}
 	payload := map[string]any{
-		"url":           url,
-		"target":        url,
-		"wait_time":     req.WaitTime,
-		"headless":      req.Headless,
-		"screenshot":    req.Screenshot,
-		"active_tests":  req.ActiveTests,
-		"inspect":       true,
+		"url":          url,
+		"target":       url,
+		"wait_time":    req.WaitTime,
+		"headless":     req.Headless,
+		"screenshot":   req.Screenshot,
+		"active_tests": req.ActiveTests,
+		"inspect":      true,
 	}
 	body, _ := json.Marshal(payload)
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, s.BaseURL+"/inspect", bytes.NewReader(body))
@@ -86,6 +87,7 @@ func (s *Service) Inspect(ctx context.Context, req InspectRequest) InspectResult
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
 		return InspectResult{Success: false, Error: fmt.Sprintf("decode: %v", err)}
 	}
+	normalizeInspectResult(&out)
 	if resp.StatusCode >= 400 && out.Error == "" {
 		out.Success = false
 		out.Error = fmt.Sprintf("browser sidecar http %d", resp.StatusCode)
@@ -122,6 +124,30 @@ func InspectFromParams(target string, params map[string]string) InspectRequest {
 		Screenshot:  true,
 		ActiveTests: active,
 	}
+}
+
+func normalizeInspectResult(r *InspectResult) {
+	if r == nil {
+		return
+	}
+	if len(r.Forms) == 0 && r.PageInfo != nil {
+		r.Forms = formsFromAny(r.PageInfo["forms"])
+	}
+}
+
+func formsFromAny(raw any) []map[string]any {
+	arr, ok := raw.([]any)
+	if !ok || len(arr) == 0 {
+		return nil
+	}
+	out := make([]map[string]any, 0, len(arr))
+	for _, it := range arr {
+		m, ok := it.(map[string]any)
+		if ok {
+			out = append(out, m)
+		}
+	}
+	return out
 }
 
 // ToJSON returns inspect result as JSON string for tool output.

@@ -11,15 +11,15 @@ import (
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
+	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
 	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/browser"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/ctf"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
-	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
-	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/payloads"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/report"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
 	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
@@ -61,6 +61,7 @@ func Register(mux *http.ServeMux, c *components.APIComponents) {
 	registerCTF(mux, c)
 	registerVulnIntel(mux, c)
 	registerErrorHandling(mux)
+	registerProcessRoutes(mux, c)
 	registerBrowser(mux, c)
 	registerVisual(mux, c)
 	registerFiles(mux, c)
@@ -665,8 +666,8 @@ func registerAdmin(mux *http.ServeMux, c *components.APIComponents) {
 	})
 	mux.HandleFunc("GET /api/telemetry", func(w http.ResponseWriter, r *http.Request) {
 		out := map[string]any{
-			"uptime_sec":     int(time.Since(c.StartedAt).Seconds()),
-			"tools_enabled":  len(c.Tools.List()),
+			"uptime_sec":      int(time.Since(c.StartedAt).Seconds()),
+			"tools_enabled":   len(c.Tools.List()),
 			"processes_total": len(c.Processes.List()),
 		}
 		running := 0

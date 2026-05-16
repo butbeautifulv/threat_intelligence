@@ -10,7 +10,7 @@ GET,/api/process/get-task-result/{task_id},na_out_of_scope,"use GET /api/jobs/{i
 GET,/api/process/health-check,implemented,"GET /health"
 GET,/api/process/performance-dashboard,implemented,"GET /api/processes/dashboard"
 GET,/api/process/pool-stats,implemented,"GET /api/processes/dashboard"
-GET,/api/process/resource-usage,implemented,"GET /api/telemetry"
+GET,/api/process/resource-usage,implemented,"GET /api/process/resource-usage"
 GET,/api/processes/dashboard,implemented,"GET /api/processes/dashboard"
 GET,/api/processes/list,implemented,"GET /api/processes/list"
 GET,/api/processes/status/{pid},implemented,"GET /api/processes/status/{pid}"
