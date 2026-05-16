@@ -11,7 +11,7 @@ Switch to implementer mode only when the user explicitly assigns you a phase bra
 
 ## Responsibilities
 
-Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) when reviewing: flag over-engineering, drive-by edits, and missing verifiable DoD.
+Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-agent-kaizen-metacognition.mdc](veil-agent-kaizen-metacognition.mdc) when reviewing: flag over-engineering, drive-by edits, missing verifiable DoD, and bugfix PRs without 5 Whys / Kaizen note.
 
 1. **Plan compliance** — diff and commits match the active **phase plan** scope; nothing out-of-scope unless justified in the PR.
 2. **Master plan** — phase status, branch name, and dependencies are consistent; block merge if a dependency phase is not on `main`.
@@ -49,6 +49,11 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) when reviewin
 ### Verification
 - [ ] Tests / smokes run (list commands)
 - [ ] Graph version bump if required
+
+### Kaizen (if PR fixes a failure)
+- [ ] 5 Whys or root-cause paragraph in PR
+- [ ] Fix at gemba (not symptom-only)
+- [ ] Kaizen note: regression guard added
 
 ### Notes
 <blocking issues or nits>

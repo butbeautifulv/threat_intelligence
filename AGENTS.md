@@ -2,6 +2,8 @@
 
 **Behavioral guidelines (Karpathy + Veil):** [.cursor/rules/veil-karpathy-guidelines.mdc](.cursor/rules/veil-karpathy-guidelines.mdc), skill [.cursor/skills/veil-karpathy-guidelines/SKILL.md](.cursor/skills/veil-karpathy-guidelines/SKILL.md). Upstream reference: [.external/andrej-karpathy-skills-main/](.external/andrej-karpathy-skills-main/) (do not edit).
 
+**Metacognition on errors (5 Whys, Gemba Kaizen, 1% improvement):** [.cursor/rules/veil-agent-kaizen-metacognition.mdc](.cursor/rules/veil-agent-kaizen-metacognition.mdc) — mandatory when tests, CI, smokes, or builds fail; document root cause before the next fix.
+
 ## Before you change code
 
 1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** — CLEAN CODE, DRY, KISS, DDD; four isolated contexts (`scrape/`, `pipeline/`, `graph/`, `engage/`); domain packages per source; shared wire types in `pkg/`. Before merge, check the [PR checklist](docs/coding-style.md#pr-checklist).

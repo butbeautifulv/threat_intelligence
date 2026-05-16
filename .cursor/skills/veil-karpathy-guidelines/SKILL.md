@@ -138,6 +138,48 @@ Use the verdict template in [veil-agent-critic.mdc](../../rules/veil-agent-criti
 
 ---
 
+## Metacognition on errors (5 Whys + Gemba Kaizen + 1%)
+
+**Rule file:** [veil-agent-kaizen-metacognition.mdc](../../rules/veil-agent-kaizen-metacognition.mdc)
+
+When something fails, **pause implementation** and run this loop before writing more code.
+
+### 1. Metacognition (notice thinking errors)
+
+- Name the symptom and the command that proved it.
+- List what you **assumed** vs what logs/tests **showed**.
+- If you already tried a fix and it failed again, treat the first fix as treating a symptom only.
+
+### 2. Five Whys (root cause)
+
+| Step | Question |
+|------|----------|
+| Why 1 | Why did the symptom appear? |
+| Why 2 | Why did that happen? |
+| Why 3 | Why was that allowed? (often: go to Gemba here) |
+| Why 4 | Why wasn’t it caught earlier? |
+| Why 5 | Why does the process/plan allow recurrence? |
+
+Stop when you can point to a **single controllable cause** (file + line, missing env, wrong wait, plan gap).
+
+### 3. Gemba Kaizen (fix at the real place)
+
+- **Gemba:** reproduce at the failure site (test, smoke, service log, graph query).
+- **Kaizen fix:** smallest change that removes the root cause.
+- **Verify:** same failing command → green; then layer tests.
+
+### 4. One percent improvement (compound)
+
+Each error response should leave the repo slightly better:
+
+- Clearer assert, smoke wait, or error message.
+- One line in phase plan / PR: **Kaizen note** (symptom → cause → fix → guard).
+- Optional follow-up todo in master plan (next slice), not scope explosion in the current phase.
+
+**Not allowed:** blind retries, broad refactors, or hiding red checks without documented SKIP + Why.
+
+---
+
 ## Implementer prompt template
 
 ```text
@@ -145,6 +187,7 @@ You are a Veil implementer on branch engage/phase-NN-slug.
 Read: AGENTS.md, docs/coding-style.md, .cursor/skills/veil-karpathy-guidelines/SKILL.md,
        <phase-plan-path>.
 Follow Karpathy 1–4 within phase scope only.
+On any error: 5 Whys + Gemba Kaizen fix + Kaizen note (1% improvement); no guess-and-check loops.
 Do not merge; push branch and return PR link for critic review.
 ```
 
