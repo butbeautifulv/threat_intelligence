@@ -9,14 +9,13 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/pkg/harvest"
-	connats "github.com/butbeautifulv/veil/pipeline/connector/nats"
 	"github.com/butbeautifulv/veil/pipeline/ned/internal/config"
 	"github.com/butbeautifulv/veil/pipeline/ned/internal/dedup"
 	"github.com/nats-io/nats.go"
 )
 
 // RunPullLoop consumes scrape JetStream messages until ctx is canceled.
-func RunPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, batch int, maxWait time.Duration, pub *connats.JetStreamPublisher, cfg config.Config) error {
+func RunPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, batch int, maxWait time.Duration, pub dedup.IngestPublisher, cfg config.Config) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -50,7 +49,7 @@ func RunPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, 
 	}
 }
 
-func handleScrapeMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, pub *connats.JetStreamPublisher, cfg config.Config) error {
+func handleScrapeMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, pub dedup.IngestPublisher, cfg config.Config) error {
 	var env harvest.Envelope
 	if err := json.Unmarshal(m.Data, &env); err != nil {
 		return fmt.Errorf("decode harvest: %w", err)
