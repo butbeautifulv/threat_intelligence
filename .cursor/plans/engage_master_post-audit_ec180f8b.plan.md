@@ -84,10 +84,10 @@ flowchart LR
 
 | Phase | Branch | Status | Owner / stream | Critic | Merge SHA |
 |-------|--------|--------|----------------|--------|-----------|
-| 24 | `engage/phase-24-ci-e2e` | in_progress | implementer | orchestrator chat | — |
-| 25 | `engage/phase-25-execution-100` | in_progress | implementer | orchestrator chat | — |
-| 26 | — | pending | — | — | — |
-| 27 | — | pending | — | — | — |
+| 24 | `engage/phase-24-ci-e2e` | done | subagent stream-A | orchestrator chat | `a65f301` |
+| 25 | `engage/phase-25-execution-100` | done | implementer | orchestrator chat | `7a24e26` |
+| 26 | `engage/phase-26-golden-parity` | done | subagent stream-B | orchestrator chat | `9a585ac` |
+| 27 | `engage/phase-27-findings-dedup` | done | subagent stream-C | orchestrator chat | `4f82630` |
 | 28 | — | pending | — | — | — |
 | 29 | — | pending | — | — | — |
 | 30 | — | pending | — | — | — |
@@ -216,10 +216,10 @@ make test-engage-ctf / test-engage-bugbounty  # Phase 26+
 
 ## Definition of Done — мастер-план v2 (полный переезд)
 
-- [x] Phase 24: events + veil-stack CI green
-- [ ] Phase 25: ≥100 live tools + N/A matrix 100% catalog
-- [ ] Phase 26: CTF/BB golden tests green
-- [ ] Phase 27: findings dedup в production path
+- [x] Phase 24: events + veil-stack CI green (merge `a65f301`)
+- [x] Phase 25: ≥100 live tools + N/A matrix 100% catalog (merge `7a24e26`, 113 live)
+- [x] Phase 26: CTF/BB golden tests green (merge `9a585ac`)
+- [x] Phase 27: findings dedup в production path (merge `4f82630`)
 - [ ] Phase 28–29: по приоритету команды (browser/obs + refactor)
 - [ ] Phase 30: decommission runbook + sign-off audit
 - [x] Architecture parity (аудит 2026-05-16) — **не регрессировать**
