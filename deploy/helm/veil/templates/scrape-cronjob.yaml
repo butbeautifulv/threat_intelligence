@@ -1,0 +1,21 @@
+{{- if .Values.scrape.cronJob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "veil.fullname" . }}-scrape
+spec:
+  schedule: {{ .Values.scrape.cronJob.schedule | quote }}
+  concurrencyPolicy: {{ .Values.scrape.cronJob.concurrencyPolicy }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: scrape-worker
+              image: "{{ .Values.global.imageRegistry }}veil-scrape-worker:{{ .Values.global.imageTag }}"
+              env:
+                - name: NATS_URL
+                  value: {{ .Values.global.natsUrl | quote }}
+              # Profile env from ConfigMap (P5d): deploy/profiles/{{ .Values.scrape.cronJob.profile }}.env
+{{- end }}

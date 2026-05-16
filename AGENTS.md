@@ -18,7 +18,7 @@
 | Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) |
 | Finish | This file § End-of-task checklist |
 
-**Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Platform v4 P4a CI + P4b full loop / IaC ([veil_platform_v4_ci_and_full_loop.plan.md](.cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md), [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md), [deploy/terraform/README.md](deploy/terraform/README.md)); Engage phases 24–30 ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md)).
+**Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Platform v4 P4a CI + P4b full loop / IaC ([veil_platform_v4_ci_and_full_loop.plan.md](.cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md), [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md), [deploy/terraform/README.md](deploy/terraform/README.md)); Engage phases 24–30 / HexStrike sign-off ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md), [docs/engage-audit-report.md](docs/engage-audit-report.md)); Platform P5 hybrid deploy ([veil_deploy_platform_p5_hybrid.plan.md](.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md), [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)).
 
 ## Before you change code
 

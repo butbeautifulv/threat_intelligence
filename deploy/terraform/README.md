@@ -8,6 +8,9 @@ Declarative wrapper around existing **Docker Compose** deploy files. Terraform d
 |------|---------|
 | `modules/veil_compose/` | Reusable module: profile + scales + optional engage overlay |
 | `environments/local/` | Local/dev stack (default profile `smoke-minimal`) |
+| `environments/stage/` | Stage foundation stub + compose env (`fast-rich`) |
+| `environments/prod/` | Prod foundation stub + compose env (`secure-graph`) |
+| `modules/foundation/` | VPC/EKS/VM/S3 placeholder outputs for Ansible/Helm |
 
 ## Quick start (generate env only)
 

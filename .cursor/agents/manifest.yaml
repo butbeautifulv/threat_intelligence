@@ -52,6 +52,25 @@ agents:
       Read-only except markdown under docs/, .cursor/plans/, CONTRIBUTING.md, AGENTS.md.
 
 phases:
+  - id: platform-p5b-tf
+    agent: platform-implementer
+    branch: platform/p5b-tf-foundation
+    plan_path: .cursor/plans/veil_deploy_platform_p5_hybrid.plan.md
+    phase_slug: p5b-tf-foundation
+    notes: Cloud foundation module (AWS/GCP stub → real resources)
+
+  - id: platform-p5c-ansible
+    agent: platform-implementer
+    branch: platform/p5c-ansible-dataplane
+    plan_path: .cursor/plans/veil_deploy_platform_p5_hybrid.plan.md
+    phase_slug: p5c-ansible-dataplane
+
+  - id: platform-p5d-helm
+    agent: platform-implementer
+    branch: platform/p5d-helm-controlplane
+    plan_path: .cursor/plans/veil_deploy_platform_p5_hybrid.plan.md
+    phase_slug: p5d-helm-controlplane
+
   # Example bindings — critic fills branch/plan when spawning.
   - id: platform-p4b
     agent: platform-implementer

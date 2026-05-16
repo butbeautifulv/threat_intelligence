@@ -1,0 +1,48 @@
+global:
+  imageRegistry: ""
+  imageTag: ""  # set from versions.env at deploy time
+  natsUrl: nats://nats.veil-data.svc:4222
+  neo4jUri: neo4j://neo4j.veil-data.svc:7687
+  veilApiUrl: http://api.veil.svc:8090
+
+graph:
+  api:
+    enabled: true
+    replicas: 2
+    resources: {}
+  ingress:
+    enabled: false
+    host: api.veil.example
+
+engage:
+  api:
+    enabled: true
+    replicas: 2
+  eventsWorker:
+    enabled: true
+  runner:
+    enabled: false  # isolate on dedicated pool / Ansible VM
+
+pipeline:
+  worker:
+    replicas: 2
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      # metric: nats consumer lag (wire in P5e)
+
+ingest:
+  worker:
+    replicas: 2
+    hpa:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+
+scrape:
+  cronJob:
+    enabled: true
+    schedule: "0 3 * * *"
+    profile: smoke-minimal
+    concurrencyPolicy: Forbid

@@ -1,4 +1,4 @@
- .PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-platform-p0 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render
+ .PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-platform-p0 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-platform-p0:
@@ -27,6 +27,18 @@ agents-render:
 	chmod +x ./scripts/agents/render-task-prompt.sh
 	@test -n "$(AGENT)" || (echo "usage: make agents-render AGENT=platform-implementer [PHASE=platform-p4b]" >&2; exit 1)
 	./scripts/agents/render-task-prompt.sh "$(AGENT)" $(if $(PHASE),--phase $(PHASE),)
+
+deploy-helm-template:
+	@if command -v helm >/dev/null 2>&1; then \
+		helm template veil deploy/helm/veil -f deploy/helm/veil/values.yaml \
+			-f deploy/helm/veil/values-stage.yaml \
+			--set global.imageTag=$${APP_VERSION:-v0.4.5}; \
+	else echo "SKIP: helm not installed"; fi
+
+deploy-ansible-check:
+	@if command -v ansible-playbook >/dev/null 2>&1; then \
+		ansible-playbook deploy/ansible/playbooks/site.yml -i deploy/ansible/inventories/stage --syntax-check; \
+	else echo "SKIP: ansible-playbook not installed"; fi
 
 test-scrape:
 	cd pkg && env -u GOWORK go test ./harvest/... ./commit/...

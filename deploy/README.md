@@ -50,7 +50,17 @@ docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f de
 
 Partition overlay: [compose.scale.yml](compose.scale.yml) (`scrape_worker_fast`: ti,sbom,coderules,nuclei; `scrape_worker_slow`: ds,vuln,lola).
 
-## Terraform (optional IaC)
+## Hybrid deploy (P5 — Terraform + Ansible + Helm)
+
+Production model: **TF** provisions cloud → **Ansible** data plane (Compose) → **Helm** control plane (K8s). See [docs/deploy-platform-hybrid.md](../docs/deploy-platform-hybrid.md) and [.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md](../.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md).
+
+| Path | Role |
+|------|------|
+| [terraform/](terraform/README.md) | Infra + compose env generation |
+| [ansible/](ansible/README.md) | VM configure, stateful stack, scrape cron |
+| [helm/veil/](helm/veil/README.md) | api, engage-api, workers HPA, scrape CronJob |
+
+## Terraform (local IaC)
 
 Declarative Compose env and optional managed `up`/`down`: [terraform/README.md](terraform/README.md).
 
