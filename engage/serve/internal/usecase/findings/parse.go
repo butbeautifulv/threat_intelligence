@@ -10,21 +10,258 @@ import (
 	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
 )
 
+// DedupeFindings merges findings that share (target, tool, normalized signature).
+// Signature prefers Title; if empty, falls back to Description then Evidence preview.
+func DedupeFindings(in []domainreport.Finding) []domainreport.Finding {
+	if len(in) < 2 {
+		return append([]domainreport.Finding(nil), in...)
+	}
+	seen := make(map[string]struct{}, len(in))
+	out := make([]domainreport.Finding, 0, len(in))
+	for _, f := range in {
+		key := findingDedupKey(f)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, f)
+	}
+	return out
+}
+
+func findingDedupKey(f domainreport.Finding) string {
+	sig := strings.TrimSpace(f.Title)
+	if sig == "" {
+		sig = strings.TrimSpace(f.Description)
+	}
+	if sig == "" {
+		sig = evidenceSignature(f.Evidence)
+	}
+	tgt := strings.ToLower(strings.TrimSpace(f.Target))
+	tool := strings.ToLower(strings.TrimSpace(f.Tool))
+	sig = normalizeSignature(sig)
+	return tgt + "\x00" + tool + "\x00" + sig
+}
+
+func evidenceSignature(ev string) string {
+	ev = strings.TrimSpace(ev)
+	if ev == "" {
+		return ""
+	}
+	runes := []rune(ev)
+	if len(runes) > 200 {
+		ev = string(runes[:200])
+	}
+	return ev
+}
+
 // ParseToolOutput extracts structured findings from tool stdout.
 func ParseToolOutput(toolName, target, output string) []domainreport.Finding {
 	low := strings.ToLower(toolName)
+	var parsed []domainreport.Finding
 	switch {
 	case strings.Contains(low, "nuclei"):
-		return parseNuclei(target, toolName, output)
+		parsed = parseNuclei(target, toolName, output)
 	case strings.Contains(low, "nmap"):
-		return parseNmap(target, toolName, output)
+		parsed = parseNmap(target, toolName, output)
+	case strings.Contains(low, "masscan"):
+		parsed = parseMasscan(target, toolName, output)
 	case strings.Contains(low, "ffuf"):
-		return parseFfuf(target, toolName, output)
+		parsed = parseFfuf(target, toolName, output)
 	case strings.Contains(low, "sqlmap"):
-		return parseSqlmap(target, toolName, output)
+		parsed = parseSqlmap(target, toolName, output)
+	case strings.Contains(low, "wpscan"):
+		parsed = parseWpscan(target, toolName, output)
 	default:
-		return parseGeneric(target, toolName, output)
+		parsed = parseGeneric(target, toolName, output)
 	}
+	return DedupeFindings(parsed)
+}
+
+var (
+	masscanOpenLine  = regexp.MustCompile(`(?i)^open\s+(tcp|udp)\s+(\d+)\s+(\S+)`)
+	grepablePorts    = regexp.MustCompile(`(?i)Ports:\s*(.+)$`)
+	wpscanTitleLine  = regexp.MustCompile(`^\s*\[!]\s+(.*)$`)
+	signatureSpaceRe = regexp.MustCompile(`\s+`)
+)
+
+func normalizeSignature(s string) string {
+	s = strings.TrimSpace(strings.ToLower(s))
+	return signatureSpaceRe.ReplaceAllString(s, " ")
+}
+
+func parseMasscan(target, tool, output string) []domainreport.Finding {
+	var out []domainreport.Finding
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.Contains(line, "Ports:") {
+			fields := grepablePorts.FindStringSubmatch(line)
+			host := extractGrepableHost(line)
+			if len(fields) != 2 {
+				continue
+			}
+			for _, frag := range strings.Split(fields[1], ",") {
+				frag = strings.TrimSpace(frag)
+				openPortFinding(&out, host, target, tool, frag, line)
+			}
+			continue
+		}
+		m := masscanOpenLine.FindStringSubmatch(line)
+		if len(m) == 4 {
+			portNum, _ := strconv.Atoi(m[2])
+			ip := strings.TrimSpace(m[3])
+			useTarget := ip
+			if useTarget == "" {
+				useTarget = target
+			}
+			out = append(out, domainreport.Finding{
+				Title:       fmt.Sprintf("open %s/%s", m[2], strings.ToLower(m[1])),
+				Severity:    domainreport.SeverityInfo,
+				Description: fmt.Sprintf("masscan detected open port %d (%s)", portNum, strings.ToUpper(m[1])),
+				Target:      useTarget,
+				Tool:        tool,
+				Evidence:    line,
+			})
+		}
+	}
+	if len(out) == 0 {
+		return parseGeneric(target, tool, output)
+	}
+	return out
+}
+
+func extractGrepableHost(line string) string {
+	idx := strings.Index(line, "Host:")
+	if idx < 0 {
+		return ""
+	}
+	rest := strings.TrimSpace(line[idx+len("Host:"):])
+	if p := strings.Index(rest, "()"); p >= 0 {
+		host := strings.TrimSpace(rest[:p])
+		host = strings.Trim(host, "()")
+		return strings.TrimSpace(host)
+	}
+	fields := strings.Fields(rest)
+	if len(fields) > 0 {
+		return strings.Trim(fields[0], "()")
+	}
+	return strings.TrimSpace(rest)
+}
+
+func openPortFinding(dst *[]domainreport.Finding, host, targetFallback, tool, portFrag, evidence string) {
+	// e.g. 22/open/tcp//ssh/, 443/open/tcp//https/
+	frag := strings.TrimSpace(strings.ToLower(portFrag))
+	fields := strings.Split(frag, "/")
+	if len(fields) < 2 {
+		return
+	}
+	if fields[1] != "open" {
+		return
+	}
+	proto := "tcp"
+	if len(fields) > 2 && fields[2] != "" {
+		proto = fields[2]
+	}
+	useTarget := host
+	if useTarget == "" {
+		useTarget = targetFallback
+	}
+	title := fmt.Sprintf("open %s/%s", fields[0], proto)
+	*dst = append(*dst, domainreport.Finding{
+		Title:       title,
+		Severity:    domainreport.SeverityInfo,
+		Description: frag,
+		Target:      useTarget,
+		Tool:        tool,
+		Evidence:    evidence,
+	})
+}
+
+func parseWpscan(target, tool, output string) []domainreport.Finding {
+	var out []domainreport.Finding
+	trim := strings.TrimSpace(output)
+	if trim != "" && trim[0] == '{' {
+		type vulnStub struct {
+			Title       string `json:"title"`
+			Name        string `json:"name"`
+			Description string `json:"description"`
+		}
+		var doc struct {
+			Vulnerabilities []vulnStub `json:"vulnerabilities"`
+			Interesting     []struct {
+				URL   string `json:"url"`
+				Found string `json:"found_by"`
+			} `json:"interesting_findings"`
+		}
+		if err := json.Unmarshal([]byte(trim), &doc); err == nil {
+			for _, v := range doc.Vulnerabilities {
+				title := strings.TrimSpace(v.Title)
+				if title == "" {
+					title = strings.TrimSpace(v.Name)
+				}
+				if title == "" {
+					continue
+				}
+				desc := strings.TrimSpace(v.Description)
+				out = append(out, domainreport.Finding{
+					Title:       "wpscan: " + title,
+					Severity:    domainreport.SeverityMedium,
+					Description: desc,
+					Target:      target,
+					Tool:        tool,
+				})
+			}
+			for _, it := range doc.Interesting {
+				if it.URL == "" {
+					continue
+				}
+				out = append(out, domainreport.Finding{
+					Title:       "wpscan: " + strings.TrimSpace(it.URL),
+					Severity:    domainreport.SeverityInfo,
+					Description: strings.TrimSpace(it.Found),
+					Target:      target,
+					Tool:        tool,
+					Evidence:    strings.TrimSpace(it.URL),
+				})
+			}
+			if len(out) > 0 {
+				return out
+			}
+		}
+	}
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if m := wpscanTitleLine.FindStringSubmatch(line); len(m) == 2 {
+			msg := strings.TrimSpace(m[1])
+			if msg == "" {
+				continue
+			}
+			low := strings.ToLower(msg)
+			sev := domainreport.SeverityLow
+			if strings.Contains(low, "critical") {
+				sev = domainreport.SeverityCritical
+			} else if strings.Contains(low, "high") {
+				sev = domainreport.SeverityHigh
+			} else if strings.Contains(low, "medium") {
+				sev = domainreport.SeverityMedium
+			}
+			out = append(out, domainreport.Finding{
+				Title:       "wpscan: " + msg,
+				Severity:    sev,
+				Description: msg,
+				Target:      target,
+				Tool:        tool,
+				Evidence:    line,
+			})
+		}
+	}
+	if len(out) == 0 {
+		return parseGeneric(target, tool, output)
+	}
+	return out
 }
 
 func parseNuclei(target, tool, output string) []domainreport.Finding {
@@ -98,8 +335,8 @@ func parseFfuf(target, tool, output string) []domainreport.Finding {
 	if trim[0] == '{' {
 		var doc struct {
 			Results []struct {
-				URL    string `json:"url"`
-				Status int    `json:"status"`
+				URL    string            `json:"url"`
+				Status int               `json:"status"`
 				Input  map[string]string `json:"input"`
 			} `json:"results"`
 		}
