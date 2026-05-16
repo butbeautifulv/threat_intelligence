@@ -151,7 +151,8 @@ make test-engage-veil-stack-ci
 
 | Env | Default | Role |
 |-----|---------|------|
-| `SMOKE_VEIL_API_WAIT_SEC` | 300 | Wait for `engage-api` after compose up |
+| `SMOKE_VEIL_API_WAIT_SEC` | 300 | Wait for `engage-api` `/health` after compose up |
+| `SMOKE_VEIL_VEIL_API_WAIT_SEC` | 180 | Wait for veil-api `/health` (same compose bring-up) |
 | `SMOKE_VEIL_ENGAGE_WAIT_SEC` | 180 | Poll veil-api engage search |
 | `SMOKE_VEIL_STACK_BUILD` | 1 | `0` skips `docker compose build` on re-run |
 

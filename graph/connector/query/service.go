@@ -24,18 +24,19 @@ func NewService(exec ReadExecutor) *Service {
 }
 
 // nodeTextSearchPredicate matches common TI fields plus engage scan metadata.
+// Neo4j 5+ requires IS NOT NULL (exists(n.prop) predicate syntax removed).
 const nodeTextSearchPredicate = `
-  (exists(n.title) AND toLower(n.title) CONTAINS $q) OR
-  (exists(n.name) AND toLower(n.name) CONTAINS $q) OR
-  (exists(n.id) AND toLower(n.id) CONTAINS $q) OR
-  (exists(n.cve) AND toLower(n.cve) CONTAINS $q) OR
-  (exists(n.value) AND toLower(n.value) CONTAINS $q) OR
-  (exists(n.uri) AND toLower(n.uri) CONTAINS $q) OR
-  (exists(n.link) AND toLower(n.link) CONTAINS $q) OR
-  (exists(n.target) AND toLower(n.target) CONTAINS $q) OR
-  (exists(n.tool) AND toLower(n.tool) CONTAINS $q) OR
-  (exists(n.severity) AND toLower(n.severity) CONTAINS $q) OR
-  (exists(n.description) AND toLower(n.description) CONTAINS $q)
+  (n.title IS NOT NULL AND toLower(n.title) CONTAINS $q) OR
+  (n.name IS NOT NULL AND toLower(n.name) CONTAINS $q) OR
+  (n.id IS NOT NULL AND toLower(toString(n.id)) CONTAINS $q) OR
+  (n.cve IS NOT NULL AND toLower(n.cve) CONTAINS $q) OR
+  (n.value IS NOT NULL AND toLower(n.value) CONTAINS $q) OR
+  (n.uri IS NOT NULL AND toLower(n.uri) CONTAINS $q) OR
+  (n.link IS NOT NULL AND toLower(n.link) CONTAINS $q) OR
+  (n.target IS NOT NULL AND toLower(n.target) CONTAINS $q) OR
+  (n.tool IS NOT NULL AND toLower(n.tool) CONTAINS $q) OR
+  (n.severity IS NOT NULL AND toLower(n.severity) CONTAINS $q) OR
+  (n.description IS NOT NULL AND toLower(n.description) CONTAINS $q)
 `
 
 const nodeMatchByID = `elementId(n) = $id OR n.id = $id OR n.cve = $id OR n.uri = $id OR n.link = $id OR (n:EngageTarget AND n.name = $id)`

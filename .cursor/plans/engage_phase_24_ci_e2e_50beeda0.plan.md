@@ -10,13 +10,13 @@ todos:
     status: completed
   - id: p24-r122-veil-stack
     content: "R122: veil-stack-ci waits, compose health, fail diagnostics (SMOKE_VEIL_API_WAIT_SEC)"
-    status: in_progress
+    status: completed
   - id: p24-r123-ci
     content: "R123: engage.yml timeouts; events/veil jobs required green"
-    status: pending
+    status: completed
   - id: p24-r124-docs
     content: "R124: engage-audit-report + runtime prerequisites; master DoD checkboxes"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -185,12 +185,12 @@ make test-engage-veil-stack-ci
 
 ## Definition of Done — Phase 24
 
-- [ ] `make test-engage-events-pipeline` green локально и в CI job `engage-events-e2e`
-- [ ] `make test-engage-veil-stack-ci` green локально и в CI job `engage-veil-stack`
-- [ ] Smoke scripts fail fast с логами (не silent skip health)
-- [ ] [engage-audit-report.md](docs/engage-audit-report.md) обновлён
-- [ ] Master v2 DoD: events + veil-stack `[x]`
-- [ ] Нет регрессии: `make test-engage`, `make test-engage-route-parity`
+- [x] `make test-engage-events-pipeline` green локально и в CI job `engage-events-e2e`
+- [x] `make test-engage-veil-stack-ci` green локально и в CI job `engage-veil-stack`
+- [x] Smoke scripts fail fast с логами (не silent skip health)
+- [x] [engage-audit-report.md](docs/engage-audit-report.md) обновлён
+- [x] Master v2 DoD: events + veil-stack `[x]` ([engage_hexstrike_master_7666e9b4.plan.md](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md), [engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md))
+- [x] Нет регрессии: `make test-engage`, `make test-engage-route-parity`
 
 ---
 

@@ -4,7 +4,7 @@ overview: "Новый мастер-план Phase 24–30 (R121–R150) посл
 todos:
   - id: p24-ci-e2e
     content: "Phase 24 (R121–R124): стабилизировать events-pipeline + veil-stack-ci; required green в engage.yml"
-    status: pending
+    status: completed
   - id: p25-execution-100
     content: "Phase 25 (R125–R130): N/A matrix, runner expansion, 100+ live tools, strict matrix CI"
     status: pending
@@ -216,7 +216,7 @@ make test-engage-ctf / test-engage-bugbounty  # Phase 26+
 
 ## Definition of Done — мастер-план v2 (полный переезд)
 
-- [ ] Phase 24: events + veil-stack CI green
+- [x] Phase 24: events + veil-stack CI green
 - [ ] Phase 25: ≥100 live tools + N/A matrix 100% catalog
 - [ ] Phase 26: CTF/BB golden tests green
 - [ ] Phase 27: findings dedup в production path
