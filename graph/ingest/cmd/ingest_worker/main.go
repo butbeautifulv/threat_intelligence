@@ -10,8 +10,8 @@ import (
 
 	"github.com/butbeautifulv/veil/graph/ingest/internal/components"
 	"github.com/butbeautifulv/veil/graph/ingest/internal/config"
-	graphnats "github.com/butbeautifulv/veil/graph/ingest/internal/connector/nats"
 	ingestloop "github.com/butbeautifulv/veil/graph/ingest/internal/ingest"
+	"github.com/butbeautifulv/veil/pkg/natsjet"
 	"github.com/nats-io/nats.go"
 	"golang.org/x/sync/errgroup"
 )
@@ -47,7 +47,7 @@ func run(rootCtx context.Context, log *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	if err := graphnats.EnsureIngestStream(js); err != nil {
+	if err := natsjet.EnsureIngestStream(js); err != nil {
 		return err
 	}
 

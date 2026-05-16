@@ -3,12 +3,12 @@ package consumer
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/butbeautifulv/veil/pkg/harvest"
+	"github.com/butbeautifulv/veil/pkg/natsjet"
 	"github.com/butbeautifulv/veil/pipeline/ned/internal/config"
 	"github.com/butbeautifulv/veil/pipeline/ned/internal/dedup"
 	"github.com/nats-io/nats.go"
@@ -16,37 +16,14 @@ import (
 
 // RunPullLoop consumes scrape JetStream messages until ctx is canceled.
 func RunPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, batch int, maxWait time.Duration, pub dedup.IngestPublisher, cfg config.Config) error {
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info("pipeline consumer stopped")
-			return nil
-		default:
-		}
-		msgs, err := sub.Fetch(batch, nats.MaxWait(maxWait))
-		if err != nil {
-			if errors.Is(err, nats.ErrTimeout) {
-				continue
-			}
-			log.Warn("fetch", slog.String("err", err.Error()))
-			select {
-			case <-ctx.Done():
-				return nil
-			case <-time.After(time.Second):
-			}
-			continue
-		}
-		for _, m := range msgs {
-			if err := handleScrapeMsg(ctx, log, m, pub, cfg); err != nil {
-				log.Warn("scrape message", slog.String("err", err.Error()))
-				_ = m.NakWithDelay(2 * time.Second)
-				continue
-			}
-			if err := m.Ack(); err != nil {
-				log.Warn("ack", slog.String("err", err.Error()))
-			}
-		}
-	}
+	return natsjet.RunPullLoop(ctx, log, sub, natsjet.PullLoopOpts{
+		Batch:    batch,
+		MaxWait:  maxWait,
+		NakDelay: 2 * time.Second,
+		StopLog:  "pipeline consumer stopped",
+	}, func(ctx context.Context, m *nats.Msg) error {
+		return handleScrapeMsg(ctx, log, m, pub, cfg)
+	})
 }
 
 func handleScrapeMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, pub dedup.IngestPublisher, cfg config.Config) error {

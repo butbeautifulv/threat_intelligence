@@ -34,7 +34,7 @@ type engageFindingWire struct {
 
 // EnsureEngageEventsStream creates the ENGAGE_EVENTS stream for audit/finding subjects.
 func EnsureEngageEventsStream(js natsgo.JetStreamContext) error {
-	return natsjet.EnsureStream(js, "ENGAGE_EVENTS", []string{"engage.events.>"})
+	return natsjet.EnsureEngageEventsStream(js)
 }
 
 // RunEngageEventsConsumer pulls engage JetStream events and publishes ingest envelopes.
@@ -60,33 +60,23 @@ func RunEngageEventsConsumer(ctx context.Context, log *slog.Logger, natsURL, eng
 	if ingestFindingSubject == "" {
 		ingestFindingSubject = "ingest.engage.finding"
 	}
-	sub, err := js.PullSubscribe(engageFilter, "engage-events-bridge", natsgo.BindStream("ENGAGE_EVENTS"))
+	sub, err := js.PullSubscribe(engageFilter, "engage-events-bridge", natsgo.BindStream(natsjet.StreamEngageEvents))
 	if err != nil {
 		return fmt.Errorf("pull subscribe: %w", err)
 	}
 	defer sub.Unsubscribe()
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-		msgs, err := sub.Fetch(10, natsgo.MaxWait(2*time.Second))
-		if err != nil {
-			if err == natsgo.ErrTimeout {
-				continue
-			}
+	return natsjet.RunPullLoop(ctx, log, sub, natsjet.PullLoopOpts{
+		Batch:              10,
+		MaxWait:            2 * time.Second,
+		ErrOnFetch:         true,
+		ReturnContextError: true,
+	}, func(ctx context.Context, m *natsgo.Msg) error {
+		if err := handleEngageMsg(ctx, pub, ingestToolRunSubject, ingestFindingSubject, m); err != nil {
+			log.Warn("engage event", slog.Any("err", err))
 			return err
 		}
-		for _, m := range msgs {
-			if err := handleEngageMsg(ctx, pub, ingestToolRunSubject, ingestFindingSubject, m); err != nil {
-				log.Warn("engage event", slog.Any("err", err))
-				_ = m.Nak()
-				continue
-			}
-			_ = m.Ack()
-		}
-	}
+		return nil
+	})
 }
 
 func handleEngageMsg(ctx context.Context, pub *JetStreamPublisher, ingestToolRunSubject, ingestFindingSubject string, m *natsgo.Msg) error {

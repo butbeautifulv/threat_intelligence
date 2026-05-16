@@ -3,7 +3,6 @@ package ingest
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -12,42 +11,20 @@ import (
 	coderulesneo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/coderules"
 	nucleineo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/nuclei"
 	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/natsjet"
 	"github.com/nats-io/nats.go"
 )
 
 // RunPullLoop consumes JetStream messages until ctx is canceled.
 func RunPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, batch int, maxWait time.Duration, rt *components.Runtime) error {
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info("consumer stopped")
-			return nil
-		default:
-		}
-		msgs, err := sub.Fetch(batch, nats.MaxWait(maxWait))
-		if err != nil {
-			if errors.Is(err, nats.ErrTimeout) {
-				continue
-			}
-			log.Warn("fetch", slog.String("err", err.Error()))
-			select {
-			case <-ctx.Done():
-				return nil
-			case <-time.After(time.Second):
-			}
-			continue
-		}
-		for _, m := range msgs {
-			if err := handleMsg(ctx, log, m, rt); err != nil {
-				log.Warn("message", slog.String("err", err.Error()))
-				_ = m.NakWithDelay(2 * time.Second)
-				continue
-			}
-			if err := m.Ack(); err != nil {
-				log.Warn("ack", slog.String("err", err.Error()))
-			}
-		}
-	}
+	return natsjet.RunPullLoop(ctx, log, sub, natsjet.PullLoopOpts{
+		Batch:    batch,
+		MaxWait:  maxWait,
+		NakDelay: 2 * time.Second,
+		StopLog:  "consumer stopped",
+	}, func(ctx context.Context, m *nats.Msg) error {
+		return handleMsg(ctx, log, m, rt)
+	})
 }
 
 func handleMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, rt *components.Runtime) error {

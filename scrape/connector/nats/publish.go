@@ -33,7 +33,7 @@ func (p *JetStreamPublisher) PublishJSON(ctx context.Context, subject string, en
 
 // EnsureScrapeStream creates or updates the SCRAPE stream (scrape.>).
 func EnsureScrapeStream(js natsgo.JetStreamContext) error {
-	return natsjet.EnsureStream(js, "SCRAPE", []string{"scrape.>"})
+	return natsjet.EnsureScrapeStream(js)
 }
 
 // ConnectJetStreamAndStream connects and ensures SCRAPE stream exists.

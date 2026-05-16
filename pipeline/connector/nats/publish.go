@@ -34,12 +34,12 @@ func (p *JetStreamPublisher) PublishJSON(ctx context.Context, subject string, en
 
 // EnsureIngestStream creates or updates the INGEST stream to accept all ingest.* subjects.
 func EnsureIngestStream(js natsgo.JetStreamContext) error {
-	return natsjet.EnsureStream(js, "INGEST", []string{"ingest.>"})
+	return natsjet.EnsureIngestStream(js)
 }
 
 // EnsureAppSecStream is kept for callers; it now ensures the unified ingest stream.
 func EnsureAppSecStream(js natsgo.JetStreamContext) error {
-	return EnsureIngestStream(js)
+	return natsjet.EnsureIngestStream(js)
 }
 
 // ConnectJetStreamAndStream connects and ensures INGEST stream exists.
@@ -57,13 +57,10 @@ func ConnectJetStreamAndStream(url string) (*JetStreamPublisher, error) {
 
 // EnsureBothStreams ensures SCRAPE and INGEST streams (for pipeline_worker).
 func EnsureBothStreams(js natsgo.JetStreamContext) error {
-	if err := EnsureScrapeStream(js); err != nil {
-		return err
-	}
-	return EnsureIngestStream(js)
+	return natsjet.EnsureScrapeAndIngest(js)
 }
 
 // EnsureScrapeStream creates or updates SCRAPE (scrape.>).
 func EnsureScrapeStream(js natsgo.JetStreamContext) error {
-	return natsjet.EnsureStream(js, "SCRAPE", []string{"scrape.>"})
+	return natsjet.EnsureScrapeStream(js)
 }
