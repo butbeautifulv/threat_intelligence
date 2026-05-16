@@ -104,6 +104,8 @@ docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.events.yml 
   --profile graph-ingest up -d ingest_worker
 ```
 
+Read back via veil-api category **`engage`**: `GET /v1/categories/engage/search?q=…` (see [docs/mcp-agents.md](../docs/mcp-agents.md)).
+
 Details: [docs/engage-runtime.md](../docs/engage-runtime.md#events-bus-e2e-nats--ingest).
 
 ## Catalog and tools
@@ -111,7 +113,7 @@ Details: [docs/engage-runtime.md](../docs/engage-runtime.md#events-bus-e2e-nats-
 | File | Purpose |
 |------|---------|
 | [tools.yaml](serve/catalog/tools.yaml) | Generated list (150 tools); `make catalog-engage` — 100+ tools with structured `args` templates |
-| [tools.live.yaml](serve/catalog/tools.live.yaml) | Eleven default enabled tools for smoke / CI matrix |
+| [tools.live.yaml](serve/catalog/tools.live.yaml) | Fifteen default enabled tools for smoke / CI matrix |
 | [tools.enabled.yaml](serve/catalog/tools.enabled.yaml) | Overrides from [enable-catalog-by-category.sh](../scripts/engage/enable-catalog-by-category.sh) |
 
 Example — nmap with parameters:

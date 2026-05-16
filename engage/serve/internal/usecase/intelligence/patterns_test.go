@@ -32,6 +32,15 @@ func TestSelectPatternKey_binaryAndCloud(t *testing.T) {
 	}
 }
 
+func TestAttackPatterns_webRecon_hasParams(t *testing.T) {
+	steps := AttackPatterns()["web_reconnaissance"]
+	for _, st := range steps {
+		if st.Tool == "gobuster" && st.Params["mode"] != "dir" {
+			t.Fatalf("gobuster params: %v", st.Params)
+		}
+	}
+}
+
 func TestCreateAttackChain_usesPattern(t *testing.T) {
 	reg := tools.NewRegistry([]tool.Spec{
 		{Name: "nmap_scan", Binary: "nmap", Enabled: true},

@@ -67,6 +67,7 @@ Enable tools for dev in [tools.live.yaml](../engage/serve/catalog/tools.live.yam
 |---------|------------|
 | Postgres audit | `ENGAGE_AUDIT_POSTGRES_URL`, `ENGAGE_AUDIT_RETENTION_DAYS` |
 | Cross-layer events | `ENGAGE_EVENTS_NATS_ENABLED=1`, `ENGAGE_NATS_URL`, subjects `engage.events.audit` / `engage.events.finding`; pipeline `engage-events-worker` → `ingest.engage.tool_run` / `ingest.engage.finding`; graph ingest → Neo4j |
+| Graph read (engage) | veil-api category `engage`: `GET /v1/categories/engage/search?q=`; veil-mcp search tools; `correlate-threat` returns `engage_findings` |
 | PDF engine | `ENGAGE_PDF_ENGINE=gofpdf` (default) or `wkhtml` (requires `wkhtmltopdf`) |
 | Playbooks | `ENGAGE_PLAYBOOKS_PATH` or `engage/serve/playbooks/bugbounty.yaml` |
 | Keycloak e2e | `deploy/engage/compose.keycloak.yml`, `make test-engage-keycloak` |

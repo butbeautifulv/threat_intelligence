@@ -23,6 +23,11 @@ func (s *Service) AssessmentReport(ctx context.Context, subject string, req Smar
 		}
 		scan["findings"] = all
 		scan["total_vulnerabilities"] = len(all)
+		if s.Findings != nil {
+			for _, f := range all {
+				_ = s.Findings.PublishFinding(ctx, f.Tool, f.Target, f.Title, string(f.Severity), f.Description)
+			}
+		}
 	}
 	summary := report.FromSmartScan(target, scan)
 	return map[string]any{

@@ -175,6 +175,16 @@ Engage MCP runs separately from graph read:
 
 Compose: `deploy/engage/compose.yml` (`engage-mcp` on :8892). Docs: [engage-runtime.md](engage-runtime.md), [engage-legacy-parity.md](engage-legacy-parity.md).
 
+### Cross-layer workflow (engage scan → graph read)
+
+When `ENGAGE_EVENTS_NATS_ENABLED=1` and the events bus is running, tool runs and findings are ingested into Neo4j as `EngageToolRun` / `EngageFinding` nodes (category **`engage`**).
+
+1. Run a scan with **veil-engage** (`httpx_probe`, `smart-scan`, etc.).
+2. Query results with **veil-mcp** or veil-api: `GET /v1/categories/engage/search?q=example.com`.
+3. Optional: `correlate_threat_intelligence` on engage-api merges TI/vuln/engage hits when `ENGAGE_VEIL_API_URL` is set.
+
+Smoke: `make test-engage-events-pipeline` (Docker, includes Neo4j assert with `--profile graph-ingest`).
+
 ## Related
 
 - [engage-runtime.md](engage-runtime.md) — engage API, runner modes, ports

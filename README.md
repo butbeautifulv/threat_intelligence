@@ -71,7 +71,7 @@ docker compose up --build -d
 
 Production secure overlay (TLS on **443** only, no published Neo4j): [docs/deploy-secure.md](docs/deploy-secure.md).
 
-`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently **v0.4.3**) when published, unless `GRAPH_PACK_SKIP=1`.
+`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently **v0.4.4**) when published, unless `GRAPH_PACK_SKIP=1`.
 
 ```bash
 curl -sS http://localhost:8090/health

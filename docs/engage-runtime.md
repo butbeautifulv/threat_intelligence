@@ -104,7 +104,9 @@ Tool execution smoke (opt-in): `make test-engage-smoke-tool` or `ENGAGE_SKIP_TOO
 make test-engage-events-pipeline
 ```
 
-Overlay: `deploy/engage/compose.events.yml` (NATS + `engage-events-worker`). Optional Neo4j ingest:
+The smoke script uses `--profile graph-ingest` and fails if `MATCH (r:EngageToolRun)` count is zero in Neo4j.
+
+Overlay: `deploy/engage/compose.events.yml` (NATS + `engage-events-worker`). Neo4j + `ingest_worker` via profile `graph-ingest`:
 
 ```bash
 docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.events.yml \

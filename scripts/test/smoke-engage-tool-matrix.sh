@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Best-effort CI matrix: smoke up to 10 catalog tools when binaries exist on PATH.
+# Best-effort CI matrix: smoke catalog tools when binaries exist on PATH (target >=15 entries).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SMOKE="${ROOT}/scripts/test/smoke-engage-tool.sh"
@@ -38,4 +38,7 @@ if [[ "${ran}" -eq 0 ]]; then
   echo "skip tool matrix: no supported binaries on PATH" >&2
   exit 0
 fi
-echo "OK engage tool matrix (${ran} tools exercised)"
+if [[ "${#tools[@]}" -lt 15 ]]; then
+  echo "WARN: matrix defines fewer than 15 tools" >&2
+fi
+echo "OK engage tool matrix (${ran} tools exercised, ${#tools[@]} defined; skips when binary missing)"

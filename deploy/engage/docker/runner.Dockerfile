@@ -3,7 +3,8 @@
 FROM golang:1.25-bookworm AS pd
 RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
     go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
-    go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+    go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && \
+    go install github.com/ffuf/ffuf/v2@latest
 
 FROM debian:bookworm-slim
 ARG APT_MIRROR=
@@ -19,7 +20,7 @@ RUN set -eux; \
       echo "apt retry $i" >&2; sleep 5; \
     done; \
     rm -rf /var/lib/apt/lists/*
-COPY --from=pd /go/bin/nuclei /go/bin/httpx /go/bin/subfinder /usr/local/bin/
+COPY --from=pd /go/bin/nuclei /go/bin/httpx /go/bin/subfinder /go/bin/ffuf /usr/local/bin/
 ARG FEROX_VERSION=2.11.0
 RUN curl -fsSL -o /tmp/ferox.tgz \
     "https://github.com/epi052/feroxbuster/releases/download/v${FEROX_VERSION}/x86_64-unknown-linux-gnu.tar.gz" \

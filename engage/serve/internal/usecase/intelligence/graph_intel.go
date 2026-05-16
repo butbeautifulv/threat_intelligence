@@ -24,10 +24,13 @@ func (s *Service) CorrelateThreatIntelligence(ctx context.Context, target, indic
 	}
 	if s.Veil != nil && s.Veil.Enabled() && query != "" {
 		hits := map[string]json.RawMessage{}
-		for _, cat := range []string{"ti", "vuln", "ioc"} {
+		for _, cat := range []string{"ti", "vuln", "engage"} {
 			if raw, err := s.Veil.Search(ctx, cat, query); err == nil && len(raw) > 2 && string(raw) != "null" {
 				hits[cat] = raw
 			}
+		}
+		if raw, err := s.Veil.Search(ctx, "engage", graphSearchQuery(target)); err == nil && len(raw) > 2 && string(raw) != "null" {
+			out["engage_findings"] = raw
 		}
 		if len(hits) > 0 {
 			out["graph_hits"] = hits
@@ -58,6 +61,9 @@ func (s *Service) DiscoverAttackChains(ctx context.Context, target, objective st
 		if host != "" {
 			if raw, err := s.Veil.Search(ctx, "vuln", host); err == nil && len(raw) > 2 {
 				out["graph_vuln_context"] = raw
+			}
+			if raw, err := s.Veil.Search(ctx, "engage", host); err == nil && len(raw) > 2 {
+				out["graph_engage_context"] = raw
 			}
 		}
 	}

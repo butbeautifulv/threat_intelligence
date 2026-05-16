@@ -38,7 +38,19 @@ func TestRouter_categories_and_health(t *testing.T) {
 	}
 	var body map[string]any
 	_ = json.Unmarshal(rr2.Body.Bytes(), &body)
-	if _, ok := body["categories"]; !ok {
+	cats, ok := body["categories"].([]any)
+	if !ok {
 		t.Fatalf("body: %v", body)
+	}
+	foundEngage := false
+	for _, c := range cats {
+		m, _ := c.(map[string]any)
+		if m["id"] == "engage" {
+			foundEngage = true
+			break
+		}
+	}
+	if !foundEngage {
+		t.Fatalf("engage category missing: %v", cats)
 	}
 }

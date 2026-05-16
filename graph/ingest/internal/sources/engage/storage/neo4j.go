@@ -64,6 +64,8 @@ func (s *Store) UpsertFinding(ctx context.Context, id, tool, target, title, seve
 		"id": id, "tool": tool, "target": target, "title": title,
 		"severity": severity, "description": description, "targetName": targetName,
 	}
+	cves := extractCVEs(title, description)
+	params["cves"] = cves
 	q := `
 MERGE (f:EngageFinding {id: $id})
 SET f.tool = $tool,
@@ -74,6 +76,12 @@ SET f.tool = $tool,
 WITH f
 MERGE (t:EngageTarget {name: $targetName})
 MERGE (t)-[:ENGAGE_FOUND]->(f)
+WITH f
+UNWIND $cves AS cveId
+OPTIONAL MATCH (v:Vulnerability)
+WHERE (exists(v.cve) AND toLower(v.cve) = toLower(cveId))
+   OR (exists(v.id) AND toLower(v.id) = toLower(cveId))
+FOREACH (_ IN CASE WHEN v IS NOT NULL THEN [1] ELSE [] END | MERGE (f)-[:MAY_RELATE_TO]->(v))
 `
 	return s.client.ExecWrite(ctx, func(tx driver.ManagedTransaction) error {
 		_, err := tx.Run(ctx, q, params)

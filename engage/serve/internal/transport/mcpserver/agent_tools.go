@@ -32,6 +32,29 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 		res, err := toolJSONResult(out)
 		return res, true, err
 
+	case "ai_generate_attack_suite":
+		if s.intel == nil {
+			res, err := toolJSONResult(map[string]any{"success": false, "error": "intelligence not configured"})
+			return res, true, err
+		}
+		target := argTarget(args)
+		objective := argString(args, "objective", "comprehensive")
+		chain := s.intel.CreateAttackChain(ctx, target, objective)
+		out := map[string]any{
+			"target":       target,
+			"objective":    objective,
+			"attack_chain": chain,
+			"success":      true,
+			"note":         "deterministic attack chain from patterns + ranked tools (not LLM)",
+		}
+		if s.files != nil {
+			if p, err := payloads.Generate(s.files, payloads.Request{Type: "buffer", Size: 64, Pattern: "A"}); err == nil {
+				out["sample_payload"] = p
+			}
+		}
+		res, err := toolJSONResult(out)
+		return res, true, err
+
 	case "format_tool_output_visual":
 		toolName := argString(args, "tool_name", argString(args, "tool", ""))
 		output := argString(args, "output", "")
@@ -52,7 +75,7 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 		})
 		return res, true, err
 	}
-	if strings.HasPrefix(name, "ai_generate_") {
+	if strings.HasPrefix(name, "ai_generate_") && name != "ai_generate_payload" && name != "ai_generate_attack_suite" {
 		res, err := toolJSONResult(map[string]any{
 			"tool":    name,
 			"success": false,

@@ -12,7 +12,11 @@
       "type": "string",
       "enum": ["sbom", "coderules", "nuclei", "ti", "vuln", "lola", "ds", "engage"]
     },
-    "kind": { "type": "string", "minLength": 1 },
+    "kind": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Includes engage_tool_run and engage_finding when source is engage"
+    },
     "idempotency_key": { "type": "string", "minLength": 1 },
     "payload": {}
   }

@@ -199,3 +199,81 @@ tools:
     timeout_sec: 300
     description: "intelligence tool: api schema analyzer"
     enabled: true
+  - name: dalfox_xss_scan
+    category: web
+    binary: dalfox
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+    args:
+      - "url"
+      - "{url}"
+    timeout_sec: 300
+    description: "web tool: dalfox xss scan"
+    enabled: true
+  - name: gobuster_scan
+    category: web
+    binary: gobuster
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: mode
+        type: string
+        default: "dir"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+    args:
+      - "{mode}"
+      - "-u"
+      - "{url}"
+      - "-w"
+      - "{wordlist}"
+    timeout_sec: 600
+    description: "web tool: gobuster scan"
+    enabled: true
+  - name: rustscan_fast_scan
+    category: network
+    binary: rustscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: ports
+        type: string
+        default: "1-1000"
+        required: false
+    args:
+      - "-a"
+      - "{target}"
+      - "-r"
+      - "{ports}"
+    timeout_sec: 300
+    description: "network tool: rustscan fast scan"
+    enabled: true
+  - name: nikto_scan
+    category: web
+    binary: nikto
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: host
+        type: string
+        required: true
+    args:
+      - "-h"
+      - "{host}"
+    timeout_sec: 600
+    description: "web tool: nikto scan"
+    enabled: true

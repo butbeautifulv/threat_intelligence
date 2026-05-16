@@ -23,6 +23,21 @@ func NewService(exec ReadExecutor) *Service {
 	return &Service{exec: exec}
 }
 
+// nodeTextSearchPredicate matches common TI fields plus engage scan metadata.
+const nodeTextSearchPredicate = `
+  (exists(n.title) AND toLower(n.title) CONTAINS $q) OR
+  (exists(n.name) AND toLower(n.name) CONTAINS $q) OR
+  (exists(n.id) AND toLower(n.id) CONTAINS $q) OR
+  (exists(n.cve) AND toLower(n.cve) CONTAINS $q) OR
+  (exists(n.value) AND toLower(n.value) CONTAINS $q) OR
+  (exists(n.uri) AND toLower(n.uri) CONTAINS $q) OR
+  (exists(n.link) AND toLower(n.link) CONTAINS $q) OR
+  (exists(n.target) AND toLower(n.target) CONTAINS $q) OR
+  (exists(n.tool) AND toLower(n.tool) CONTAINS $q) OR
+  (exists(n.severity) AND toLower(n.severity) CONTAINS $q) OR
+  (exists(n.description) AND toLower(n.description) CONTAINS $q)
+`
+
 // ListKinds returns all distinct labels sorted (legacy / discovery).
 func (s *Service) ListKinds(ctx context.Context) ([]string, error) {
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
@@ -279,28 +294,14 @@ func (s *Service) Search(ctx context.Context, query, kind string, limit int) ([]
 	if kind != "" {
 		q = fmt.Sprintf(`
 MATCH (n:%s)
-WHERE
-  (exists(n.title) AND toLower(n.title) CONTAINS $q) OR
-  (exists(n.name) AND toLower(n.name) CONTAINS $q) OR
-  (exists(n.id) AND toLower(n.id) CONTAINS $q) OR
-  (exists(n.cve) AND toLower(n.cve) CONTAINS $q) OR
-  (exists(n.value) AND toLower(n.value) CONTAINS $q) OR
-  (exists(n.uri) AND toLower(n.uri) CONTAINS $q) OR
-  (exists(n.link) AND toLower(n.link) CONTAINS $q)
+WHERE (`+nodeTextSearchPredicate+`)
 RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
 LIMIT $limit
 `, safeLabel(kind))
 	} else {
 		q = `
 MATCH (n)
-WHERE
-  (exists(n.title) AND toLower(n.title) CONTAINS $q) OR
-  (exists(n.name) AND toLower(n.name) CONTAINS $q) OR
-  (exists(n.id) AND toLower(n.id) CONTAINS $q) OR
-  (exists(n.cve) AND toLower(n.cve) CONTAINS $q) OR
-  (exists(n.value) AND toLower(n.value) CONTAINS $q) OR
-  (exists(n.uri) AND toLower(n.uri) CONTAINS $q) OR
-  (exists(n.link) AND toLower(n.link) CONTAINS $q)
+WHERE (` + nodeTextSearchPredicate + `)
 RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
 LIMIT $limit
 `
@@ -331,15 +332,7 @@ func (s *Service) SearchInCategory(ctx context.Context, category, queryText, kin
 		cy = fmt.Sprintf(`
 MATCH (n:%s)
 WHERE any(l IN labels(n) WHERE l IN $allowed)
-AND (
-  (exists(n.title) AND toLower(n.title) CONTAINS $q) OR
-  (exists(n.name) AND toLower(n.name) CONTAINS $q) OR
-  (exists(n.id) AND toLower(n.id) CONTAINS $q) OR
-  (exists(n.cve) AND toLower(n.cve) CONTAINS $q) OR
-  (exists(n.value) AND toLower(n.value) CONTAINS $q) OR
-  (exists(n.uri) AND toLower(n.uri) CONTAINS $q) OR
-  (exists(n.link) AND toLower(n.link) CONTAINS $q)
-)
+AND (`+nodeTextSearchPredicate+`)
 RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
 LIMIT $limit
 `, safeLabel(kind))
@@ -347,15 +340,7 @@ LIMIT $limit
 		cy = `
 MATCH (n)
 WHERE any(l IN labels(n) WHERE l IN $allowed)
-AND (
-  (exists(n.title) AND toLower(n.title) CONTAINS $q) OR
-  (exists(n.name) AND toLower(n.name) CONTAINS $q) OR
-  (exists(n.id) AND toLower(n.id) CONTAINS $q) OR
-  (exists(n.cve) AND toLower(n.cve) CONTAINS $q) OR
-  (exists(n.value) AND toLower(n.value) CONTAINS $q) OR
-  (exists(n.uri) AND toLower(n.uri) CONTAINS $q) OR
-  (exists(n.link) AND toLower(n.link) CONTAINS $q)
-)
+AND (` + nodeTextSearchPredicate + `)
 RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
 LIMIT $limit
 `
