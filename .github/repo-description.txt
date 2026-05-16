@@ -1,1 +1,1 @@
-Veil: Neo4j threat-intel graph + engage toolkit (HexStrike migrated to Go). Four layers scrape→pipeline→graph via NATS; dual MCP veil-graph/veil-engage. Platform closed-loop CI; hybrid prod deploy Terraform+Ansible+Helm.
+Neo4j threat-intel + Go engage toolkit. Four layers (scrape→pipeline→graph→engage) on NATS; dual MCP for agents; hybrid TF/Ansible/Helm; JCSF/DAF controls; GAIA eval harness. MIT.

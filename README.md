@@ -4,9 +4,20 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Veil** is a Neo4j-backed threat-intelligence platform with an optional **active security testing** layer. The graph stores vulnerabilities (CVE, CWE, CPE), LOLbins-style artifacts, detection content (Sigma/YARA/Caldera), TI feeds, SBOM advisories, and code-rule templates. Runtime is split into **four isolated contexts** — **scrape**, **pipeline**, **graph** (read intel), and **engage** (tool execution) — connected by NATS for ingestion and HTTP/MCP for agents.
+**Veil** is a Neo4j-backed threat-intelligence platform with an optional **active security testing** layer. The graph stores vulnerabilities (CVE, CWE, CPE), LOLbins-style artifacts, detection content (Sigma/YARA/Caldera), TI feeds, SBOM advisories, and code-rule templates. Runtime is split into **four isolated Go contexts** — **scrape**, **pipeline**, **graph** (read intel), and **engage** (tool execution) — connected by **NATS JetStream** for ingestion and **dual MCP** servers for AI agents.
 
 **License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Agents / AI:** [AGENTS.md](AGENTS.md) · **Security:** [SECURITY.md](SECURITY.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## What you get
+
+| Capability | Description |
+|------------|-------------|
+| **Threat graph** | Neo4j knowledge graph with versioned [graph packs](docs/graph-pack.md), HTTP API, and read-only MCP |
+| **Ingestion bus** | Scrape → normalize (NED) → ingest over NATS with idempotent envelopes (`pkg/harvest`, `pkg/commit`) |
+| **Engage toolkit** | ~150 catalog tools (Go), workflows (CTF, bug bounty, CVE intel), Docker runner isolation |
+| **Closed loop** | Tool runs and findings → `engage.events` → graph (`EngageToolRun`, `EngageFinding`) for “act → learn → decide” |
+| **Agent-ready** | Separate MCP: **veil-mcp** (read) vs **veil-engage** (exec), Keycloak RBAC, GAIA-style eval harness |
+| **Prod path** | Hybrid deploy: Terraform + Ansible + Helm; secure overlays; control catalog (JCSF/DAF/OWASP-aligned) |
 
 ## Architecture
 
@@ -49,20 +60,24 @@ flowchart LR
 | **Scrape** | [scrape/](scrape/) | Fetch feeds, Vitess ledger, publish `harvest` | — |
 | **Pipeline** | [pipeline/](pipeline/) | NED → `commit`; [engage-events/](pipeline/engage-events/) bridges `engage.events.>` → `ingest.engage.*` | — |
 | **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) read API + MCP | `veil-mcp` (read-only) |
-| **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports (hardened for secured infra) | `veil-engage` (exec) |
+| **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports (hardened) | `veil-engage` (exec) |
 
-Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph runtime: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage runtime: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
+**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs). **No Go imports** across `scrape/`, `pipeline/`, `graph/`, `engage/`.
 
-**Dual MCP for agents:** use **`veil-graph`** to query TI data and **`veil-engage`** to run security tools — separate processes, separate RBAC roles. Legacy HexStrike (Python `:8888`) is **decommissioned** — see [docs/mcp-agents.md](docs/mcp-agents.md) migration runbook and [docs/engage-audit-report.md](docs/engage-audit-report.md).
+Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
+
+**Dual MCP for agents:** **`veil-graph`** (query TI) and **`veil-engage`** (run tools) — separate processes and RBAC. Legacy HexStrike (Python `:8888`) is **decommissioned** — see [docs/mcp-agents.md](docs/mcp-agents.md) and [docs/engage-audit-report.md](docs/engage-audit-report.md).
 
 ## Platform status
 
 | Track | Status | Entry |
 |-------|--------|--------|
-| **Engage / HexStrike** | Phases 24–30 **done** — catalog parity, CI e2e, refactor | [engage-audit-report.md](docs/engage-audit-report.md) |
-| **Platform v3** | P0–P3 **done** — bus tests, closed-loop pilot | [platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) |
-| **Platform v4** | P4a CI + P4b full-loop smoke / local Terraform | [platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) |
-| **Platform P5** | Hybrid deploy skeleton (TF + Ansible + Helm) | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
+| **Engage / HexStrike** | Phases 24–30 **done** — 150-tool catalog, route parity, Go rewrite | [engage-audit-report.md](docs/engage-audit-report.md) |
+| **Platform v3–v4** | P0–P4b **done** — NATS bus tests, closed-loop + full-loop smokes, local Terraform | [platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) |
+| **Platform P5** | Hybrid deploy **skeleton** (TF + Ansible + Helm) on `main` | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
+| **Platform P6** | Refactor **in progress** — `pkg/engage/events`, `pkg/auth/httpmiddleware` | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
+| **Security** | JCSF/DAF/OWASP → [veil-controls.yaml](deploy/security/veil-controls.yaml); engage hardening CI | [external-security-frameworks.md](docs/external-security-frameworks.md) |
+| **Agent eval** | GAIA methodology ([arXiv:2311.12983](https://arxiv.org/abs/2311.12983)); offline CI harness | [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
 
 ## Quick start
 
@@ -101,7 +116,7 @@ curl -sS http://localhost:8890/api/tools | jq .
 | veil-engage MCP | stdio or :8892 | [engage.stdio.json.example](examples/mcp/engage.stdio.json.example) |
 | engage-runner | — | `docker compose --profile runner` + `ENGAGE_RUNNER_MODE=docker` |
 
-Docs: [engage/README.md](engage/README.md) · [docs/engage-hardening.md](docs/engage-hardening.md) · [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md)
+Docs: [engage/README.md](engage/README.md) · [engage-hardening.md](docs/engage-hardening.md) · [engage-legacy-parity.md](docs/engage-legacy-parity.md)
 
 **Events bus (optional):** tool runs and findings publish to NATS when `ENGAGE_EVENTS_NATS_ENABLED=1`; pipeline bridges to `ingest.engage.*` and graph ingest persists `EngageToolRun` / `EngageFinding` nodes.
 
@@ -122,12 +137,12 @@ E2E smoke: `./scripts/test/smoke-scrape-e2e.sh --up` then `./scripts/test/smoke-
 ### Platform integration smokes
 
 ```bash
-make test-platform-p0              # NATS bus unit tests (no Docker)
-make test-platform-closed-loop       # engage → ingest → Neo4j → target-graph
+make test-platform-p0              # pkg + NATS bus (no Docker)
+make test-platform-closed-loop     # engage → ingest → Neo4j → target-graph
 make test-platform-full-loop         # scrape + closed loop (heavy Docker)
 ```
 
-CI: [`.github/workflows/platform.yml`](.github/workflows/platform.yml). Optional full loop: `workflow_dispatch` with `run_full_loop`.
+CI: [platform.yml](.github/workflows/platform.yml), [engage.yml](.github/workflows/engage.yml), [agent-eval.yml](.github/workflows/agent-eval.yml).
 
 ### Production deploy (hybrid)
 
@@ -135,7 +150,9 @@ CI: [`.github/workflows/platform.yml`](.github/workflows/platform.yml). Optional
 |-------|------|------|
 | Terraform | [deploy/terraform/](deploy/terraform/README.md) | Cloud foundation + compose env |
 | Ansible | [deploy/ansible/](deploy/ansible/README.md) | Data plane VMs (Neo4j, NATS, scrape cron) |
-| Helm | [deploy/helm/veil/](deploy/helm/veil/README.md) | Control plane on Kubernetes (api, engage, workers) |
+| Helm | [deploy/helm/veil/](deploy/helm/veil/README.md) | Control plane on K8s (api, engage, workers, HPA) |
+| Profiles | [deploy/profiles/](deploy/profiles/) | `secure-engage.env`, stack env overlays |
+| Controls | [deploy/security/veil-controls.yaml](deploy/security/veil-controls.yaml) | Machine-readable security catalog |
 
 ```bash
 make deploy-helm-template    # render chart (needs helm)
@@ -143,25 +160,35 @@ make deploy-ansible-check    # syntax-check playbooks (needs ansible)
 make sync-github-metadata    # push .github/repo-description.txt → GitHub
 ```
 
+## AI agents & automation
+
+| Artifact | Purpose |
+|----------|---------|
+| [AGENTS.md](AGENTS.md) | Rules for Cursor/CI bots (layers, critic, docs) |
+| [.cursor/agents/manifest.yaml](.cursor/agents/manifest.yaml) | Declarative subagent definitions (`make agents-render`) |
+| [docs/mcp-agents.md](docs/mcp-agents.md) | veil-mcp + veil-engage setup |
+| [eval/gaia/](eval/gaia/) | GAIA-aligned eval harness ([docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md)) |
+| [docs/external-agent-store.md](docs/external-agent-store.md) | openJiuwen Agent Store (reference; `make external-clone-agent-store`) |
+
 ## Documentation index
 
 | Document | Contents |
 |----------|----------|
-| [AGENTS.md](AGENTS.md) | Cursor/agents: read [docs/coding-style.md](docs/coding-style.md) first |
+| [AGENTS.md](AGENTS.md) | Cursor/agents: read [coding-style.md](docs/coding-style.md) first |
 | [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose, ports, env, bootstrap, graph API/MCP, NATS |
 | [docs/engage-runtime.md](docs/engage-runtime.md) | Engage API/MCP, runner isolation, RBAC |
 | [docs/deploy-secure.md](docs/deploy-secure.md) | Prod hardening: nginx TLS, distroless, auth fail-closed |
 | [docs/auth-keycloak.md](docs/auth-keycloak.md) | Optional JWT + RBAC for API and MCP |
 | [deploy/README.md](deploy/README.md) | Per-layer compose, scaling, smoke, graph pack releases |
-| [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) | P5: Terraform + Ansible + Helm production model |
-| [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) | Act → learn → remember → decide (engage + graph) |
+| [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) | P5: Terraform + Ansible + Helm |
+| [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) | Act → learn → remember → decide |
 | [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) | Scrape + closed loop (P4b) |
 | [docs/engage-audit-report.md](docs/engage-audit-report.md) | HexStrike migration sign-off |
 | [docs/engage-hardening.md](docs/engage-hardening.md) | Active-defense hardening + safe self-test |
-| [docs/external-security-frameworks.md](docs/external-security-frameworks.md) | JCSF / DAF / OWASP → Veil control map |
-| [docs/external-agent-store.md](docs/external-agent-store.md) | openJiuwen Agent Store (reference; not runtime) |
-| [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) | GAIA agent eval ([arXiv:2311.12983](https://arxiv.org/abs/2311.12983); HF optional) |
 | [docs/engage-agentic-threats.md](docs/engage-agentic-threats.md) | Agentic AI / MCP threats ↔ mitigations |
+| [docs/external-security-frameworks.md](docs/external-security-frameworks.md) | JCSF / DAF / OWASP → Veil controls |
+| [docs/external-agent-store.md](docs/external-agent-store.md) | Agent Store reference patterns |
+| [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) | GAIA eval (arXiv primary; HF optional) |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
@@ -187,32 +214,25 @@ See [docs/graph-pack.md](docs/graph-pack.md).
 ## Tests
 
 ```bash
+make test-pkg-shared              # pkg/harvest, commit, natsjet, auth, engage/events
 make test-scrape
 make test-pipeline
-make test-graph              # graph modules + serve build
-make test-graph-serve        # graph/serve unit tests (-race)
-make test-graph-read-smoke   # Docker: Neo4j + API + MCP HTTP
-make test-engage             # engage layer unit tests + build
-make test-engage-parity      # catalog 150 tools vs legacy MCP reference
-make test-engage-hardening   # safe self-test (no host attacks)
-make test-engage-secure      # Docker TLS overlay smoke
-make test-engage-compose     # Docker: async jobs + runner profile
+make test-graph                   # graph modules + serve build
+make test-graph-serve             # graph/serve unit tests (-race)
+make test-graph-read-smoke        # Docker: Neo4j + API + MCP HTTP
+make test-engage                  # engage layer unit tests + build
+make test-engage-parity           # catalog 150 tools vs legacy MCP reference
+make test-engage-hardening        # safe self-test + veil-controls audit
+make test-engage-secure           # Docker TLS overlay smoke
+make test-engage-compose          # Docker: async jobs + runner profile
 make test-engage-events-pipeline  # Docker: engage.events → ingest.engage.*
-
-### Agent evaluation (GAIA, no Hugging Face token in CI)
-
-```bash
-make test-agent-eval-pilot        # offline harness smoke
-make test-agent-eval-paper        # arXiv Fig. 1 answer-format checks
-make external-clone-agent-store   # optional: .external/agent-store (reference)
-```
-
-CI: [`.github/workflows/agent-eval.yml`](.github/workflows/agent-eval.yml). Methodology: [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md).
+make test-agent-eval-pilot        # GAIA offline harness smoke
+make test-agent-eval-paper        # GAIA arXiv Fig. 1 format checks
 make test-platform-p0             # Platform bus unit tests
 make test-platform-closed-loop    # Platform closed-loop pilot (Docker)
 make test-platform-full-loop      # Platform full loop with scrape (Docker, heavy)
 make deploy-helm-template         # Helm chart render check
-make sync-github-metadata         # Update GitHub repo description from .github/repo-description.txt
+make sync-github-metadata         # Update GitHub description from .github/repo-description.txt
 ```
 
 ## Smoke Cypher
