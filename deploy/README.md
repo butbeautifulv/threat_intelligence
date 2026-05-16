@@ -111,7 +111,7 @@ Naming: ZIP **`veil-graph-vX.Y.Z.zip`**, GitHub tag **`veil-graph-vX.Y.Z`**. See
 
 | Release | Notes |
 |---------|--------|
-| [veil-graph-v0.4.4](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.4) | Target format on `main` (publish when built) |
+| [veil-graph-v0.4.5](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.5) | Target format on `main` (publish when built) |
 | [v0.3.2-graph-pack](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) | Legacy `threat-intel-graph-v0.3.2.zip` (redirects) |
 
 Build (incremental crawl state in `var/veil/`):
@@ -120,8 +120,8 @@ Build (incremental crawl state in `var/veil/`):
 ./scripts/graph-pack/profile-incremental-pack.sh   # or profile-fast-rich.sh / --full
 ./scripts/housekeeping/graph-dedup-cleanup.sh
 ./scripts/graph-pack/export-cypher.sh
-GRAPH_PACK_VERSION=v0.4.4 ./scripts/graph-pack/build.sh
-GRAPH_PACK_VERSION=v0.4.4 ./scripts/release/publish-graph-pack.sh --skip-build
+GRAPH_PACK_VERSION=v0.4.5 ./scripts/graph-pack/build.sh
+GRAPH_PACK_VERSION=v0.4.5 ./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
 Script index: [scripts/README.md](../scripts/README.md).
@@ -141,7 +141,7 @@ docker compose -f deploy/engage/compose.yml up -d --build engage-api engage-mcp
 | engage-worker | — | Background job processor |
 | engage-runner | none | Toolbox image; `--profile runner` |
 
-Overlays: [compose.runner.yml](engage/compose.runner.yml) (docker exec), [compose.queue.yml](engage/compose.queue.yml) (Redis jobs), [compose.nats.yml](engage/compose.nats.yml) (NATS jobs), [compose.events.yml](engage/compose.events.yml) (NATS audit/finding bus + `engage-events-worker`; profile **`graph-ingest`** adds Neo4j + `ingest_worker`).
+Overlays: [compose.runner.yml](engage/compose.runner.yml) (docker exec), [compose.queue.yml](engage/compose.queue.yml) (Redis jobs), [compose.nats.yml](engage/compose.nats.yml) (NATS jobs), [compose.events.yml](engage/compose.events.yml) (standalone NATS + `engage-events-worker`; profile **`graph-ingest`** adds Neo4j + `ingest_worker`), [compose.veil-stack.yml](engage/compose.veil-stack.yml) (engage on **shared** Veil NATS/Neo4j — use with `./scripts/ops/compose-up-veil-engage.sh`, not together with `compose.events.yml`).
 
 Secure overlay: [engage/compose.secure.yml](engage/compose.secure.yml) + [profiles/secure-engage.env](profiles/secure-engage.env).
 

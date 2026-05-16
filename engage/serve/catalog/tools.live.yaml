@@ -1,105 +1,347 @@
-# R1: tools enabled when binary exists on PATH (smoke / dev).
+# Phase 19: lab-enabled tools (binaries in engage-runner image).
+# Regenerate: python3 scripts/engage/generate-tools-live.py
 tools:
-  - name: nmap_scan
-    category: network
-    binary: nmap
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: scan_type
-        type: string
-        default: "-sV"
-        required: false
-      - name: ports
-        type: string
-        required: false
-      - name: additional_args
-        type: string
-        default: "-T4 -Pn"
-        required: false
-    args:
-      - "{scan_type}"
-      - "-p"
-      - "{ports}"
-      - "{additional_args}"
-      - "{target}"
-    timeout_sec: 600
-    description: "network tool: nmap scan"
-    enabled: true
-  - name: nuclei_scan
-    category: web
-    binary: nuclei
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: templates
-        type: string
-        required: false
-      - name: additional_args
-        type: string
-        required: false
-    args:
-      - "-u"
-      - "{target}"
-      - "-t"
-      - "{templates}"
-      - "{additional_args}"
-    timeout_sec: 600
-    description: Nuclei vulnerability scan
-    enabled: true
-  - name: httpx_probe
-    category: web
-    binary: httpx
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: additional_args
-        type: string
-        default: "-silent"
-        required: false
-    args:
-      - "-u"
-      - "{target}"
-      - "{additional_args}"
-    timeout_sec: 120
-    description: HTTP probing
-    enabled: true
-  - name: subfinder_scan
+  - name: amass_scan
     category: osint
-    binary: subfinder
+    binary: amass
     parameters:
       - name: target
         type: string
         required: true
+      - name: domain
+        type: string
+        required: true
+      - name: mode
+        type: string
+        default: "enum"
+        required: false
       - name: additional_args
         type: string
+        default: ""
         required: false
     args:
+      - "{mode}"
       - "-d"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
-    description: Subdomain discovery
+    description: "osint tool: amass scan"
     enabled: true
-  - name: trivy_scan
-    category: cloud
-    binary: trivy
+  - name: arjun_scan
+    category: web
+    binary: arjun
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: method
+        type: string
+        default: "GET"
+        required: false
+      - name: data
+        type: string
+        default: ""
+        required: false
+      - name: headers
+        type: string
+        default: ""
+        required: false
+      - name: timeout
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-m"
+      - "{method}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: arjun scan"
+    enabled: true
+  - name: arjun_parameter_discovery
+    category: web
+    binary: arjun
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: method
+        type: string
+        default: "GET"
+        required: false
+      - name: wordlist
+        type: string
+        default: ""
+        required: false
+      - name: delay
+        type: string
+        default: "0"
+        required: false
+      - name: threads
+        type: string
+        default: "25"
+        required: false
+      - name: stable
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: arjun parameter discovery"
+    enabled: true
+  - name: dalfox_xss_scan
+    category: web
+    binary: dalfox
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: pipe_mode
+        type: string
+        default: "False"
+        required: false
+      - name: blind
+        type: string
+        default: "False"
+        required: false
+      - name: mining_dom
+        type: string
+        default: "True"
+        required: false
+      - name: mining_dict
+        type: string
+        default: "True"
+        required: false
+      - name: custom_payload
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "url"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dalfox xss scan"
+    enabled: true
+  - name: dirb_scan
+    category: web
+    binary: dirb
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dirb scan"
+    enabled: true
+  - name: dirsearch_scan
+    category: web
+    binary: dirsearch
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: extensions
+        type: string
+        default: "php,html,js,txt,xml,json"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirsearch/common.txt"
+        required: false
+      - name: threads
+        type: string
+        default: "30"
+        required: false
+      - name: recursive
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-e"
+      - "{extensions}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dirsearch scan"
+    enabled: true
+  - name: dnsenum_scan
+    category: web
+    binary: dnsenum
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: dns_server
+        type: string
+        default: ""
+        required: false
+      - name: wordlist
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--domain"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dnsenum scan"
+    enabled: true
+  - name: enum4linux_ng_advanced
+    category: web
+    binary: enum4linux
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: username
+        type: string
+        default: ""
+        required: false
+      - name: password
+        type: string
+        default: ""
+        required: false
+      - name: domain
+        type: string
+        default: ""
+        required: false
+      - name: shares
+        type: string
+        default: "True"
+        required: false
+      - name: users
+        type: string
+        default: "True"
+        required: false
+      - name: groups
+        type: string
+        default: "True"
+        required: false
+      - name: policy
+        type: string
+        default: "True"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-a"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: enum4linux ng advanced"
+    enabled: true
+  - name: enum4linux_scan
+    category: web
+    binary: enum4linux
     parameters:
       - name: target
         type: string
         required: true
       - name: additional_args
         type: string
+        default: "-a"
         required: false
     args:
-      - "image"
+      - "-a"
       - "{target}"
       - "{additional_args}"
-    timeout_sec: 600
-    description: Trivy container/image scan
+    timeout_sec: 300
+    description: "web tool: enum4linux scan"
+    enabled: true
+  - name: feroxbuster_scan
+    category: web
+    binary: feroxbuster
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: threads
+        type: string
+        default: "10"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "-t"
+      - "{threads}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: feroxbuster scan"
     enabled: true
   - name: ffuf_scan
     category: web
@@ -115,105 +357,84 @@ tools:
         type: string
         default: "/usr/share/wordlists/dirb/common.txt"
         required: false
+      - name: mode
+        type: string
+        default: "directory"
+        required: false
+      - name: match_codes
+        type: string
+        default: "200,204,301,302,307,401,403"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
     args:
       - "-u"
-      - "{url}"
+      - "{target}"
       - "-w"
       - "{wordlist}"
-    timeout_sec: 600
+      - "{additional_args}"
+    timeout_sec: 300
     description: "web tool: ffuf scan"
     enabled: true
-  - name: arjun_scan
+  - name: fierce_scan
     category: web
-    binary: arjun
+    binary: fierce
     parameters:
       - name: target
         type: string
         required: true
-      - name: url
+      - name: domain
         type: string
         required: true
+      - name: dns_server
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
     args:
-      - "-u"
-      - "{url}"
+      - "--domain"
+      - "{target}"
+      - "{additional_args}"
     timeout_sec: 300
-    description: "web tool: arjun scan"
+    description: "web tool: fierce scan"
     enabled: true
-  - name: api_fuzzer
+  - name: gau_discovery
     category: web
-    binary: api
+    binary: gau
     parameters:
       - name: target
         type: string
         required: true
-      - name: base_url
+      - name: domain
         type: string
         required: true
+      - name: providers
+        type: string
+        default: "wayback,commoncrawl,otx,urlscan"
+        required: false
+      - name: include_subs
+        type: string
+        default: "True"
+        required: false
+      - name: blacklist
+        type: string
+        default: "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
     args:
-      - "{base_url}"
+      - "--subs"
+      - "{target}"
+      - "{additional_args}"
     timeout_sec: 300
-    description: "web tool: api fuzzer"
-    enabled: true
-  - name: graphql_scanner
-    category: web
-    binary: graphql
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: endpoint
-        type: string
-        required: true
-    args:
-      - "{endpoint}"
-    timeout_sec: 300
-    description: "web tool: graphql scanner"
-    enabled: true
-  - name: jwt_analyzer
-    category: intelligence
-    binary: jwt
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: jwt_token
-        type: string
-        required: true
-    args:
-      - "{jwt_token}"
-    timeout_sec: 120
-    description: "intelligence tool: jwt analyzer"
-    enabled: true
-  - name: api_schema_analyzer
-    category: intelligence
-    binary: api
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: schema_url
-        type: string
-        required: true
-    args:
-      - "{schema_url}"
-    timeout_sec: 300
-    description: "intelligence tool: api schema analyzer"
-    enabled: true
-  - name: dalfox_xss_scan
-    category: web
-    binary: dalfox
-    parameters:
-      - name: target
-        type: string
-        required: true
-      - name: url
-        type: string
-        required: true
-    args:
-      - "url"
-      - "{url}"
-    timeout_sec: 300
-    description: "web tool: dalfox xss scan"
+    description: "web tool: gau discovery"
     enabled: true
   - name: gobuster_scan
     category: web
@@ -233,14 +454,388 @@ tools:
         type: string
         default: "/usr/share/wordlists/dirb/common.txt"
         required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
     args:
       - "{mode}"
       - "-u"
-      - "{url}"
+      - "{target}"
       - "-w"
       - "{wordlist}"
-    timeout_sec: 600
+      - "{additional_args}"
+    timeout_sec: 300
     description: "web tool: gobuster scan"
+    enabled: true
+  - name: httpx_probe
+    category: web
+    binary: httpx
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: targets
+        type: string
+        default: ""
+        required: false
+      - name: target_file
+        type: string
+        default: ""
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: methods
+        type: string
+        default: "GET"
+        required: false
+      - name: status_code
+        type: string
+        default: ""
+        required: false
+      - name: content_length
+        type: string
+        default: "False"
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: httpx probe"
+    enabled: true
+  - name: hydra_attack
+    category: auth
+    binary: hydra
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: service
+        type: string
+        required: true
+      - name: username
+        type: string
+        default: ""
+        required: false
+      - name: username_file
+        type: string
+        default: ""
+        required: false
+      - name: password
+        type: string
+        default: ""
+        required: false
+      - name: password_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-l"
+      - "{username}"
+      - "-P"
+      - "{password_file}"
+      - "{target}"
+      - "-s"
+      - "{service}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "auth tool: hydra attack"
+    enabled: true
+  - name: katana_crawl
+    category: web
+    binary: katana
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: depth
+        type: string
+        default: "3"
+        required: false
+      - name: js_crawl
+        type: string
+        default: "True"
+        required: false
+      - name: form_extraction
+        type: string
+        default: "True"
+        required: false
+      - name: output_format
+        type: string
+        default: "json"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: katana crawl"
+    enabled: true
+  - name: masscan_high_speed
+    category: network
+    binary: masscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: ports
+        type: string
+        default: "1-65535"
+        required: false
+      - name: rate
+        type: string
+        default: "1000"
+        required: false
+      - name: interface
+        type: string
+        default: ""
+        required: false
+      - name: router_mac
+        type: string
+        default: ""
+        required: false
+      - name: source_ip
+        type: string
+        default: ""
+        required: false
+      - name: banners
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-p"
+      - "{ports}"
+      - "--rate"
+      - "{rate}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "network tool: masscan high speed"
+    enabled: true
+  - name: nikto_scan
+    category: web
+    binary: nikto
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-h"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: nikto scan"
+    enabled: true
+  - name: nmap_scan
+    category: network
+    binary: nmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "-sV"
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+      - "{target}"
+    timeout_sec: 300
+    description: "network tool: nmap scan"
+    enabled: true
+  - name: nmap_advanced_scan
+    category: network
+    binary: nmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "-sS"
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: timing
+        type: string
+        default: "T4"
+        required: false
+      - name: nse_scripts
+        type: string
+        default: ""
+        required: false
+      - name: os_detection
+        type: string
+        default: "False"
+        required: false
+      - name: version_detection
+        type: string
+        default: "False"
+        required: false
+      - name: aggressive
+        type: string
+        default: "False"
+        required: false
+      - name: stealth
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "--script"
+      - "{nse_scripts}"
+      - "{additional_args}"
+      - "{target}"
+    timeout_sec: 300
+    description: "network tool: nmap advanced scan"
+    enabled: true
+  - name: nuclei_scan
+    category: web
+    binary: nuclei
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: tags
+        type: string
+        default: ""
+        required: false
+      - name: template
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-t"
+      - "{templates}"
+      - "-duc"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: nuclei scan"
+    enabled: true
+  - name: paramspider_discovery
+    category: web
+    binary: paramspider
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: exclude
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: level
+        type: string
+        default: "2"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: paramspider discovery"
+    enabled: true
+  - name: paramspider_mining
+    category: web
+    binary: paramspider
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: level
+        type: string
+        default: "2"
+        required: false
+      - name: exclude
+        type: string
+        default: "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"
+        required: false
+      - name: output
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: paramspider mining"
     enabled: true
   - name: rustscan_fast_scan
     category: network
@@ -251,29 +846,1911 @@ tools:
         required: true
       - name: ports
         type: string
-        default: "1-1000"
+        default: ""
+        required: false
+      - name: ulimit
+        type: string
+        default: "5000"
+        required: false
+      - name: batch_size
+        type: string
+        default: "4500"
+        required: false
+      - name: timeout
+        type: string
+        default: "1500"
+        required: false
+      - name: scripts
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
         required: false
     args:
       - "-a"
       - "{target}"
-      - "-r"
+      - "-p"
       - "{ports}"
+      - "{additional_args}"
     timeout_sec: 300
     description: "network tool: rustscan fast scan"
     enabled: true
-  - name: nikto_scan
+  - name: sqlmap_scan
+    category: web
+    binary: sqlmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: data
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "--batch"
+      - "--data"
+      - "{data}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: sqlmap scan"
+    enabled: true
+  - name: subfinder_scan
+    category: osint
+    binary: subfinder
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: silent
+        type: string
+        default: "True"
+        required: false
+      - name: all_sources
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "osint tool: subfinder scan"
+    enabled: true
+  - name: trivy_scan
+    category: cloud
+    binary: trivy
+    parameters:
+      - name: scan_type
+        type: string
+        default: "image"
+        required: false
+      - name: target
+        type: string
+        default: ""
+        required: false
+      - name: output_format
+        type: string
+        default: "json"
+        required: false
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "image"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "cloud tool: trivy scan"
+    enabled: true
+  - name: wafw00f_scan
+    category: web
+    binary: wafw00f
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-a"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: wafw00f scan"
+    enabled: true
+  - name: waybackurls_discovery
+    category: web
+    binary: waybackurls
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: get_versions
+        type: string
+        default: "False"
+        required: false
+      - name: no_subs
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: waybackurls discovery"
+    enabled: true
+  - name: naabu_port_scan
+    category: network
+    binary: naabu
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: ulimit
+        type: string
+        default: "5000"
+        required: false
+      - name: batch_size
+        type: string
+        default: "4500"
+        required: false
+      - name: timeout
+        type: string
+        default: "1500"
+        required: false
+      - name: scripts
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-a"
+      - "{target}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "network tool: rustscan fast scan"
+    enabled: true
+
+  - name: dnsx_resolve
+    category: osint
+    binary: dnsx
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: silent
+        type: string
+        default: "True"
+        required: false
+      - name: all_sources
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "osint tool: subfinder scan"
+    enabled: true
+
+  - name: katana_depth_scan
+    category: web
+    binary: katana
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: depth
+        type: string
+        default: "3"
+        required: false
+      - name: js_crawl
+        type: string
+        default: "True"
+        required: false
+      - name: form_extraction
+        type: string
+        default: "True"
+        required: false
+      - name: output_format
+        type: string
+        default: "json"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: katana crawl"
+    enabled: true
+
+  - name: httpx_tech_detect
+    category: web
+    binary: httpx
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: targets
+        type: string
+        default: ""
+        required: false
+      - name: target_file
+        type: string
+        default: ""
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: methods
+        type: string
+        default: "GET"
+        required: false
+      - name: status_code
+        type: string
+        default: ""
+        required: false
+      - name: content_length
+        type: string
+        default: "False"
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: httpx probe"
+    enabled: true
+
+  - name: nuclei_critical_scan
+    category: web
+    binary: nuclei
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: tags
+        type: string
+        default: ""
+        required: false
+      - name: template
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-t"
+      - "{templates}"
+      - "-duc"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: nuclei scan"
+    enabled: true
+
+  - name: nuclei_web_scan
+    category: web
+    binary: nuclei
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: tags
+        type: string
+        default: ""
+        required: false
+      - name: template
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-t"
+      - "{templates}"
+      - "-duc"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: nuclei scan"
+    enabled: true
+
+  - name: subfinder_passive
+    category: osint
+    binary: subfinder
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: silent
+        type: string
+        default: "True"
+        required: false
+      - name: all_sources
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "osint tool: subfinder scan"
+    enabled: true
+
+  - name: ffuf_directory_scan
+    category: web
+    binary: ffuf
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: mode
+        type: string
+        default: "directory"
+        required: false
+      - name: match_codes
+        type: string
+        default: "200,204,301,302,307,401,403"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: ffuf scan"
+    enabled: true
+
+  - name: gobuster_dir_scan
+    category: web
+    binary: gobuster
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: mode
+        type: string
+        default: "dir"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{mode}"
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: gobuster scan"
+    enabled: true
+
+  - name: feroxbuster_recursive
+    category: web
+    binary: feroxbuster
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: threads
+        type: string
+        default: "10"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "-t"
+      - "{threads}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: feroxbuster scan"
+    enabled: true
+
+  - name: sqlmap_get_scan
+    category: web
+    binary: sqlmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: data
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "--batch"
+      - "--data"
+      - "{data}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: sqlmap scan"
+    enabled: true
+
+  - name: nikto_web_scan
     category: web
     binary: nikto
     parameters:
       - name: target
         type: string
         required: true
-      - name: host
+      - name: additional_args
         type: string
-        required: true
+        default: ""
+        required: false
     args:
       - "-h"
-      - "{host}"
-    timeout_sec: 600
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
     description: "web tool: nikto scan"
     enabled: true
+
+  - name: dalfox_pipe_scan
+    category: web
+    binary: dalfox
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: pipe_mode
+        type: string
+        default: "False"
+        required: false
+      - name: blind
+        type: string
+        default: "False"
+        required: false
+      - name: mining_dom
+        type: string
+        default: "True"
+        required: false
+      - name: mining_dict
+        type: string
+        default: "True"
+        required: false
+      - name: custom_payload
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "url"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dalfox xss scan"
+    enabled: true
+
+  - name: arjun_post_scan
+    category: web
+    binary: arjun
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: method
+        type: string
+        default: "GET"
+        required: false
+      - name: data
+        type: string
+        default: ""
+        required: false
+      - name: headers
+        type: string
+        default: ""
+        required: false
+      - name: timeout
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-m"
+      - "{method}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: arjun scan"
+    enabled: true
+
+  - name: dirsearch_fast_scan
+    category: web
+    binary: dirsearch
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: extensions
+        type: string
+        default: "php,html,js,txt,xml,json"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirsearch/common.txt"
+        required: false
+      - name: threads
+        type: string
+        default: "30"
+        required: false
+      - name: recursive
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-e"
+      - "{extensions}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dirsearch scan"
+    enabled: true
+
+  - name: paramspider_mine
+    category: web
+    binary: paramspider
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: exclude
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: level
+        type: string
+        default: "2"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: paramspider discovery"
+    enabled: true
+
+  - name: gau_subdomain_scan
+    category: web
+    binary: gau
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: providers
+        type: string
+        default: "wayback,commoncrawl,otx,urlscan"
+        required: false
+      - name: include_subs
+        type: string
+        default: "True"
+        required: false
+      - name: blacklist
+        type: string
+        default: "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--subs"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: gau discovery"
+    enabled: true
+
+  - name: waybackurls_fetch
+    category: web
+    binary: waybackurls
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: get_versions
+        type: string
+        default: "False"
+        required: false
+      - name: no_subs
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: waybackurls discovery"
+    enabled: true
+
+  - name: amass_intel_scan
+    category: osint
+    binary: amass
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: mode
+        type: string
+        default: "enum"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{mode}"
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "osint tool: amass scan"
+    enabled: true
+
+  - name: masscan_top_ports
+    category: network
+    binary: masscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: ports
+        type: string
+        default: "1-65535"
+        required: false
+      - name: rate
+        type: string
+        default: "1000"
+        required: false
+      - name: interface
+        type: string
+        default: ""
+        required: false
+      - name: router_mac
+        type: string
+        default: ""
+        required: false
+      - name: source_ip
+        type: string
+        default: ""
+        required: false
+      - name: banners
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-p"
+      - "{ports}"
+      - "--rate"
+      - "{rate}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "network tool: masscan high speed"
+    enabled: true
+
+  - name: nmap_quick_scan
+    category: network
+    binary: nmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "-sV"
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+      - "{target}"
+    timeout_sec: 300
+    description: "network tool: nmap scan"
+    enabled: true
+
+  - name: trivy_image_scan
+    category: cloud
+    binary: trivy
+    parameters:
+      - name: scan_type
+        type: string
+        default: "image"
+        required: false
+      - name: target
+        type: string
+        default: ""
+        required: false
+      - name: output_format
+        type: string
+        default: "json"
+        required: false
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "image"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "cloud tool: trivy scan"
+    enabled: true
+
+  - name: dnsenum_subdomain_scan
+    category: web
+    binary: dnsenum
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: dns_server
+        type: string
+        default: ""
+        required: false
+      - name: wordlist
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--domain"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dnsenum scan"
+    enabled: true
+
+  - name: fierce_domain_scan
+    category: web
+    binary: fierce
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: dns_server
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--domain"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: fierce scan"
+    enabled: true
+
+  - name: hydra_ssh_brute
+    category: auth
+    binary: hydra
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: service
+        type: string
+        required: true
+      - name: username
+        type: string
+        default: ""
+        required: false
+      - name: username_file
+        type: string
+        default: ""
+        required: false
+      - name: password
+        type: string
+        default: ""
+        required: false
+      - name: password_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-l"
+      - "{username}"
+      - "-P"
+      - "{password_file}"
+      - "{target}"
+      - "-s"
+      - "{service}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "auth tool: hydra attack"
+    enabled: true
+
+  - name: wafw00f_detect
+    category: web
+    binary: wafw00f
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-a"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: wafw00f scan"
+    enabled: true
+
+  - name: enum4linux_smb_scan
+    category: web
+    binary: enum4linux
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: username
+        type: string
+        default: ""
+        required: false
+      - name: password
+        type: string
+        default: ""
+        required: false
+      - name: domain
+        type: string
+        default: ""
+        required: false
+      - name: shares
+        type: string
+        default: "True"
+        required: false
+      - name: users
+        type: string
+        default: "True"
+        required: false
+      - name: groups
+        type: string
+        default: "True"
+        required: false
+      - name: policy
+        type: string
+        default: "True"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-a"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: enum4linux ng advanced"
+    enabled: true
+
+  - name: dirb_common_scan
+    category: web
+    binary: dirb
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dirb scan"
+    enabled: true
+
+  - name: nmap_service_scan
+    category: network
+    binary: nmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "-sV"
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+      - "{target}"
+    timeout_sec: 300
+    description: "network tool: nmap scan"
+    enabled: true
+
+  - name: nmap_udp_scan
+    category: network
+    binary: nmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "-sV"
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+      - "{target}"
+    timeout_sec: 300
+    description: "network tool: nmap scan"
+    enabled: true
+
+  - name: httpx_status_probe
+    category: web
+    binary: httpx
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: targets
+        type: string
+        default: ""
+        required: false
+      - name: target_file
+        type: string
+        default: ""
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: methods
+        type: string
+        default: "GET"
+        required: false
+      - name: status_code
+        type: string
+        default: ""
+        required: false
+      - name: content_length
+        type: string
+        default: "False"
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: httpx probe"
+    enabled: true
+
+  - name: httpx_title_probe
+    category: web
+    binary: httpx
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: targets
+        type: string
+        default: ""
+        required: false
+      - name: target_file
+        type: string
+        default: ""
+        required: false
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: methods
+        type: string
+        default: "GET"
+        required: false
+      - name: status_code
+        type: string
+        default: ""
+        required: false
+      - name: content_length
+        type: string
+        default: "False"
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: httpx probe"
+    enabled: true
+
+  - name: nuclei_tags_scan
+    category: web
+    binary: nuclei
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: tags
+        type: string
+        default: ""
+        required: false
+      - name: template
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-t"
+      - "{templates}"
+      - "-duc"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: nuclei scan"
+    enabled: true
+
+  - name: subfinder_all_sources
+    category: osint
+    binary: subfinder
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: silent
+        type: string
+        default: "True"
+        required: false
+      - name: all_sources
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "osint tool: subfinder scan"
+    enabled: true
+
+  - name: ffuf_vhost_scan
+    category: web
+    binary: ffuf
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: mode
+        type: string
+        default: "directory"
+        required: false
+      - name: match_codes
+        type: string
+        default: "200,204,301,302,307,401,403"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: ffuf scan"
+    enabled: true
+
+  - name: gobuster_dns_scan
+    category: web
+    binary: gobuster
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: mode
+        type: string
+        default: "dir"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{mode}"
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: gobuster scan"
+    enabled: true
+
+  - name: feroxbuster_quick
+    category: web
+    binary: feroxbuster
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+      - name: threads
+        type: string
+        default: "10"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "-t"
+      - "{threads}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: feroxbuster scan"
+    enabled: true
+
+  - name: sqlmap_post_scan
+    category: web
+    binary: sqlmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: data
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "--batch"
+      - "--data"
+      - "{data}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: sqlmap scan"
+    enabled: true
+
+  - name: nikto_ssl_scan
+    category: web
+    binary: nikto
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-h"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: nikto scan"
+    enabled: true
+
+  - name: katana_js_crawl
+    category: web
+    binary: katana
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: depth
+        type: string
+        default: "3"
+        required: false
+      - name: js_crawl
+        type: string
+        default: "True"
+        required: false
+      - name: form_extraction
+        type: string
+        default: "True"
+        required: false
+      - name: output_format
+        type: string
+        default: "json"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: katana crawl"
+    enabled: true
+
+  - name: gau_historical
+    category: web
+    binary: gau
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: providers
+        type: string
+        default: "wayback,commoncrawl,otx,urlscan"
+        required: false
+      - name: include_subs
+        type: string
+        default: "True"
+        required: false
+      - name: blacklist
+        type: string
+        default: "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--subs"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: gau discovery"
+    enabled: true
+
+  - name: waybackurls_all
+    category: web
+    binary: waybackurls
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: get_versions
+        type: string
+        default: "False"
+        required: false
+      - name: no_subs
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: waybackurls discovery"
+    enabled: true
+
+  - name: dalfox_blind_scan
+    category: web
+    binary: dalfox
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: pipe_mode
+        type: string
+        default: "False"
+        required: false
+      - name: blind
+        type: string
+        default: "False"
+        required: false
+      - name: mining_dom
+        type: string
+        default: "True"
+        required: false
+      - name: mining_dict
+        type: string
+        default: "True"
+        required: false
+      - name: custom_payload
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "url"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dalfox xss scan"
+    enabled: true
+
+  - name: arjun_get_scan
+    category: web
+    binary: arjun
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: method
+        type: string
+        default: "GET"
+        required: false
+      - name: data
+        type: string
+        default: ""
+        required: false
+      - name: headers
+        type: string
+        default: ""
+        required: false
+      - name: timeout
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-m"
+      - "{method}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: arjun scan"
+    enabled: true
+
+  - name: dirsearch_ext_scan
+    category: web
+    binary: dirsearch
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: extensions
+        type: string
+        default: "php,html,js,txt,xml,json"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirsearch/common.txt"
+        required: false
+      - name: threads
+        type: string
+        default: "30"
+        required: false
+      - name: recursive
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-e"
+      - "{extensions}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: dirsearch scan"
+    enabled: true
+
+  - name: paramspider_domain
+    category: web
+    binary: paramspider
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: exclude
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: level
+        type: string
+        default: "2"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: paramspider discovery"
+    enabled: true
+
+  - name: amass_passive_scan
+    category: osint
+    binary: amass
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: domain
+        type: string
+        required: true
+      - name: mode
+        type: string
+        default: "enum"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{mode}"
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "osint tool: amass scan"
+    enabled: true
+
+  - name: masscan_full_tcp
+    category: network
+    binary: masscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: ports
+        type: string
+        default: "1-65535"
+        required: false
+      - name: rate
+        type: string
+        default: "1000"
+        required: false
+      - name: interface
+        type: string
+        default: ""
+        required: false
+      - name: router_mac
+        type: string
+        default: ""
+        required: false
+      - name: source_ip
+        type: string
+        default: ""
+        required: false
+      - name: banners
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "-p"
+      - "{ports}"
+      - "--rate"
+      - "{rate}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "network tool: masscan high speed"
+    enabled: true
+
+  - name: rustscan_ultra
+    category: network
+    binary: rustscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: ports
+        type: string
+        default: ""
+        required: false
+      - name: ulimit
+        type: string
+        default: "5000"
+        required: false
+      - name: batch_size
+        type: string
+        default: "4500"
+        required: false
+      - name: timeout
+        type: string
+        default: "1500"
+        required: false
+      - name: scripts
+        type: string
+        default: "False"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-a"
+      - "{target}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "network tool: rustscan fast scan"
+    enabled: true
+
+  - name: trivy_fs_scan
+    category: cloud
+    binary: trivy
+    parameters:
+      - name: scan_type
+        type: string
+        default: "image"
+        required: false
+      - name: target
+        type: string
+        default: ""
+        required: false
+      - name: output_format
+        type: string
+        default: "json"
+        required: false
+      - name: severity
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "image"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "cloud tool: trivy scan"
+    enabled: true
+

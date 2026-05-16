@@ -14,17 +14,29 @@ Follow [AGENTS.md](../../AGENTS.md) and [docs/coding-style.md](../../docs/coding
 - Engage reads graph only via HTTP veil-api; shared wire types in `pkg/*`.
 - No root `go.work`.
 
+## Multi-phase work (master plan → phase commit)
+
+Reduce diff size: **commit after each completed phase**, not only at the end of a long task.
+
+1. **Master plan** — phase list, deps, status (update when phases ship).
+2. **Phase / slice plan** — scope for the current phase only.
+3. **Implement** — one phase per session when possible.
+4. **Commit + push** — e.g. `feat(engage): Phase 18 — bug bounty recon`; then update the master plan (done, follow-ups).
+5. **Next phase** — new slice plan from the master plan; repeat.
+
+Do not stack multiple phases of code changes without an intervening commit unless the user explicitly requests a batch.
+
 ## Required before finishing a task
 
 1. Run `make test-scrape`, `make test-pipeline`, `make test-graph`, and/or `make test-engage` for touched layers.
 2. If ingest paths changed, run `./scripts/release/bump-graph-version.sh patch` and update `docs/schemas/` when `pkg/harvest` or `pkg/commit` changed.
 3. Run `make check-graph-version` before commit.
-4. **Commit** with a clear message.
+4. **Commit** with a clear message (per phase when work was phased).
 5. **`git push origin HEAD`** unless the user forbade push.
 
 ## Git hygiene
 
-- Never commit `data/`, secrets, or `.cursor/plans/`.
+- Never commit `data/`, secrets, or `**/__pycache__/`.
 - Prefer `git add -A -- . ':!data'` when `data/` is not writable.
 
 ## Versions

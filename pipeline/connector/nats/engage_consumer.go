@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/pkg/commit"
+	"github.com/butbeautifulv/veil/pkg/natsjet"
 	natsgo "github.com/nats-io/nats.go"
 )
 
@@ -31,6 +32,11 @@ type engageFindingWire struct {
 	Description string `json:"description"`
 }
 
+// EnsureEngageEventsStream creates the ENGAGE_EVENTS stream for audit/finding subjects.
+func EnsureEngageEventsStream(js natsgo.JetStreamContext) error {
+	return natsjet.EnsureStream(js, "ENGAGE_EVENTS", []string{"engage.events.>"})
+}
+
 // RunEngageEventsConsumer pulls engage JetStream events and publishes ingest envelopes.
 func RunEngageEventsConsumer(ctx context.Context, log *slog.Logger, natsURL, engageFilter, ingestToolRunSubject, ingestFindingSubject string) error {
 	if log == nil {
@@ -42,6 +48,9 @@ func RunEngageEventsConsumer(ctx context.Context, log *slog.Logger, natsURL, eng
 	}
 	defer pub.Close()
 	js := pub.conn.JS
+	if err := EnsureEngageEventsStream(js); err != nil {
+		return fmt.Errorf("engage events stream: %w", err)
+	}
 	if engageFilter == "" {
 		engageFilter = "engage.events.>"
 	}

@@ -12,7 +12,7 @@ func TestClassify_timeout(t *testing.T) {
 func TestSuggestAlternative_nuclei(t *testing.T) {
 	h := Default()
 	alt := h.SuggestAlternative("nuclei_scan", TypeNotFound)
-	if alt != "nikto" {
+	if alt != "jaeles" && alt != "nikto" {
 		t.Fatalf("alt: %q", alt)
 	}
 }

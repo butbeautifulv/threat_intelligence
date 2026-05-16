@@ -38,6 +38,10 @@ const nodeTextSearchPredicate = `
   (exists(n.description) AND toLower(n.description) CONTAINS $q)
 `
 
+const nodeMatchByID = `elementId(n) = $id OR n.id = $id OR n.cve = $id OR n.uri = $id OR n.link = $id OR (n:EngageTarget AND n.name = $id)`
+
+const seedMatchByID = `elementId(seed) = $id OR seed.id = $id OR seed.cve = $id OR seed.uri = $id OR seed.link = $id OR (seed:EngageTarget AND seed.name = $id)`
+
 // ListKinds returns all distinct labels sorted (legacy / discovery).
 func (s *Service) ListKinds(ctx context.Context) ([]string, error) {
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
@@ -168,7 +172,7 @@ func (s *Service) GetNode(ctx context.Context, id string) (*Node, error) {
 	}
 	q := `
 MATCH (n)
-WHERE elementId(n) = $id OR n.id = $id OR n.cve = $id OR n.uri = $id OR n.link = $id
+WHERE ` + nodeMatchByID + `
 RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
 LIMIT 1`
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
@@ -211,7 +215,7 @@ func (s *Service) Neighbors(ctx context.Context, id string, depth, limit int) (*
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
 		r, err := tx.Run(ctx, fmt.Sprintf(`
 MATCH (seed)
-WHERE elementId(seed) = $id OR seed.id = $id OR seed.cve = $id OR seed.uri = $id OR seed.link = $id
+WHERE %s
 WITH seed
 MATCH p=(seed)-[r*1..%d]-(n)
 WITH collect(DISTINCT seed) + collect(DISTINCT n) AS ns, relationships(p) AS rs
@@ -219,7 +223,7 @@ UNWIND ns AS node
 WITH DISTINCT node, rs
 RETURN elementId(node) AS id, labels(node) AS labels, properties(node) AS props, rs AS rels
 LIMIT $limit
-`, depth), map[string]any{"id": id, "limit": limit})
+`, seedMatchByID, depth), map[string]any{"id": id, "limit": limit})
 		if err != nil {
 			return nil, err
 		}
@@ -249,12 +253,12 @@ LIMIT $limit
 
 		edgesRes, err := tx.Run(ctx, fmt.Sprintf(`
 MATCH (seed)
-WHERE elementId(seed) = $id OR seed.id = $id OR seed.cve = $id OR seed.uri = $id OR seed.link = $id
+WHERE %s
 MATCH p=(seed)-[r*1..%d]-(n)
 UNWIND relationships(p) AS rel
 RETURN DISTINCT elementId(rel) AS id, type(rel) AS type, elementId(startNode(rel)) AS source, elementId(endNode(rel)) AS target
 LIMIT $limit
-`, depth), map[string]any{"id": id, "limit": limit})
+`, seedMatchByID, depth), map[string]any{"id": id, "limit": limit})
 		if err != nil {
 			return nil, err
 		}

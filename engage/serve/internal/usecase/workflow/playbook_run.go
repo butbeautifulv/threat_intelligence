@@ -14,6 +14,9 @@ func (s *Service) RunPlaybook(ctx context.Context, subject string, pb Playbook, 
 	if objective == "" {
 		objective = pb.Name
 	}
+	if isBugBountyWorkflow(pb.Workflow, pb.Name) && s.BugBounty != nil {
+		return s.BugBounty.RunPlaybook(ctx, subject, pb.Name, pb.Workflow, target, async, pb.MaxTools)
+	}
 	if pb.Workflow == "comprehensive" || pb.Name == "comprehensive" {
 		out := s.Comprehensive(ctx, subject, target)
 		out["playbook"] = pb.Name
@@ -28,4 +31,16 @@ func (s *Service) RunPlaybook(ctx context.Context, subject string, pb Playbook, 
 	out["playbook"] = pb.Name
 	out["workflow"] = pb.Workflow
 	return out
+}
+
+func isBugBountyWorkflow(workflow, name string) bool {
+	switch workflow {
+	case "reconnaissance", "vuln-hunt", "business-logic", "osint", "file-upload", "comprehensive":
+		return true
+	}
+	switch name {
+	case "reconnaissance", "vuln-hunt", "business-logic", "osint", "file-upload", "comprehensive":
+		return true
+	}
+	return false
 }

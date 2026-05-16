@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/browser"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/payloads"
 )
@@ -53,6 +54,33 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 			}
 		}
 		res, err := toolJSONResult(out)
+		return res, true, err
+
+	case "browser_agent_inspect":
+		if s.browser == nil || !s.browser.Enabled() {
+			res, err := toolJSONResult(map[string]any{
+				"success": false,
+				"error":   "browser sidecar not configured (ENGAGE_BROWSER_URL)",
+			})
+			return res, true, err
+		}
+		target := argTarget(args)
+		params := map[string]string{}
+		for k, v := range args {
+			if s, ok := v.(string); ok {
+				params[k] = s
+			}
+		}
+		out := s.browser.Inspect(ctx, browser.InspectFromParams(target, params))
+		res, err := toolJSONResult(out)
+		return res, true, err
+
+	case "get_process_dashboard", "get_live_dashboard":
+		if s.processes == nil {
+			res, err := toolJSONResult(map[string]any{"success": false, "error": "process manager not configured"})
+			return res, true, err
+		}
+		res, err := toolJSONResult(s.processes.Dashboard())
 		return res, true, err
 
 	case "format_tool_output_visual":

@@ -51,5 +51,7 @@ func FromSmartScan(target string, scan map[string]any) SummaryReport {
 		_ = json.Unmarshal(b, &findings)
 	}
 	sections["severity_breakdown"] = SeverityBreakdown(findings)
-	return NewSummary(target, sections, findings)
+	summary := NewSummary(target, sections, findings)
+	return summary
 }
+

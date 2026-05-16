@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -13,8 +14,19 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
 	"github.com/butbeautifulv/veil/engage/serve/internal/config"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
 	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
 )
+
+type testNVDClient struct{}
+
+func (testNVDClient) FetchCVE(_ context.Context, cveID string) (*cve.CVEEntry, error) {
+	return &cve.CVEEntry{CVEID: cveID, Description: "SQL injection in parameter", Severity: "HIGH", CVSSScore: 8.0}, nil
+}
+
+func (testNVDClient) FetchRecent(_ context.Context, _ int, _ string) ([]cve.CVEEntry, error) {
+	return []cve.CVEEntry{{CVEID: "CVE-2020-0001", Description: "test", Severity: "HIGH"}}, nil
+}
 
 func initTestAPI(t *testing.T) *components.APIComponents {
 	t.Helper()
@@ -127,6 +139,142 @@ func TestProcesses_afterToolRun(t *testing.T) {
 	}
 }
 
+func TestTargetTimeline_POST(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{"target": "https://example.com", "limit": 10})
+	req := httptest.NewRequest(http.MethodPost, "/api/intelligence/target-timeline", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp["host"] != "example.com" {
+		t.Fatalf("host %v", resp["host"])
+	}
+	if _, ok := resp["timeline"]; !ok {
+		t.Fatal("missing timeline")
+	}
+}
+
+func TestBugBounty_reconnaissanceWorkflow(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{"domain": "example.com"})
+	req := httptest.NewRequest(http.MethodPost, "/api/bugbounty/reconnaissance-workflow", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	var resp map[string]any
+	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
+	wf, _ := resp["workflow"].(map[string]any)
+	phases, _ := wf["phases"].([]any)
+	if len(phases) < 4 {
+		t.Fatalf("phases %d", len(phases))
+	}
+}
+
+func TestVulnIntel_cveMonitor(t *testing.T) {
+	c := initTestAPI(t)
+	if c.CVE == nil {
+		t.Fatal("CVE service not wired")
+	}
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{
+		"hours":           24,
+		"severity_filter": "HIGH,CRITICAL",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/vuln-intel/cve-monitor", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := resp["timestamp"]; !ok {
+		t.Fatalf("missing timestamp: %v", resp)
+	}
+}
+
+func TestVulnIntel_exploitGenerate(t *testing.T) {
+	c := initTestAPI(t)
+	c.CVE = cve.NewService(nil, testNVDClient{})
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{
+		"cve_id":       "CVE-2020-0001",
+		"target_os":    "linux",
+		"exploit_type": "poc",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/vuln-intel/exploit-generate", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	var resp map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp["success"] != true {
+		t.Fatalf("expected success: %v", resp)
+	}
+	gen, _ := resp["exploit_generation"].(map[string]any)
+	if gen == nil || gen["exploit_code"] == "" {
+		t.Fatalf("missing exploit_code: %v", resp)
+	}
+	if gen["vulnerability_type"] != "sql_injection" {
+		t.Fatalf("vuln type %v", gen["vulnerability_type"])
+	}
+}
+
+func TestCTF_createWorkflow(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{
+		"name": "test-web", "category": "web", "description": "sql injection",
+		"target": "https://example.com",
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/ctf/create-challenge-workflow", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestCTF_suggestTools(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{"description": "rsa crypto challenge", "category": "crypto"})
+	req := httptest.NewRequest(http.MethodPost, "/api/ctf/suggest-tools", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+}
+
 func TestSmartScan_maxTools(t *testing.T) {
 	c := initTestAPI(t)
 	mux := http.NewServeMux()
@@ -148,6 +296,32 @@ func TestSmartScan_maxTools(t *testing.T) {
 	selected, _ := resp["tools_selected"].([]any)
 	if len(selected) > 1 {
 		t.Fatalf("expected max 1 tool, got %v", selected)
+	}
+}
+
+func TestSmartScan_rateLimitCheck(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	body, _ := json.Marshal(map[string]any{
+		"target":            "https://example.com",
+		"max_tools":         1,
+		"rate_limit_check":  true,
+	})
+	req := httptest.NewRequest(http.MethodPost, "/api/intelligence/smart-scan", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	var resp map[string]any
+	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
+	if _, ok := resp["rate_limit_probe"]; !ok {
+		t.Fatalf("missing rate_limit_probe: %v", resp)
+	}
+	if _, ok := resp["max_parallel"]; !ok {
+		t.Fatalf("missing max_parallel: %v", resp)
 	}
 }
 
@@ -283,6 +457,38 @@ func TestAssessmentReport_shape(t *testing.T) {
 	}
 	if _, ok := resp["findings"]; !ok {
 		t.Fatalf("missing findings: %v", resp)
+	}
+	if es, ok := resp["executive_summary"].(map[string]any); !ok || es["total_findings"] == nil {
+		t.Fatalf("missing executive_summary: %v", resp["executive_summary"])
+	}
+}
+
+func TestProcessDashboard_enriched(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	req := httptest.NewRequest(http.MethodGet, "/api/processes/dashboard", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d", rr.Code)
+	}
+	var resp map[string]any
+	_ = json.Unmarshal(rr.Body.Bytes(), &resp)
+	if resp["system_load"] == nil {
+		t.Fatalf("missing system_load: %v", resp)
+	}
+}
+
+func TestScanProgress_notFound(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	req := httptest.NewRequest(http.MethodGet, "/api/visual/scan-progress/missing-id", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusNotFound {
+		t.Fatalf("status %d", rr.Code)
 	}
 }
 

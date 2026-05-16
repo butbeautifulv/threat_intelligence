@@ -10,5 +10,6 @@ type TrackInfo struct {
 type ProcessTracker interface {
 	Register(pid int, tool, target, command string)
 	RegisterDocker(tool, target, command, session string) int
+	UpdateProgress(pid int, progress float64, lastOutput string, bytesProcessed int64)
 	Finish(pid int, status string)
 }

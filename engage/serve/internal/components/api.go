@@ -17,6 +17,11 @@ import (
 	cmduc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/command"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/recovery"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/files"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/browser"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/bugbounty"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/ctf"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/visual"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	jobuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/job"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
@@ -30,7 +35,12 @@ type APIComponents struct {
 	Registry  *tools.Registry
 	Tools     *toolsuc.Runner
 	Intel     *intelligence.Service
-	Workflows *workflow.Service
+	CVE       *cve.Service
+	CTF        *ctf.Service
+	BugBounty  *bugbounty.Service
+	Browser    *browser.Service
+	Workflows  *workflow.Service
+	Progress   *visual.Store
 	Jobs      *jobuc.Queue
 	Processes *process.Manager
 	Audit       *audit.Logger
@@ -108,6 +118,8 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		if pub, err := events.Connect(cfg.NATSURL, cfg.EventsNATSSubject); err == nil {
 			eventPub = pub
 			auditLog.SetEventPublisher(eventBridge{pub: pub})
+		} else if logger != nil {
+			logger.Info("engage events NATS connect failed", "url", cfg.NATSURL, "err", err.Error())
 		}
 	}
 	resultCache := cache.New(15 * time.Minute)
@@ -125,11 +137,14 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		ClientSecret: cfg.VeilAPI.ClientSecret,
 		TokenURL:     cfg.VeilAPI.TokenURL,
 	})
+	cveSvc := cve.NewService(veil, cve.DefaultNVDClient())
 	intel := &intelligence.Service{
 		Veil:     veil,
 		Registry: reg,
 		Engine:   intelligence.DefaultDecisionEngine(),
 		Tools:    toolRunner,
+		Audit:    auditReader,
+		CVE:      cveSvc,
 	}
 	var jobStore jobuc.Store = jobuc.NewMemoryStore()
 	switch cfg.JobsMode {
@@ -155,21 +170,35 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		jobuc.WithPollInterval(cfg.JobsPollInterval),
 		jobuc.WithConcurrency(cfg.WorkerConcurrency),
 	)
-	wf := &workflow.Service{Intel: intel, Tools: toolRunner, Jobs: jobs}
+	progressStore := visual.NewStore()
+	browserSvc := browser.NewServiceFromEnv()
+	wf := &workflow.Service{
+		Intel: intel, Tools: toolRunner, Jobs: jobs, Progress: progressStore,
+		MaxParallel: cfg.MaxParallel,
+	}
+	intel.ParallelRunner = wf
 	if eventPub != nil {
 		wf.Findings = findingBridge{pub: eventPub}
 	}
+	bbSvc := bugbounty.NewService(reg, intel, wf, wf.Findings, jobs)
+	wf.BugBounty = bbSvc
 	fileMgr, err := files.NewManager(cfg.FilesDir)
 	if err != nil {
 		return nil, fmt.Errorf("files: %w", err)
 	}
-	cmdRunner := cmduc.New(exec, reg)
+	cmdRunner := cmduc.New(exec, reg, cfg.Security.AllowRawCommand)
+	ctfSvc := ctf.NewService(reg, toolRunner, intel, cfg.FilesDir)
 	return &APIComponents{
 		Auth:               stack,
 		Registry:           reg,
 		Tools:              toolRunner,
 		Intel:              intel,
+		CVE:                cveSvc,
+		CTF:                ctfSvc,
+		BugBounty:          bbSvc,
+		Browser:            browserSvc,
 		Workflows:          wf,
+		Progress:           progressStore,
 		Jobs:               jobs,
 		Processes:          procMgr,
 		Audit:              auditLog,

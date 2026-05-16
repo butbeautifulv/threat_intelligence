@@ -12,3 +12,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Secure compose smoke (nginx TLS)
         run: make test-engage-secure
+
+  keycloak-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Keycloak auth path smoke
+        run: make test-engage-keycloak

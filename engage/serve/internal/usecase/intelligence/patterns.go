@@ -60,6 +60,22 @@ func AttackPatterns() map[string][]AttackStep {
 			{Tool: "radare2", Priority: 3, Params: nil},
 			{Tool: "strings", Priority: 4, Params: nil},
 		},
+		"ctf_web_challenge": {
+			{Tool: "httpx", Priority: 1, Params: map[string]string{"additional_args": "-silent -tech-detect"}},
+			{Tool: "katana", Priority: 2, Params: map[string]string{"additional_args": "-silent"}},
+			{Tool: "nuclei", Priority: 3, Params: map[string]string{"severity": "critical,high"}},
+			{Tool: "gobuster", Priority: 4, Params: nil},
+			{Tool: "arjun", Priority: 5, Params: nil},
+		},
+		"ctf_crypto_challenge": {
+			{Tool: "hashcat", Priority: 1, Params: nil},
+			{Tool: "john", Priority: 2, Params: nil},
+		},
+		"ctf_forensics_challenge": {
+			{Tool: "binwalk", Priority: 1, Params: nil},
+			{Tool: "exiftool", Priority: 2, Params: nil},
+			{Tool: "strings", Priority: 3, Params: nil},
+		},
 		"aws_security_assessment": {
 			{Tool: "prowler", Priority: 1, Params: map[string]string{"provider": "aws"}},
 			{Tool: "scout-suite", Priority: 2, Params: nil},
@@ -158,8 +174,14 @@ func SelectPatternKey(targetType, objective string) string {
 		return "bug_bounty_high_impact"
 	case "business-logic", "file-upload":
 		return "bug_bounty_vulnerability_hunting"
-	case "ctf", "pwn":
+	case "ctf", "ctf-web":
+		return "ctf_web_challenge"
+	case "pwn", "ctf-pwn":
 		return "ctf_pwn_challenge"
+	case "forensics":
+		return "ctf_forensics_challenge"
+	case "crypto":
+		return "ctf_crypto_challenge"
 	case "binary", "exploit":
 		return "binary_exploitation"
 	case "ad", "active-directory":

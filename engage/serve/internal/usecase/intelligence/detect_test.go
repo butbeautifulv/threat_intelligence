@@ -6,7 +6,7 @@ import (
 )
 
 func TestProbeTarget_urlWeb(t *testing.T) {
-	tt, tech, cms, conf := probeTarget(context.Background(), "https://example.com/wp-admin")
+	tt, tech, cms, conf, _, _ := probeTarget(context.Background(), "https://example.com/wp-admin")
 	if tt != "web" {
 		t.Fatalf("target type: %s", tt)
 	}
@@ -22,7 +22,7 @@ func TestProbeTarget_urlWeb(t *testing.T) {
 }
 
 func TestProbeTarget_ip(t *testing.T) {
-	tt, _, _, conf := probeTarget(context.Background(), "192.168.1.1")
+	tt, _, _, conf, _, _ := probeTarget(context.Background(), "192.168.1.1")
 	if tt != "ip" {
 		t.Fatalf("target type: %s", tt)
 	}

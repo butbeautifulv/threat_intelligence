@@ -100,20 +100,6 @@ func DetectTechnologies(ctx context.Context, target string, headers http.Header,
 	}
 
 	if len(seen) == 0 {
-		if u := normalizeURL(target); u != "" {
-			if hdrs := httpProbe(ctx, u); len(hdrs) > 0 {
-				h := http.Header{}
-				for _, t := range hdrs {
-					if strings.HasPrefix(t, "server:") {
-						h.Set("Server", strings.TrimPrefix(t, "server:"))
-					}
-					if strings.HasPrefix(t, "powered:") {
-						h.Set("X-Powered-By", strings.TrimPrefix(t, "powered:"))
-					}
-				}
-				return DetectTechnologies(ctx, target, h, body)
-			}
-		}
 		add(TechUnknown)
 	}
 

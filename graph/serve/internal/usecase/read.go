@@ -38,6 +38,11 @@ func (u *ReadUsecase) GetNodeForAPI(ctx context.Context, id string) (*query.Node
 	return n, nil
 }
 
+// EngageTargetContext returns engage subgraph for a normalized host name.
+func (u *ReadUsecase) EngageTargetContext(ctx context.Context, host string) (*query.EngageTargetContext, error) {
+	return u.Service.EngageTargetContext(ctx, host)
+}
+
 // Ping verifies Neo4j read connectivity.
 func (u *ReadUsecase) Ping(ctx context.Context) error {
 	_, err := u.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {

@@ -5,18 +5,33 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/client/veilgraph"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
+// ParallelToolRunner runs multiple catalog tools concurrently (workflow.Service).
+type ParallelToolRunner interface {
+	RunToolsParallel(ctx context.Context, subject, target, targetType string, toolNames []string) []map[string]any
+}
+
 // Service provides target analysis and tool selection.
 type Service struct {
-	Veil     *veilgraph.Client
-	Registry *tools.Registry
-	Engine   *DecisionEngine
-	Tools    *toolsuc.Runner
+	Veil            *veilgraph.Client
+	Registry        *tools.Registry
+	Engine          *DecisionEngine
+	Tools           *toolsuc.Runner
+	Audit           audit.Reader
+	CVE             CVEIntelligence
+	ParallelRunner  ParallelToolRunner
+}
+
+// CVEIntelligence is implemented by cve.Service (defined here to avoid import cycles in tests).
+type CVEIntelligence interface {
+	EnrichCorrelation(ctx context.Context, indicators string, related []string) ([]map[string]any, []string)
+	BuildCVEAttackPaths(ctx context.Context, cveIDs []string) []map[string]any
 }
 
 func (s *Service) engine() *DecisionEngine {
@@ -28,31 +43,47 @@ func (s *Service) engine() *DecisionEngine {
 
 func (s *Service) AnalyzeTarget(ctx context.Context, req contract.AnalyzeTargetRequest) contract.AnalyzeTargetResponse {
 	target := strings.TrimSpace(req.Target)
-	tt, tech, cms, conf := probeTarget(ctx, target)
+	tt, tech, cms, _, probeHdr, probeBody := probeTarget(ctx, target)
+	ips := resolveTargetIPs(ctx, target)
+	techLabels := technologiesDetected(tech, cms)
+	profile := BuildTargetProfile(target, tt, techLabels, cms, ips, 0)
 	resp := contract.AnalyzeTargetResponse{
 		Target:       target,
 		TargetType:   tt,
 		Technologies: tech,
-		RiskLevel:    riskFromProfile(tt, len(tech)),
-		Confidence:   conf,
+		RiskLevel:    profile.RiskLevel,
+		Confidence:   profile.ConfidenceScore,
 		Metadata:     map[string]any{},
 	}
 	if cms != "" {
 		resp.Metadata["cms"] = cms
 	}
-	stack := DetectTechnologies(ctx, target, nil, "")
+	resp.Metadata["attack_surface_score"] = profile.AttackSurfaceScore
+	resp.Metadata["ip_addresses"] = profile.IPAddresses
+	stack := DetectTechnologies(ctx, target, probeHdr, probeBody)
 	resp.Metadata["technologies_detected"] = TechnologiesToStrings(stack)
 	resp.Metadata["technology_stack"] = TechnologiesToStrings(stack)
 	if s.Veil != nil && s.Veil.Enabled() {
 		if raw, err := s.Veil.Categories(ctx); err == nil {
 			resp.Metadata["veil_categories"] = raw
-			if conf < 0.85 {
+			if resp.Confidence < 0.85 {
 				resp.Confidence = 0.85
 			}
 		}
 		s.enrichGraph(ctx, target, resp.Metadata)
+		if boost := s.graphBoost(ctx, target); len(boost) > 0 {
+			resp.Metadata["graph_tool_boost"] = boost
+		}
 	}
 	return resp
+}
+
+// BuildProfileFromTarget runs probe + profile assembly for internal engine use.
+func (s *Service) BuildProfileFromTarget(ctx context.Context, target string) TargetProfile {
+	tt, tech, cms, _, _, _ := probeTarget(ctx, target)
+	ips := resolveTargetIPs(ctx, target)
+	labels := technologiesDetected(tech, cms)
+	return BuildTargetProfile(target, tt, labels, cms, ips, 0)
 }
 
 func (s *Service) enrichGraph(ctx context.Context, target string, meta map[string]any) {
@@ -61,7 +92,7 @@ func (s *Service) enrichGraph(ctx context.Context, target string, meta map[strin
 		return
 	}
 	hits := map[string]any{}
-	for _, cat := range []string{"vuln", "ti"} {
+	for _, cat := range []string{"vuln", "ti", "engage"} {
 		if raw, err := s.Veil.Search(ctx, cat, host); err == nil && len(raw) > 2 && string(raw) != "null" {
 			hits[cat] = raw
 		}
@@ -87,11 +118,24 @@ func (s *Service) graphBoost(ctx context.Context, target string) map[string]floa
 	if host == "" {
 		return nil
 	}
-	raw, err := s.Veil.Search(ctx, "vuln", host)
-	if err != nil || len(raw) <= 2 || string(raw) == "null" {
+	boost := map[string]float64{}
+	for cat, tools := range map[string][]string{
+		"vuln":    {"nuclei", "nikto", "sqlmap"},
+		"ti":      {"nuclei", "httpx"},
+		"engage":  {"nuclei", "nmap", "httpx"},
+	} {
+		raw, err := s.Veil.Search(ctx, cat, host)
+		if err != nil || len(raw) <= 2 || string(raw) == "null" {
+			continue
+		}
+		for _, t := range tools {
+			boost[t] += 0.08
+		}
+	}
+	if len(boost) == 0 {
 		return nil
 	}
-	return map[string]float64{"nuclei": 0.1, "trivy": 0.1}
+	return boost
 }
 
 // TechnologyDetection returns technologies, CMS, and confidence for a target.
@@ -119,19 +163,8 @@ func (s *Service) TechnologyDetection(ctx context.Context, target string) map[st
 	}
 }
 
-func candidateIDs(targetType string) []string {
-	switch targetType {
-	case "web":
-		return []string{"httpx", "nuclei", "gobuster", "nikto", "ffuf", "feroxbuster", "sqlmap", "wpscan"}
-	case "api":
-		return []string{"httpx", "nuclei", "ffuf", "arjun", "gobuster"}
-	case "ip":
-		return []string{"nmap", "rustscan", "masscan", "nuclei"}
-	case "cloud":
-		return []string{"prowler", "trivy", "scout-suite", "kube-hunter"}
-	default:
-		return []string{"nmap", "httpx", "subfinder", "nuclei"}
-	}
+func (s *Service) candidateIDs(targetType string) []string {
+	return s.engine().CandidateTools(targetType)
 }
 
 func filterEnabled(names []string, reg *tools.Registry) []string {
@@ -224,11 +257,13 @@ func (s *Service) SelectTools(ctx context.Context, targetType, objective string)
 }
 
 func (s *Service) SelectToolsForTarget(ctx context.Context, targetType, objective, target string) []string {
-	cands := candidateIDs(targetType)
-	_, techLabels, cms, _ := probeTarget(ctx, target)
+	cands := s.candidateIDs(targetType)
+	_, techLabels, cms, _, _, _ := probeTarget(ctx, target)
 	stack := labelsToTechnologies(techLabels, cms)
 	boost := mergeBoost(s.graphBoost(ctx, target), techStackBoost(stack), cmsToolBoost(cms, s.Registry))
 	ranked := s.engine().RankToolsWithBoost(targetType, cands, boost)
+	ranked = appendTechSpecificTools(ranked, stack, cms)
+	ranked = s.engine().RankToolsWithBoost(targetType, ranked, boost)
 	names := tools.ResolveCatalogNames(ranked, s.Registry)
 	names = filterEnabled(names, s.Registry)
 	obj := strings.ToLower(strings.TrimSpace(objective))
@@ -245,7 +280,39 @@ func (s *Service) SelectToolsForTarget(ctx context.Context, targetType, objectiv
 			names = filterEnabled(names, s.Registry)
 		}
 	}
+	if obj == "quick" || obj == "fast" {
+		if len(names) > 3 {
+			names = names[:3]
+		}
+		return names
+	}
 	return capToolsWithEngine(names, targetType, objective, s.engine())
+}
+
+func appendTechSpecificTools(ranked []string, stack []Technology, cms string) []string {
+	seen := map[string]struct{}{}
+	for _, id := range ranked {
+		seen[id] = struct{}{}
+	}
+	add := func(id string) {
+		if _, ok := seen[id]; ok {
+			return
+		}
+		seen[id] = struct{}{}
+		ranked = append(ranked, id)
+	}
+	for _, t := range stack {
+		switch t {
+		case TechWordPress:
+			add("wpscan")
+		case TechPHP:
+			add("nikto")
+		}
+	}
+	if strings.EqualFold(cms, "wordpress") {
+		add("wpscan")
+	}
+	return ranked
 }
 
 func labelsToTechnologies(labels []string, cms string) []Technology {
@@ -323,6 +390,11 @@ func mergeBoost(parts ...map[string]float64) map[string]float64 {
 
 // OptimizeParameters suggests CLI flags for a tool against a target profile.
 func (s *Service) OptimizeParameters(targetType, toolName string, params map[string]string) map[string]string {
+	return s.OptimizeParametersWithContext(context.Background(), targetType, toolName, params, OptimizeContext{})
+}
+
+// OptimizeParametersWithContext applies profile-aware tuning for a target.
+func (s *Service) OptimizeParametersWithContext(ctx context.Context, targetType, toolName string, params map[string]string, octx OptimizeContext) map[string]string {
 	out := make(map[string]string)
 	for k, v := range params {
 		out[k] = v
@@ -334,7 +406,16 @@ func (s *Service) OptimizeParameters(targetType, toolName string, params map[str
 	if spec, ok := s.Registry.Get(toolID); ok && spec.Binary != "" {
 		toolID = spec.Binary
 	}
-	optimized := s.engine().OptimizeParameters(targetType, toolID, out)
+	target := out["target"]
+	if target == "" {
+		target = out["url"]
+	}
+	profile := BuildTargetProfile(target, targetType, nil, "", nil, 0)
+	if target != "" {
+		profile = s.BuildProfileFromTarget(ctx, target)
+		profile.TargetType = targetType
+	}
+	optimized := s.engine().OptimizeParametersWithProfile(profile, toolID, out, octx)
 	for k, v := range optimized {
 		out[k] = v
 	}
@@ -344,10 +425,20 @@ func (s *Service) OptimizeParameters(targetType, toolName string, params map[str
 // CreateAttackChain builds an ordered list of catalog tool names from attack patterns.
 func (s *Service) CreateAttackChain(ctx context.Context, target string, objective string) map[string]any {
 	analysis := s.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
+	profile := s.BuildProfileFromTarget(ctx, target)
+	confidence := profile.ConfidenceScore
+	if analysis.Confidence > confidence {
+		confidence = analysis.Confidence
+	}
+	octx := OptimizeContext{Objective: objective}
+	if strings.EqualFold(objective, "stealth") {
+		octx.Stealth = true
+	}
 	patternKey := SelectPatternKey(analysis.TargetType, objective)
 	pattern := AttackPatterns()[patternKey]
 	steps := make([]map[string]any, 0, len(pattern))
 	var probSum float64
+	var timeSum int
 	eng := s.engine()
 	stepNum := 0
 	for _, ps := range pattern {
@@ -357,32 +448,47 @@ func (s *Service) CreateAttackChain(ctx context.Context, target string, objectiv
 			continue
 		}
 		score := eng.Score(analysis.TargetType, ps.Tool)
-		probSum += score
+		stepProb := stepSuccessProbability(score, confidence)
+		probSum += stepProb
+		timeSum += executionTimeEstimate(ps.Tool)
 		stepNum++
-		step := map[string]any{
-			"step":                stepNum,
-			"tool":                catalogName,
-			"priority":            ps.Priority,
-			"effectiveness_score": score,
+		params := map[string]string{"target": target}
+		for k, v := range ps.Params {
+			params[k] = v
 		}
-		if len(ps.Params) > 0 {
-			step["parameters"] = ps.Params
+		params = s.OptimizeParametersWithContext(ctx, analysis.TargetType, catalogName, params, octx)
+		step := map[string]any{
+			"step":                     stepNum,
+			"tool":                     catalogName,
+			"priority":                 ps.Priority,
+			"effectiveness_score":      score,
+			"success_probability":      stepProb,
+			"execution_time_estimate":  executionTimeEstimate(ps.Tool),
+			"expected_outcome":         expectedOutcome(ps.Tool),
+			"parameters":               params,
 		}
 		steps = append(steps, step)
 	}
 	if len(steps) == 0 {
 		selected := s.SelectToolsForTarget(ctx, analysis.TargetType, objective, target)
 		for i, name := range selected {
-			binary := name
+			toolID := name
 			if spec, ok := s.Registry.Get(name); ok && spec.Binary != "" {
-				binary = spec.Binary
+				toolID = spec.Binary
 			}
-			score := eng.Score(analysis.TargetType, binary)
-			probSum += score
+			score := eng.Score(analysis.TargetType, toolID)
+			stepProb := stepSuccessProbability(score, confidence)
+			probSum += stepProb
+			timeSum += executionTimeEstimate(toolID)
+			params := s.OptimizeParametersWithContext(ctx, analysis.TargetType, name, map[string]string{"target": target}, octx)
 			steps = append(steps, map[string]any{
-				"step":                i + 1,
-				"tool":                name,
-				"effectiveness_score": score,
+				"step":                    i + 1,
+				"tool":                    name,
+				"effectiveness_score":     score,
+				"success_probability":     stepProb,
+				"execution_time_estimate": executionTimeEstimate(toolID),
+				"expected_outcome":        expectedOutcome(toolID),
+				"parameters":              params,
 			})
 		}
 		patternKey = "ranked_fallback"
@@ -390,6 +496,10 @@ func (s *Service) CreateAttackChain(ctx context.Context, target string, objectiv
 	successProb := 0.0
 	if len(steps) > 0 {
 		successProb = probSum / float64(len(steps))
+	}
+	estMinutes := timeSum / 60
+	if estMinutes < 1 && len(steps) > 0 {
+		estMinutes = 1
 	}
 	return map[string]any{
 		"target":              target,
@@ -399,6 +509,8 @@ func (s *Service) CreateAttackChain(ctx context.Context, target string, objectiv
 		"steps":               steps,
 		"status":              "planned",
 		"success_probability": successProb,
-		"estimated_minutes":   len(steps) * 3,
+		"estimated_minutes":   estMinutes,
+		"confidence_score":    confidence,
+		"attack_surface_score": profile.AttackSurfaceScore,
 	}
 }

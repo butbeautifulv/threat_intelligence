@@ -45,6 +45,7 @@ tools:
         default: "xss,sqli,lfi"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -73,6 +74,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -113,6 +115,7 @@ tools:
         default: "GET"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -193,6 +196,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -229,6 +233,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -318,6 +323,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -843,6 +849,7 @@ tools:
         default: "50"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -929,7 +936,7 @@ tools:
     description: "web tool: checkov iac scan"
     enabled: false
   - name: checksec_analyze
-    category: binary
+    category: intelligence
     binary: checksec
     parameters:
       - name: target
@@ -980,6 +987,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1039,6 +1047,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1080,6 +1089,7 @@ tools:
         default: "comprehensive"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1103,6 +1113,7 @@ tools:
         default: "False"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1131,6 +1142,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1156,6 +1168,125 @@ tools:
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: create vulnerability report"
+    enabled: false
+  - name: ctf_auto_solve_challenge
+    category: ctf
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: execute_tools
+        type: string
+        default: "true"
+        required: false
+      - name: max_steps
+        type: string
+        default: "8"
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf auto solve challenge"
+    enabled: false
+  - name: ctf_binary_analyzer
+    category: ctf
+    binary: api
+    parameters:
+      - name: binary_path
+        type: string
+        required: true
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf binary analyzer"
+    enabled: false
+  - name: ctf_create_challenge_workflow
+    category: ctf
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: name
+        type: string
+        required: false
+      - name: category
+        type: string
+        required: false
+      - name: description
+        type: string
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf create challenge workflow"
+    enabled: false
+  - name: ctf_cryptography_solver
+    category: ctf
+    binary: api
+    parameters:
+      - name: cipher_text
+        type: string
+        required: true
+      - name: cipher_type
+        type: string
+        default: "unknown"
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf cryptography solver"
+    enabled: false
+  - name: ctf_forensics_analyzer
+    category: ctf
+    binary: api
+    parameters:
+      - name: file_path
+        type: string
+        required: true
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf forensics analyzer"
+    enabled: false
+  - name: ctf_suggest_tools
+    category: ctf
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: description
+        type: string
+        required: true
+      - name: category
+        type: string
+        default: "misc"
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf suggest tools"
+    enabled: false
+  - name: ctf_team_strategy
+    category: ctf
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "ctf tool: ctf team strategy"
     enabled: false
   - name: dalfox_xss_scan
     category: web
@@ -1209,6 +1340,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1222,6 +1354,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1324,6 +1457,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1352,6 +1486,7 @@ tools:
         default: ""
         required: false
     args:
+      - "--domain"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1450,6 +1585,7 @@ tools:
         required: false
     args:
       - "{target}"
+      - "-a"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: enum4linux ng advanced"
@@ -1466,6 +1602,7 @@ tools:
         default: "-a"
         required: false
     args:
+      - "-a"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1479,6 +1616,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1499,6 +1637,7 @@ tools:
         default: "True"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1523,6 +1662,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1728,6 +1868,7 @@ tools:
         default: "True"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1854,6 +1995,7 @@ tools:
         default: "none"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1896,6 +2038,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1909,6 +2052,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1922,6 +2066,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1938,6 +2083,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1951,6 +2097,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2157,6 +2304,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2190,6 +2338,7 @@ tools:
         default: "request"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2230,6 +2379,7 @@ tools:
         default: "100"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2246,6 +2396,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2262,6 +2413,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2282,6 +2434,7 @@ tools:
         default: "True"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2390,6 +2543,7 @@ tools:
         default: "default"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2447,6 +2601,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2634,6 +2789,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2647,6 +2803,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2664,6 +2821,7 @@ tools:
         default: "."
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2752,6 +2910,7 @@ tools:
         default: "False"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2777,6 +2936,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3009,12 +3169,13 @@ tools:
       - "{target}"
       - "-t"
       - "{templates}"
+      - "-duc"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: nuclei scan"
     enabled: false
   - name: objdump_analyze
-    category: binary
+    category: intelligence
     binary: objdump
     parameters:
       - name: target
@@ -3057,6 +3218,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3077,6 +3239,7 @@ tools:
         default: "{}"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3110,6 +3273,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3142,6 +3306,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-d"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3174,6 +3339,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3190,6 +3356,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3265,6 +3432,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3326,6 +3494,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3350,6 +3519,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-f"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3374,6 +3544,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3415,6 +3586,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3431,6 +3603,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3455,6 +3628,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3491,6 +3665,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3524,6 +3699,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3620,6 +3796,7 @@ tools:
         default: "comprehensive"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3633,6 +3810,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3688,6 +3866,7 @@ tools:
     args:
       - "-u"
       - "{target}"
+      - "--batch"
       - "--data"
       - "{data}"
       - "{additional_args}"
@@ -3724,6 +3903,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3748,6 +3928,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3782,6 +3963,27 @@ tools:
     timeout_sec: 300
     description: "osint tool: subfinder scan"
     enabled: false
+  - name: target_timeline_intelligence
+    category: intelligence
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: limit
+        type: string
+        default: "50"
+        required: false
+      - name: include_graph
+        type: string
+        default: "true"
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "intelligence tool: target timeline intelligence"
+    enabled: false
   - name: terminate_process
     category: web
     binary: terminate
@@ -3793,6 +3995,7 @@ tools:
         type: string
         required: true
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3830,6 +4033,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3851,6 +4055,7 @@ tools:
         default: "example.com"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3875,6 +4080,7 @@ tools:
         default: "general"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3938,13 +4144,14 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: uro url filtering"
     enabled: false
   - name: volatility3_analyze
-    category: binary
+    category: intelligence
     binary: volatility3
     parameters:
       - name: target
@@ -3971,7 +4178,7 @@ tools:
     description: "intelligence tool: volatility3 analyze"
     enabled: false
   - name: volatility_analyze
-    category: binary
+    category: intelligence
     binary: volatility
     parameters:
       - name: target
@@ -4022,6 +4229,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-a"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -4050,6 +4258,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -4134,6 +4343,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -4187,6 +4397,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300

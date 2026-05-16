@@ -44,7 +44,7 @@ mkdir -p var/veil/{blobs,ledger/mysql,graph/releases}
 
 | Profile | Script | Neo4j seed | Crawl |
 |---------|--------|------------|-------|
-| **Incremental** (recommended) | [profile-incremental-pack.sh](../scripts/graph-pack/profile-incremental-pack.sh) | Import `BASE_GRAPH_PACK_VERSION` (default `v0.4.4`) | Delta only (`SCRAPE_FORCE_REFETCH=0`) |
+| **Incremental** (recommended) | [profile-incremental-pack.sh](../scripts/graph-pack/profile-incremental-pack.sh) | Import `BASE_GRAPH_PACK_VERSION` (default `v0.4.5`) | Delta only (`SCRAPE_FORCE_REFETCH=0`) |
 | **Fast-rich** | [profile-fast-rich.sh](../scripts/graph-pack/profile-fast-rich.sh) | Empty (`GRAPH_PACK_SKIP=1`) | Uses ledger/cache; no full refetch by default |
 | **Full rebuild** | `profile-fast-rich.sh --full` | Empty | Wipes `var/veil` ledger+blobs + `SCRAPE_FORCE_REFETCH=1` |
 

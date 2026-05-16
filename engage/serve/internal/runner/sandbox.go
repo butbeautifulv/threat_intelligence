@@ -56,6 +56,8 @@ func (s *Sandbox) Exec(ctx context.Context, binary string, args []string, timeou
 		if res.ExitCode != 0 || res.Err != nil {
 			st = "failed"
 		}
+		out := res.Stdout + res.Stderr
+		proc.UpdateProgress(trackPID, 1, out, int64(len(out)))
 		proc.Finish(trackPID, st)
 	}
 	return res

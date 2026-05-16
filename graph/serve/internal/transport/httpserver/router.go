@@ -58,6 +58,22 @@ func Register(mux *http.ServeMux, uc *usecase.ReadUsecase) {
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"category": cat, "query": q, "kind": kind, "nodes": nodes})
 	})
+	mux.HandleFunc("GET /v1/categories/engage/context", func(w http.ResponseWriter, r *http.Request) {
+		host := r.URL.Query().Get("q")
+		if host == "" {
+			host = r.URL.Query().Get("host")
+		}
+		ctx, err := uc.EngageTargetContext(r.Context(), host)
+		if err != nil {
+			writeErr(w, http.StatusBadRequest, err)
+			return
+		}
+		if ctx == nil {
+			writeJSON(w, http.StatusOK, map[string]any{"host": host, "found": false})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"host": host, "found": ctx.Target != nil, "context": ctx})
+	})
 	mux.HandleFunc("GET /v1/nodes/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		n, err := uc.GetNodeForAPI(r.Context(), id)

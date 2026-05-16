@@ -59,4 +59,19 @@ if [[ "${ENGAGE_AUTH_ENABLED:-0}" == "1" ]]; then
   fi
 fi
 
+# Secure profile (ENGAGE_ENV=prod): raw command must be denied even if ENGAGE_ALLOW_RAW_COMMAND=1 on host.
+export ENGAGE_ALLOW_RAW_COMMAND=1
+resp=$(curl -kfsS -X POST "${API_URL}/api/command" \
+  -H 'Content-Type: application/json' \
+  -d '{"command":"id","use_cache":false}' 2>/dev/null || echo '{}')
+echo "${resp}" | grep -q '"success":false' || {
+  echo "FAIL: /api/command should reject non-catalog binary in secure profile: ${resp}" >&2
+  exit 1
+}
+echo "${resp}" | grep -qi 'allowlist' || {
+  echo "FAIL: expected allowlist error in response: ${resp}" >&2
+  exit 1
+}
+echo "OK secure profile denies raw /api/command"
+
 echo "OK engage secure smoke (https://${HTTPS_PORT})"

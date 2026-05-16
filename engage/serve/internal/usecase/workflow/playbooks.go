@@ -48,6 +48,27 @@ func DefaultPlaybooksPath(catalogPath string) string {
 	return filepath.Join(dir, "..", "playbooks", "bugbounty.yaml")
 }
 
+// LoadAllPlaybooks merges bug bounty and CTF playbook YAML files.
+func LoadAllPlaybooks(catalogPath string) ([]Playbook, error) {
+	dir := filepath.Dir(DefaultPlaybooksPath(catalogPath))
+	var all []Playbook
+	for _, name := range []string{"bugbounty.yaml", "ctf.yaml"} {
+		list, err := LoadPlaybooks(filepath.Join(dir, name))
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, list...)
+	}
+	if v := os.Getenv("ENGAGE_PLAYBOOKS_PATH"); v != "" {
+		list, err := LoadPlaybooks(v)
+		if err != nil {
+			return nil, err
+		}
+		all = append(all, list...)
+	}
+	return all, nil
+}
+
 // FindPlaybook returns a playbook by name.
 func FindPlaybook(list []Playbook, name string) (Playbook, bool) {
 	for _, p := range list {

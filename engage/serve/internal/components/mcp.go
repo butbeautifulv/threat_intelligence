@@ -24,7 +24,7 @@ func InitMCP(cfg *config.Config, logger *slog.Logger) (*MCPComponents, error) {
 	}
 	return &MCPComponents{
 		API:       api,
-		MCPServer: mcpserver.NewServerWithIntel(api.Tools, api.Intel, api.Workflows, api.Auth, logger, api.CatalogPath, api.Files),
+		MCPServer: mcpserver.NewServerFull(api.Tools, api.Intel, api.CVE, api.CTF, api.BugBounty, api.Browser, api.Processes, api.Workflows, api.Auth, logger, api.CatalogPath, api.Files),
 	}, nil
 }
 

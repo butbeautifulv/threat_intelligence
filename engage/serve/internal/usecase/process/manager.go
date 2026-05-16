@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	goruntime "runtime"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -12,14 +13,18 @@ import (
 
 // Record tracks a running or finished subprocess.
 type Record struct {
-	PID       int        `json:"pid"`
-	Tool      string     `json:"tool,omitempty"`
-	Target    string     `json:"target,omitempty"`
-	Command   string     `json:"command,omitempty"`
-	Session   string     `json:"session,omitempty"` // docker exec session when PID is synthetic
-	Status    string     `json:"status"`
-	StartedAt time.Time  `json:"started_at"`
-	EndedAt   *time.Time `json:"ended_at,omitempty"`
+	PID            int        `json:"pid"`
+	Tool           string     `json:"tool,omitempty"`
+	Target         string     `json:"target,omitempty"`
+	Command        string     `json:"command,omitempty"`
+	Session        string     `json:"session,omitempty"`
+	Status         string     `json:"status"`
+	Progress       float64    `json:"progress"`
+	LastOutput     string     `json:"last_output,omitempty"`
+	BytesProcessed int64      `json:"bytes_processed,omitempty"`
+	ETA            float64    `json:"eta_seconds,omitempty"`
+	StartedAt      time.Time  `json:"started_at"`
+	EndedAt        *time.Time `json:"ended_at,omitempty"`
 }
 
 // Manager tracks engage subprocesses for admin APIs.
@@ -47,15 +52,40 @@ func (m *Manager) RegisterSession(pid int, tool, target, command, session string
 		Command:   command,
 		Session:   session,
 		Status:    "running",
+		Progress:  0,
 		StartedAt: time.Now().UTC(),
 	}
 }
 
-// RegisterDocker records a docker exec session with a unique negative PID.
 func (m *Manager) RegisterDocker(tool, target, command, session string) int {
 	pid := int(atomic.AddInt64(&m.nextDockerID, -1))
 	m.RegisterSession(pid, tool, target, command, session)
 	return pid
+}
+
+func (m *Manager) UpdateProgress(pid int, progress float64, lastOutput string, bytesProcessed int64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	r, ok := m.records[pid]
+	if !ok {
+		return
+	}
+	if progress >= 0 {
+		r.Progress = progress
+		if progress > 0 && progress < 1 {
+			elapsed := time.Since(r.StartedAt).Seconds()
+			r.ETA = (elapsed / progress) * (1 - progress)
+		}
+	}
+	if lastOutput != "" {
+		if len(lastOutput) > 200 {
+			lastOutput = lastOutput[len(lastOutput)-200:]
+		}
+		r.LastOutput = lastOutput
+	}
+	if bytesProcessed > 0 {
+		r.BytesProcessed = bytesProcessed
+	}
 }
 
 func (m *Manager) Finish(pid int, status string) {
@@ -63,6 +93,8 @@ func (m *Manager) Finish(pid int, status string) {
 	defer m.mu.Unlock()
 	if r, ok := m.records[pid]; ok {
 		r.Status = status
+		r.Progress = 1
+		r.ETA = 0
 		now := time.Now().UTC()
 		r.EndedAt = &now
 	}
@@ -134,14 +166,41 @@ func (m *Manager) Resume(pid int) error {
 func (m *Manager) Dashboard() map[string]any {
 	list := m.List()
 	running := 0
+	processes := make([]map[string]any, 0, len(list))
+	now := time.Now().UTC()
 	for _, r := range list {
 		if r.Status == "running" {
 			running++
 		}
+		runtimeSec := now.Sub(r.StartedAt).Seconds()
+		if r.EndedAt != nil {
+			runtimeSec = r.EndedAt.Sub(r.StartedAt).Seconds()
+		}
+		processes = append(processes, map[string]any{
+			"pid":                 r.PID,
+			"tool":                r.Tool,
+			"target":              r.Target,
+			"command":             r.Command,
+			"status":              r.Status,
+			"runtime":             fmt.Sprintf("%.1fs", runtimeSec),
+			"progress_percent":    fmt.Sprintf("%.1f%%", r.Progress*100),
+			"progress_fraction":   r.Progress,
+			"last_output":         r.LastOutput,
+			"bytes_processed":     r.BytesProcessed,
+			"eta_seconds":         r.ETA,
+		})
 	}
+	var mem goruntime.MemStats
+	goruntime.ReadMemStats(&mem)
 	return map[string]any{
-		"total":     len(list),
-		"running":   running,
-		"processes": list,
+		"timestamp":       now.Format(time.RFC3339),
+		"total_processes": len(list),
+		"total":           len(list),
+		"running":         running,
+		"system_load": map[string]any{
+			"goroutines":      goruntime.NumGoroutine(),
+			"memory_alloc_mb": float64(mem.Alloc) / (1024 * 1024),
+		},
+		"processes": processes,
 	}
 }

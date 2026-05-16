@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runner profile smoke: sync tool runs via API (nmap, nuclei, httpx) when stack is up.
+# Runner profile smoke: sync tool runs via API (recon chain tools).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "${ROOT}"
@@ -31,6 +31,9 @@ run_tool() {
 
 echo "runner profile smoke: sync tools via ${API_URL}"
 run_tool nmap_scan 127.0.0.1 '{"scan_type":"-sn","ports":"","additional_args":"-T4"}'
+run_tool subfinder_scan example.com '{"additional_args":"-silent"}'
 run_tool httpx_probe https://example.com '{"additional_args":"-silent -status-code"}'
+run_tool httpx_tech_detect https://example.com '{"additional_args":"-silent -tech-detect -status-code"}' || run_tool httpx_probe https://example.com '{"additional_args":"-silent -tech-detect"}'
 run_tool nuclei_scan https://example.com '{"templates":"","additional_args":"-silent -duc"}' || true
+run_tool katana_crawl https://example.com '{"additional_args":"-silent -d 1"}' || run_tool katana_depth_scan https://example.com '{"additional_args":"-silent -d 1"}' || true
 echo "OK engage runner profile smoke"

@@ -11,6 +11,15 @@ import (
 	"time"
 )
 
+// BrowserInspectOpts configures sidecar inspection.
+type BrowserInspectOpts struct {
+	Target      string
+	WaitTime    int
+	Headless    bool
+	Screenshot  bool
+	ActiveTests bool
+}
+
 // BrowserProxy runs browser catalog tools via ENGAGE_BROWSER_URL sidecar.
 type BrowserProxy struct {
 	BaseURL string
@@ -36,13 +45,18 @@ func IsBrowserBinary(name string) bool {
 	return strings.EqualFold(strings.TrimSpace(name), "browser")
 }
 
-func (b *BrowserProxy) Exec(ctx context.Context, target string, args []string) Result {
+func (b *BrowserProxy) Inspect(ctx context.Context, opts BrowserInspectOpts) Result {
 	payload := map[string]any{
-		"target": target,
-		"args":   args,
+		"url":           opts.Target,
+		"target":        opts.Target,
+		"wait_time":     opts.WaitTime,
+		"headless":      opts.Headless,
+		"screenshot":    opts.Screenshot,
+		"active_tests":  opts.ActiveTests,
+		"inspect":       true,
 	}
 	body, _ := json.Marshal(payload)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.BaseURL+"/exec", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.BaseURL+"/inspect", bytes.NewReader(body))
 	if err != nil {
 		return Result{ExitCode: -1, Err: err}
 	}
@@ -52,22 +66,19 @@ func (b *BrowserProxy) Exec(ctx context.Context, target string, args []string) R
 		return Result{ExitCode: -1, Err: err}
 	}
 	defer resp.Body.Close()
-	var out struct {
-		Stdout   string `json:"stdout"`
-		Stderr   string `json:"stderr"`
-		ExitCode int    `json:"exit_code"`
-		Error    string `json:"error,omitempty"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+	var raw map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
 		return Result{ExitCode: -1, Err: fmt.Errorf("browser sidecar: %w", err)}
 	}
-	res := Result{Stdout: out.Stdout, Stderr: out.Stderr, ExitCode: out.ExitCode}
-	if out.Error != "" {
-		res.Err = fmt.Errorf("%s", out.Error)
+	if raw["success"] == false {
+		errMsg, _ := raw["error"].(string)
+		return Result{ExitCode: 1, Err: fmt.Errorf("%s", errMsg), Stderr: errMsg}
 	}
-	if resp.StatusCode >= 400 && res.Err == nil {
-		res.Err = fmt.Errorf("browser sidecar http %d", resp.StatusCode)
-		res.ExitCode = resp.StatusCode
-	}
-	return res
+	out, _ := json.Marshal(raw)
+	return Result{Stdout: string(out) + "\n", ExitCode: 0}
+}
+
+func (b *BrowserProxy) Exec(ctx context.Context, target string, args []string) Result {
+	opts := BrowserInspectOpts{Target: target, WaitTime: 5, Headless: true, Screenshot: true}
+	return b.Inspect(ctx, opts)
 }

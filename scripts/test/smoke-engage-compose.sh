@@ -66,4 +66,8 @@ fi
 chmod +x "${ROOT}/scripts/test/smoke-engage-runner-profile.sh"
 "${ROOT}/scripts/test/smoke-engage-runner-profile.sh" || true
 
+chmod +x "${ROOT}/scripts/test/smoke-engage-tool-matrix.sh"
+ENGAGE_TOOL_MATRIX_STRICT=1 ENGAGE_TOOL_MATRIX_MIN=30 \
+  "${ROOT}/scripts/test/smoke-engage-tool-matrix.sh" || true
+
 echo "OK engage compose smoke"

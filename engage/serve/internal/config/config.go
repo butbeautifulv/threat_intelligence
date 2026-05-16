@@ -24,6 +24,7 @@ type Config struct {
 	NATSURL          string
 	JobsPollInterval    time.Duration
 	WorkerConcurrency   int
+	MaxParallel         int
 	VeilAPI             VeilAPIConfig
 	MCPHTTP          MCPHTTPConfig
 	MetricsEnabled       bool
@@ -73,6 +74,7 @@ func loadBase(listen, env string) *Config {
 		NATSURL:          getenv("ENGAGE_NATS_URL", "nats://127.0.0.1:4222"),
 		JobsPollInterval:  jobsPollInterval(),
 		WorkerConcurrency: workerConcurrency(),
+		MaxParallel:       maxParallel(),
 		VeilAPI: VeilAPIConfig{
 			BaseURL:      getenv("ENGAGE_VEIL_API_URL", "http://localhost:8090"),
 			ClientID:     getenv("ENGAGE_VEIL_CLIENT_ID", ""),
@@ -126,6 +128,22 @@ func workerConcurrency() int {
 		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
 			n = parsed
 		}
+	}
+	return n
+}
+
+func maxParallel() int {
+	n := 5
+	if v := strings.TrimSpace(os.Getenv("ENGAGE_MAX_PARALLEL")); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			n = parsed
+		}
+	}
+	if n > 32 {
+		n = 32
+	}
+	if n < 1 {
+		n = 1
 	}
 	return n
 }

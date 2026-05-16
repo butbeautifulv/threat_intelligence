@@ -4,45 +4,61 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/bugbounty"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	jobuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/job"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/visual"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
-	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
 // Service runs multi-step workflows (bug bounty, assessment).
 type Service struct {
-	Intel   *intelligence.Service
-	Tools   *toolsuc.Runner
-	Jobs    *jobuc.Queue
-	Findings FindingBus
+	Intel      *intelligence.Service
+	Tools      *toolsuc.Runner
+	Jobs       *jobuc.Queue
+	Findings   FindingBus
+	BugBounty   *bugbounty.Service
+	Progress    *visual.Store
+	MaxParallel int
+}
+
+func (s *Service) maxParallel() int {
+	if s.MaxParallel > 0 {
+		return s.MaxParallel
+	}
+	return 5
 }
 
 func (s *Service) RunWorkflow(ctx context.Context, subject, name string, target string) map[string]any {
+	return s.RunWorkflowWithBody(ctx, subject, name, map[string]any{"target": target, "domain": target})
+}
+
+// RunWorkflowWithBody runs a workflow using a full JSON body (domain, execute, etc.).
+func (s *Service) RunWorkflowWithBody(ctx context.Context, subject, name string, body map[string]any) map[string]any {
+	if body == nil {
+		body = map[string]any{}
+	}
+	if s.BugBounty != nil {
+		switch name {
+		case "reconnaissance", "vuln-hunt", "business-logic", "osint", "file-upload", "comprehensive":
+			return s.BugBounty.RunFromBody(ctx, subject, name, body)
+		}
+	}
 	if name == "comprehensive" {
+		target, _ := body["target"].(string)
+		if target == "" {
+			target, _ = body["domain"].(string)
+		}
 		return s.Comprehensive(ctx, subject, target)
 	}
-	analysis := s.Intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
-	selected := s.Intel.SelectToolsForTarget(ctx, analysis.TargetType, "comprehensive", target)
-	results := make([]contract.ToolRunResponse, 0, len(selected))
-	for _, toolName := range selected {
-		if s.Tools == nil {
-			break
-		}
-		resolved := tools.ResolveCatalogName(toolName, s.Tools.Registry)
-		if _, err := s.Tools.Registry.MustGet(resolved); err != nil {
-			continue
-		}
-		results = append(results, s.Tools.Run(ctx, subject, resolved, contract.ToolRunRequest{Target: target}))
+	target, _ := body["target"].(string)
+	if target == "" {
+		target, _ = body["domain"].(string)
 	}
-	return map[string]any{
-		"workflow": name,
-		"target":   target,
-		"analysis": analysis,
-		"tools":    selected,
-		"results":  results,
+	if s.BugBounty != nil {
+		return s.BugBounty.RunFromBody(ctx, subject, name, body)
 	}
+	return map[string]any{"success": false, "workflow": name, "target": target}
 }
 
 func (s *Service) Reconnaissance(ctx context.Context, subject, target string) map[string]any {

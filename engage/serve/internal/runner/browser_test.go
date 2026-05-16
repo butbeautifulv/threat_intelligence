@@ -6,26 +6,34 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
-func TestBrowserProxy_Exec(t *testing.T) {
+func TestBrowserProxy_Inspect(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/exec" {
+		if r.URL.Path != "/inspect" {
 			http.NotFound(w, r)
 			return
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"stdout": "ok", "stderr": "", "exit_code": 0,
+			"success": true,
+			"page_info": map[string]any{
+				"forms": []any{},
+			},
+			"security_analysis": map[string]any{"security_score": 90},
 		})
 	}))
 	defer srv.Close()
 
 	t.Setenv("ENGAGE_BROWSER_URL", srv.URL)
 	proxy := NewBrowserProxyFromEnv()
-	res := proxy.Exec(context.Background(), "https://example.com", []string{"https://example.com"})
-	if res.ExitCode != 0 || res.Stdout != "ok" {
+	res := proxy.Inspect(context.Background(), BrowserInspectOpts{Target: "https://example.com"})
+	if res.ExitCode != 0 {
 		t.Fatalf("res: %+v", res)
+	}
+	if !strings.Contains(res.Stdout, "security_score") {
+		t.Fatalf("stdout: %s", res.Stdout)
 	}
 }
 

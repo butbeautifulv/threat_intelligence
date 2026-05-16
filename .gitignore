@@ -37,6 +37,13 @@ data/neo4j_export/releases/
 data/neo4j_user_export/graph.cypher
 data/neo4j_user_export/releases/
 
+# Engage benchmark output
+scripts/benchmark/results/
+
+# Python
+**/__pycache__/
+*.py[cod]
+
 # Coverage
 coverage/
 .nyc_output/

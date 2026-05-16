@@ -15,9 +15,19 @@ if ! curl -fsS "${API_URL}/health" 2>/dev/null | grep -q '"ok":true'; then
 fi
 
 export ENGAGE_BROWSER_URL="${BROWSER_URL}"
-body='{"target":"https://example.com","parameters":{}}'
+body='{"target":"https://example.com","parameters":{"wait_time":"3"}}'
 resp=$(curl -fsS -X POST "${API_URL}/api/tools/browser_agent_inspect" \
   -H 'Content-Type: application/json' \
   -d "${body}")
-echo "${resp}" | grep -q '"title"' || echo "${resp}" | grep -q 'Example Domain' || echo "${resp}" | grep -q '"status"'
+echo "${resp}" | grep -qE '"page_info"|"title"|"security_analysis"' || {
+  echo "unexpected response: ${resp}" >&2
+  exit 1
+}
+
+dash=$(curl -fsS "${API_URL}/api/processes/dashboard")
+echo "${dash}" | grep -q '"system_load"' || {
+  echo "dashboard missing system_load: ${dash}" >&2
+  exit 1
+}
+
 echo "OK engage browser smoke"

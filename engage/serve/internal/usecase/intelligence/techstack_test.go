@@ -32,3 +32,26 @@ func TestTechStackBoost_wordpress(t *testing.T) {
 		t.Fatalf("wpscan boost: %v", b)
 	}
 }
+
+func TestMatchHeaderSignatures_nginx(t *testing.T) {
+	h := http.Header{}
+	h.Set("Server", "nginx/1.24.0")
+	tech := MatchHeaderSignatures(h)
+	if len(tech) == 0 || tech[0] != TechNginx {
+		t.Fatalf("expected nginx, got %v", tech)
+	}
+}
+
+func TestMatchContentSignatures_wordpress(t *testing.T) {
+	body := `<html><link href="/wp-content/themes/foo">`
+	tech := MatchContentSignatures(body)
+	found := false
+	for _, t := range tech {
+		if t == TechWordPress {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected wordpress in %v", tech)
+	}
+}

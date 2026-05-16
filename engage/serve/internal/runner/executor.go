@@ -68,11 +68,14 @@ func runLocal(ctx context.Context, workDir, binary string, args []string, timeou
 		}
 		pid := cmd.Process.Pid
 		proc.Register(pid, track.Tool, track.Target, cmd.String())
+		proc.UpdateProgress(pid, 0.05, "", 0)
 		err = cmd.Wait()
 		st := "done"
 		if err != nil {
 			st = "failed"
 		}
+		out := stdout.String() + stderr.String()
+		proc.UpdateProgress(pid, 1, out, int64(len(out)))
 		proc.Finish(pid, st)
 	} else {
 		err = cmd.Run()

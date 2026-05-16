@@ -10,6 +10,7 @@ type SecurityConfig struct {
 	RequireAuth        bool
 	MCPHTTPAuthStrict  bool
 	Prod               bool
+	AllowRawCommand    bool
 	CORSAllowedOrigins []string
 	APIBodyLimit       int64
 	MCPBodyLimit       int64
@@ -27,13 +28,18 @@ func LoadSecurityForEnv(env string) SecurityConfig {
 			}
 		}
 	}
+	allowRaw := envBool("ENGAGE_ALLOW_RAW_COMMAND", false)
+	if prod || envBool("ENGAGE_DENY_RAW_COMMAND", false) {
+		allowRaw = false
+	}
 	return SecurityConfig{
-		RequireAuth:       envBool("VEIL_REQUIRE_AUTH", false),
-		MCPHTTPAuthStrict: envBool("ENGAGE_MCP_HTTP_AUTH_STRICT", false),
-		Prod:              prod,
+		RequireAuth:        envBool("VEIL_REQUIRE_AUTH", false),
+		MCPHTTPAuthStrict:  envBool("ENGAGE_MCP_HTTP_AUTH_STRICT", false),
+		Prod:               prod,
+		AllowRawCommand:    allowRaw,
 		CORSAllowedOrigins: origins,
-		APIBodyLimit:      4 << 20,
-		MCPBodyLimit:      8 << 20,
+		APIBodyLimit:       4 << 20,
+		MCPBodyLimit:       8 << 20,
 	}
 }
 

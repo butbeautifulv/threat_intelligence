@@ -3,7 +3,6 @@ package command
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ type Runner struct {
 	AllowedBinaries map[string]struct{}
 }
 
-func New(exec *runner.Executor, reg *tools.Registry) *Runner {
+func New(exec *runner.Executor, reg *tools.Registry, allowRaw bool) *Runner {
 	allowed := make(map[string]struct{})
 	if reg != nil {
 		for _, s := range reg.List() {
@@ -32,7 +31,7 @@ func New(exec *runner.Executor, reg *tools.Registry) *Runner {
 	return &Runner{
 		Exec:            exec,
 		Registry:        reg,
-		AllowRaw:        os.Getenv("ENGAGE_ALLOW_RAW_COMMAND") == "1",
+		AllowRaw:        allowRaw,
 		AllowedBinaries: allowed,
 	}
 }

@@ -15,6 +15,7 @@ services:
       ENGAGE_RUNNER_CONTAINER: ${ENGAGE_RUNNER_CONTAINER:-engage-runner}
       ENGAGE_JOBS_MODE: ${ENGAGE_JOBS_MODE:-file}
       ENGAGE_JOBS_DIR: ${ENGAGE_JOBS_DIR:-/var/veil/engage/jobs}
+      ENGAGE_FILES_DIR: ${ENGAGE_FILES_DIR:-/tmp/engage/files}
       ENGAGE_VEIL_API_URL: ${ENGAGE_VEIL_API_URL:-http://api:8090}
       AUTH_ENABLED: ${AUTH_ENABLED:-0}
     volumes:

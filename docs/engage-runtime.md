@@ -33,6 +33,11 @@
 | `ENGAGE_JOBS_MODE` | `memory` | `memory` (API runs jobs in-process) or `file` (worker polls shared dir) |
 | `ENGAGE_JOBS_DIR` | `/tmp/engage/jobs` | JSON job files when `ENGAGE_JOBS_MODE=file` |
 | `ENGAGE_JOBS_POLL_SEC` | `1` | Worker poll interval (file mode) |
+| `ENGAGE_WORKER_CONCURRENCY` | `2` | Async job queue workers (`ENGAGE_JOBS_MODE` redis/nats/file) |
+| `ENGAGE_MAX_PARALLEL` | `5` | Max concurrent catalog tools in sync smart-scan / bugbounty execute / parallel attack chain (cap 32) |
+| `ENGAGE_ALLOW_RAW_COMMAND` | `0` | Lab only: allow any binary in `POST /api/command` (ignored when prod or `ENGAGE_DENY_RAW_COMMAND=1`) |
+| `ENGAGE_DENY_RAW_COMMAND` | `0` | Set `1` in secure profile to force catalog allowlist |
+| `ENGAGE_ENV` | `local` | `prod` disables raw commands via `SecurityConfig` |
 | `ENGAGE_METRICS_ENABLED` | `0` | Expose Prometheus `GET /metrics` |
 | `ENGAGE_AUDIT_WEBHOOK_URL` | — | Optional audit batch POST target |
 | `ENGAGE_AUDIT_WEBHOOK_SECRET` | — | HMAC secret for `X-Engage-Signature` |
@@ -74,7 +79,12 @@ docker compose -f deploy/engage/compose.yml up -d --build engage-api
 curl -sS http://localhost:8890/health | jq .
 ```
 
-Secure overlay: `deploy/engage/compose.secure.yml` + `deploy/profiles/secure-engage.env`.
+Secure overlay: `deploy/engage/compose.secure.yml` + `deploy/profiles/secure-engage.env` (`ENGAGE_ENV=prod`, `ENGAGE_DENY_RAW_COMMAND=1`, `VEIL_REQUIRE_AUTH=1`).
+
+| Variable | Lab | Secure (`compose.secure.yml`) |
+|----------|-----|-------------------------------|
+| `ENGAGE_ALLOW_RAW_COMMAND` | optional `1` | ignored (denied) |
+| `VEIL_REQUIRE_AUTH` | optional | `1` via profile |
 
 ### Runner profile (docker exec, lab only)
 
@@ -100,20 +110,98 @@ Tool execution smoke (opt-in): `make test-engage-smoke-tool` or `ENGAGE_SKIP_TOO
 
 ### Events bus e2e (NATS → ingest)
 
+**Prerequisites:** Docker daemon; ports `4222`, `7687`, `8890` free; ~4–8 GB RAM for Neo4j + builds.
+
 ```bash
 make test-engage-events-pipeline
 ```
 
-The smoke script uses `--profile graph-ingest` and fails if `MATCH (r:EngageToolRun)` count is zero in Neo4j.
+The smoke script uses profile `graph-ingest` with `compose.events.yml`, polls Neo4j until `EngageToolRun` count ≥ 1, and fails fast with service logs on timeout. Tool POST may return `success: false` (no scanner in API image); audit events still flow when `ENGAGE_EVENTS_NATS_ENABLED=1`.
 
-Overlay: `deploy/engage/compose.events.yml` (NATS + `engage-events-worker`). Neo4j + `ingest_worker` via profile `graph-ingest`:
+| Env | Default | Role |
+|-----|---------|------|
+| `SMOKE_EVENTS_API_WAIT_SEC` | 120 | Wait for `engage-api` `/health` |
+| `SMOKE_EVENTS_NEO4J_WAIT_SEC` | 90 | Wait for Neo4j cypher-shell |
+| `SMOKE_EVENTS_INGEST_POLL_SEC` | 60 | Poll `EngageToolRun` after tool POST |
+
+Required engage-api env (via `compose.events.yml`): `ENGAGE_EVENTS_NATS_ENABLED=1`, `ENGAGE_NATS_URL=nats://nats:4222`. NATS must be **healthy** before API starts (`depends_on`).
+
+Manual stack:
 
 ```bash
 docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.events.yml \
-  --profile graph-ingest up -d --build nats engage-api engage-events-worker ingest_worker
+  --profile graph-ingest up -d --build \
+  nats neo4j engage-api engage-events-worker ingest_worker
 ```
 
 Smart-scan findings publish to `engage.events.finding` when `ENGAGE_EVENTS_NATS_ENABLED=1`; the bridge maps them to `ingest.engage.finding`.
+
+### Full Veil + engage stack (shared NATS)
+
+Use **either** standalone `compose.events.yml` (bundled NATS) **or** the veil-stack overlay — do not combine both.
+
+```bash
+./scripts/ops/compose-up-veil-engage.sh
+./scripts/test/smoke-veil-engage-stack.sh
+# Manual (stack must already be up):
+make test-engage-veil-stack
+# CI / self-contained:
+make test-engage-veil-stack-ci
+```
+
+| Env | Default | Role |
+|-----|---------|------|
+| `SMOKE_VEIL_API_WAIT_SEC` | 300 | Wait for `engage-api` after compose up |
+| `SMOKE_VEIL_ENGAGE_WAIT_SEC` | 180 | Poll veil-api engage search |
+| `SMOKE_VEIL_STACK_BUILD` | 1 | `0` skips `docker compose build` on re-run |
+
+CI smoke relies on audit publication when the API image lacks scanner binaries (see `tools/run.go` `emitAudit`). On failure, logs for `engage-api`, `api`, `nats`, `ingest_worker`, `engage-events-worker` are printed.
+
+Overlay: `deploy/engage/compose.veil-stack.yml` wires `engage-api` and `engage-events-worker` to the same NATS/Neo4j as scrape/pipeline/graph (`ENGAGE_VEIL_API_URL=http://api:8090`).
+
+After ingest, agents can use **target timeline** (`POST /api/intelligence/target-timeline`, MCP `target_timeline_intelligence`) for a single JSON view of audit events, graph search, and correlation. Graph-only smoke: `make test-graph-engage-category` (categories + engage search/context + `GET /v1/nodes/{host}`).
+
+### Bug bounty workflows (Phase 18)
+
+Phased workflows mirror HexStrike `BugBountyWorkflowManager`: recon returns ≥4 phases (subdomain → HTTP → content → parameters). Request body accepts `domain` or `target`; optional `execute: true` runs tools per phase and publishes findings when the events bus is enabled. Vuln hunting uses `priority_vulns` (default rce, sqli, xss, idor, ssrf) with `high_impact` tool hints.
+
+Smoke: `make test-engage-bugbounty`.
+
+### CTF workflows (Phase 17)
+
+HTTP routes under `POST /api/ctf/*`: create workflow, auto-solve, suggest tools, team strategy, cryptography/forensics/binary analyzers. MCP bridge tools: `ctf_create_challenge_workflow`, `ctf_auto_solve_challenge`, etc. (`category: ctf` in catalog).
+
+Playbooks: `engage/serve/playbooks/ctf.yaml` (`ctf-web`, `ctf-pwn`). Forensics/binary analyzers accept paths under `ENGAGE_FILES_DIR` when relative.
+
+Smoke: `make test-engage-ctf` (requires engage-api; skips if down).
+
+### CVE & exploit intelligence (Phase 20)
+
+HTTP routes under `POST /api/vuln-intel/*` mirror HexStrike vuln-intel paths:
+
+- **cve-monitor** — NVD API 2.0 (`services.nvd.nist.gov`); body `hours`, `severity_filter`, optional `keywords`; returns `cve_monitoring.cves[]` and `exploitability_analysis[]`. Optional `ENGAGE_NVD_API_KEY` for higher rate limits.
+- **exploit-generate** — deterministic PoC templates from CVE description/CVSS (no LLM, no GitHub search); fields `cve_id`, `target_os`, `target_arch`, `exploit_type`, `evasion_level`.
+- **cve-lookup** — single CVE record plus optional veil-graph `vuln` enrichment.
+
+MCP: `monitor_cve_feeds`, `generate_exploit_from_cve` use the same handlers via intel bridge (not subprocess stubs).
+
+Correlation: `correlate_threat_intelligence` with `CVE-…` indicators adds `cve_details` / `cve_intelligence`; `discover_attack_chains` adds `cve_attack_paths` and `cve_stages` ordered by exploitability.
+
+Smoke: `make test-engage-cve` (skips if engage-api is down).
+
+### Browser & visual engine (Phase 21)
+
+- **Browser sidecar:** `ENGAGE_BROWSER_URL` (default `http://engage-browser:8910`) — Playwright `POST /inspect` returns `page_info`, `security_analysis`, `technologies`, optional screenshot.
+- **HTTP:** `POST /api/browser/inspect`; catalog/MCP `browser_agent_inspect` uses in-process bridge when sidecar is configured.
+- **Process dashboard:** `GET /api/processes/dashboard` — per-process `progress_percent`, `last_output`, `system_load` (goroutines, memory).
+- **Scan progress:** `POST /api/intelligence/smart-scan` returns `scan_id`; poll `GET /api/visual/scan-progress/{id}` for tool-level status.
+- **Assessment:** `POST /api/intelligence/assessment-report` includes structured `executive_summary` (risk posture, top risks, recommendations).
+
+Smoke: `make test-engage-browser` (skips if sidecar/API down).
+
+## Decision engine
+
+`IntelligentDecisionEngine` from HexStrike is ported deterministically in Go (`engage/serve/internal/usecase/intelligence/`): full effectiveness tables, profile-aware parameter optimizers, attack-chain metrics, and expanded tool recovery. Parity check: `make test-engage-decision-parity`.
 
 ## MCP
 
@@ -121,6 +209,25 @@ Smart-scan findings publish to `engage.events.finding` when `ENGAGE_EVENTS_NATS_
 - **HTTP (optional):** `ENGAGE_MCP_HTTP_ENABLED=1` on `:8892`, or [engage.http.json.example](../examples/mcp/engage.http.json.example)
 
 Engage is a greenfield Go rewrite of the MIT tool server in `.external/` (attribution in [engage/NOTICE.hexstrike](../engage/NOTICE.hexstrike)).
+
+## Benchmarks (Phase 22)
+
+Regression timing vs HexStrike README KPIs:
+
+```bash
+# API must be up (compose or local)
+export BENCHMARK_TARGET=example.com
+make test-engage-benchmark
+# optional: BENCHMARK_OUT=scripts/benchmark/results/latest.md
+```
+
+| Step | Endpoint |
+|------|----------|
+| Recon | `POST /api/bugbounty/reconnaissance-workflow` (`execute: true`) |
+| Vuln scan | `POST /api/intelligence/smart-scan` (`objective: comprehensive`) |
+| Report | `POST /api/intelligence/assessment-report` |
+
+`POST /api/intelligence/smart-scan` accepts `rate_limit_check: true` for advisory `rate_limit_probe` (may cap `max_parallel` to 2).
 
 ## Related
 

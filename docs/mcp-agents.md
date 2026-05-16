@@ -181,9 +181,16 @@ When `ENGAGE_EVENTS_NATS_ENABLED=1` and the events bus is running, tool runs and
 
 1. Run a scan with **veil-engage** (`httpx_probe`, `smart-scan`, etc.).
 2. Query results with **veil-mcp** or veil-api: `GET /v1/categories/engage/search?q=example.com`.
-3. Optional: `correlate_threat_intelligence` on engage-api merges TI/vuln/engage hits when `ENGAGE_VEIL_API_URL` is set.
+3. Structured subgraph (findings + linked CVEs): `GET /v1/categories/engage/context?q=example.com`.
+4. Resolve ingested target by hostname: `GET /v1/nodes/example.com` (`EngageTarget.name`).
+5. Unified agent read-back: engage-api `POST /api/intelligence/target-timeline` or MCP `target_timeline_intelligence` (audit + graph + correlation).
+6. Optional: `correlate_threat_intelligence` merges TI/vuln/engage hits and `related_cves` when `ENGAGE_VEIL_API_URL` is set.
+7. Bug bounty phased plan: `POST /api/bugbounty/reconnaissance-workflow` with `{"domain":"example.com"}` or MCP `bugbounty_reconnaissance_workflow` — returns `workflow.phases` before optional tool execution.
+8. CTF: `POST /api/ctf/create-challenge-workflow` or MCP `ctf_create_challenge_workflow`; auto-solve with `ctf_auto_solve_challenge`; playbooks `ctf-web` / `ctf-pwn`.
+9. CVE intel: MCP `monitor_cve_feeds` or `POST /api/vuln-intel/cve-monitor` → `correlate_threat_intelligence` with `CVE-…` indicators → `generate_exploit_from_cve` / `POST /api/vuln-intel/exploit-generate` for deterministic PoC templates (lab only).
+10. Browser/visual: `browser_agent_inspect` (forms + security score) → `smart-scan` with `scan_id` → poll `GET /api/visual/scan-progress/{id}` → `assessment-report` for `executive_summary`.
 
-Smoke: `make test-engage-events-pipeline` (Docker, includes Neo4j assert with `--profile graph-ingest`).
+Smoke: `make test-engage-events-pipeline` (Docker, includes Neo4j assert with `--profile graph-ingest`). CTF: `make test-engage-ctf`. CVE: `make test-engage-cve`. Browser: `make test-engage-browser`.
 
 ## Related
 

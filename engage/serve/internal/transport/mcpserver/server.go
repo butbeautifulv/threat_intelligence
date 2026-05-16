@@ -10,6 +10,11 @@ import (
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/files"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/browser"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/bugbounty"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/ctf"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
@@ -20,6 +25,11 @@ import (
 type Server struct {
 	runner      *toolsuc.Runner
 	intel       *intelligence.Service
+	cve         *cve.Service
+	ctf         *ctf.Service
+	bugbounty   *bugbounty.Service
+	browser     *browser.Service
+	processes   *process.Manager
 	workflows   *workflow.Service
 	auth        *auth.Stack
 	logger      *slog.Logger
@@ -34,6 +44,16 @@ func NewServer(runner *toolsuc.Runner, stack *auth.Stack, logger *slog.Logger) *
 // NewServerWithIntel wires in-process intelligence and workflow handlers for MCP tools/call.
 func NewServerWithIntel(runner *toolsuc.Runner, intel *intelligence.Service, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
 	return &Server{runner: runner, intel: intel, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
+}
+
+// NewServerWithCTF wires intelligence, CTF, and workflow handlers.
+func NewServerWithCTF(runner *toolsuc.Runner, intel *intelligence.Service, ctfSvc *ctf.Service, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
+	return &Server{runner: runner, intel: intel, ctf: ctfSvc, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
+}
+
+// NewServerFull wires intelligence, CVE, CTF, bug bounty, browser, processes, and workflow handlers.
+func NewServerFull(runner *toolsuc.Runner, intel *intelligence.Service, cveSvc *cve.Service, ctfSvc *ctf.Service, bb *bugbounty.Service, browserSvc *browser.Service, proc *process.Manager, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
+	return &Server{runner: runner, intel: intel, cve: cveSvc, ctf: ctfSvc, bugbounty: bb, browser: browserSvc, processes: proc, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
 }
 
 func (s *Server) Run(ctx context.Context, inReader any, outWriter any) error {

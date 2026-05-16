@@ -1,4 +1,4 @@
-.PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-engage test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
+.PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-route-parity catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-scrape:
@@ -29,6 +29,40 @@ test-graph-serve:
 test-graph-read-smoke:
 	./scripts/test/smoke-graph-read.sh
 
+test-graph-engage-category:
+	chmod +x ./scripts/test/smoke-graph-engage-category.sh
+	./scripts/test/smoke-graph-engage-category.sh
+
+test-engage-ctf:
+	chmod +x ./scripts/test/smoke-ctf-web.sh ./scripts/test/smoke-ctf-pwn.sh
+	./scripts/test/smoke-ctf-web.sh
+	./scripts/test/smoke-ctf-pwn.sh
+
+test-engage-bugbounty:
+	chmod +x ./scripts/test/smoke-bugbounty-recon.sh ./scripts/test/smoke-bugbounty-recon-execute.sh
+	./scripts/test/smoke-bugbounty-recon.sh
+	./scripts/test/smoke-bugbounty-recon-execute.sh
+
+test-engage-cve:
+	chmod +x ./scripts/test/smoke-cve-monitor.sh
+	./scripts/test/smoke-cve-monitor.sh
+
+test-engage-benchmark:
+	chmod +x ./scripts/benchmark/engage-hexstrike-parity.sh
+	./scripts/benchmark/engage-hexstrike-parity.sh
+
+test-engage-catalog-args:
+	chmod +x ./scripts/engage/check-catalog-args.sh
+	./scripts/engage/check-catalog-args.sh
+
+test-engage-tool-matrix:
+	chmod +x ./scripts/test/smoke-engage-tool-matrix.sh
+	./scripts/test/smoke-engage-tool-matrix.sh
+
+test-engage-tool-matrix-strict:
+	chmod +x ./scripts/test/smoke-engage-tool-matrix.sh
+	ENGAGE_TOOL_MATRIX_STRICT=1 ENGAGE_TOOL_MATRIX_MIN=30 ./scripts/test/smoke-engage-tool-matrix.sh
+
 test-engage:
 	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./... -count=1
 	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp ./cmd/worker ./cmd/browser-agent
@@ -46,6 +80,9 @@ test-engage-minimal:
 
 test-engage-parity:
 	./scripts/engage/check-catalog-parity.sh
+
+test-engage-route-parity:
+	python3 ./scripts/engage/check-route-parity.py
 
 test-engage-compose:
 	chmod +x ./scripts/test/smoke-engage-compose.sh
@@ -79,8 +116,22 @@ test-engage-events-pipeline:
 	chmod +x ./scripts/test/smoke-engage-events-pipeline.sh
 	./scripts/test/smoke-engage-events-pipeline.sh
 
+test-engage-veil-stack:
+	chmod +x ./scripts/test/smoke-veil-engage-stack.sh
+	./scripts/test/smoke-veil-engage-stack.sh
+
+test-engage-veil-stack-ci:
+	chmod +x ./scripts/test/smoke-veil-engage-stack-ci.sh
+	./scripts/test/smoke-veil-engage-stack-ci.sh
+
+test-engage-decision-parity:
+	./scripts/engage/check-decision-parity.sh
+
 catalog-engage:
 	python3 ./scripts/engage/extract-legacy-catalog.py
+	python3 ./scripts/engage/generate-tools-live.py
+
+test-engage-tools: catalog-engage test-engage-catalog-args test-engage-tool-matrix
 
 graph-pack-export:
 	./scripts/graph-pack/export-cypher.sh

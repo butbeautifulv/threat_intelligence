@@ -26,7 +26,106 @@ DEFAULT_BINARY = {
     "osint": "subfinder", "binary": "strings", "ctf": "file", "intelligence": "echo",
 }
 
+# Phase 19: map catalog name prefix → runner binary when installed in engage-runner.
+PREFIX_BINARY = [
+    ("nmap", "nmap"), ("nuclei", "nuclei"), ("httpx", "httpx"), ("ffuf", "ffuf"),
+    ("gobuster", "gobuster"), ("nikto", "nikto"), ("sqlmap", "sqlmap"),
+    ("subfinder", "subfinder"), ("amass", "amass"), ("katana", "katana"),
+    ("gau", "gau"), ("feroxbuster", "feroxbuster"), ("dalfox", "dalfox"),
+    ("arjun", "arjun"), ("dirsearch", "dirsearch"), ("paramspider", "paramspider"),
+    ("masscan", "masscan"), ("rustscan", "rustscan"), ("trivy", "trivy"),
+    ("waybackurls", "waybackurls"), ("dnsenum", "dnsenum"), ("fierce", "fierce"),
+    ("hydra", "hydra"), ("wafw00f", "wafw00f"), ("enum4linux", "enum4linux"),
+    ("dirb", "dirb"), ("naabu", "naabu"), ("dnsx", "dnsx"),
+]
+
+
+def resolve_binary(name: str, cat: str) -> str:
+    low = name.lower()
+    for prefix, binary in sorted(PREFIX_BINARY, key=lambda x: -len(x[0])):
+        if low == prefix or low.startswith(prefix + "_"):
+            return binary
+    binary = name.split("_")[0] if "_" in name else name
+    if len(binary) > 20:
+        binary = DEFAULT_BINARY.get(cat, "echo")
+    return binary
+
 GENERIC_ARGS = ["{target}", "{additional_args}"]
+
+# In-process / non-CLI tools: generic args are intentional.
+DOCUMENTED_GENERIC = frozenset({
+    "analyze_target_intelligence", "analyze_target", "select_optimal_tools",
+    "intelligent_smart_scan", "smart_scan", "create_attack_chain",
+    "discover_attack_chains", "correlate_threat_intelligence", "optimize_tool_parameters",
+    "create_vulnerability_report", "generate_exploit", "generate_payload",
+    "advanced_payload_generation", "ai_vulnerability_assessment", "ai_reconnaissance_workflow",
+    "bugbounty_reconnaissance_workflow", "bugbounty_vulnerability_hunting",
+    "bugbounty_business_logic_testing", "bugbounty_osint_gathering",
+    "bugbounty_file_upload_testing", "bugbounty_comprehensive_assessment",
+    "bugbounty_authentication_bypass_testing",
+    "browser_agent_inspect", "playwright_navigate", "selenium_navigate",
+    "api_schema_analyzer", "api_fuzzer", "graphql_scanner", "jwt_analyzer",
+    "burpsuite_scan", "checksec_analyze", "ghidra_analysis", "gdb_analyze",
+    "gdb_peda_debug", "radare2_scan", "ropper_scan", "pwntools_exploit",
+    "msfvenom_generate", "metasploit_run", "msfconsole_execute",
+    "arp_scan_discovery", "autorecon_comprehensive", "autorecon_scan",
+    "binwalk_analyze", "clair_vulnerability_scan", "exiftool_extract",
+    "nbtscan_netbios", "netexec_scan", "smbmap_scan",
+    "volatility_analyze", "volatility3_analyze", "vulnerability_intelligence_dashboard",
+    "target_timeline_intelligence",
+    "ctf_create_challenge_workflow", "ctf_auto_solve_challenge", "ctf_suggest_tools",
+    "ctf_team_strategy", "ctf_cryptography_solver", "ctf_forensics_analyzer", "ctf_binary_analyzer",
+})
+
+# Engage-only MCP bridge tools (not in legacy hexstrike_mcp.py).
+ENGAGE_BRIDGE_TOOLS: dict[str, list[dict]] = {
+    "target_timeline_intelligence": [
+        {"name": "target", "type": "string", "required": True},
+        {"name": "limit", "type": "string", "default": "50", "required": False},
+        {"name": "include_graph", "type": "string", "default": "true", "required": False},
+    ],
+    "ctf_create_challenge_workflow": [
+        {"name": "target", "type": "string", "required": True},
+        {"name": "name", "type": "string", "required": False},
+        {"name": "category", "type": "string", "required": False},
+        {"name": "description", "type": "string", "required": False},
+    ],
+    "ctf_auto_solve_challenge": [
+        {"name": "target", "type": "string", "required": True},
+        {"name": "execute_tools", "type": "string", "default": "true", "required": False},
+        {"name": "max_steps", "type": "string", "default": "8", "required": False},
+    ],
+    "ctf_suggest_tools": [
+        {"name": "target", "type": "string", "required": True},
+        {"name": "description", "type": "string", "required": True},
+        {"name": "category", "type": "string", "default": "misc", "required": False},
+    ],
+    "ctf_team_strategy": [
+        {"name": "target", "type": "string", "required": True},
+    ],
+    "ctf_cryptography_solver": [
+        {"name": "cipher_text", "type": "string", "required": True},
+        {"name": "cipher_type", "type": "string", "default": "unknown", "required": False},
+    ],
+    "ctf_forensics_analyzer": [
+        {"name": "file_path", "type": "string", "required": True},
+    ],
+    "ctf_binary_analyzer": [
+        {"name": "binary_path", "type": "string", "required": True},
+    ],
+}
+
+# Category CLI defaults (non-generic vs bare target+args).
+CATEGORY_ARGS: dict[str, list[str]] = {
+    "network": ["{scan_type}", "-p", "{ports}", "{additional_args}", "{target}"],
+    "web": ["-u", "{target}", "{additional_args}"],
+    "cloud": ["scan", "{target}", "{additional_args}"],
+    "auth": ["-l", "{username}", "{target}", "{additional_args}"],
+    "osint": ["-d", "{target}", "{additional_args}"],
+    "binary": ["-f", "{target}", "{additional_args}"],
+    "ctf": ["--challenge", "{target}", "{additional_args}"],
+    "intelligence": GENERIC_ARGS,
+}
 
 # Per-tool arg templates when parameters imply structured CLI.
 ARGS_TEMPLATES: dict[str, list[str]] = {
@@ -37,11 +136,14 @@ ARGS_TEMPLATES: dict[str, list[str]] = {
     ],
     "rustscan_fast_scan": ["-a", "{target}", "-p", "{ports}", "{additional_args}"],
     "masscan_high_speed": ["{target}", "-p", "{ports}", "--rate", "{rate}", "{additional_args}"],
-    "nuclei_scan": ["-u", "{target}", "-t", "{templates}", "{additional_args}"],
+    "nuclei_scan": ["-u", "{target}", "-t", "{templates}", "-duc", "{additional_args}"],
+    "nuclei_critical_scan": ["-u", "{target}", "-severity", "critical,high", "-duc", "{additional_args}"],
+    "nuclei_web_scan": ["-u", "{target}", "-tags", "cve,tech", "-duc", "{additional_args}"],
     "httpx_probe": ["-u", "{target}", "{additional_args}"],
     "gobuster_scan": ["{mode}", "-u", "{target}", "-w", "{wordlist}", "{additional_args}"],
     "nikto_scan": ["-h", "{target}", "{additional_args}"],
-    "sqlmap_scan": ["-u", "{target}", "--data", "{data}", "{additional_args}"],
+    "sqlmap_scan": ["-u", "{target}", "--batch", "--data", "{data}", "{additional_args}"],
+    "sqlmap_get_scan": ["-u", "{target}", "--batch", "{additional_args}"],
     "ffuf_scan": ["-u", "{target}", "-w", "{wordlist}", "{additional_args}"],
     "feroxbuster_scan": ["-u", "{target}", "-w", "{wordlist}", "-t", "{threads}", "{additional_args}"],
     "dirb_scan": ["{target}", "-w", "{wordlist}", "{additional_args}"],
@@ -63,8 +165,12 @@ ARGS_TEMPLATES: dict[str, list[str]] = {
     "dalfox_scan": ["url", "{target}", "{additional_args}"],
     "katana_scan": ["-u", "{target}", "{additional_args}"],
     "paramspider_scan": ["-d", "{target}", "{additional_args}"],
-    "wafw00f_scan": ["{target}", "{additional_args}"],
-    "enum4linux_scan": ["{target}", "{additional_args}"],
+    "paramspider_discovery": ["-d", "{target}", "{additional_args}"],
+    "paramspider_mine": ["-d", "{target}", "{additional_args}"],
+    "wafw00f_scan": ["-a", "{target}", "{additional_args}"],
+    "dnsenum_scan": ["--domain", "{target}", "{additional_args}"],
+    "enum4linux_scan": ["-a", "{target}", "{additional_args}"],
+    "enum4linux_ng_advanced": ["{target}", "-a", "{additional_args}"],
     "smbmap_scan": ["{target}", "{additional_args}"],
     "netexec_scan": ["{target}", "{additional_args}"],
     "scout_suite_assessment": ["{provider}", "--profile", "{profile}", "{additional_args}"],
@@ -88,7 +194,6 @@ ARGS_TEMPLATES: dict[str, list[str]] = {
     "spiderfoot_scan": ["{target}", "{additional_args}"],
     # Extended templates (Phase 9 — catalog execution depth)
     "naabu_port_scan": ["-host", "{target}", "-p", "{ports}", "{additional_args}"],
-    "dnsenum_scan": ["{target}", "{additional_args}"],
     "dnsx_resolve": ["-d", "{target}", "{additional_args}"],
     "gau_discovery": ["--subs", "{target}", "{additional_args}"],
     "waybackurls_scan": ["{target}", "{additional_args}"],
@@ -110,7 +215,6 @@ ARGS_TEMPLATES: dict[str, list[str]] = {
     "trufflehog_scan": ["filesystem", "{target}", "{additional_args}"],
     "aquatone_scan": ["-scan-timeout", "{timeout}", "{target}", "{additional_args}"],
     "eyewitness_capture": ["--web", "--single", "{target}", "{additional_args}"],
-    "enum4linux_ng_advanced": ["{target}", "{additional_args}"],
     "autorecon_comprehensive": ["{target}", "{additional_args}"],
     "binwalk_analyze": ["{target}", "{additional_args}"],
     "clair_vulnerability_scan": ["{target}", "{additional_args}"],
@@ -144,7 +248,7 @@ ARGS_TEMPLATES: dict[str, list[str]] = {
     "bettercap_attack": ["-eval", "{script}", "{additional_args}"],
     "mitmproxy_intercept": ["{target}", "{additional_args}"],
     "responder_poison": ["-I", "{interface}", "{additional_args}"],
-    "enum4linux_scan": ["{target}", "{additional_args}"],
+    "enum4linux_scan": ["-a", "{target}", "{additional_args}"],
     "sherlock_username": ["{username}", "{additional_args}"],
     "maigret_username": ["{username}", "{additional_args}"],
     "holehe_email": ["{email}", "{additional_args}"],
@@ -239,8 +343,14 @@ def resolve_args_template(name: str, params: list[dict]) -> list[str]:
     if name in ARGS_TEMPLATES:
         return ARGS_TEMPLATES[name]
     if name in INFER_TOOLS:
-        return infer_args_template(name, params)
-    return GENERIC_ARGS
+        tpl = infer_args_template(name, params)
+        if tpl != GENERIC_ARGS:
+            return tpl
+        # Fall through to category defaults when infer yields generic.
+    if name in DOCUMENTED_GENERIC:
+        return GENERIC_ARGS
+    cat = category_for(name)
+    return CATEGORY_ARGS.get(cat, GENERIC_ARGS)
 
 
 def parse_mcp_tools(text: str) -> dict[str, list[dict]]:
@@ -293,6 +403,8 @@ def main() -> int:
         return 1
     text = MCP.read_text(encoding="utf-8", errors="replace")
     param_map = parse_mcp_tools(text)
+    for name, params in ENGAGE_BRIDGE_TOOLS.items():
+        param_map.setdefault(name, params)
     names = sorted(param_map.keys())
 
     lines = [
@@ -304,9 +416,11 @@ def main() -> int:
     non_generic = 0
     for name in names:
         cat = category_for(name)
-        binary = name.split("_")[0] if "_" in name else name
-        if len(binary) > 20:
-            binary = DEFAULT_BINARY.get(cat, "echo")
+        if name in ENGAGE_BRIDGE_TOOLS:
+            cat = "ctf" if name.startswith("ctf_") else "intelligence"
+            binary = "api"
+        else:
+            binary = resolve_binary(name, cat)
         params = param_map.get(name, [{"name": "target", "type": "string", "required": True}])
         args = resolve_args_template(name, params)
         if args != GENERIC_ARGS:

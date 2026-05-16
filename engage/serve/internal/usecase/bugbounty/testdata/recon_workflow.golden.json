@@ -1,0 +1,10 @@
+{
+  "phases_min": 4,
+  "tools_count_min": 8,
+  "phase_names": [
+    "subdomain_discovery",
+    "http_service_discovery",
+    "content_discovery",
+    "parameter_discovery"
+  ]
+}

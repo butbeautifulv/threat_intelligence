@@ -5,8 +5,12 @@ import "testing"
 func TestDecisionEngine_OptimizeParameters_nmap(t *testing.T) {
 	d := DefaultDecisionEngine()
 	out := d.OptimizeParameters("ip", "nmap", map[string]string{})
-	if out["scan_type"] != "-sV" {
-		t.Fatalf("scan_type: %q", out["scan_type"])
+	if out["scan_type"] != "-sS -O" {
+		t.Fatalf("ip scan_type: %q", out["scan_type"])
+	}
+	outWeb := d.OptimizeParameters("web", "nmap", map[string]string{})
+	if outWeb["scan_type"] != "-sV -sC" {
+		t.Fatalf("web scan_type: %q", outWeb["scan_type"])
 	}
 }
 

@@ -12,6 +12,8 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
 	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/browser"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/ctf"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
 	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
@@ -56,6 +58,10 @@ func Register(mux *http.ServeMux, c *components.APIComponents) {
 	registerJobs(mux, c)
 	registerIntel(mux, c)
 	registerWorkflows(mux, c)
+	registerCTF(mux, c)
+	registerVulnIntel(mux, c)
+	registerErrorHandling(mux)
+	registerBrowser(mux, c)
 	registerVisual(mux, c)
 	registerFiles(mux, c)
 	registerCommand(mux, c)
@@ -65,9 +71,8 @@ func Register(mux *http.ServeMux, c *components.APIComponents) {
 }
 
 func registerPlaybooks(mux *http.ServeMux, c *components.APIComponents) {
-	path := workflow.DefaultPlaybooksPath(c.CatalogPath)
 	mux.HandleFunc("GET /api/playbooks", func(w http.ResponseWriter, r *http.Request) {
-		list, err := workflow.LoadPlaybooks(path)
+		list, err := workflow.LoadAllPlaybooks(c.CatalogPath)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
 			return
@@ -88,7 +93,7 @@ func registerPlaybooks(mux *http.ServeMux, c *components.APIComponents) {
 			writeJSON(w, http.StatusBadRequest, map[string]any{"error": "target required"})
 			return
 		}
-		list, err := workflow.LoadPlaybooks(path)
+		list, err := workflow.LoadAllPlaybooks(c.CatalogPath)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": err.Error()})
 			return
@@ -98,6 +103,14 @@ func registerPlaybooks(mux *http.ServeMux, c *components.APIComponents) {
 			writeJSON(w, http.StatusNotFound, map[string]any{"error": "playbook not found"})
 			return
 		}
+		if strings.HasPrefix(pb.Workflow, "ctf-") && c.CTF != nil {
+			writeJSON(w, http.StatusOK, c.CTF.RunPlaybook(r.Context(), subject(r), pb, body.Target, !body.Async))
+			return
+		}
+		if isBugBountyPlaybook(pb.Workflow, pb.Name) && c.BugBounty != nil {
+			writeJSON(w, http.StatusOK, c.BugBounty.RunPlaybook(r.Context(), subject(r), pb.Name, pb.Workflow, body.Target, body.Async, pb.MaxTools))
+			return
+		}
 		if c.Workflows == nil {
 			writeJSON(w, http.StatusServiceUnavailable, map[string]any{"error": "workflows not configured"})
 			return
@@ -105,6 +118,18 @@ func registerPlaybooks(mux *http.ServeMux, c *components.APIComponents) {
 		out := c.Workflows.RunPlaybook(r.Context(), subject(r), pb, body.Target, body.Async)
 		writeJSON(w, http.StatusOK, out)
 	})
+}
+
+func isBugBountyPlaybook(workflow, name string) bool {
+	switch workflow {
+	case "reconnaissance", "vuln-hunt", "business-logic", "osint", "file-upload", "comprehensive":
+		return true
+	}
+	switch name {
+	case "reconnaissance", "vuln-hunt", "business-logic", "osint", "file-upload", "comprehensive":
+		return true
+	}
+	return false
 }
 
 func registerJobs(mux *http.ServeMux, c *components.APIComponents) {
@@ -192,6 +217,7 @@ func registerIntel(mux *http.ServeMux, c *components.APIComponents) {
 		async, _ := body["async"].(bool)
 		return c.Workflows.SmartScan(r.Context(), subject(r), workflow.SmartScanRequest{
 			Target: target, Objective: obj, MaxTools: maxTools, Async: async,
+			RateLimitCheck: toBool(body["rate_limit_check"]),
 		}), http.StatusOK
 	})
 	postJSON(mux, "POST /api/intelligence/assessment-report", func(r *http.Request, body map[string]any) (any, int) {
@@ -217,19 +243,183 @@ func registerIntel(mux *http.ServeMux, c *components.APIComponents) {
 	postJSON(mux, "POST /api/intelligence/correlate-threat", func(r *http.Request, body map[string]any) (any, int) {
 		return c.Intel.CorrelateThreatIntelligence(r.Context(), toString(body["target"]), toString(body["indicators"])), http.StatusOK
 	})
+	postJSON(mux, "POST /api/intelligence/target-timeline", func(r *http.Request, body map[string]any) (any, int) {
+		return c.Intel.TargetTimeline(r.Context(), intelligence.TargetTimelineRequest{
+			Target:       toString(body["target"]),
+			Limit:        toInt(body["limit"], 50),
+			IncludeGraph: body["include_graph"] == nil || body["include_graph"] == true,
+		}), http.StatusOK
+	})
+	mux.HandleFunc("GET /api/intelligence/target-timeline", func(w http.ResponseWriter, r *http.Request) {
+		target := r.URL.Query().Get("target")
+		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+		includeGraph := r.URL.Query().Get("include_graph") != "false"
+		out := c.Intel.TargetTimeline(r.Context(), intelligence.TargetTimelineRequest{
+			Target: target, Limit: limit, IncludeGraph: includeGraph,
+		})
+		writeJSON(w, http.StatusOK, out)
+	})
 	postJSON(mux, "POST /api/intelligence/discover-attack-chains", func(r *http.Request, body map[string]any) (any, int) {
 		return c.Intel.DiscoverAttackChains(r.Context(), toString(body["target"]), toString(body["objective"])), http.StatusOK
 	})
 	postJSON(mux, "POST /api/intelligence/execute-attack-chain", func(r *http.Request, body map[string]any) (any, int) {
-		return c.Intel.ExecuteAttackChain(r.Context(), subject(r), toString(body["target"]), toString(body["objective"])), http.StatusOK
+		return c.Intel.ExecuteAttackChain(r.Context(), subject(r), toString(body["target"]), toString(body["objective"]), toBool(body["parallel"])), http.StatusOK
+	})
+}
+
+func registerVulnIntel(mux *http.ServeMux, c *components.APIComponents) {
+	if c.CVE == nil {
+		return
+	}
+	postJSON(mux, "POST /api/vuln-intel/cve-monitor", func(r *http.Request, body map[string]any) (any, int) {
+		return c.CVE.MonitorFromBody(r.Context(), body), http.StatusOK
+	})
+	postJSON(mux, "POST /api/vuln-intel/exploit-generate", func(r *http.Request, body map[string]any) (any, int) {
+		return c.CVE.GenerateExploitFromCVE(r.Context(), body), http.StatusOK
+	})
+	postJSON(mux, "POST /api/vuln-intel/cve-lookup", func(r *http.Request, body map[string]any) (any, int) {
+		id := toString(body["cve_id"])
+		if id == "" {
+			return map[string]any{"success": false, "error": "cve_id is required"}, http.StatusBadRequest
+		}
+		return c.CVE.Lookup(r.Context(), id), http.StatusOK
+	})
+	postJSON(mux, "POST /api/vuln-intel/attack-chains", func(r *http.Request, body map[string]any) (any, int) {
+		if c.Intel == nil {
+			return map[string]any{"success": false, "error": "intelligence not configured"}, http.StatusServiceUnavailable
+		}
+		out := c.Intel.DiscoverAttackChains(r.Context(), toString(body["target"]), toString(body["objective"]))
+		out["alias_of"] = "/api/intelligence/discover-attack-chains"
+		return out, http.StatusOK
+	})
+	postJSON(mux, "POST /api/vuln-intel/threat-feeds", func(r *http.Request, body map[string]any) (any, int) {
+		return map[string]any{
+			"alias_of": "/api/vuln-intel/cve-monitor",
+			"note":     "threat-feeds merged into cve-monitor (NVD recent CVEs)",
+			"result":   c.CVE.MonitorFromBody(r.Context(), body),
+		}, http.StatusOK
+	})
+	postJSON(mux, "POST /api/vuln-intel/zero-day-research", func(r *http.Request, body map[string]any) (any, int) {
+		target := toString(body["target"])
+		if target == "" {
+			target = toString(body["cve_id"])
+		}
+		if target == "" {
+			return map[string]any{
+				"success": false,
+				"error":   "target or cve_id required",
+				"note":    "heuristic stub — no LLM zero-day research in engage",
+			}, http.StatusBadRequest
+		}
+		if strings.HasPrefix(strings.ToUpper(target), "CVE-") {
+			return c.CVE.Lookup(r.Context(), target), http.StatusOK
+		}
+		if c.Intel != nil {
+			return c.Intel.DiscoverAttackChains(r.Context(), target, "comprehensive"), http.StatusOK
+		}
+		return map[string]any{
+			"success": true,
+			"target":  target,
+			"note":    "heuristic stub — use cve-lookup for CVE IDs or discover-attack-chains for targets",
+		}, http.StatusOK
+	})
+}
+
+func registerCTF(mux *http.ServeMux, c *components.APIComponents) {
+	if c.CTF == nil {
+		return
+	}
+	postJSON(mux, "POST /api/ctf/create-challenge-workflow", func(r *http.Request, body map[string]any) (any, int) {
+		ch := ctf.ChallengeFromBody(body)
+		out, err := c.CTF.CreateChallengeWorkflow(ch)
+		if err != nil {
+			return map[string]any{"success": false, "error": err.Error()}, http.StatusBadRequest
+		}
+		return out, http.StatusOK
+	})
+	postJSON(mux, "POST /api/ctf/auto-solve-challenge", func(r *http.Request, body map[string]any) (any, int) {
+		ch := ctf.ChallengeFromBody(body)
+		exec := body["execute_tools"] == nil || body["execute_tools"] == true
+		maxSteps := toInt(body["max_steps"], 8)
+		out, err := c.CTF.AutoSolve(r.Context(), subject(r), ch, exec, maxSteps)
+		if err != nil {
+			return map[string]any{"success": false, "error": err.Error()}, http.StatusBadRequest
+		}
+		return out, http.StatusOK
+	})
+	postJSON(mux, "POST /api/ctf/suggest-tools", func(r *http.Request, body map[string]any) (any, int) {
+		desc := toString(body["description"])
+		if desc == "" {
+			return map[string]any{"success": false, "error": "description is required"}, http.StatusBadRequest
+		}
+		return c.CTF.SuggestTools(desc, toString(body["category"]), toString(body["target"])), http.StatusOK
+	})
+	postJSON(mux, "POST /api/ctf/team-strategy", func(r *http.Request, body map[string]any) (any, int) {
+		raw, _ := body["challenges"].([]any)
+		if len(raw) == 0 {
+			return map[string]any{"success": false, "error": "challenges data is required"}, http.StatusBadRequest
+		}
+		var challenges []ctf.Challenge
+		for _, item := range raw {
+			m, ok := item.(map[string]any)
+			if !ok {
+				continue
+			}
+			challenges = append(challenges, ctf.ChallengeFromBody(m))
+		}
+		skills := map[string][]string{}
+		if ts, ok := body["team_skills"].(map[string]any); ok {
+			for member, v := range ts {
+				if arr, ok := v.([]any); ok {
+					for _, s := range arr {
+						if str, ok := s.(string); ok {
+							skills[member] = append(skills[member], str)
+						}
+					}
+				}
+			}
+		}
+		return c.CTF.TeamStrategy(challenges, skills), http.StatusOK
+	})
+	postJSON(mux, "POST /api/ctf/cryptography-solver", func(r *http.Request, body map[string]any) (any, int) {
+		text := toString(body["cipher_text"])
+		if text == "" {
+			return map[string]any{"success": false, "error": "cipher text is required"}, http.StatusBadRequest
+		}
+		return c.CTF.AnalyzeCrypto(text, toString(body["cipher_type"]), toString(body["key_hint"]),
+			toString(body["known_plaintext"]), toString(body["additional_info"])), http.StatusOK
+	})
+	postJSON(mux, "POST /api/ctf/forensics-analyzer", func(r *http.Request, body map[string]any) (any, int) {
+		path := toString(body["file_path"])
+		if path == "" {
+			return map[string]any{"success": false, "error": "file path is required"}, http.StatusBadRequest
+		}
+		return c.CTF.AnalyzeForensics(r.Context(), subject(r), path, ctf.ForensicsOptions{
+			AnalysisType:       toString(body["analysis_type"]),
+			ExtractHidden:      body["extract_hidden"] != false,
+			CheckSteganography: body["check_steganography"] != false,
+		}), http.StatusOK
+	})
+	postJSON(mux, "POST /api/ctf/binary-analyzer", func(r *http.Request, body map[string]any) (any, int) {
+		path := toString(body["binary_path"])
+		if path == "" {
+			return map[string]any{"success": false, "error": "binary path is required"}, http.StatusBadRequest
+		}
+		return c.CTF.AnalyzeBinary(r.Context(), subject(r), path, ctf.BinaryOptions{
+			AnalysisDepth:    toString(body["analysis_depth"]),
+			CheckProtections: body["check_protections"] != false,
+			FindGadgets:      body["find_gadgets"] != false,
+		}), http.StatusOK
 	})
 }
 
 func registerWorkflows(mux *http.ServeMux, c *components.APIComponents) {
 	wf := func(path, wfName string) {
 		postJSON(mux, "POST "+path, func(r *http.Request, body map[string]any) (any, int) {
-			target, _ := body["target"].(string)
-			return c.Workflows.RunWorkflow(r.Context(), subject(r), wfName, target), http.StatusOK
+			if c.Workflows == nil {
+				return map[string]any{"success": false, "error": "workflows not configured"}, http.StatusServiceUnavailable
+			}
+			return c.Workflows.RunWorkflowWithBody(r.Context(), subject(r), wfName, body), http.StatusOK
 		})
 	}
 	wf("/api/bugbounty/reconnaissance-workflow", "reconnaissance")
@@ -240,12 +430,71 @@ func registerWorkflows(mux *http.ServeMux, c *components.APIComponents) {
 	wf("/api/bugbounty/comprehensive-assessment", "comprehensive")
 }
 
+func registerBrowser(mux *http.ServeMux, c *components.APIComponents) {
+	if c.Browser == nil {
+		return
+	}
+	postJSON(mux, "POST /api/browser/inspect", func(r *http.Request, body map[string]any) (any, int) {
+		url := toString(body["url"])
+		if url == "" {
+			url = toString(body["target"])
+		}
+		if url == "" {
+			return map[string]any{"success": false, "error": "url or target required"}, http.StatusBadRequest
+		}
+		params := map[string]string{}
+		for k, v := range body {
+			if s, ok := v.(string); ok {
+				params[k] = s
+			}
+		}
+		out := c.Browser.Inspect(r.Context(), browserInspectReqFromBody(url, body, params))
+		if !out.Success {
+			return out, http.StatusOK
+		}
+		return out, http.StatusOK
+	})
+}
+
+func browserInspectReqFromBody(url string, body map[string]any, params map[string]string) browser.InspectRequest {
+	req := browser.InspectFromParams(url, params)
+	if body != nil {
+		if v, ok := body["wait_time"]; ok {
+			switch n := v.(type) {
+			case float64:
+				req.WaitTime = int(n)
+			case int:
+				req.WaitTime = n
+			}
+		}
+		if body["active_tests"] == true {
+			req.ActiveTests = true
+		}
+	}
+	return req
+}
+
 func registerVisual(mux *http.ServeMux, c *components.APIComponents) {
+	mux.HandleFunc("GET /api/visual/scan-progress/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if c.Progress == nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]any{"error": "progress store not configured"})
+			return
+		}
+		id := r.PathValue("id")
+		if sp, ok := c.Progress.Get(id); ok {
+			writeJSON(w, http.StatusOK, sp)
+			return
+		}
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "scan not found"})
+	})
 	postJSON(mux, "POST /api/visual/summary-report", func(r *http.Request, body map[string]any) (any, int) {
 		target, _ := body["target"].(string)
 		sections, _ := body["sections"].(map[string]any)
 		if sections == nil {
 			sections = body
+		}
+		if raw, ok := body["executive_summary"]; ok {
+			sections["executive_summary"] = raw
 		}
 		findings := parseFindings(body["findings"])
 		return report.NewSummary(target, sections, findings), http.StatusOK
@@ -593,6 +842,23 @@ func toInt(v any, def int) int {
 	default:
 		return def
 	}
+}
+
+func toBool(v any) bool {
+	switch t := v.(type) {
+	case bool:
+		return t
+	case string:
+		switch strings.ToLower(strings.TrimSpace(t)) {
+		case "1", "true", "yes", "on":
+			return true
+		}
+	case float64:
+		return t != 0
+	case int:
+		return t != 0
+	}
+	return false
 }
 
 func toString(v any) string {

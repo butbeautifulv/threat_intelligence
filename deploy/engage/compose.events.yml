@@ -5,14 +5,21 @@ services:
     command: ["-js", "-m", "8222"]
     ports:
       - "4222:4222"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8222/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
 
   engage-api:
     environment:
       ENGAGE_EVENTS_NATS_ENABLED: "1"
       ENGAGE_NATS_URL: nats://nats:4222
       ENGAGE_EVENTS_NATS_SUBJECT: engage.events.audit
+      ENGAGE_FILES_DIR: /tmp/engage/files
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
 
   engage-events-worker:
     build:
@@ -24,7 +31,8 @@ services:
       INGEST_SUBJECT: ingest.engage.tool_run
       INGEST_FINDING_SUBJECT: ingest.engage.finding
     depends_on:
-      - nats
+      nats:
+        condition: service_healthy
 
   # Optional: persist ingest.engage.* into Neo4j (profile graph-ingest).
   neo4j:

@@ -5,6 +5,6 @@
 services:
   graph-bootstrap:
     volumes:
-      - ./var/veil/graph/releases/veil-graph-v0.4.4.zip:/pack/host.zip:ro
+      - ./var/veil/graph/releases/veil-graph-v0.4.5.zip:/pack/host.zip:ro
     environment:
       - GRAPH_PACK_DEFAULT=0

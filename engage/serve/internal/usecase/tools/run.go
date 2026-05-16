@@ -43,13 +43,17 @@ func (r *Runner) Run(ctx context.Context, subject string, name string, req contr
 	if res.Success {
 		return res
 	}
+	return r.recoverRun(ctx, subject, name, req, res, 0)
+}
+
+func (r *Runner) recoverRun(ctx context.Context, subject, name string, req contract.ToolRunRequest, last contract.ToolRunResponse, attempt int) contract.ToolRunResponse {
 	h := r.recovery()
-	errType := h.Classify(res.Error + " " + res.Output)
-	if !h.Recoverable(errType) {
-		return res
+	errType := h.Classify(last.Error + " " + last.Output)
+	if !h.Recoverable(errType) || attempt >= h.MaxRetries(errType) {
+		return last
 	}
 	alt := h.SuggestAlternative(name, errType)
-	if alt != "" {
+	if alt != "" && attempt == 0 {
 		altName := tools.ResolveCatalogName(alt+"_scan", r.Registry)
 		if spec, ok := r.Registry.Get(altName); ok && spec.Enabled {
 			alt = altName
@@ -62,6 +66,15 @@ func (r *Runner) Run(ctx context.Context, subject string, name string, req contr
 			retry.Output = "[recovery: " + alt + "] " + retry.Output
 			return retry
 		}
+		last = retry
+	}
+	delay := h.BackoffDelay(attempt + 1)
+	if delay > 0 {
+		select {
+		case <-ctx.Done():
+			return last
+		case <-time.After(delay):
+		}
 	}
 	params := h.AdjustParams(name, errType, mergeParametersFromReq(name, req, r.Registry))
 	retry := r.runOnce(ctx, subject, name, contract.ToolRunRequest{
@@ -70,8 +83,9 @@ func (r *Runner) Run(ctx context.Context, subject string, name string, req contr
 	})
 	if retry.Success {
 		retry.Output = "[recovery: retry] " + retry.Output
+		return retry
 	}
-	return retry
+	return r.recoverRun(ctx, subject, name, req, retry, attempt+1)
 }
 
 func mergeParametersFromReq(name string, req contract.ToolRunRequest, reg *tools.Registry) map[string]string {
@@ -80,6 +94,12 @@ func mergeParametersFromReq(name string, req contract.ToolRunRequest, reg *tools
 		return req.Parameters
 	}
 	return mergeParameters(spec, req)
+}
+
+func (r *Runner) emitAudit(subject, name, target, jobID string, ok bool, errMsg string) {
+	if r.Audit != nil && strings.TrimSpace(name) != "" {
+		r.Audit.ToolRun(subject, name, target, jobID, ok, errMsg)
+	}
 }
 
 func (r *Runner) runOnce(ctx context.Context, subject string, name string, req contract.ToolRunRequest) contract.ToolRunResponse {
@@ -96,11 +116,14 @@ func (r *Runner) runOnce(ctx context.Context, subject string, name string, req c
 	}
 	spec, err := r.Registry.MustGet(name)
 	if err != nil {
+		r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-err-%d", name, time.Now().UnixNano()), false, err.Error())
 		return contract.ToolRunResponse{Success: false, Tool: name, Error: err.Error()}
 	}
 	bin, err := runner.LookupBinary(spec.Binary)
 	if err != nil {
-		return contract.ToolRunResponse{Success: false, Tool: name, Error: err.Error()}
+		errMsg := err.Error()
+		r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-err-%d", name, time.Now().UnixNano()), false, errMsg)
+		return contract.ToolRunResponse{Success: false, Tool: name, Error: errMsg}
 	}
 	params := mergeParameters(spec, req)
 	args := runner.BuildArgs(spec.ArgsTemplate, req.Target, req.AdditionalArgs, params)
@@ -131,9 +154,7 @@ func (r *Runner) runOnce(ctx context.Context, subject string, name string, req c
 	if ok && cacheKey != "" && r.Cache != nil {
 		r.Cache.Set(cacheKey, out)
 	}
-	if r.Audit != nil {
-		r.Audit.ToolRun(subject, name, req.Target, jobID, ok, errMsg)
-	}
+	r.emitAudit(subject, name, req.Target, jobID, ok, errMsg)
 	telemetry.RecordToolRun(name, ok)
 	return contract.ToolRunResponse{
 		Success:  ok,

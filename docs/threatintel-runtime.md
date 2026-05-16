@@ -204,8 +204,8 @@ Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 | `GRAPH_PACK_SKIP` | `0` | `1` = exit 0 without importing |
 | `GRAPH_PACK_DEFAULT` | `1` | `0` = do not download the default release ZIP when no file/URL |
 | `GRAPH_PACK_URL` | empty | HTTP(S) URL of the pack ZIP |
-| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.4` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
-| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.4` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
+| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.5` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
+| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.5` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
 | `GRAPH_PACK_FILE` | empty | Path **inside** the bootstrap container (mount a volume if needed) |
 
 Compose passes these from the host for `graph-bootstrap` (see [docker-compose.yml](../docker-compose.yml) `environment`).
@@ -226,7 +226,7 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compo
 
 1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
 2. **Graph read path (no scrape/NATS/ingest):** `make test-graph-read-smoke` or `./scripts/test/smoke-graph-read.sh --up` — overlay [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml), `GRAPH_PACK_SKIP=1`, optional MCP HTTP.
-3. **Graph pack without GitHub download:** place **`veil-graph-v0.4.4.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+3. **Graph pack without GitHub download:** place **`veil-graph-v0.4.5.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
 4. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
 5. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
 6. **Secure prod overlay:** TLS certs + Keycloak env → [deploy-secure.md](deploy-secure.md).
@@ -300,7 +300,7 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.4.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.5.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
 Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. Use `./scripts/ops/compose-down-ephemeral.sh` (keeps `var/veil` ledger/blobs) before a clean import. **`ingest_worker`** waits for **`graph-bootstrap`** to finish ([deploy/graph/compose.yml](../deploy/graph/compose.yml)).
 

@@ -83,6 +83,39 @@ func (c *Client) Search(ctx context.Context, category, query string) (json.RawMe
 	return c.GetJSON(ctx, path)
 }
 
+// EngageContext loads structured engage subgraph for a target host.
+func (c *Client) EngageContext(ctx context.Context, host string) (json.RawMessage, error) {
+	host = strings.TrimSpace(host)
+	if host == "" {
+		return nil, fmt.Errorf("host required")
+	}
+	path := fmt.Sprintf("/v1/categories/engage/context?q=%s", url.QueryEscape(host))
+	return c.GetJSON(ctx, path)
+}
+
+// GetNode fetches a node by elementId or business key (including EngageTarget.name).
+func (c *Client) GetNode(ctx context.Context, id string) (json.RawMessage, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, fmt.Errorf("id required")
+	}
+	path := fmt.Sprintf("/v1/nodes/%s", url.PathEscape(id))
+	return c.GetJSON(ctx, path)
+}
+
+// Neighbors returns a k-hop subgraph around a node id.
+func (c *Client) Neighbors(ctx context.Context, id string, depth int) (json.RawMessage, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, fmt.Errorf("id required")
+	}
+	if depth <= 0 {
+		depth = 1
+	}
+	path := fmt.Sprintf("/v1/nodes/%s/neighbors?depth=%d", url.PathEscape(id), depth)
+	return c.GetJSON(ctx, path)
+}
+
 func (c *Client) bearer(ctx context.Context) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

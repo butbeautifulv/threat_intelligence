@@ -37,6 +37,9 @@ bridge = {
     "analyze_target_intelligence", "create_attack_chain_ai", "intelligent_smart_scan",
     "comprehensive_api_audit", "correlate_threat_intelligence", "discover_attack_chains",
     "ai_vulnerability_assessment", "vulnerability_intelligence_dashboard",
+    "target_timeline_intelligence",
+    "ctf_create_challenge_workflow", "ctf_auto_solve_challenge", "ctf_suggest_tools",
+    "ctf_team_strategy", "ctf_cryptography_solver", "ctf_forensics_analyzer", "ctf_binary_analyzer",
 }
 missing_bridge = sorted(bridge - cat)
 if missing_bridge:

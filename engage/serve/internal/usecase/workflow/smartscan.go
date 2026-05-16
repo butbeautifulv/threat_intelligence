@@ -14,10 +14,12 @@ import (
 
 // SmartScanRequest configures intelligent multi-tool execution.
 type SmartScanRequest struct {
-	Target    string
-	Objective string
-	MaxTools  int
-	Async     bool
+	Target           string
+	Objective        string
+	MaxTools         int
+	Async            bool
+	RateLimitCheck   bool
+	effectiveParallel int // set after rate-limit probe
 }
 
 // SmartScan runs ranked tools against a target (parallel sync or async jobs).
@@ -33,6 +35,11 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 		selected = selected[:maxTools]
 	}
 
+	var scanID string
+	if s.Progress != nil && len(selected) > 0 {
+		scanID = s.Progress.Create(target, "smart_scan", selected)
+	}
+
 	out := map[string]any{
 		"target":         target,
 		"objective":      req.Objective,
@@ -40,14 +47,34 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 		"tools_selected": selected,
 		"async":          req.Async,
 	}
+	if scanID != "" {
+		out["scan_id"] = scanID
+	}
 
 	if len(selected) == 0 {
 		out["tools_executed"] = []any{}
 		out["findings"] = []domainreport.Finding{}
 		out["total_vulnerabilities"] = 0
 		out["status"] = "no_tools"
+		if scanID != "" && s.Progress != nil {
+			s.Progress.Finish(scanID, "completed")
+		}
 		return out
 	}
+
+	maxWorkers := s.maxParallel()
+	if req.RateLimitCheck && s.Intel != nil {
+		probe := s.Intel.ProbeRateLimit(ctx, subject, target)
+		out["rate_limit_probe"] = probe
+		if probe.Detected {
+			if maxWorkers > 2 {
+				maxWorkers = 2
+			}
+			out["recommendation"] = "reduce parallelism due to rate limiting"
+		}
+	}
+	req.effectiveParallel = maxWorkers
+	out["max_parallel"] = maxWorkers
 
 	if req.Async && s.Jobs != nil {
 		executed := make([]map[string]any, 0, len(selected))
@@ -72,12 +99,15 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 		return out
 	}
 
-	executed := s.runToolsParallel(ctx, subject, target, analysis.TargetType, selected)
+	executed := s.runToolsParallel(ctx, subject, target, analysis.TargetType, selected, scanID, req.effectiveParallel)
 	out["tools_executed"] = executed
 	allFindings := aggregateFindings(executed, target)
 	out["findings"] = allFindings
 	out["total_vulnerabilities"] = len(allFindings)
 	out["status"] = "completed"
+	if scanID != "" && s.Progress != nil {
+		s.Progress.Finish(scanID, "completed")
+	}
 	if s.Findings != nil {
 		for _, f := range allFindings {
 			_ = s.Findings.PublishFinding(ctx, f.Tool, f.Target, f.Title, string(f.Severity), f.Description)
@@ -96,53 +126,58 @@ func aggregateFindings(executed []map[string]any, target string) []domainreport.
 	return all
 }
 
-func (s *Service) runToolsParallel(ctx context.Context, subject, target, targetType string, toolNames []string) []map[string]any {
+// RunToolsParallel executes catalog tools concurrently (exported for bugbounty phased runs).
+func (s *Service) RunToolsParallel(ctx context.Context, subject, target, targetType string, toolNames []string) []map[string]any {
+	return s.runToolsParallel(ctx, subject, target, targetType, toolNames, "", 0)
+}
+
+func (s *Service) runToolsParallel(ctx context.Context, subject, target, targetType string, toolNames []string, scanID string, maxWorkers int) []map[string]any {
 	if s.Tools == nil {
 		return nil
 	}
-	const workers = 5
-	sem := make(chan struct{}, workers)
+	if maxWorkers <= 0 {
+		maxWorkers = s.maxParallel()
+	}
 	var mu sync.Mutex
 	results := make([]map[string]any, 0, len(toolNames))
-	var wg sync.WaitGroup
 
-	for _, name := range toolNames {
-		toolName := tools.ResolveCatalogName(name, s.Tools.Registry)
-		wg.Add(1)
-		go func(catalogName string) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-
-			params := s.Intel.OptimizeParameters(targetType, catalogName, map[string]string{"target": target})
-			start := time.Now()
-			res := s.Tools.Run(ctx, subject, catalogName, contract.ToolRunRequest{
-				Target:     target,
-				Parameters: params,
-			})
-			toolFindings := findings.ParseToolOutput(catalogName, target, res.Output)
-			entry := map[string]any{
-				"tool":                  catalogName,
-				"parameters":            params,
-				"status":                "success",
-				"success":               res.Success,
-				"execution_time":        time.Since(start).Seconds(),
-				"stdout":                res.Output,
-				"error":                 res.Error,
-				"findings":              toolFindings,
-				"vulnerabilities_found": len(toolFindings),
-			}
-			if !res.Success {
-				entry["status"] = "failed"
-			}
-			if strings.Contains(res.Output, "[recovery:") {
-				entry["recovered"] = true
-			}
-			mu.Lock()
-			results = append(results, entry)
-			mu.Unlock()
-		}(toolName)
-	}
-	wg.Wait()
+	RunBounded(maxWorkers, toolNames, func(name string) {
+		catalogName := tools.ResolveCatalogName(name, s.Tools.Registry)
+		if scanID != "" && s.Progress != nil {
+			s.Progress.StartTool(scanID, catalogName)
+		}
+		params := s.Intel.OptimizeParameters(targetType, catalogName, map[string]string{"target": target})
+		start := time.Now()
+		res := s.Tools.Run(ctx, subject, catalogName, contract.ToolRunRequest{
+			Target:     target,
+			Parameters: params,
+		})
+		elapsed := time.Since(start).Seconds()
+		toolFindings := findings.ParseToolOutput(catalogName, target, res.Output)
+		st := "success"
+		if !res.Success {
+			st = "failed"
+		}
+		if scanID != "" && s.Progress != nil {
+			s.Progress.CompleteTool(scanID, catalogName, st, elapsed)
+		}
+		entry := map[string]any{
+			"tool":                  catalogName,
+			"parameters":            params,
+			"status":                st,
+			"success":               res.Success,
+			"execution_time":        elapsed,
+			"stdout":                res.Output,
+			"error":                 res.Error,
+			"findings":              toolFindings,
+			"vulnerabilities_found": len(toolFindings),
+		}
+		if strings.Contains(res.Output, "[recovery:") {
+			entry["recovered"] = true
+		}
+		mu.Lock()
+		results = append(results, entry)
+		mu.Unlock()
+	})
 	return results
 }

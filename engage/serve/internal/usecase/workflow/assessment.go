@@ -6,6 +6,7 @@ import (
 	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/report"
+	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
 // AssessmentReport runs smart-scan and returns scan output plus summary report.
@@ -29,11 +30,14 @@ func (s *Service) AssessmentReport(ctx context.Context, subject string, req Smar
 			}
 		}
 	}
+	analysis := s.Intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
 	summary := report.FromSmartScan(target, scan)
+	exec := report.BuildExecutiveSummary(target, scan, all, analysis.RiskLevel, analysis.Technologies)
 	return map[string]any{
-		"scan":           scan,
-		"summary_report": summary,
-		"findings":       all,
-		"severity_breakdown": report.SeverityBreakdown(all),
+		"scan":                scan,
+		"summary_report":      summary,
+		"findings":            all,
+		"severity_breakdown":  report.SeverityBreakdown(all),
+		"executive_summary":   exec,
 	}
 }
