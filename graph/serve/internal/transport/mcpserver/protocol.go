@@ -24,11 +24,6 @@ type rpcMessage struct {
 	Error   *rpcError       `json:"error,omitempty"`
 }
 
-type rpcError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
 type framedRW struct {
 	r *bufio.Reader
 	w io.Writer

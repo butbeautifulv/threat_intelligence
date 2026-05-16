@@ -74,12 +74,35 @@ Images use layer `go.work` (`GOWORK=/build/<layer>/go.work`), not root `go.work`
 
 ## Graph-only (API + Neo4j)
 
+**Development (default)** — Neo4j and API ports on the host:
+
+| Service | Host port |
+|---------|-----------|
+| Neo4j HTTP | `7474` |
+| Neo4j Bolt | `7687` |
+| API | `8090` |
+| MCP HTTP (`--profile mcp`) | `8091` |
+
 ```bash
 docker compose up --build -d
 # or: docker compose -f deploy/graph/compose.yml up --build -d
 ```
 
 Root [docker-compose.yml](../docker-compose.yml) includes only the graph layer.
+
+**Graph read smoke (no scrape/NATS):**
+
+```bash
+make test-graph-read-smoke
+# or: ./scripts/test/smoke-graph-read.sh --up
+```
+
+**Production secure overlay** — only nginx `443` on the host; see [docs/deploy-secure.md](../docs/deploy-secure.md):
+
+```bash
+docker compose -f deploy/graph/compose.yml -f deploy/graph/compose.secure.yml \
+  --profile mcp --env-file deploy/profiles/secure-graph.env up -d --build
+```
 
 ## Graph pack releases
 

@@ -7,7 +7,7 @@ Thank you for improving this project. Small, focused changes are easier to revie
 1. Read **[docs/coding-style.md](docs/coding-style.md)** (architecture, layering, [PR checklist](docs/coding-style.md#pr-checklist)). **Automated agents:** follow **[AGENTS.md](AGENTS.md)**.
 2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** in issues, reviews, and discussions.
 3. If you change [pkg/harvest/](pkg/harvest/) or [pkg/commit/](pkg/commit/), update matching JSON in [docs/schemas/](docs/schemas/) manually in the same PR.
-4. Run tests in the **layer** you touched: `make test-scrape`, `make test-pipeline`, `make test-graph` (from repo root), or `cd scrape/harvest && go build ./cmd/scrape_worker` (same pattern for `pipeline/ned/cmd/pipeline_worker`, `graph/ingest/cmd/ingest_worker`).
+4. Run tests in the **layer** you touched: `make test-scrape`, `make test-pipeline`, `make test-graph` (from repo root). For `graph/serve` (API, MCP, auth): `make test-graph-serve`. Optional Docker read smoke: `make test-graph-read-smoke`.
 5. **Graph read path:** `graph/serve` (`api`, `mcp`) must not import NATS or scrape packages.
 6. If you change Compose or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)** and **[deploy/](deploy/)** in the same PR.
 7. **Graph pack version:** if you change ingest-affecting code (sources, `pkg/harvest`, `pkg/commit`, schemas), run `./scripts/release/bump-graph-version.sh patch` and `make check-graph-version`. Current defaults live in **[versions.env](versions.env)**.

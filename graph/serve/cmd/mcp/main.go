@@ -5,6 +5,7 @@ import (
 	"flag"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,9 +13,14 @@ import (
 
 	"github.com/butbeautifulv/veil/graph/serve/internal/components"
 	"github.com/butbeautifulv/veil/graph/serve/internal/config"
+	"github.com/butbeautifulv/veil/graph/serve/internal/transport/securityhttp"
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		os.Exit(runHealthcheck())
+	}
+
 	var (
 		env       = flag.String("env", envOr("MCP_ENV", "local"), "local|dev|prod")
 		neo4jURI  = flag.String("neo4j-uri", envOr("NEO4J_URI", "neo4j://localhost:7687"), "neo4j uri")
@@ -25,13 +31,18 @@ func main() {
 	flag.Parse()
 
 	logger := components.SetupLogger(*env)
-	cfg := &config.Config{
-		Neo4j: config.Neo4jConfig{
-			URI:      *neo4jURI,
-			Username: *neo4jUser,
-			Password: *neo4jPass,
-			Database: *neo4jDB,
-		},
+	cfg := config.LoadMCP()
+	cfg.Neo4j = config.Neo4jConfig{
+		URI:      *neo4jURI,
+		Username: *neo4jUser,
+		Password: *neo4jPass,
+		Database: *neo4jDB,
+	}
+	cfg.Env = *env
+	cfg.Security = config.LoadSecurityForEnv(*env)
+
+	if err := config.ValidateSecurity(cfg.Security, cfg.Auth.Enabled); err != nil {
+		log.Fatal(err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -50,6 +61,37 @@ func main() {
 	}
 	defer c.Shutdown()
 
+	var httpSrv *http.Server
+	if cfg.MCPHTTP.Enabled {
+		addr := cfg.MCPHTTP.ResolveListen()
+		rh, rt, wt, idle := securityhttp.HTTPServerTimeouts()
+		httpSrv = &http.Server{
+			Addr:              addr,
+			Handler:           c.MCPHTTPHandler(cfg),
+			ReadHeaderTimeout: time.Duration(rh) * time.Second,
+			ReadTimeout:       time.Duration(rt) * time.Second,
+			WriteTimeout:      time.Duration(wt) * time.Second,
+			IdleTimeout:       time.Duration(idle) * time.Second,
+		}
+		go func() {
+			logger.Info("mcp http listening",
+				slog.String("addr", addr),
+				slog.String("path", cfg.MCPHTTP.Path),
+			)
+			if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Error("mcp http server stopped", slog.Any("err", err))
+			}
+		}()
+		go func() {
+			<-ctx.Done()
+			shctx, cc := context.WithTimeout(context.Background(), 8*time.Second)
+			defer cc()
+			if httpSrv != nil {
+				_ = httpSrv.Shutdown(shctx)
+			}
+		}()
+	}
+
 	go func() {
 		<-ctx.Done()
 		os.Exit(0)
@@ -60,6 +102,19 @@ func main() {
 		time.Sleep(200 * time.Millisecond)
 		os.Exit(1)
 	}
+}
+
+func runHealthcheck() int {
+	cfg := config.LoadMCP()
+	c, err := components.InitMCP(cfg, components.SetupLogger(cfg.Env))
+	if err != nil {
+		return 1
+	}
+	defer c.Shutdown()
+	if err := c.Read.Ping(context.Background()); err != nil {
+		return 1
+	}
+	return 0
 }
 
 func envOr(key, def string) string {

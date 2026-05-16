@@ -3,16 +3,21 @@ package components
 import (
 	"context"
 	"log/slog"
+	"net/http"
 
+	authmw "github.com/butbeautifulv/veil/graph/serve/internal/auth/middleware"
+	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
 	"github.com/butbeautifulv/veil/graph/serve/internal/config"
 	"github.com/butbeautifulv/veil/graph/serve/internal/connector"
 	"github.com/butbeautifulv/veil/graph/serve/internal/transport/mcpserver"
+	"github.com/butbeautifulv/veil/graph/serve/internal/transport/securityhttp"
 	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 )
 
 type MCPComponents struct {
 	Neo4j     *connector.ReadConnector
-	Query     *usecase.QueryUsecase
+	Read      *usecase.ReadUsecase
+	Auth      *auth.Stack
 	MCPServer *mcpserver.Server
 }
 
@@ -26,12 +31,30 @@ func InitMCP(cfg *config.Config, logger *slog.Logger) (*MCPComponents, error) {
 	if err != nil {
 		return nil, err
 	}
-	uc := usecase.NewQueryUsecase(conn, logger)
+	stack, err := newAuthStack(context.Background(), cfg.Auth)
+	if err != nil {
+		_ = conn.Close(context.Background())
+		return nil, err
+	}
+	uc := usecase.NewReadUsecase(conn)
 	return &MCPComponents{
 		Neo4j:     conn,
-		Query:     uc,
-		MCPServer: mcpserver.NewServer(uc, logger),
+		Read:      uc,
+		Auth:      stack,
+		MCPServer: mcpserver.NewServer(uc, stack, logger),
 	}, nil
+}
+
+// MCPHTTPHandler returns the Streamable HTTP handler with security and optional JWT middleware.
+// When MCP_HTTP_AUTH_STRICT=1, every route except GET /health requires Bearer auth.
+// Otherwise tool calls are authorized inside ProcessMessage (initialize may be unauthenticated).
+func (c *MCPComponents) MCPHTTPHandler(cfg *config.Config) http.Handler {
+	h := mcpserver.HTTPHandler(c.MCPServer, cfg.MCPHTTP)
+	var inner http.Handler = h
+	if c.Auth != nil && c.Auth.Config.Enabled && cfg.Security.MCPHTTPAuthStrict {
+		inner = authmw.Auth(c.Auth, true, cfg.Security, h)
+	}
+	return securityhttp.Harden(cfg.Security, cfg.Security.MCPBodyLimit, inner)
 }
 
 func (c *MCPComponents) Shutdown() {

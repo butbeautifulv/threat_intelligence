@@ -3,28 +3,15 @@ package neo4j
 import (
 	"context"
 
-	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
-
-	graphneo4j "github.com/butbeautifulv/veil/graph/connector/neo4j"
+	"github.com/butbeautifulv/veil/graph/serve/internal/connector"
 )
 
-type Config = graphneo4j.Config
+type Config = connector.Config
 
-// Store implements query.ReadExecutor for the HTTP API.
-type Store struct {
-	client *graphneo4j.Client
-}
+// Store implements query.ReadExecutor (shared by API and MCP).
+type Store = connector.ReadConnector
 
+// New opens a read-only Bolt connection.
 func New(ctx context.Context, cfg Config) (*Store, error) {
-	c, err := graphneo4j.New(ctx, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &Store{client: c}, nil
-}
-
-func (s *Store) Close(ctx context.Context) error { return s.client.Close(ctx) }
-
-func (s *Store) ExecRead(ctx context.Context, fn func(tx driver.ManagedTransaction) (any, error)) (any, error) {
-	return s.client.ExecRead(ctx, fn)
+	return connector.NewRead(ctx, cfg)
 }

@@ -14,7 +14,7 @@ Reference modules: [scrape/harvest/internal/sources/ti/](scrape/harvest/internal
 
 Complete every step that applies before you consider the task done:
 
-1. **Tests** — run layer targets from repo root: `make test-scrape`, `make test-pipeline`, `make test-graph` for the layers you touched.
+1. **Tests** — run layer targets from repo root: `make test-scrape`, `make test-pipeline`, `make test-graph` for the layers you touched. For `graph/serve` only: `make test-graph-serve` (`-race`). Graph read Docker smoke: `make test-graph-read-smoke`.
 2. **Graph version** — if you changed ingest-affecting paths (`scrape/harvest/internal/sources/`, `pipeline/ned/internal/sources/`, `graph/ingest/internal/sources/`, `pkg/harvest/`, `pkg/commit/`, `docs/schemas/`), run `./scripts/release/bump-graph-version.sh patch` and rebuild/publish the graph pack when a new ZIP is needed.
 3. **Pre-commit check** — `./scripts/release/check-graph-version-bump.sh` (or `make check-graph-version`).
 4. **Commit** — descriptive message (what changed and why). Do not commit secrets, `data/`, or `.cursor/plans/`. Use `git add -A -- . ':!data'` when `data/` causes permission errors.

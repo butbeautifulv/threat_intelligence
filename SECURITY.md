@@ -13,6 +13,12 @@ Please do **not** file public issues with exploit details until a fix is availab
 
 This project runs **Neo4j**, **Go services**, and optional **scrapers** with network access to third-party APIs. Harden deployments with secrets management, non-default passwords, network policies, and regular image updates—not only application patches.
 
+## Authentication (graph read)
+
+The HTTP API and MCP (stdio and Streamable HTTP) support **optional** JWT validation via **Keycloak** (`AUTH_ENABLED`, default off). When enabled, configure `KEYCLOAK_ISSUER`, protect client secrets, and use RBAC roles (`veil-reader`, `veil-admin`). Do not commit tokens or client secrets. See [docs/auth-keycloak.md](docs/auth-keycloak.md).
+
+For production-style deployments (TLS edge, distroless images, fail-closed auth, no published Neo4j ports), use the secure compose overlay and checklist in [docs/deploy-secure.md](docs/deploy-secure.md). Set `VEIL_REQUIRE_AUTH=1` so services refuse to start without Keycloak when auth is mandatory.
+
 ## Supported versions
 
 Security fixes are applied on a best-effort basis on the default development branch. There is no separate LTS branch unless documented explicitly in the future.

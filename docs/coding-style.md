@@ -98,7 +98,8 @@ For automated agents and maintainers, before marking work done:
 
 | Step | Command / doc |
 |------|----------------|
-| Tests (touched layers) | `make test-scrape`, `make test-pipeline`, `make test-graph` |
+| Tests (touched layers) | `make test-scrape`, `make test-pipeline`, `make test-graph`; graph read/auth/MCP: `make test-graph-serve` |
+| Graph read smoke (Docker) | `make test-graph-read-smoke` — no scrape/NATS |
 | Graph version (ingest paths) | `./scripts/release/bump-graph-version.sh patch` → updates [versions.env](../versions.env) |
 | Verify bump when required | `make check-graph-version` |
 | Commit + push | See [AGENTS.md](../AGENTS.md) |

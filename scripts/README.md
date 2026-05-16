@@ -24,10 +24,12 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [housekeeping/sync-github-metadata.sh](housekeeping/sync-github-metadata.sh) | Push [.github/repo-description.txt](../.github/repo-description.txt) to GitHub |
 | [housekeeping/lint-markdown-dir-links.sh](housekeeping/lint-markdown-dir-links.sh) | Lint directory links (trailing `/`) in `*.md` |
 | [test/smoke-scrape-e2e.sh](test/smoke-scrape-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
+| [test/smoke-graph-read.sh](test/smoke-graph-read.sh) | Graph read smoke: Neo4j + API + MCP HTTP (no scrape/NATS) |
+| [smoke/mcp-smoke.sh](smoke/mcp-smoke.sh) | MCP stdio smoke against local Neo4j |
 | [test/verify-nvd-enrichment.sh](test/verify-nvd-enrichment.sh) | Cypher QA for NVD CWE/CPE |
 | [housekeeping/graph-dedup-cleanup.sh](housekeeping/graph-dedup-cleanup.sh) | Post-ingest Neo4j dedup |
 
-Deploy profiles: [deploy/profiles/](../deploy/profiles/). Runtime: [docs/threatintel-runtime.md](../docs/threatintel-runtime.md). Graph pack workflow: [docs/graph-pack.md](../docs/graph-pack.md).
+Deploy profiles: [deploy/profiles/](../deploy/profiles/) (`smoke-minimal`, `secure-graph`). Runtime: [docs/threatintel-runtime.md](../docs/threatintel-runtime.md). Secure deploy: [docs/deploy-secure.md](../docs/deploy-secure.md). Graph pack workflow: [docs/graph-pack.md](../docs/graph-pack.md).
 
 ## Graph pack workflow
 
@@ -52,5 +54,6 @@ USE_DOCKER_COMPOSE=1 ./scripts/graph-pack/import.sh \
 ```bash
 ./scripts/ops/compose-up-full.sh
 ./scripts/test/smoke-scrape-e2e.sh --up
+make test-graph-read-smoke
 PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/ops/compose-up-full.sh
 ```

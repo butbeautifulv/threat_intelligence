@@ -7,18 +7,44 @@ Consumes `ingest.>`, MERGE into Neo4j; HTTP API and MCP read Bolt.
 | Module | Path | Role |
 |--------|------|------|
 | **ingest** | [ingest/](ingest/) | JetStream pull consumer (`ingest_worker`) → Neo4j |
-| **serve** | [serve/](serve/) | HTTP API (`api`) and stdio MCP (`mcp`) |
+| **serve** | [serve/](serve/) | HTTP API (`api`) and MCP (`mcp`) — [docs/mcp-agents.md](../docs/mcp-agents.md) |
 | **connector** | [connector/](connector/) | Shared Bolt driver and categorical queries |
 
 - **Wire types:** [pkg/commit/](../pkg/commit/)
-- **Build:** `make test-graph` or:
+- **Build / test:**
+
+```bash
+make test-graph
+make test-graph-serve    # graph/serve only, -race
+```
 
 ```bash
 cd graph/ingest && go build -o bin/ingest_worker ./cmd/ingest_worker
 cd graph/serve && go build -o bin/api ./cmd/api && go build -o bin/mcp ./cmd/mcp
 ```
 
-- **Deploy:** [deploy/graph/compose.yml](../deploy/graph/compose.yml)
+- **Deploy (dev):** [deploy/graph/compose.yml](../deploy/graph/compose.yml) — Neo4j `7474/7687`, API `8090`, MCP HTTP `8091` (`--profile mcp`)
+- **Graph read smoke:** `make test-graph-read-smoke` — [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml) (no ingest/NATS)
+- **Secure prod:** [compose.secure.yml](../deploy/graph/compose.secure.yml) + [docs/deploy-secure.md](../docs/deploy-secure.md)
+
+## serve layout
+
+```
+serve/
+  cmd/{api,mcp}/
+  internal/
+    auth/              # JWT (Keycloak JWKS), RBAC, MCP authorize
+    components/        # DI: Neo4j, ReadUsecase, auth stack
+    config/            # env: API, MCP HTTP, security hardening
+    transport/
+      httpserver/      # REST /v1/*
+      mcpserver/       # stdio + Streamable HTTP
+      securityhttp/    # headers, body limits, CORS allowlist
+    usecase/           # ReadUsecase (shared API + MCP)
+    storage/neo4j/
+```
+
+Optional auth: [docs/auth-keycloak.md](../docs/auth-keycloak.md). Distroless images with `/api healthcheck` and `/mcp healthcheck` for container probes.
 
 ## ingest layout
 
@@ -30,13 +56,4 @@ ingest/
     ingest/              # NATS pull loop
     sources/{ti,vuln,lola,ds}/
     appsec/{sbom,coderules,nuclei}/
-```
-
-## serve layout
-
-```
-serve/
-  cmd/{api,mcp}/
-  internal/
-    components/ usecase/ transport/ storage/
 ```

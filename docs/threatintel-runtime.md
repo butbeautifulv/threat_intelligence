@@ -7,8 +7,9 @@ Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape**
 | Service | Port | Notes |
 |---------|------|--------|
 | Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
-| HTTP API | 8090 | `API_PORT` to override published port |
-| nginx LB | `${LB_HTTP_PORT:-8888}` | Optional; not in default compose — scale **`api`** via replicas manually if needed |
+| HTTP API | 8090 | `API_PORT` to override published port (dev compose) |
+| MCP Streamable HTTP | 8091 | `MCP_HTTP_PORT`; service profile **`mcp`**, `MCP_HTTP_ENABLED=1` |
+| nginx (TLS) | 443 | **Secure overlay only** — [compose.secure.yml](../deploy/graph/compose.secure.yml); see [deploy-secure.md](deploy-secure.md) |
 | Proxybroker | 8099 | Full stack only; `PROXYBROKER_PORT` |
 | NATS client | `${NATS_CLIENT_PORT:-4222}` | Full stack (`compose-up-full`); maps container `4222` |
 | NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP on container `8222`; **`nats`** healthcheck uses **`http://127.0.0.1:8222/healthz`** |
@@ -53,22 +54,36 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 | | |
 |--|--|
 | **Profile** | *(none)* |
-| **Build** | [deploy/graph/docker/api.Dockerfile](../deploy/graph/docker/api.Dockerfile) |
+| **Build** | [deploy/graph/docker/api.Dockerfile](../deploy/graph/docker/api.Dockerfile) — distroless, non-root |
 | **Purpose** | Categorical REST API over Neo4j |
-| **Ports** | `${API_PORT:-8090}:8090` |
+| **Ports** | `${API_PORT:-8090}:8090` (dev); **none** on host in secure overlay |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
-| **Health** | `GET /health` |
-| **Env** | `API_LISTEN_ADDR`, `NEO4J_*` |
+| **Health** | `CMD ["/api", "healthcheck"]` (Neo4j ping); HTTP `GET /health` |
+| **Env** | `API_LISTEN` (default `:8090`), `API_ENV`, `NEO4J_*`, `VEIL_REQUIRE_AUTH`, `CORS_ALLOWED_ORIGINS`, optional `AUTH_*` / `KEYCLOAK_*` — [auth-keycloak.md](auth-keycloak.md) |
 
 ### mcp
 
 | | |
 |--|--|
-| **Profile** | `mcp` |
-| **Build** | dev-only: `cd graph/serve && go build ./cmd/mcp` (not in default `deploy/` compose) |
-| **Purpose** | Stdio MCP tools (same queries as API) — [graph/serve/](../graph/serve/) |
+| **Profile** | `mcp` — opt-in (`docker compose --profile mcp up`) |
+| **Build** | [deploy/graph/docker/mcp.Dockerfile](../deploy/graph/docker/mcp.Dockerfile) — distroless |
+| **Purpose** | Stdio MCP + optional Streamable HTTP — [graph/serve/](../graph/serve/) |
+| **Ports** | `${MCP_HTTP_PORT:-8091}` when `MCP_HTTP_ENABLED=1`; **none** on host in secure overlay |
+| **Run** | **Host:** `cd graph/serve && go run ./cmd/mcp`. **Docker:** profile `mcp` or `docker run -i` — [mcp-agents.md](mcp-agents.md) |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
-| **Env** | `NEO4J_*` |
+| **Health** | `CMD ["/mcp", "healthcheck"]` |
+| **Env** | `NEO4J_*`, `MCP_HTTP_*`, `MCP_HTTP_AUTH_STRICT`, `MCP_ENV`, optional `AUTH_*` / `MCP_ACCESS_TOKEN` — [auth-keycloak.md](auth-keycloak.md) |
+
+### nginx (secure overlay)
+
+| | |
+|--|--|
+| **Compose** | [deploy/graph/compose.secure.yml](../deploy/graph/compose.secure.yml) |
+| **Build** | [deploy/graph/docker/nginx.Dockerfile](../deploy/graph/docker/nginx.Dockerfile) |
+| **Purpose** | TLS termination; proxy `/` → API, `/mcp` → MCP; Neo4j not exposed |
+| **Ports** | `${NGINX_HTTPS_PORT:-443}:443` |
+| **TLS** | Mount `tls.crt` / `tls.key` — see [deploy/graph/nginx/certs/README.md](../deploy/graph/nginx/certs/README.md) |
+| **Profile** | Use with [deploy/profiles/secure-graph.env](../deploy/profiles/secure-graph.env) — [deploy-secure.md](deploy-secure.md) |
 
 ### nats (JetStream broker)
 
@@ -210,9 +225,11 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compo
 ### Smoke checklist
 
 1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
-2. **Graph pack without GitHub download:** place **`veil-graph-v0.4.2.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
-3. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
-4. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
+2. **Graph read path (no scrape/NATS/ingest):** `make test-graph-read-smoke` or `./scripts/test/smoke-graph-read.sh --up` — overlay [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml), `GRAPH_PACK_SKIP=1`, optional MCP HTTP.
+3. **Graph pack without GitHub download:** place **`veil-graph-v0.4.2.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+4. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
+5. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
+6. **Secure prod overlay:** TLS certs + Keycloak env → [deploy-secure.md](deploy-secure.md).
 
 ### E2E scrape smoke (slice 8 v2)
 
@@ -256,17 +273,23 @@ curl -sS 'http://localhost:8090/v1/kinds' | jq .
 
 Replace `vuln` / `Vulnerability` with other [categories](../graph/connector/query/categories.go) and labels as needed.
 
-## MCP (stdio)
+## MCP (stdio + Streamable HTTP)
 
-Same categorical logic as the API. Module: [graph/serve/](../graph/serve/) (`cmd/mcp`). Run against a running Neo4j (after bootstrap or scrape).
+Same categorical logic as the API. Server name **veil-mcp**. Full agent setup: [mcp-agents.md](mcp-agents.md).
 
-From source:
+From source (host, against compose Neo4j on localhost:7687):
 
 ```bash
 cd graph/serve && go run ./cmd/mcp
+# optional HTTP on :8091:
+MCP_HTTP_ENABLED=1 go run ./cmd/mcp
 ```
 
-Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nodes_by_category`, `ti_search_in_category`; legacy tools remain for raw label access.
+HTTP endpoint: `POST http://localhost:8091/mcp` (protocol `2025-03-26`, JSON or SSE).
+
+Smoke: `./scripts/smoke/mcp-smoke.sh` (requires running Neo4j).
+
+Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nodes_by_category`, `ti_search_in_category`, `ti_get_node`, `ti_neighbors`, `ti_health`. Legacy tools (`ti_list_kinds`, `ti_get_nodes_by_kind`, `ti_search`) are deprecated.
 
 ## Optional: local pack file
 

@@ -4,15 +4,16 @@ WORKDIR /build
 COPY graph/ graph/
 COPY pkg/ pkg/
 ENV GOWORK=/build/graph/go.work
+ENV CGO_ENABLED=0
 WORKDIR /build/graph/serve
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -trimpath -ldflags="-s -w" -o /out/api ./cmd/api
+    go build -trimpath -buildvcs=false -ldflags="-s -w" -o /out/api ./cmd/api
 
-FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates wget \
-  && rm -rf /var/lib/apt/lists/*
-COPY --from=build /out/api /usr/local/bin/api
-USER nobody
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
+COPY --from=build /out/api /api
+USER nonroot:nonroot
 EXPOSE 8090
-ENTRYPOINT ["/usr/local/bin/api"]
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["/api", "healthcheck"]
+ENTRYPOINT ["/api"]

@@ -46,10 +46,13 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 docker compose up --build -d
 ```
 
-| Endpoint | Default |
-|----------|---------|
+| Endpoint | Default (dev compose) |
+|----------|------------------------|
 | Neo4j Browser | http://localhost:7474 (`neo4j` / `neo4jpassword`) |
 | HTTP API | http://localhost:8090 |
+| MCP Streamable HTTP | http://localhost:8091/mcp (`--profile mcp`, `MCP_HTTP_ENABLED=1`) |
+
+Production secure overlay (TLS on **443** only, no published Neo4j): [docs/deploy-secure.md](docs/deploy-secure.md).
 
 `graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently [veil-graph-v0.4.2](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.2)) when published, unless `GRAPH_PACK_SKIP=1`. Local ZIP: [docker-compose.testpack.yml](docker-compose.testpack.yml).
 
@@ -79,6 +82,8 @@ Fast-rich graph pack (~25 min): [scripts/graph-pack/profile-fast-rich.sh](script
 |----------|----------|
 | [AGENTS.md](AGENTS.md) | Cursor/agents: read [docs/coding-style.md](docs/coding-style.md) first |
 | [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose, ports, env, bootstrap, API, MCP, NATS |
+| [docs/deploy-secure.md](docs/deploy-secure.md) | Prod hardening: nginx TLS, distroless, auth fail-closed |
+| [docs/auth-keycloak.md](docs/auth-keycloak.md) | Optional JWT + RBAC for API and MCP |
 | [deploy/README.md](deploy/README.md) | Per-layer compose, scaling, smoke, graph pack releases |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
@@ -101,13 +106,15 @@ See [docs/graph-pack.md](docs/graph-pack.md). Quick path:
 ./scripts/graph-pack/build.sh
 ```
 
-## MCP
+## MCP (agents)
+
+Stdio MCP server for any MCP client (not IDE-specific):
 
 ```bash
 cd graph/serve && go run ./cmd/mcp
 ```
 
-Details: [graph/serve/](graph/serve/), [docs/threatintel-runtime.md](docs/threatintel-runtime.md#mcp-stdio).
+Setup for agents: [docs/mcp-agents.md](docs/mcp-agents.md). Optional Keycloak auth: [docs/auth-keycloak.md](docs/auth-keycloak.md). Examples: [examples/mcp/](examples/mcp/). Runtime: [docs/threatintel-runtime.md](docs/threatintel-runtime.md#mcp-stdio--streamable-http).
 
 ## Smoke Cypher
 
@@ -122,5 +129,7 @@ MATCH (v:Vulnerability)-[:AFFECTS]->(:CPE) RETURN count(*) AS affects;
 ```bash
 make test-scrape
 make test-pipeline
-make test-graph
+make test-graph              # all graph modules + serve build
+make test-graph-serve        # graph/serve unit tests (-race)
+make test-graph-read-smoke   # Docker: Neo4j + API + MCP HTTP (no scrape/NATS)
 ```

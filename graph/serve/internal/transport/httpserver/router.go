@@ -5,12 +5,20 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"sync/atomic"
 
 	"github.com/butbeautifulv/veil/graph/serve/internal/domain"
 	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 )
 
-func Register(mux *http.ServeMux, uc *usecase.GraphUsecase) {
+var prodMode atomic.Bool
+
+// SetProdMode toggles generic API error messages (no internal details).
+func SetProdMode(prod bool) {
+	prodMode.Store(prod)
+}
+
+func Register(mux *http.ServeMux, uc *usecase.ReadUsecase) {
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "service": "veil-api"})
 	})
@@ -52,7 +60,7 @@ func Register(mux *http.ServeMux, uc *usecase.GraphUsecase) {
 	})
 	mux.HandleFunc("GET /v1/nodes/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
-		n, err := uc.GetNode(r.Context(), id)
+		n, err := uc.GetNodeForAPI(r.Context(), id)
 		if err != nil {
 			if errors.Is(err, domain.ErrNodeNotFound) {
 				writeErr(w, http.StatusNotFound, err)
@@ -91,5 +99,15 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func writeErr(w http.ResponseWriter, status int, err error) {
-	writeJSON(w, status, map[string]any{"error": err.Error()})
+	msg := err.Error()
+	if prodMode.Load() {
+		msg = "bad request"
+		if status == http.StatusNotFound {
+			msg = "not found"
+		}
+		if status >= 500 {
+			msg = "internal error"
+		}
+	}
+	writeJSON(w, status, map[string]any{"error": msg})
 }
