@@ -15,5 +15,6 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 DESC="$(tr -d '\n' <"${DESC_FILE}")"
-gh repo edit butbeautifulv/veil --description "${DESC}"
-echo "Updated GitHub description for butbeautifulv/veil"
+REPO="${GITHUB_REPOSITORY:-butbeautifulv/veil}"
+gh repo edit "${REPO}" --description "${DESC}"
+echo "Updated GitHub description for ${REPO}"

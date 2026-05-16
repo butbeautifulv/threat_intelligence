@@ -5,6 +5,12 @@ todos:
   - id: p5a-verify-engage
     content: "Gate: HexStrike sign-off + engage unit/parity green (prerequisite)"
     status: completed
+  - id: p5-docs-workflow
+    content: "README/CONTRIBUTING/repo-description + agent rules + docs.yml CI sync"
+    status: completed
+  - id: p5-skeleton
+    content: "Hybrid skeleton on main (TF/Ansible/Helm) + deploy-platform.yml CI"
+    status: completed
   - id: p5b-tf-foundation
     content: "P5b: TF modules foundation (network, compute, storage, secrets outputs)"
     status: pending

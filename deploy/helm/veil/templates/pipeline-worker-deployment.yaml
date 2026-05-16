@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "veil.fullname" . }}-pipeline-worker
+spec:
+  replicas: {{ .Values.pipeline.worker.replicas }}
+  selector:
+    matchLabels:
+      app: veil-pipeline-worker
+  template:
+    metadata:
+      labels:
+        app: veil-pipeline-worker
+    spec:
+      containers:
+        - name: pipeline-worker
+          image: "{{ .Values.global.imageRegistry }}veil-pipeline-worker:{{ .Values.global.imageTag }}"
+          env:
+            - name: NATS_URL
+              value: {{ .Values.global.natsUrl | quote }}

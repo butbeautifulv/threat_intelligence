@@ -70,7 +70,12 @@ Then notify other streams: **rebase** open branches onto `origin/main`.
 ## After merge
 
 1. Critic approves → **merge PR to `main` and `git push origin main`** (unless user forbade push).
-2. Update master plan: `done`, merge commit SHA; optional: delete remote feature branch.
+2. **Documentation actualization** (same wave or immediate follow-up commit on `main`):
+   - Master / phase plans → `done` + merge SHA
+   - [README.md](../../README.md) — platform status, tests, deploy if user-facing
+   - [CONTRIBUTING.md](../../CONTRIBUTING.md) — contributor test matrix
+   - [.github/repo-description.txt](../../.github/repo-description.txt) + `make sync-github-metadata` when summary changes
+   - Runtime / deploy docs per [veil-agent-documentation.mdc](veil-agent-documentation.mdc)
 3. **Next phase** only from updated `main`, new branch.
 
 ## Git add (same as always)

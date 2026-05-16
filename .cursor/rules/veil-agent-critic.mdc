@@ -52,7 +52,10 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-age
 
 ### Documentation
 - [ ] Master / phase plans updated (status, merge SHA)
-- [ ] Runtime or AGENTS/CONTRIBUTING updated if behavior or tests changed ([veil-agent-documentation.mdc](veil-agent-documentation.mdc))
+- [ ] README.md updated if capabilities, tests, or platform status changed
+- [ ] CONTRIBUTING.md if contributor test/workflow changed
+- [ ] `.github/repo-description.txt` + `make sync-github-metadata` if GitHub summary should change
+- [ ] Runtime / AGENTS / deploy docs if behavior or tests changed ([veil-agent-documentation.mdc](veil-agent-documentation.mdc))
 
 ### Kaizen (if PR fixes a failure)
 - [ ] 5 Whys or root-cause paragraph in PR

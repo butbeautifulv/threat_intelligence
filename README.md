@@ -51,9 +51,18 @@ flowchart LR
 | **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) read API + MCP | `veil-mcp` (read-only) |
 | **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports | `veil-engage` (exec) |
 
-Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph runtime: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage runtime: [docs/engage-runtime.md](docs/engage-runtime.md)
+Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph runtime: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage runtime: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
 
-**Dual MCP for agents:** use **`veil-graph`** to query TI data and **`veil-engage`** to run security tools — separate processes, separate RBAC roles. See [docs/mcp-agents.md](docs/mcp-agents.md).
+**Dual MCP for agents:** use **`veil-graph`** to query TI data and **`veil-engage`** to run security tools — separate processes, separate RBAC roles. Legacy HexStrike (Python `:8888`) is **decommissioned** — see [docs/mcp-agents.md](docs/mcp-agents.md) migration runbook and [docs/engage-audit-report.md](docs/engage-audit-report.md).
+
+## Platform status
+
+| Track | Status | Entry |
+|-------|--------|--------|
+| **Engage / HexStrike** | Phases 24–30 **done** — catalog parity, CI e2e, refactor | [engage-audit-report.md](docs/engage-audit-report.md) |
+| **Platform v3** | P0–P3 **done** — bus tests, closed-loop pilot | [platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) |
+| **Platform v4** | P4a CI + P4b full-loop smoke / local Terraform | [platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) |
+| **Platform P5** | Hybrid deploy skeleton (TF + Ansible + Helm) | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
 
 ## Quick start
 
@@ -110,6 +119,30 @@ make test-engage-events-pipeline
 
 E2E smoke: `./scripts/test/smoke-scrape-e2e.sh --up` then `./scripts/test/smoke-scrape-e2e.sh`
 
+### Platform integration smokes
+
+```bash
+make test-platform-p0              # NATS bus unit tests (no Docker)
+make test-platform-closed-loop       # engage → ingest → Neo4j → target-graph
+make test-platform-full-loop         # scrape + closed loop (heavy Docker)
+```
+
+CI: [`.github/workflows/platform.yml`](.github/workflows/platform.yml). Optional full loop: `workflow_dispatch` with `run_full_loop`.
+
+### Production deploy (hybrid)
+
+| Layer | Path | Role |
+|-------|------|------|
+| Terraform | [deploy/terraform/](deploy/terraform/README.md) | Cloud foundation + compose env |
+| Ansible | [deploy/ansible/](deploy/ansible/README.md) | Data plane VMs (Neo4j, NATS, scrape cron) |
+| Helm | [deploy/helm/veil/](deploy/helm/veil/README.md) | Control plane on Kubernetes (api, engage, workers) |
+
+```bash
+make deploy-helm-template    # render chart (needs helm)
+make deploy-ansible-check    # syntax-check playbooks (needs ansible)
+make sync-github-metadata    # push .github/repo-description.txt → GitHub
+```
+
 ## Documentation index
 
 | Document | Contents |
@@ -120,6 +153,10 @@ E2E smoke: `./scripts/test/smoke-scrape-e2e.sh --up` then `./scripts/test/smoke-
 | [docs/deploy-secure.md](docs/deploy-secure.md) | Prod hardening: nginx TLS, distroless, auth fail-closed |
 | [docs/auth-keycloak.md](docs/auth-keycloak.md) | Optional JWT + RBAC for API and MCP |
 | [deploy/README.md](deploy/README.md) | Per-layer compose, scaling, smoke, graph pack releases |
+| [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) | P5: Terraform + Ansible + Helm production model |
+| [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) | Act → learn → remember → decide (engage + graph) |
+| [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) | Scrape + closed loop (P4b) |
+| [docs/engage-audit-report.md](docs/engage-audit-report.md) | HexStrike migration sign-off |
 | [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
@@ -154,6 +191,11 @@ make test-engage             # engage layer unit tests + build
 make test-engage-parity      # catalog 150 tools vs legacy MCP reference
 make test-engage-compose     # Docker: async jobs + runner profile
 make test-engage-events-pipeline  # Docker: engage.events → ingest.engage.*
+make test-platform-p0             # Platform bus unit tests
+make test-platform-closed-loop    # Platform closed-loop pilot (Docker)
+make test-platform-full-loop      # Platform full loop with scrape (Docker, heavy)
+make deploy-helm-template         # Helm chart render check
+make sync-github-metadata         # Update GitHub repo description from .github/repo-description.txt
 ```
 
 ## Smoke Cypher

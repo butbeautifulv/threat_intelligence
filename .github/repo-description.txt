@@ -1,1 +1,1 @@
-Veil — Neo4j threat-intelligence graph (CVE/CWE/CPE, TI, Sigma/YARA) plus optional engage layer for catalog-driven security tooling. NATS pipeline scrape→pipeline→graph; dual MCP: veil-graph (read) and veil-engage (exec).
+Veil: Neo4j threat-intel graph + engage toolkit (HexStrike migrated to Go). Four layers scrape→pipeline→graph via NATS; dual MCP veil-graph/veil-engage. Platform closed-loop CI; hybrid prod deploy Terraform+Ansible+Helm.

@@ -15,7 +15,7 @@
 | Review | [veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc) |
 | Subagents | [veil-agent-subagents.mdc](.cursor/rules/veil-agent-subagents.mdc), [`.cursor/agents/manifest.yaml`](.cursor/agents/manifest.yaml) |
 | Merge | Prompt merge to `main` ([veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) § Merge discipline) |
-| Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) |
+| Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) — includes **README.md**, **CONTRIBUTING.md**, **`.github/repo-description.txt`** |
 | Finish | This file § End-of-task checklist |
 
 **Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Platform v4 P4a CI + P4b full loop / IaC ([veil_platform_v4_ci_and_full_loop.plan.md](.cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md), [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md), [deploy/terraform/README.md](deploy/terraform/README.md)); Engage phases 24–30 / HexStrike sign-off ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md), [docs/engage-audit-report.md](docs/engage-audit-report.md)); Platform P5 hybrid deploy ([veil_deploy_platform_p5_hybrid.plan.md](.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md), [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)).
@@ -42,7 +42,7 @@ Keep diffs reviewable: **one git commit per completed phase or slice**, not one 
 6. **Critic gate** — the **orchestrator / main agent session** acts as critic & compliance ([.cursor/rules/veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc)): plan scope, architecture, tests, graph version; verdict APPROVE / REQUEST_CHANGES before merge.
 7. **Merge to `main` promptly** — after critic APPROVE, merge and `git push origin main` so the repo does not drift across parallel branches. See [veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) § Merge discipline.
 8. **Update master plan** — on merge, mark phase `done`, note merge commit SHA; clear or archive branch name.
-9. **Actualize documentation** — plans, runtime/env docs, CONTRIBUTING, parity matrices per [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc); list touched doc paths in the commit or PR.
+9. **Actualize documentation** — plans, **[README.md](README.md)**, **[CONTRIBUTING.md](CONTRIBUTING.md)**, **[.github/repo-description.txt](.github/repo-description.txt)** (`make sync-github-metadata`), runtime/deploy docs, parity matrices per [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc); list touched doc paths in the commit or PR.
 
 If the user asks to “stage all” or catch up after many phases, still document phase boundaries in the commit message body.
 
@@ -64,6 +64,7 @@ Complete every step that applies before you consider the task done:
 3. **Pre-commit check** — `./scripts/release/check-graph-version-bump.sh` (or `make check-graph-version`).
 4. **Commit** — descriptive message (what changed and why). Do not commit secrets or `data/`. Use `git add -A -- . ':!data'` when `data/` causes permission errors. Exclude `**/__pycache__/`.
 5. **Push** — `git push origin HEAD` unless the user explicitly forbade push or there is no remote.
+6. **GitHub description** — if [.github/repo-description.txt](.github/repo-description.txt) changed, run `make sync-github-metadata` (or rely on [`.github/workflows/docs.yml`](.github/workflows/docs.yml) on push to `main`).
 
 ## Graph pack releases
 
