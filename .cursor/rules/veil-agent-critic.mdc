@@ -50,6 +50,10 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-age
 - [ ] Tests / smokes run (list commands)
 - [ ] Graph version bump if required
 
+### Documentation
+- [ ] Master / phase plans updated (status, merge SHA)
+- [ ] Runtime or AGENTS/CONTRIBUTING updated if behavior or tests changed ([veil-agent-documentation.mdc](veil-agent-documentation.mdc))
+
 ### Kaizen (if PR fixes a failure)
 - [ ] 5 Whys or root-cause paragraph in PR
 - [ ] Fix at gemba (not symptom-only)
@@ -59,7 +63,7 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-age
 <blocking issues or nits>
 ```
 
-6. **APPROVE** — merge to `main`, `git push origin main`, run applicable `make test-*` gates; update master plan to `done` with merge SHA (see [veil-agent-parallel-branches.mdc](veil-agent-parallel-branches.mdc) § Merge discipline).
+6. **APPROVE** — merge to `main`, `git push origin main`, run applicable `make test-*` gates; update master plan to `done` with merge SHA; **documentation actualization** per [veil-agent-documentation.mdc](veil-agent-documentation.mdc) (same commit wave or immediate follow-up).
 7. **REQUEST_CHANGES** — list concrete fixes; implementer pushes to the same branch; re-review.
 8. **BLOCKED** — wrong branch, wrong phase, or architectural violation; do not merge.
 

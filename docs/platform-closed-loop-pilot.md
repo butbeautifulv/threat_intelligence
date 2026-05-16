@@ -81,3 +81,5 @@ To include **discover → enrich** for the same host class, run the full stack (
 | MCP `target_graph_context` | Same state for tool agents |
 
 See [veil_platform_v3_test_then_dedup.plan.md](../.cursor/plans/veil_platform_v3_test_then_dedup.plan.md) for phase history.
+
+**Agents:** after changing this flow, update this doc and [.cursor/rules/veil-agent-documentation.mdc](../.cursor/rules/veil-agent-documentation.mdc); closed-loop verification is part of the post-merge checklist in [AGENTS.md](../AGENTS.md).

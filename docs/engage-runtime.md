@@ -28,7 +28,7 @@
 | `ENGAGE_RUNNER_MODE` | `local` | `local` or `docker` (exec in `engage-runner` container) |
 | `ENGAGE_RUNNER_CONTAINER` | — | Container name when `ENGAGE_RUNNER_MODE=docker` |
 | `ENGAGE_VEIL_API_URL` | `http://localhost:8090` | Graph read API |
-| `ENGAGE_VEIL_CLIENT_ID` / `SECRET` / `TOKEN_URL` | — | OAuth2 client credentials |
+| `ENGAGE_VEIL_CLIENT_ID` / `SECRET` / `TOKEN_URL` | — | OAuth2 client credentials; **omit all three** for local/dev stacks without Keycloak — `veilgraph` client calls veil-api without `Authorization` |
 | `AUTH_ENABLED` | `0` | Keycloak JWT |
 | `ENGAGE_JOBS_MODE` | `memory` | `memory` (API runs jobs in-process) or `file` (worker polls shared dir) |
 | `ENGAGE_JOBS_DIR` | `/tmp/engage/jobs` | JSON job files when `ENGAGE_JOBS_MODE=file` |
@@ -160,7 +160,18 @@ CI smoke relies on audit publication when the API image lacks scanner binaries (
 
 Overlay: `deploy/engage/compose.veil-stack.yml` wires `engage-api` and `engage-events-worker` to the same NATS/Neo4j as scrape/pipeline/graph (`ENGAGE_VEIL_API_URL=http://api:8090`).
 
-After ingest, agents can use **target timeline** (`POST /api/intelligence/target-timeline`, MCP `target_timeline_intelligence`) for a single JSON view of audit events, graph search, and correlation. Graph-only smoke: `make test-graph-engage-category` (categories + engage search/context + `GET /v1/nodes/{host}`).
+After ingest, agents can use:
+
+| API | MCP tool | Role |
+|-----|----------|------|
+| `GET\|POST /api/intelligence/target-graph` | `target_graph_context` | Unified graph state (`TargetGraphState`: category hits + `engage_context`) for decisions |
+| `GET\|POST /api/intelligence/target-timeline` | `target_timeline_intelligence` | Audit + graph + correlation timeline |
+
+Host normalization for graph lookup: [`pkg/engage/hostnorm`](../pkg/engage/hostnorm) (same rules as graph `EngageTarget.name`).
+
+**Closed loop (platform pilot):** tool run → `engage.events` → ingest → Neo4j → veil-api search → engage `target-graph`. See [platform-closed-loop-pilot.md](platform-closed-loop-pilot.md), `make test-platform-closed-loop`.
+
+Graph-only smoke: `make test-graph-engage-category` (categories + engage search/context + `GET /v1/nodes/{host}`). Full stack: `make test-engage-veil-stack-ci`, `make test-engage-events-pipeline`.
 
 ### Bug bounty workflows (Phase 18)
 

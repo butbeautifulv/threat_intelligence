@@ -1,6 +1,6 @@
 ---
 name: Veil Platform v3 Test Then Dedup
-overview: "Платформа: тесты на bus/контракты (P0), DRY NATS (P1), closed loop (P2+). Цель — авто-обогащение и улучшение безопасности целевых систем."
+overview: "Платформа v3 завершена (P0–P3): bus tests, NATS DRY, engage target-graph, closed-loop pilot. Агентная цепочка: merge → docs — veil-agent-documentation.mdc."
 todos:
   - id: p0-contract-consumer
     content: "P0: contract + consumer tests (pkg, pipeline, graph ingest)"

@@ -4,13 +4,14 @@ Thank you for improving this project. Small, focused changes are easier to revie
 
 ## Before you open a PR
 
-1. Read **[docs/coding-style.md](docs/coding-style.md)** (architecture, layering, [PR checklist](docs/coding-style.md#pr-checklist)). **Automated agents:** follow **[AGENTS.md](AGENTS.md)**.
+1. Read **[docs/coding-style.md](docs/coding-style.md)** (architecture, layering, [PR checklist](docs/coding-style.md#pr-checklist)). **Automated agents:** follow **[AGENTS.md](AGENTS.md)** and the agent rules under `.cursor/rules/` (workflow, parallel branches, critic, **documentation actualization**).
 2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** in issues, reviews, and discussions.
 3. If you change [pkg/harvest/](pkg/harvest/) or [pkg/commit/](pkg/commit/), update matching JSON in [docs/schemas/](docs/schemas/) manually in the same PR.
-4. Run tests in the **layer** you touched: `make test-scrape`, `make test-pipeline`, `make test-graph` (from repo root). For `graph/serve` (API, MCP, auth): `make test-graph-serve`. Optional Docker read smoke: `make test-graph-read-smoke`. For **engage** (`engage/`, catalog, `pkg/engage/`): `make test-engage` and `make test-engage-parity` when changing the tool catalog; the GitHub Actions **engage** workflow must pass on your PR.
+4. Run tests in the **layer** you touched: `make test-scrape`, `make test-pipeline`, `make test-graph` (from repo root). For `graph/serve` (API, MCP, auth): `make test-graph-serve`. Optional Docker read smoke: `make test-graph-read-smoke`. For **engage** (`engage/`, catalog, `pkg/engage/`): `make test-engage` and `make test-engage-parity` when changing the tool catalog; optional Docker `make test-engage-veil-stack-ci`, `make test-platform-closed-loop` when touching the engage→graph loop. Platform bus unit tests: `make test-platform-p0`. The GitHub Actions **engage** workflow must pass on your PR.
 5. **Graph read path:** `graph/serve` (`api`, `mcp`) must not import NATS or scrape packages.
 6. If you change Compose or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)** and **[deploy/](deploy/)** in the same PR.
 7. **Graph pack version:** if you change ingest-affecting code (sources, `pkg/harvest`, `pkg/commit`, schemas), run `./scripts/release/bump-graph-version.sh patch` and `make check-graph-version`. Current defaults live in **[versions.env](versions.env)**.
+8. **Documentation:** update runtime docs (`docs/threatintel-runtime.md`, `docs/engage-runtime.md`), plans in `.cursor/plans/`, and [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) when you change APIs, env vars, compose files, or integration smokes — agents use the same checklist in `.cursor/rules/veil-agent-documentation.mdc`.
 
 ## Commits and branches
 

@@ -225,11 +225,13 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compo
 ### Smoke checklist
 
 1. **Default stack (no scrape):** `docker compose up --build -d` → wait for **`api` healthy** → `curl` **`/health`** and a few **`/v1/...`** calls (see [curl examples](#curl-examples)).
-2. **Graph read path (no scrape/NATS/ingest):** `make test-graph-read-smoke` or `./scripts/test/smoke-graph-read.sh --up` — overlay [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml), `GRAPH_PACK_SKIP=1`, optional MCP HTTP.
-3. **Graph pack without GitHub download:** place **`veil-graph-v0.4.5.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
-4. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
-5. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
-6. **Secure prod overlay:** TLS certs + Keycloak env → [deploy-secure.md](deploy-secure.md).
+2. **Platform bus (unit):** `make test-platform-p0` — `pkg/natsjet`, pipeline/graph ingest consumer tests (no Docker).
+3. **Engage closed loop (Docker):** `make test-platform-closed-loop` — veil stack + engage overlay, act→ingest→`target-graph` ([platform-closed-loop-pilot.md](platform-closed-loop-pilot.md)).
+4. **Graph read path (no scrape/NATS/ingest):** `make test-graph-read-smoke` or `./scripts/test/smoke-graph-read.sh --up` — overlay [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml), `GRAPH_PACK_SKIP=1`, optional MCP HTTP.
+5. **Graph pack without GitHub download:** place **`veil-graph-v0.4.5.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
+6. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
+7. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
+8. **Secure prod overlay:** TLS certs + Keycloak env → [deploy-secure.md](deploy-secure.md).
 
 ### E2E scrape smoke (slice 8 v2)
 

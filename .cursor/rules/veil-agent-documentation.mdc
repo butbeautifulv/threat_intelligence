@@ -1,0 +1,98 @@
+---
+description: Agent chain — keep docs, plans, and descriptions in sync after each phase merge
+alwaysApply: true
+---
+
+# Veil agent — documentation actualization
+
+Documentation is part of the **agent chain**, not an optional cleanup. After code merges, the orchestrator (or implementer before handoff) updates the artifacts the next agent will read.
+
+## Where agents read truth
+
+| Artifact | When to update |
+|----------|----------------|
+| **Master / phase plans** (`.cursor/plans/`) | Phase `done`, merge SHA, branch cleared |
+| **[AGENTS.md](../../AGENTS.md)** | New `make test-*` targets, workflow steps, layer rules |
+| **Runtime docs** (`docs/threatintel-runtime.md`, `docs/engage-runtime.md`) | Ports, env vars, compose overlays, smokes |
+| **Contracts** (`docs/ingest-contract.md`, `docs/schemas/`) | `pkg/harvest`, `pkg/commit` wire changes |
+| **Platform / loop** ([docs/platform-closed-loop-pilot.md](../../docs/platform-closed-loop-pilot.md)) | Bus, veil-api engage read, closed-loop smokes |
+| **[CONTRIBUTING.md](../../CONTRIBUTING.md)** | Contributor-facing test/doc expectations |
+| **Parity / audit** (`docs/engage-*.md`, CSV matrices) | Routes, catalog, MCP triangle changes |
+
+Do **not** edit `.external/` or duplicate HexStrike prose; link to Veil docs instead.
+
+## Agent chain (end-to-end)
+
+```mermaid
+flowchart TD
+  plan[Master + phase plan]
+  impl[Implementer on branch]
+  test[Layer + phase tests]
+  pr[PR / push branch]
+  critic[Critic review]
+  merge[Merge + push main]
+  docs[Documentation actualization]
+  next[Next phase from main]
+  plan --> impl --> test --> pr --> critic
+  critic -->|APPROVE| merge --> docs --> next
+  critic -->|REQUEST_CHANGES| impl
+```
+
+1. **Plan** — scope, DoD, dependencies, status table (`phase / branch / owner`).
+2. **Implement** — one phase per branch ([veil-agent-parallel-branches.mdc](veil-agent-parallel-branches.mdc)).
+3. **Verify** — commands from phase plan + [AGENTS.md](../../AGENTS.md) checklist.
+4. **Critic** — [veil-agent-critic.mdc](veil-agent-critic.mdc); APPROVE only when DoD is evidenced.
+5. **Merge** — prompt merge to `main`; no stacked unmerged phases.
+6. **Document** — this rule: plans, runtime, AGENTS, CONTRIBUTING as applicable.
+7. **Next** — new branch from `git pull origin main`.
+
+## Documentation checklist (after merge)
+
+Copy into PR comment or phase closeout:
+
+```markdown
+### Docs actualization
+- [ ] Master plan: phase N → done, merge SHA
+- [ ] Phase plan: status completed
+- [ ] Runtime / env docs if compose or API changed
+- [ ] AGENTS.md / CONTRIBUTING if new tests or workflow
+- [ ] Schemas / ingest-contract if pkg wire types changed
+- [ ] Engage parity CSV/matrix if routes or catalog changed
+```
+
+## Reasoning quality (plans and reviews)
+
+When writing or reviewing **phase plans** and critic notes, prefer explicit structure over vague goals:
+
+| Technique | Use in Veil agents |
+|-----------|-------------------|
+| **Chain-of-thought (private)** | Break DoD into verify steps before claiming done |
+| **Few-shot** | In phase plans, link one **good** prior phase (e.g. Platform P0–P3 table) as pattern for scope/DoD |
+| **Constraint-first** | State architecture bans first (no cross-import, NATS-only integration) |
+| **Counterfactual check** | «What would fail in CI?» — list the exact `make` / smoke commands |
+| **5 Whys / Kaizen** | On failures: [veil-agent-kaizen-metacognition.mdc](veil-agent-kaizen-metacognition.mdc) before the next fix |
+
+Phase plan template (minimal):
+
+```markdown
+## Scope
+## Out of scope
+## Files
+## Acceptance (commands)
+## Docs to touch on merge
+```
+
+## Platform v3 reference (completed)
+
+| Phase | Doc / test |
+|-------|------------|
+| P0 | `make test-platform-p0` — bus contracts |
+| P1 | `pkg/natsjet` — streams + `RunPullLoop` |
+| P2 | engage `target-graph`, `pkg/engage/hostnorm` |
+| P3 | [platform-closed-loop-pilot.md](../../docs/platform-closed-loop-pilot.md), `make test-platform-closed-loop` |
+
+Master plan: [veil_platform_v3_test_then_dedup.plan.md](../plans/veil_platform_v3_test_then_dedup.plan.md).
+
+## Engage v2 reference (completed)
+
+Phases 24–30 on `main`; table in [engage_master_post-audit_ec180f8b.plan.md](../plans/engage_master_post-audit_ec180f8b.plan.md).

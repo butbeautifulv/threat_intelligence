@@ -4,6 +4,21 @@
 
 **Metacognition on errors (5 Whys, Gemba Kaizen, 1% improvement):** [.cursor/rules/veil-agent-kaizen-metacognition.mdc](.cursor/rules/veil-agent-kaizen-metacognition.mdc) — mandatory when tests, CI, smokes, or builds fail; document root cause before the next fix.
 
+**Documentation in the agent chain:** [.cursor/rules/veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) — after each merge, actualize plans, runtime docs, and descriptions the next agent reads; use structured reasoning in phase plans (constraints, few-shot examples from prior phases, explicit `make` DoD).
+
+## Agent chain (summary)
+
+| Step | Rule / doc |
+|------|------------|
+| Plan | Master + phase plan in `.cursor/plans/` |
+| Implement | [veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) |
+| Review | [veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc) |
+| Merge | Prompt merge to `main` ([veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) § Merge discipline) |
+| Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) |
+| Finish | This file § End-of-task checklist |
+
+**Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Engage phases 24–30 ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md)).
+
 ## Before you change code
 
 1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** — CLEAN CODE, DRY, KISS, DDD; four isolated contexts (`scrape/`, `pipeline/`, `graph/`, `engage/`); domain packages per source; shared wire types in `pkg/`. Before merge, check the [PR checklist](docs/coding-style.md#pr-checklist).
@@ -26,6 +41,7 @@ Keep diffs reviewable: **one git commit per completed phase or slice**, not one 
 6. **Critic gate** — the **orchestrator / main agent session** acts as critic & compliance ([.cursor/rules/veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc)): plan scope, architecture, tests, graph version; verdict APPROVE / REQUEST_CHANGES before merge.
 7. **Merge to `main` promptly** — after critic APPROVE, merge and `git push origin main` so the repo does not drift across parallel branches. See [veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) § Merge discipline.
 8. **Update master plan** — on merge, mark phase `done`, note merge commit SHA; clear or archive branch name.
+9. **Actualize documentation** — plans, runtime/env docs, CONTRIBUTING, parity matrices per [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc); list touched doc paths in the commit or PR.
 
 If the user asks to “stage all” or catch up after many phases, still document phase boundaries in the commit message body.
 
@@ -42,7 +58,7 @@ Independent phases may run on **different branches at the same time** only if me
 
 Complete every step that applies before you consider the task done:
 
-1. **Tests** — run layer targets from repo root: `make test-scrape`, `make test-pipeline`, `make test-graph`, `make test-engage` for the layers you touched. For `graph/serve` only: `make test-graph-serve` (`-race`). Graph read Docker smoke: `make test-graph-read-smoke`. Engage: `make test-engage-parity` when changing catalog. Engage events bus (`engage/.../events`, `pipeline/engage-events`, `graph/ingest/.../engage`): also `make test-pipeline`; optional Docker `make test-engage-events-pipeline`. Platform closed loop (act→graph→decide): `make test-platform-closed-loop` — see [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md).
+1. **Tests** — run layer targets from repo root: `make test-scrape`, `make test-pipeline`, `make test-graph`, `make test-engage` for the layers you touched. For `graph/serve` only: `make test-graph-serve` (`-race`). Graph read Docker smoke: `make test-graph-read-smoke`. Engage: `make test-engage-parity` when changing catalog. Engage events bus (`engage/.../events`, `pipeline/engage-events`, `graph/ingest/.../engage`): also `make test-pipeline`; Docker `make test-engage-events-pipeline`, `make test-engage-veil-stack-ci`. Platform: `make test-platform-p0` (bus unit tests), `make test-platform-closed-loop` (Docker pilot) — [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md).
 2. **Graph version** — if you changed ingest-affecting paths (`scrape/harvest/internal/sources/`, `pipeline/ned/internal/sources/`, `graph/ingest/internal/sources/` including `engage/`, `pkg/harvest/`, `pkg/commit/`, `docs/schemas/`), run `./scripts/release/bump-graph-version.sh patch` and rebuild/publish the graph pack when a new ZIP is needed.
 3. **Pre-commit check** — `./scripts/release/check-graph-version-bump.sh` (or `make check-graph-version`).
 4. **Commit** — descriptive message (what changed and why). Do not commit secrets or `data/`. Use `git add -A -- . ':!data'` when `data/` causes permission errors. Exclude `**/__pycache__/`.

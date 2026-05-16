@@ -7,19 +7,19 @@ todos:
     status: completed
   - id: p25-execution-100
     content: "Phase 25 (R125–R130): N/A matrix, runner expansion, 100+ live tools, strict matrix CI"
-    status: pending
+    status: completed
   - id: p26-golden-parity
     content: "Phase 26 (R131–R134): golden JSON tests CTF + Bug Bounty vs legacy snapshots"
-    status: pending
+    status: completed
   - id: p27-findings-dedup
     content: "Phase 27 (R135–R138): findings dedup + parsers + assessment integration"
-    status: pending
+    status: completed
   - id: p28-browser-bench
     content: "Phase 28 (R139–R142): browser depth, resource-usage API, benchmark artifact"
-    status: pending
+    status: completed
   - id: p29-refactor
     content: "Phase 29 (R143–R147): router split, catalog pipeline, bridge table, dead code removal"
-    status: pending
+    status: completed
   - id: p30-decommission
     content: "Phase 30 (R148–R150): decommission runbook, dual-MCP migration, final audit sign-off"
     status: completed
@@ -80,7 +80,7 @@ flowchart LR
 
 ## Agent coordination (parallel streams)
 
-Правила: [AGENTS.md](../../AGENTS.md), [veil-karpathy-guidelines.mdc](../../.cursor/rules/veil-karpathy-guidelines.mdc), [veil-agent-kaizen-metacognition.mdc](../../.cursor/rules/veil-agent-kaizen-metacognition.mdc), [veil-agent-parallel-branches.mdc](../../.cursor/rules/veil-agent-parallel-branches.mdc), [veil-agent-critic.mdc](../../.cursor/rules/veil-agent-critic.mdc).
+Правила: [AGENTS.md](../../AGENTS.md), [veil-agent-documentation.mdc](../../.cursor/rules/veil-agent-documentation.mdc), [veil-karpathy-guidelines.mdc](../../.cursor/rules/veil-karpathy-guidelines.mdc), [veil-agent-kaizen-metacognition.mdc](../../.cursor/rules/veil-agent-kaizen-metacognition.mdc), [veil-agent-parallel-branches.mdc](../../.cursor/rules/veil-agent-parallel-branches.mdc), [veil-agent-critic.mdc](../../.cursor/rules/veil-agent-critic.mdc).
 
 | Phase | Branch | Status | Owner / stream | Critic | Merge SHA |
 |-------|--------|--------|----------------|--------|-----------|
