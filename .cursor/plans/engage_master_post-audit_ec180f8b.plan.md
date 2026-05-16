@@ -85,7 +85,7 @@ flowchart LR
 | Phase | Branch | Status | Owner / stream | Critic | Merge SHA |
 |-------|--------|--------|----------------|--------|-----------|
 | 24 | `engage/phase-24-ci-e2e` | in_progress | implementer | orchestrator chat | — |
-| 25 | — | pending | — | — | — |
+| 25 | `engage/phase-25-execution-100` | in_progress | implementer | orchestrator chat | — |
 | 26 | — | pending | — | — | — |
 | 27 | — | pending | — | — | — |
 | 28 | — | pending | — | — | — |
