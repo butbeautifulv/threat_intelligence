@@ -14,6 +14,26 @@ if [[ ! -f "${TARGETS}" ]]; then
   exit 0
 fi
 
+runner_has_bin() {
+  local bin=$1
+  if command -v "${bin}" >/dev/null 2>&1; then
+    return 0
+  fi
+  local ctn="${ENGAGE_RUNNER_CONTAINER:-}"
+  if [[ -n "${ctn}" ]] && docker ps --format '{{.Names}}' | grep -qx "${ctn}" 2>/dev/null; then
+    if docker exec "${ctn}" sh -c "command -v ${bin}" >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+  local img="${ENGAGE_RUNNER_IMAGE:-}"
+  if [[ -n "${img}" ]] && docker image inspect "${img}" >/dev/null 2>&1; then
+    if docker run --rm --entrypoint sh "${img}" -c "command -v ${bin}" >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
 mapfile -t tools < "${TARGETS}"
 ran=0
 for entry in "${tools[@]}"; do
@@ -38,8 +58,8 @@ for entry in "${tools[@]}"; do
     paramspider_*) bin=paramspider ;;
     katana_*) bin=katana ;;
   esac
-  if ! command -v "${bin}" >/dev/null 2>&1; then
-    echo "skip ${tool}: ${bin} not on PATH" >&2
+  if ! runner_has_bin "${bin}"; then
+    echo "skip ${tool}: ${bin} not in runner/host PATH" >&2
     continue
   fi
   echo "smoke ${tool} -> ${target}"

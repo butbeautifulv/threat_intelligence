@@ -1,4 +1,4 @@
-.PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-route-parity catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
+.PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-scrape:
@@ -127,9 +127,13 @@ test-engage-veil-stack-ci:
 test-engage-decision-parity:
 	./scripts/engage/check-decision-parity.sh
 
+test-engage-na-matrix:
+	python3 ./scripts/engage/generate-tools-na-matrix.py --check
+
 catalog-engage:
 	python3 ./scripts/engage/extract-legacy-catalog.py
 	python3 ./scripts/engage/generate-tools-live.py
+	python3 ./scripts/engage/generate-tools-na-matrix.py
 
 test-engage-tools: catalog-engage test-engage-catalog-args test-engage-tool-matrix
 

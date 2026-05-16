@@ -5,7 +5,8 @@ Tools are defined in YAML and loaded at startup (merged: `tools.yaml` ← `tools
 | File | Purpose |
 |------|---------|
 | [tools.yaml](../engage/serve/catalog/tools.yaml) | Full catalog (~150 legacy MCP names); regenerate with `make catalog-engage` |
-| [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) | Lab profile: **80** tier-1 tools enabled (30 catalog + 50 synthetic variants); regen via `generate-tools-live.py` |
+| [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) | Lab profile: **100+** tier-1 tools enabled; regen via `generate-tools-live.py` |
+| [engage-tools-na-matrix.md](engage-tools-na-matrix.md) | Execution status for all 158 catalog names (`live` / `runner_N/A` / `bridge_api` / `permanent_N/A`) |
 | [tools.enabled.yaml](../engage/serve/catalog/tools.enabled.yaml) | Auto-generated enables when binaries exist on PATH |
 
 ## Schema
@@ -74,6 +75,18 @@ CLI `args` are generated when you run `make catalog-engage`:
 | `DOCUMENTED_GENERIC` | In-process / workflow tools that intentionally use generic args |
 
 Gate: [check-catalog-args.sh](../scripts/engage/check-catalog-args.sh) — fails CI if any tool has undocumented generic args.
+
+## Permanent N/A (Phase 25)
+
+These stay **out of engage-runner** by design (GUI, multi-GB, or legacy-only stacks):
+
+| Tool / family | Reason |
+|---------------|--------|
+| wpscan | Ruby gem stack; use `nikto` / `nuclei` in runner |
+| ghidra, burpsuite, metasploit, angr | GUI or heavy frameworks |
+| `binary: api` / workflow placeholders | In-process bridge, not subprocess |
+
+Full matrix: [engage-tools-na-matrix.md](engage-tools-na-matrix.md) (`make test-engage-na-matrix`).
 
 ## CI tool matrix
 

@@ -16,8 +16,9 @@ RUNNER_BINARIES = frozenset({
     "nuclei", "httpx", "subfinder", "katana", "naabu", "dnsx", "gau",
     "waybackurls", "dalfox", "amass", "ffuf", "arjun", "dirsearch",
     "paramspider", "rustscan", "trivy",
-    "dnsenum", "fierce", "hydra", "wafw00f", "enum4linux", "sslscan",
-    "testssl", "dirb",
+    "dnsenum", "fierce", "hydra", "wafw00f", "enum4linux", "enum4linux-ng",
+    "sslscan", "testssl", "dirb",
+    "whatweb", "nbtscan", "binwalk", "jaeles", "x8",
 })
 
 # Phase audit P0: align with apt packages in deploy/engage/docker/runner.Dockerfile.
@@ -51,7 +52,12 @@ PREFERRED = {
     "hydra": "hydra_attack",
     "wafw00f": "wafw00f_scan",
     "enum4linux": "enum4linux_ng_advanced",
+    "enum4linux-ng": "enum4linux_ng_advanced",
     "dirb": "dirb_scan",
+    "nbtscan": "nbtscan_netbios",
+    "binwalk": "binwalk_analyze",
+    "jaeles": "jaeles_vulnerability_scan",
+    "x8": "x8_parameter_discovery",
 }
 
 
@@ -173,6 +179,39 @@ def main() -> int:
         ("masscan_full_tcp", "masscan", "masscan_high_speed"),
         ("rustscan_ultra", "rustscan", "rustscan_fast_scan"),
         ("trivy_fs_scan", "trivy", "trivy_scan"),
+        # Phase 25: additional lab variants (runner breadth II).
+        ("whatweb_fingerprint", "whatweb", "httpx_probe"),
+        ("nbtscan_netbios", "nbtscan", "nmap_scan"),
+        ("binwalk_firmware", "binwalk", "binwalk_analyze"),
+        ("jaeles_vuln_scan", "jaeles", "jaeles_vulnerability_scan"),
+        ("x8_get_params", "x8", "x8_parameter_discovery"),
+        ("sslscan_cipher_enum", "sslscan", "nmap_scan"),
+        ("testssl_protocols", "testssl", "nmap_scan"),
+        ("enum4linux_ng_quick", "enum4linux-ng", "enum4linux_ng_advanced"),
+        ("nuclei_config_scan", "nuclei", "nuclei_scan"),
+        ("httpx_follow_redirects", "httpx", "httpx_probe"),
+        ("subfinder_recursive", "subfinder", "subfinder_scan"),
+        ("katana_sitemap", "katana", "katana_crawl"),
+        ("naabu_verify_ports", "naabu", "naabu_port_scan"),
+        ("dnsx_axfr", "dnsx", "dnsx_resolve"),
+        ("gau_urls_only", "gau", "gau_discovery"),
+        ("dalfox_silent", "dalfox", "dalfox_xss_scan"),
+        ("arjun_stable", "arjun", "arjun_scan"),
+        ("dirsearch_proxy", "dirsearch", "dirsearch_scan"),
+        ("paramspider_quick", "paramspider", "paramspider_discovery"),
+        ("amass_active", "amass", "amass_scan"),
+        ("ffuf_post", "ffuf", "ffuf_scan"),
+        ("gobuster_s3", "gobuster", "gobuster_scan"),
+        ("feroxbuster_auto", "feroxbuster", "feroxbuster_scan"),
+        ("sqlmap_batch", "sqlmap", "sqlmap_scan"),
+        ("nikto_tuning", "nikto", "nikto_scan"),
+        ("rustscan_scripts", "rustscan", "rustscan_fast_scan"),
+        ("trivy_repo_scan", "trivy", "trivy_scan"),
+        ("dnsenum_std", "dnsenum", "dnsenum_scan"),
+        ("fierce_quick", "fierce", "fierce_scan"),
+        ("hydra_http", "hydra", "hydra_attack"),
+        ("wafw00f_aggressive", "wafw00f", "wafw00f_scan"),
+        ("dirb_small", "dirb", "dirb_scan"),
     ]
     synthetic_blocks: list[str] = []
     for new_name, binary, src in SYNTHETIC:
@@ -182,7 +221,7 @@ def main() -> int:
         seen.add(new_name)
 
     lines = [
-        "# Phase 19: lab-enabled tools (binaries in engage-runner image).",
+        "# Phase 25: lab-enabled tools (binaries in engage-runner image).",
         "# Regenerate: python3 scripts/engage/generate-tools-live.py",
         "tools:",
     ]

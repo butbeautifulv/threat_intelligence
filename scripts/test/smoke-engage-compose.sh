@@ -66,8 +66,10 @@ fi
 chmod +x "${ROOT}/scripts/test/smoke-engage-runner-profile.sh"
 "${ROOT}/scripts/test/smoke-engage-runner-profile.sh" || true
 
+RUNNER_CTN=$(docker ps --filter "name=engage-runner" --format '{{.Names}}' | head -1 || true)
 chmod +x "${ROOT}/scripts/test/smoke-engage-tool-matrix.sh"
-ENGAGE_TOOL_MATRIX_STRICT=1 ENGAGE_TOOL_MATRIX_MIN=30 \
-  "${ROOT}/scripts/test/smoke-engage-tool-matrix.sh" || true
+ENGAGE_RUNNER_CONTAINER="${RUNNER_CTN}" \
+  ENGAGE_TOOL_MATRIX_STRICT=1 ENGAGE_TOOL_MATRIX_MIN=30 \
+  "${ROOT}/scripts/test/smoke-engage-tool-matrix.sh"
 
 echo "OK engage compose smoke"

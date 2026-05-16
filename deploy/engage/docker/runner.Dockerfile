@@ -11,7 +11,9 @@ RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
     go install github.com/tomnomnom/waybackurls@latest && \
     go install github.com/hahwul/dalfox/v2@latest && \
     go install github.com/owasp-amass/amass/v4/...@master && \
-    go install github.com/ffuf/ffuf/v2@latest
+    go install github.com/ffuf/ffuf/v2@latest && \
+    go install github.com/jaeles-project/jaeles@latest && \
+    go install github.com/Sh1Yo/x8/cmd/x8@latest
 
 FROM debian:bookworm-slim
 ARG APT_MIRROR=
@@ -24,16 +26,17 @@ RUN set -eux; \
       apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates curl git nmap masscan sqlmap nikto gobuster dirb \
         dnsenum fierce hydra wafw00f enum4linux sslscan testssl.sh \
+        whatweb nbtscan binwalk \
         python3 python3-pip \
       && break; \
       echo "apt retry $i" >&2; sleep 5; \
     done; \
-    pip3 install --break-system-packages --no-cache-dir arjun dirsearch paramspider 2>/dev/null || \
-      pip3 install --no-cache-dir arjun dirsearch paramspider; \
+    pip3 install --break-system-packages --no-cache-dir arjun dirsearch paramspider enum4linux-ng 2>/dev/null || \
+      pip3 install --no-cache-dir arjun dirsearch paramspider enum4linux-ng; \
     rm -rf /var/lib/apt/lists/*
 COPY --from=pd /go/bin/nuclei /go/bin/httpx /go/bin/subfinder /go/bin/katana \
   /go/bin/naabu /go/bin/dnsx /go/bin/gau /go/bin/waybackurls /go/bin/dalfox \
-  /go/bin/amass /go/bin/ffuf /usr/local/bin/
+  /go/bin/amass /go/bin/ffuf /go/bin/jaeles /go/bin/x8 /usr/local/bin/
 ARG FEROX_VERSION=2.11.0
 RUN curl -fsSL -o /tmp/ferox.tgz \
     "https://github.com/epi052/feroxbuster/releases/download/v${FEROX_VERSION}/x86_64-unknown-linux-gnu.tar.gz" \

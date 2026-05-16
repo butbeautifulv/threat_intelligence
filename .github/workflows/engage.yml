@@ -62,6 +62,19 @@ jobs:
       - name: Legacy HTTP route parity
         run: make test-engage-route-parity
 
+      - name: N/A execution matrix (158 tools, 100+ live)
+        run: make test-engage-na-matrix
+
+      - name: MCP runner triangle CSV
+        run: python3 ./scripts/engage/audit-mcp-runner-triangle.py
+
+      - name: Upload triangle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engage-mcp-runner-triangle
+          path: docs/engage-mcp-runner-triangle.csv
+          if-no-files-found: error
+
       - name: Enable tools on PATH
         run: ./scripts/engage/enable-tools-on-path.sh network web
 
