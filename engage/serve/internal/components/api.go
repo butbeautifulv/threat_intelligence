@@ -11,6 +11,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/events"
 	"github.com/butbeautifulv/veil/engage/serve/internal/client/veilgraph"
 	"github.com/butbeautifulv/veil/engage/serve/internal/config"
+	"github.com/butbeautifulv/veil/engage/serve/internal/ports"
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cache"
@@ -30,13 +31,20 @@ import (
 	"github.com/butbeautifulv/veil/pkg/auth"
 )
 
+// Provider aliases for HTTP/MCP facades (definitions in ports avoid import cycles with mcpserver).
+type (
+	IntelProvider = ports.IntelProvider
+	CVEProvider   = ports.CVEProvider
+	CTFProvider   = ports.CTFProvider
+)
+
 type APIComponents struct {
 	Auth      *auth.Stack
 	Registry  *tools.Registry
 	Tools     *toolsuc.Runner
-	Intel     *intelligence.Service
-	CVE       *cve.Service
-	CTF        *ctf.Service
+	Intel     IntelProvider
+	CVE       CVEProvider
+	CTF        CTFProvider
 	BugBounty  *bugbounty.Service
 	Browser    *browser.Service
 	Workflows  *workflow.Service
@@ -214,3 +222,9 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		CatalogPath:        catalogPath,
 	}, nil
 }
+
+var (
+	_ IntelProvider = (*intelligence.Service)(nil)
+	_ CVEProvider   = (*cve.Service)(nil)
+	_ CTFProvider   = (*ctf.Service)(nil)
+)
