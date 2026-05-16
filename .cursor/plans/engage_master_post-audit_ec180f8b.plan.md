@@ -78,6 +78,26 @@ flowchart LR
 
 ---
 
+## Agent coordination (parallel streams)
+
+Правила: [AGENTS.md](../../AGENTS.md), [veil-agent-parallel-branches.mdc](../../.cursor/rules/veil-agent-parallel-branches.mdc), [veil-agent-critic.mdc](../../.cursor/rules/veil-agent-critic.mdc).
+
+| Phase | Branch | Status | Owner / stream | Critic | Merge SHA |
+|-------|--------|--------|----------------|--------|-----------|
+| 24 | `engage/phase-24-ci-e2e` | in_progress | implementer | orchestrator chat | — |
+| 25 | — | pending | — | — | — |
+| 26 | — | pending | — | — | — |
+| 27 | — | pending | — | — | — |
+| 28 | — | pending | — | — | — |
+| 29 | — | pending | — | — | — |
+| 30 | — | pending | — | — | — |
+
+- **Implementer** (Task / отдельный чат): одна ветка = одна фаза, PR в `main`, без merge самостоятельно.
+- **Critic & compliance** (оркестратор / этот чат): ревью PR, вердикт APPROVE / REQUEST_CHANGES, обновление таблицы после merge.
+- Независимые фазы (разные файлы, нет общего `versions.env`) — можно параллельно на разных ветках; зависимые — только после merge зависимости + `git rebase origin/main`.
+
+---
+
 ## Phase 24 — CI / E2E closure (критично для DoD)
 
 **Проблема (аудит):** `make test-engage-events-pipeline` (Neo4j `EngageToolRun` = 0), `make test-engage-veil-stack-ci` (timeout engage-api ~240s).

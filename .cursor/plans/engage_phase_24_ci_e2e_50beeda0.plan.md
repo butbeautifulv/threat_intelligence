@@ -4,13 +4,13 @@ overview: "Детальный план Phase 24 (R121–R124): стабилиз�
 todos:
   - id: p24-diagnose
     content: "Диагностика: logs engage-api/events-worker/ingest при FAIL events-pipeline и veil-stack-ci"
-    status: in_progress
+    status: completed
   - id: p24-r121-events-smoke
     content: "R121: refactor smoke-engage-events-pipeline — health fail-fast, poll Neo4j, runner mode"
-    status: pending
+    status: completed
   - id: p24-r122-veil-stack
     content: "R122: veil-stack-ci waits, compose health, fail diagnostics (SMOKE_VEIL_API_WAIT_SEC)"
-    status: pending
+    status: in_progress
   - id: p24-r123-ci
     content: "R123: engage.yml timeouts; events/veil jobs required green"
     status: pending
@@ -23,6 +23,8 @@ isProject: false
 # Phase 24 — CI / E2E closure (R121–R124)
 
 Родитель: [engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md)
+
+**Ветка:** `engage/phase-24-ci-e2e` (создать от `main`, PR → critic APPROVE → merge).
 
 **Цель фазы:** `make test-engage-events-pipeline` и `make test-engage-veil-stack-ci` стабильно **green** на чистом Docker host и в GitHub Actions; обновить [engage-audit-report.md](docs/engage-audit-report.md) и DoD v2.
 
