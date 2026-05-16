@@ -64,6 +64,18 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 | Future | Findings FP/dedup labeled dataset | backlog |
 | Future | README 24× speed as CI KPI | not in scope |
 
+## Migration sign-off (Phase 30, R148–R150)
+
+**HexStrike MCP + Flask `:8888` → veil-engage (docs-only closure).**
+
+| Deliverable | Status |
+|-------------|--------|
+| R148 — Operator runbook: disable legacy MCP/`:8888`, configure **veil-engage** + env / Cursor ([mcp-agents.md](mcp-agents.md#migration-runbook-hexstrike-flask-8888--veil-engage)) | **Documented** |
+| R149 — When `.external/` optional vs extract-only parity use ([external-hexstrike.md](external-hexstrike.md#when-external-is-optional)) | **Documented** |
+| R150 — Formal sign-off in this section | **[x]** — 2026-05-16 |
+
+**Signed-off criterion:** Teams can operate **without** Flask **`:8888`** per runbook; tool execution MCP is **`veil-engage`** only.
+
 ## Related docs
 
 - [engage-legacy-parity.md](engage-legacy-parity.md) — living checklist + route matrix summary

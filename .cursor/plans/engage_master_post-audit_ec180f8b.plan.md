@@ -22,7 +22,7 @@ todos:
     status: pending
   - id: p30-decommission
     content: "Phase 30 (R148–R150): decommission runbook, dual-MCP migration, final audit sign-off"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -90,7 +90,7 @@ flowchart LR
 | 27 | `engage/phase-27-findings-dedup` | done | subagent stream-C | orchestrator chat | `4f82630` |
 | 28 | `engage/phase-28-browser-obs` | in_progress | subagent stream-D | orchestrator chat | — |
 | 29 | `engage/phase-29-refactor` | in_progress | subagent stream-E | orchestrator chat | — |
-| 30 | `engage/phase-30-decommission` | in_progress | subagent stream-F | orchestrator chat | — |
+| 30 | `engage/phase-30-decommission` | docs done (await merge) | subagent stream-F | orchestrator chat | — |
 
 - **Implementer** (Task / отдельный чат): одна ветка = одна фаза, PR в `main`, без merge самостоятельно.
 - **Critic & compliance** (оркестратор / этот чат): ревью PR, вердикт APPROVE / REQUEST_CHANGES, обновление таблицы после merge.
@@ -221,7 +221,7 @@ make test-engage-ctf / test-engage-bugbounty  # Phase 26+
 - [x] Phase 26: CTF/BB golden tests green (merge `9a585ac`)
 - [x] Phase 27: findings dedup в production path (merge `4f82630`)
 - [ ] Phase 28–29: по приоритету команды (browser/obs + refactor)
-- [ ] Phase 30: decommission runbook + sign-off audit
+- [x] Phase 30: decommission runbook + sign-off audit (`engage/phase-30-decommission`; see [engage-audit-report.md](../../docs/engage-audit-report.md) migration sign-off)
 - [x] Architecture parity (аудит 2026-05-16) — **не регрессировать**
 - [x] HTTP route parity 156/156 accounted
 - [x] 158 catalog names + MCP bridge

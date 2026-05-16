@@ -4,13 +4,13 @@ overview: "Phase 30 (R148–R150): veil-engage-only runbook, .external deprecati
 todos:
   - id: p30-r148-runbook
     content: "R148: mcp-agents.md dual-MCP → veil-engage migration"
-    status: pending
+    status: completed
   - id: p30-r149-external
     content: "R149: external-hexstrike.md deprecation checklist"
-    status: pending
+    status: completed
   - id: p30-r150-signoff
     content: "R150: engage-audit-report + master plan sign-off"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -34,8 +34,8 @@ isProject: false
 
 ## DoD
 
-- [ ] Team can operate without `:8888` Flask per runbook
-- [ ] No code changes required (docs-only PR)
+- [x] Team can operate without `:8888` Flask per runbook
+- [x] No code changes required (docs-only PR)
 
 ## Verify
 

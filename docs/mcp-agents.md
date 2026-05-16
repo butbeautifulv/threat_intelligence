@@ -1,11 +1,11 @@
 # MCP for agents (Veil)
 
-Veil exposes **two MCP servers** for agents — keep them separate:
+Veil exposes **two MCP servers** for agents — keep them separate. **Tool execution runs only through veil-engage** (Go `engage` layer). Do not point agents at legacy HexStrike MCP or a Flask HTTP API on **`:8888`** — see [migration runbook](#migration-runbook-hexstrike-flask-8888--veil-engage) below.
 
 | MCP | Layer | Purpose |
 |-----|-------|---------|
 | **veil-mcp** | Graph read | Query Neo4j TI data (categories, nodes, search) |
-| **veil-engage** | Engage exec | Run security tools from YAML catalog (~150 names) |
+| **veil-engage** | Engage exec | Run security tools from YAML catalog (~158 names); replaces Python `hexstrike_mcp.py` + `hexstrike_server.py` |
 
 Do not merge offensive tool execution into the graph MCP process.
 
@@ -169,7 +169,7 @@ Engage MCP runs separately from graph read:
 | HTTP MCP | [engage.http.json.example](../examples/mcp/engage.http.json.example) |
 
 - Server name: `veil-engage`
-- Methods: `initialize`, `tools/list` (~150 catalog tools), `tools/call` → `POST /api/tools/{name}` equivalent
+- Methods: `initialize`, `tools/list` (~158 catalog tools), `tools/call` → `POST /api/tools/{name}` equivalent
 - Auth: `AuthorizeEngageMCP` + role `veil-engage-runner` when `AUTH_ENABLED=1`
 - Logs on **stderr** (same stdio rule as veil-mcp)
 
@@ -191,6 +191,55 @@ When `ENGAGE_EVENTS_NATS_ENABLED=1` and the events bus is running, tool runs and
 10. Browser/visual: `browser_agent_inspect` (forms + security score) → `smart-scan` with `scan_id` → poll `GET /api/visual/scan-progress/{id}` → `assessment-report` for `executive_summary`.
 
 Smoke: `make test-engage-events-pipeline` (Docker, includes Neo4j assert with `--profile graph-ingest`). CTF: `make test-engage-ctf`. CVE: `make test-engage-cve`. Browser: `make test-engage-browser`.
+
+## Migration runbook (HexStrike / Flask `:8888` → veil-engage)
+
+Use this sequence when retiring the MIT reference stack (`hexstrike_mcp.py` FastMCP stdio → `hexstrike_server.py` Flask on **`:8888`**).
+
+### 1. Disable legacy MCP and HTTP backend
+
+| Step | Action |
+|------|--------|
+| MCP client | Remove or disable any MCP server whose `command` runs `hexstrike_mcp.py` (or wrappers that spawn it). |
+| Processes | Ensure **no** dependency on **`http://…:8888`** for agent tool calls — that port is **not** part of Veil. |
+| Compose / scripts | Drop any compose service or systemd unit that starts the Python Flask tool server alongside Veil. |
+
+### 2. Enable veil-engage (execution)
+
+Recommended launcher from repo root (sets `ENGAGE_*` defaults and `GOWORK`):
+
+```bash
+./scripts/mcp/run-veil-engage.sh
+```
+
+**Cursor / VS-style clients:** merge the `veil-engage` stanza from [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example) into project `.cursor/mcp.json` (or Settings → MCP). Adjust `cwd` and `ENGAGE_CATALOG_PATH` paths to your checkout.
+
+Optional **Streamable HTTP** MCP on the engage MCP process (`POST` …`/mcp`): set `ENGAGE_MCP_HTTP_ENABLED=1` and tune `ENGAGE_MCP_HTTP_LISTEN` / `ENGAGE_MCP_HTTP_PATH`; default listen **`:8892`** in config (see Compose `engage-mcp`). Do not confuse this with legacy **`:8888`**.
+
+Heavy lab workflows often use **`deploy/engage/compose.yml`** so `engage-api`, runner, and optional graph ingest stay aligned — details in [engage-runtime.md](engage-runtime.md).
+
+### 3. Keep graph read separate (unchanged)
+
+After migration you still configure **veil-mcp** for Neo4j TI tools (same as before). Removing HexStrike **does not** collapse graph + exec into one process.
+
+### 4. Environment quick reference (veil-engage MCP)
+
+| Variable | Typical role |
+|----------|----------------|
+| `ENGAGE_ENV` | Log / behavior profile (`local` / `dev` / `prod`) |
+| `ENGAGE_CATALOG_PATH` | Absolute or repo-relative path to `engage/serve/catalog/tools.yaml` |
+| `AUTH_ENABLED` / `ENGAGE_AUTH_ENABLED` | `0` local; `1` with Keycloak per [auth-keycloak.md](auth-keycloak.md); MCP role **`veil-engage-runner`** when auth on |
+| `ENGAGE_VEIL_API_URL` | Base URL for correlate / intelligence features that call veil-api |
+
+Full engage API/runtime variables: [engage-runtime.md](engage-runtime.md).
+
+### 5. Verify
+
+| Check | Expected |
+|-------|-----------|
+| `tools/list` on **veil-engage** | ~158 catalog tools (parity: `make test-engage-parity`) |
+| Legacy `:8888` | Nothing listening / not referenced in MCP config |
+| **`make test-engage`** | Green in CI/local after any automation changes |
 
 ## Related
 
