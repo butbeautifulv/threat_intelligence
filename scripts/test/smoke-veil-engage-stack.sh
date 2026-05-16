@@ -39,26 +39,26 @@ curl -sf -X POST "${ENGAGE_URL}/api/tools/httpx_probe" \
 
 deadline=$((SECONDS + WAIT_SEC))
 found=0
+search_tmp="${TMPDIR:-/tmp}/veil-engage-search-$$.json"
 while (( SECONDS < deadline )); do
-  resp=$(curl -sf "${API_URL}/v1/categories/engage/search?q=${HOST}&limit=10" 2>/dev/null || echo '{}')
-  if echo "${resp}" | grep -qE 'EngageToolRun|EngageFinding|"total"'; then
-    if command -v jq >/dev/null 2>&1; then
-      count=$(echo "${resp}" | jq -r '.total // (.items | length) // 0' 2>/dev/null || echo 0)
-      if [[ "${count}" =~ ^[0-9]+$ ]] && [[ "${count}" -ge 1 ]]; then
-        found=1
-        log "engage search hits: ${count}"
-        break
-      fi
-    else
-      if echo "${resp}" | grep -qi 'engagetoolrun\|engagefinding'; then
-        found=1
-        log "engage search returned engage nodes"
-        break
-      fi
+  http=$(curl -sS -o "${search_tmp}" -w '%{http_code}' \
+    "${API_URL}/v1/categories/engage/search?q=${HOST}&limit=10" 2>/dev/null || echo 000)
+  resp=$(cat "${search_tmp}" 2>/dev/null || true)
+  if [[ "${http}" == "200" ]] && command -v jq >/dev/null 2>&1; then
+    count=$(echo "${resp}" | jq -r '((.nodes // []) | length)' 2>/dev/null || echo 0)
+    if [[ "${count}" =~ ^[0-9]+$ ]] && [[ "${count}" -ge 1 ]]; then
+      found=1
+      log "engage search hits: ${count}"
+      break
     fi
+  elif [[ "${http}" == "200" ]] && echo "${resp}" | grep -qi 'engagetoolrun\|engagefinding'; then
+    found=1
+    log "engage search returned engage nodes"
+    break
   fi
   sleep 3
 done
+rm -f "${search_tmp}" 2>/dev/null || true
 
 if [[ "${found}" -ne 1 ]]; then
   fail "expected engage category search for q=${HOST} to return results within ${WAIT_SEC}s"

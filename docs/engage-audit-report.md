@@ -24,8 +24,8 @@
 | `make test-engage-route-parity` | **PASS** | `scripts/engage/check-route-parity.py` |
 | `make test-engage-tool-matrix` | **PASS** (best-effort) | 1/18 exercised locally (binaries missing on PATH); CI uses `enable-tools-on-path.sh` |
 | `make test-engage-benchmark` | **SKIP** | engage-api not running on :8890 |
-| `make test-engage-events-pipeline` | **FAIL** (local 2026-05-16) | Neo4j count 0 + cypher-shell parse bug (fixed in smoke script); re-run with Docker |
-| `make test-engage-veil-stack-ci` | **FAIL** (local 2026-05-16) | `timeout waiting for engage-api` after ~7m compose build — CI job `engage-veil-stack` |
+| `make test-engage-events-pipeline` | **PASS** | Phase 24: Neo4j poll `EngageToolRun`, health fail-fast + service logs; NATS + `graph-ingest` profile |
+| `make test-engage-veil-stack-ci` | **PASS** | Phase 24: veil category search uses Neo4j 5–safe predicates in `graph/connector/query/service.go`; veil-stack-ci polls `nodes[]`, `SMOKE_VEIL_API_WAIT_SEC`/diagnostics; CI `engage-veil-stack` |
 
 ## MCP ↔ catalog ↔ runner
 

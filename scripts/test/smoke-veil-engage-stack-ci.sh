@@ -18,6 +18,7 @@ export COMPOSE_FILES="${VEIL_COMPOSE_FILES} -f deploy/engage/compose.yml -f depl
 export GRAPH_PACK_SKIP="${GRAPH_PACK_SKIP:-1}"
 export SMOKE_VEIL_API_WAIT_SEC="${SMOKE_VEIL_API_WAIT_SEC:-300}"
 export SMOKE_VEIL_ENGAGE_WAIT_SEC="${SMOKE_VEIL_ENGAGE_WAIT_SEC:-180}"
+export SMOKE_VEIL_VEIL_API_WAIT_SEC="${SMOKE_VEIL_VEIL_API_WAIT_SEC:-180}"
 export ENGAGE_URL="${ENGAGE_URL:-http://127.0.0.1:${ENGAGE_API_PORT:-8890}}"
 export API_URL="${API_URL:-http://127.0.0.1:${API_PORT:-8090}}"
 export SMOKE_ENGAGE_HOST="${SMOKE_ENGAGE_HOST:-example.com}"
@@ -63,10 +64,10 @@ until curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; do
   sleep 2
 done
 
-veil_deadline=$((SECONDS + 120))
+veil_deadline=$((SECONDS + SMOKE_VEIL_VEIL_API_WAIT_SEC))
 until curl -sf "${API_URL}/health" >/dev/null 2>&1; do
   if (( SECONDS >= veil_deadline )); then
-    fail "timeout waiting for veil-api"
+    fail "timeout waiting for veil-api (${SMOKE_VEIL_VEIL_API_WAIT_SEC}s)"
   fi
   sleep 2
 done
@@ -82,27 +83,37 @@ fi
 
 poll_deadline=$((SECONDS + SMOKE_VEIL_ENGAGE_WAIT_SEC))
 found=0
+last_http=000
+last_body=""
+engage_search_tmp="${TMPDIR:-/tmp}/veil-ci-engage-search-$$.json"
 while (( SECONDS < poll_deadline )); do
-  resp=$(curl -sf "${API_URL}/v1/categories/engage/search?q=${SMOKE_ENGAGE_HOST}&limit=10" 2>/dev/null || echo '{}')
-  if echo "${resp}" | grep -qE 'EngageToolRun|EngageFinding|"total"'; then
-    if command -v jq >/dev/null 2>&1; then
-      count=$(echo "${resp}" | jq -r '.total // (.items | length) // 0' 2>/dev/null || echo 0)
-      if [[ "${count}" =~ ^[0-9]+$ ]] && [[ "${count}" -ge 1 ]]; then
-        found=1
-        log "engage search hits: ${count}"
-        break
-      fi
-    elif echo "${resp}" | grep -qi 'engagetoolrun\|engagefinding'; then
+  last_http="$(curl -sS -o "${engage_search_tmp}" -w '%{http_code}' \
+    "${API_URL}/v1/categories/engage/search?q=${SMOKE_ENGAGE_HOST}&limit=10")" \
+    || last_http=000
+  last_body="$(cat "${engage_search_tmp}" 2>/dev/null || true)"
+  if [[ "${last_http}" != "200" ]]; then
+    sleep 3
+    continue
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    count="$(echo "${last_body}" | jq -r '((.nodes // []) | length)' 2>/dev/null || echo 0)"
+    if [[ "${count}" =~ ^[0-9]+$ ]] && [[ "${count}" -ge 1 ]]; then
       found=1
-      log "engage search returned engage nodes"
+      log "engage search hits via veil-api (${count})"
       break
     fi
+  elif echo "${last_body}" | grep -qi 'engagetoolrun\|engagefinding'; then
+    found=1
+    log "engage search returned engage nodes (jq not available)"
+    break
   fi
   sleep 3
 done
+rm -f "${engage_search_tmp}" 2>/dev/null || true
 
 if [[ "${found}" -ne 1 ]]; then
-  log "last search response: ${resp}"
+  log "last veil-api search HTTP ${last_http}"
+  log "last search body: ${last_body}"
   fail "expected engage category search for q=${SMOKE_ENGAGE_HOST} within ${SMOKE_VEIL_ENGAGE_WAIT_SEC}s"
 fi
 
