@@ -139,6 +139,28 @@ func TestProcesses_afterToolRun(t *testing.T) {
 	}
 }
 
+func TestProcessResourceUsage_GET(t *testing.T) {
+	c := initTestAPI(t)
+	mux := http.NewServeMux()
+	Register(mux, c)
+	req := httptest.NewRequest(http.MethodGet, "/api/process/resource-usage", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
+	}
+	var out map[string]any
+	if err := json.Unmarshal(rr.Body.Bytes(), &out); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := out["system_load"]; !ok {
+		t.Fatalf("missing system_load: %#v", out)
+	}
+	if _, ok := out["uptime_sec"]; !ok {
+		t.Fatalf("missing uptime_sec: %#v", out)
+	}
+}
+
 func TestTargetTimeline_POST(t *testing.T) {
 	c := initTestAPI(t)
 	mux := http.NewServeMux()

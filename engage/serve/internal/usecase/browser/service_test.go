@@ -40,4 +40,13 @@ func TestInspect_parsesSidecar(t *testing.T) {
 	if out.SecurityAnalysis == nil {
 		t.Fatal("missing security_analysis")
 	}
+	if score, ok := out.SecurityAnalysis["security_score"].(float64); !ok || score <= 0 {
+		t.Fatalf("security_score unexpected: %#v", out.SecurityAnalysis["security_score"])
+	}
+	if len(out.Forms) != 1 {
+		t.Fatalf("forms normalized: %#v", out.Forms)
+	}
+	if action, _ := out.Forms[0]["action"].(string); action != "/login" {
+		t.Fatalf("form action got %q", action)
+	}
 }

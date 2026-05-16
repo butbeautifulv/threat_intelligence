@@ -73,3 +73,13 @@ ENGAGE_RUNNER_CONTAINER="${RUNNER_CTN}" \
   "${ROOT}/scripts/test/smoke-engage-tool-matrix.sh"
 
 echo "OK engage compose smoke"
+
+if [[ "${ENGAGE_COMPOSE_BENCHMARK_SKIP:-}" == "1" ]]; then
+  echo "compose smoke: skipping benchmark hook (ENGAGE_COMPOSE_BENCHMARK_SKIP=1)" >&2
+  exit 0
+fi
+
+chmod +x "${ROOT}/scripts/benchmark/engage-hexstrike-parity.sh"
+ENGAGE_API_URL="${API_URL}" ENGAGE_BENCHMARK_EXECUTE="${ENGAGE_BENCHMARK_EXECUTE:-0}" \
+  "${ROOT}/scripts/benchmark/engage-hexstrike-parity.sh" || true
+echo "compose smoke: benchmark hook done (SKIP ok if api unreachable)"

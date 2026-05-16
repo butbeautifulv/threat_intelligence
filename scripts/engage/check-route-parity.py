@@ -19,7 +19,6 @@ ROUTE_ALIASES: dict[str, str] = {
     "POST /api/process/clear-cache": "POST /api/cache/clear",
     "GET /api/process/pool-stats": "GET /api/processes/dashboard",
     "GET /api/process/performance-dashboard": "GET /api/processes/dashboard",
-    "GET /api/process/resource-usage": "GET /api/telemetry",
     "GET /api/process/health-check": "GET /health",
     "POST /api/process/terminate-gracefully/{pid}": "POST /api/processes/terminate/{pid}",
     "GET /api/processes/status/{pid}": "GET /api/processes/status/{pid}",

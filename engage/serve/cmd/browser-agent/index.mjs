@@ -144,10 +144,19 @@ async function inspectPage(opts) {
   }
   await browser.close();
 
+  const securitySubset = {
+    security_score: security.security_score,
+    total_issues: security.total_issues,
+    modules: security.modules.slice(0, 10),
+    issues: security.issues.slice(0, 25),
+    issues_truncated: security.issues.length > 25,
+  };
+
   const result = {
     success: true,
+    forms,
     page_info: { title, url, status, forms, links, inputs, scripts },
-    security_analysis: security,
+    security_analysis: securitySubset,
     technologies,
     screenshot,
     timestamp: new Date().toISOString(),

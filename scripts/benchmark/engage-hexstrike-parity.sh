@@ -10,15 +10,26 @@ EXECUTE="${ENGAGE_BENCHMARK_EXECUTE:-1}"
 MAX_SEC="${BENCHMARK_MAX_SEC:-1800}"
 SMART_MAX_TOOLS="${BENCHMARK_SMART_MAX_TOOLS:-5}"
 
+RESULTS_JSON="${ROOT}/scripts/benchmark/results/latest.json"
+UTC_NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+write_latest_json_py() {
+  python3 -c 'import json,sys; json.dump(json.loads(sys.argv[1]), open(sys.argv[2],"w"), indent=2)' "$1" "${RESULTS_JSON}"
+}
+
+mkdir -p "$(dirname "${RESULTS_JSON}")"
+
 log() { printf '[engage-benchmark] %s\n' "$*"; }
 
 if ! command -v curl >/dev/null 2>&1; then
   log "SKIP: curl not available"
+  write_latest_json_py "$(printf '%s' "{\"skipped\":true,\"reason\":\"curl not available\",\"api_url\":\"${API_URL}\",\"generated_at\":\"${UTC_NOW}\"}")"
   exit 0
 fi
 
 if ! curl -sf "${API_URL}/health" >/dev/null 2>&1; then
   log "SKIP: engage-api not reachable at ${API_URL}"
+  write_latest_json_py "$(printf '%s' "{\"skipped\":true,\"reason\":\"api unreachable\",\"api_url\":\"${API_URL}\",\"generated_at\":\"${UTC_NOW}\"}")"
   exit 0
 fi
 
@@ -76,6 +87,38 @@ table="| Step | Endpoint | Seconds |
 printf '\n%s\n\n' "${table}"
 printf 'target=%s api=%s execute=%s\n' "${TARGET}" "${API_URL}" "${EXECUTE}"
 
+export ENG_BENCH_OUT="${RESULTS_JSON}"
+export ENG_BENCH_GENERATED="${UTC_NOW}"
+export ENG_BENCH_API_URL="${API_URL}"
+export ENG_BENCH_TARGET="${TARGET}"
+export ENG_BENCH_EXECUTE="${EXECUTE}"
+export ENG_BENCH_RECON="${recon_sec}"
+export ENG_BENCH_SMART="${smart_sec}"
+export ENG_BENCH_ASSESS="${assessment_sec}"
+export ENG_BENCH_TABLE="${table}"
+
+python3 <<'PY'
+import json
+import os
+
+path = os.environ["ENG_BENCH_OUT"]
+obj = {
+    "skipped": False,
+    "generated_at": os.environ["ENG_BENCH_GENERATED"],
+    "api_url": os.environ["ENG_BENCH_API_URL"],
+    "target": os.environ["ENG_BENCH_TARGET"],
+    "execute": os.environ["ENG_BENCH_EXECUTE"] == "1",
+    "seconds": {
+        "reconnaissance_workflow": os.environ["ENG_BENCH_RECON"],
+        "smart_scan": os.environ["ENG_BENCH_SMART"],
+        "assessment_report": os.environ["ENG_BENCH_ASSESS"],
+    },
+    "markdown_table": os.environ["ENG_BENCH_TABLE"],
+}
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(obj, f, indent=2)
+PY
+
 if [[ -n "${BENCHMARK_OUT:-}" ]]; then
   mkdir -p "$(dirname "${BENCHMARK_OUT}")"
   {
@@ -90,4 +133,5 @@ if [[ -n "${BENCHMARK_OUT:-}" ]]; then
   log "wrote ${BENCHMARK_OUT}"
 fi
 
+log "wrote ${RESULTS_JSON}"
 log "benchmark complete"
