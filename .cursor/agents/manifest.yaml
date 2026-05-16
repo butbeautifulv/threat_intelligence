@@ -1,0 +1,61 @@
+# Declarative implementer subagents — critic/orchestrator spawns from this file.
+# Render prompts: ./scripts/agents/render-task-prompt.sh <agent_id>
+version: 1
+
+defaults:
+  subagent_type: generalPurpose
+  readonly: false
+  push: false
+  merge: false
+
+agents:
+  - id: platform-implementer
+    description: Platform phase implementer
+    branch_prefix: platform/
+    subagent_type: generalPurpose
+    template: |
+      You implement a Veil **platform** phase on branch `{branch}`.
+      Phase plan: `{plan_path}`
+      Constraints: no cross-layer Go imports; shared code in `pkg/*` only; engage→graph via HTTP only.
+      DoD: run `make test-platform-p0` and any phase-specific smokes listed in the plan.
+      Commit on the branch, push, open PR — do **not** merge. Hand off to critic for review.
+
+  - id: engage-implementer
+    description: Engage phase implementer
+    branch_prefix: engage/phase-
+    subagent_type: generalPurpose
+    template: |
+      You implement Engage phase **{phase_slug}** on branch `{branch}`.
+      Phase plan: `{plan_path}`
+      Master plan: `.cursor/plans/engage_master_post-audit_ec180f8b.plan.md`
+      Run `make test-engage` and parity/catalog checks from the phase plan.
+      Commit on branch, push, PR — do not merge.
+
+  - id: scrape-pipeline-implementer
+    description: Scrape/pipeline layer implementer
+    branch_prefix: feat/scrape-
+    subagent_type: generalPurpose
+    readonly: false
+    template: |
+      Layer work on branch `{branch}` per `{plan_path}`.
+      Run `make test-scrape` and/or `make test-pipeline` as applicable.
+      No imports from graph/ or engage/ into scrape/pipeline.
+
+  - id: docs-only
+    description: Post-merge documentation pass
+    branch_prefix: docs/
+    subagent_type: generalPurpose
+    readonly: true
+    template: |
+      Actualize documentation per `.cursor/rules/veil-agent-documentation.mdc` after merge `{merge_sha}`.
+      Update phase plan status, runtime docs, AGENTS.md if test targets changed.
+      Read-only except markdown under docs/, .cursor/plans/, CONTRIBUTING.md, AGENTS.md.
+
+phases:
+  # Example bindings — critic fills branch/plan when spawning.
+  - id: platform-p4b
+    agent: platform-implementer
+    branch: platform/p4b-iac-agents
+    plan_path: .cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md
+    phase_slug: p4b-scrape-loop
+    notes: Full loop smoke + Terraform IaC + agent manifest

@@ -66,3 +66,9 @@ Thumbs.db
 
 # Local MCP binaries (use scripts/mcp/run-veil-mcp.sh)
 graph/serve/bin/
+
+# Terraform generated compose env
+deploy/terraform/**/generated/
+deploy/terraform/**/.terraform/
+*.tfstate
+*.tfstate.*

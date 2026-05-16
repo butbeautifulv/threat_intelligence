@@ -13,11 +13,12 @@
 | Plan | Master + phase plan in `.cursor/plans/` |
 | Implement | [veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) |
 | Review | [veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc) |
+| Subagents | [veil-agent-subagents.mdc](.cursor/rules/veil-agent-subagents.mdc), [`.cursor/agents/manifest.yaml`](.cursor/agents/manifest.yaml) |
 | Merge | Prompt merge to `main` ([veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) § Merge discipline) |
 | Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) |
 | Finish | This file § End-of-task checklist |
 
-**Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Platform v4 P4a CI ([veil_platform_v4_ci_and_full_loop.plan.md](.cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md)); Engage phases 24–30 ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md)).
+**Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Platform v4 P4a CI + P4b full loop / IaC ([veil_platform_v4_ci_and_full_loop.plan.md](.cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md), [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md), [deploy/terraform/README.md](deploy/terraform/README.md)); Engage phases 24–30 ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md)).
 
 ## Before you change code
 
@@ -58,7 +59,7 @@ Independent phases may run on **different branches at the same time** only if me
 
 Complete every step that applies before you consider the task done:
 
-1. **Tests** — run layer targets from repo root: `make test-scrape`, `make test-pipeline`, `make test-graph`, `make test-engage` for the layers you touched. For `graph/serve` only: `make test-graph-serve` (`-race`). Graph read Docker smoke: `make test-graph-read-smoke`. Engage: `make test-engage-parity` when changing catalog. Engage events bus (`engage/.../events`, `pipeline/engage-events`, `graph/ingest/.../engage`): also `make test-pipeline`; Docker `make test-engage-events-pipeline`, `make test-engage-veil-stack-ci`. Platform: `make test-platform-p0` (bus unit tests), `make test-platform-closed-loop` (Docker pilot) — [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md).
+1. **Tests** — run layer targets from repo root: `make test-scrape`, `make test-pipeline`, `make test-graph`, `make test-engage` for the layers you touched. For `graph/serve` only: `make test-graph-serve` (`-race`). Graph read Docker smoke: `make test-graph-read-smoke`. Engage: `make test-engage-parity` when changing catalog. Engage events bus (`engage/.../events`, `pipeline/engage-events`, `graph/ingest/.../engage`): also `make test-pipeline`; Docker `make test-engage-events-pipeline`, `make test-engage-veil-stack-ci`. Platform: `make test-platform-p0` (bus unit tests), `make test-platform-closed-loop` (Docker pilot), optional `make test-platform-full-loop` (scrape + engage, heavy) — [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md), [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md).
 2. **Graph version** — if you changed ingest-affecting paths (`scrape/harvest/internal/sources/`, `pipeline/ned/internal/sources/`, `graph/ingest/internal/sources/` including `engage/`, `pkg/harvest/`, `pkg/commit/`, `docs/schemas/`), run `./scripts/release/bump-graph-version.sh patch` and rebuild/publish the graph pack when a new ZIP is needed.
 3. **Pre-commit check** — `./scripts/release/check-graph-version-bump.sh` (or `make check-graph-version`).
 4. **Commit** — descriptive message (what changed and why). Do not commit secrets or `data/`. Use `git add -A -- . ':!data'` when `data/` causes permission errors. Exclude `**/__pycache__/`.

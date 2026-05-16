@@ -69,13 +69,19 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-age
 
 ## Launching implementer agents (orchestrator)
 
-When the user wants parallel work, spawn implementers with:
+When the user wants parallel work, spawn implementers **declaratively** from [`.cursor/agents/manifest.yaml`](../agents/manifest.yaml) per [veil-agent-subagents.mdc](veil-agent-subagents.mdc):
 
-- Phase plan path and branch name to create.
+```bash
+make agents-list
+make agents-render AGENT=platform-implementer PHASE=platform-p4b
+```
+
+- Use rendered prompt + manifest `subagent_type` / `readonly` for Cursor **Task**.
+- Phase plan path and branch come from manifest `phases:` or explicit `--set branch=...`.
 - Instruction: commit on branch, push, open PR, do not merge.
 - Hand results back to **this critic session** for review.
 
-Use Cursor **Task** / subagents for implementation; keep **this chat** for planning updates and critic gates.
+Keep **this chat** for planning updates and critic gates.
 
 ## What the critic does not do
 

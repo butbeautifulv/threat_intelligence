@@ -6,8 +6,8 @@ todos:
     content: "P4a: GHA workflow test-platform-p0 + closed-loop on main"
     status: completed
   - id: p4b-scrape-loop
-    content: "P4b: optional scrape→pipeline slice in platform smoke (heavy)"
-    status: pending
+    content: "P4b: full loop smoke + Terraform IaC + agent manifest"
+    status: in_progress
 isProject: false
 ---
 
@@ -22,7 +22,7 @@ Platform v3 (P0–P3) merged on `main`. P3 pilot validates **act → learn → r
 | Phase | Branch | DoD |
 |-------|--------|-----|
 | P4a | `platform/p4a-ci-platform` | `.github/workflows/platform.yml`; PR → `test-platform-p0`; `main` push → `test-platform-closed-loop` |
-| P4b | `platform/p4b-scrape-loop-smoke` | TBD: minimal harvest publish + graph hit (Docker, long) |
+| P4b | `platform/p4b-iac-agents` | `make test-platform-full-loop`; `deploy/terraform/`; `.cursor/agents/manifest.yaml`; GHA `workflow_dispatch` full-loop |
 
 ## Agent chain
 

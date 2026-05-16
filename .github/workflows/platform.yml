@@ -1,6 +1,12 @@
 name: platform
 
 on:
+  workflow_dispatch:
+    inputs:
+      run_full_loop:
+        description: Run P4b full loop smoke (heavy Docker)
+        type: boolean
+        default: false
   push:
     branches: [main, master]
     paths:
@@ -17,6 +23,8 @@ on:
       - 'engage/serve/internal/usecase/intelligence/**'
       - 'scripts/test/smoke-platform*.sh'
       - 'docs/platform-closed-loop-pilot.md'
+      - 'docs/platform-full-loop-smoke.md'
+      - 'deploy/terraform/**'
       - 'Makefile'
       - 'versions.env'
       - '.github/workflows/platform.yml'
@@ -35,6 +43,8 @@ on:
       - 'engage/serve/internal/usecase/intelligence/**'
       - 'scripts/test/smoke-platform*.sh'
       - 'docs/platform-closed-loop-pilot.md'
+      - 'docs/platform-full-loop-smoke.md'
+      - 'deploy/terraform/**'
       - 'Makefile'
       - 'versions.env'
       - '.github/workflows/platform.yml'
@@ -67,3 +77,26 @@ jobs:
         env:
           SMOKE_VEIL_STACK_BUILD: '1'
         run: make test-platform-closed-loop
+
+  full-loop:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.run_full_loop == true
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker version
+        run: docker compose version
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Platform P0 unit tests
+        run: make test-platform-p0
+
+      - name: Full loop smoke (P4b)
+        env:
+          SMOKE_VEIL_STACK_BUILD: '1'
+          SMOKE_SCRAPE_WAIT_SEC: '900'
+        run: make test-platform-full-loop

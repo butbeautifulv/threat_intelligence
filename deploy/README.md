@@ -50,6 +50,14 @@ docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f de
 
 Partition overlay: [compose.scale.yml](compose.scale.yml) (`scrape_worker_fast`: ti,sbom,coderules,nuclei; `scrape_worker_slow`: ds,vuln,lola).
 
+## Terraform (optional IaC)
+
+Declarative Compose env and optional managed `up`/`down`: [terraform/README.md](terraform/README.md).
+
+```bash
+cd deploy/terraform/environments/local && terraform init && terraform apply
+```
+
 ## E2E smoke
 
 ```bash

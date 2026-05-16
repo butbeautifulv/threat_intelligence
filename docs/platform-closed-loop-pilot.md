@@ -68,7 +68,7 @@ Environment:
 
 Related smokes: `make test-engage-veil-stack-ci`, `make test-engage-events-pipeline`, `make test-graph-engage-category`.
 
-**CI:** GitHub Actions [`.github/workflows/platform.yml`](../.github/workflows/platform.yml) runs `make test-platform-p0` on every matching PR; `make test-platform-closed-loop` on push to `main`/`master`.
+**CI:** GitHub Actions [`.github/workflows/platform.yml`](../.github/workflows/platform.yml) runs `make test-platform-p0` on every matching PR; `make test-platform-closed-loop` on push to `main`/`master`. Optional P4b full loop (scrape + engage): `workflow_dispatch` with `run_full_loop` — see [platform-full-loop-smoke.md](platform-full-loop-smoke.md).
 
 ## Full loop (with discovery)
 
