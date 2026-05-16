@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	authmw "github.com/butbeautifulv/veil/graph/serve/internal/auth/middleware"
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
+	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/graph/serve/internal/config"
 	"github.com/butbeautifulv/veil/graph/serve/internal/connector"
 	"github.com/butbeautifulv/veil/graph/serve/internal/transport/mcpserver"

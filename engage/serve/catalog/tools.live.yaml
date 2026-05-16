@@ -1,0 +1,103 @@
+# R1: tools enabled when binary exists on PATH (smoke / dev).
+tools:
+  - name: nmap_scan
+    category: network
+    binary: nmap
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "-sV"
+        required: false
+      - name: ports
+        type: string
+        required: false
+      - name: additional_args
+        type: string
+        default: "-T4 -Pn"
+        required: false
+    args:
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "{additional_args}"
+      - "{target}"
+    timeout_sec: 600
+    description: "network tool: nmap scan"
+    enabled: true
+  - name: nuclei_scan
+    category: web
+    binary: nuclei
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: templates
+        type: string
+        required: false
+      - name: additional_args
+        type: string
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "-t"
+      - "{templates}"
+      - "{additional_args}"
+    timeout_sec: 600
+    description: Nuclei vulnerability scan
+    enabled: true
+  - name: httpx_probe
+    category: web
+    binary: httpx
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: "-silent"
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 120
+    description: HTTP probing
+    enabled: true
+  - name: subfinder_scan
+    category: osint
+    binary: subfinder
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        required: false
+    args:
+      - "-d"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: Subdomain discovery
+    enabled: true
+  - name: trivy_scan
+    category: cloud
+    binary: trivy
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        required: false
+    args:
+      - "image"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 600
+    description: Trivy container/image scan
+    enabled: true

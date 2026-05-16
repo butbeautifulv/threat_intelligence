@@ -5,6 +5,7 @@
 | Scrape | [scrape/compose.yml](scrape/compose.yml) | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
 | Pipeline | [pipeline/compose.yml](pipeline/compose.yml) | `pipeline_worker` |
 | Graph | [graph/compose.yml](graph/compose.yml) | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api` |
+| Engage | [engage/compose.yml](engage/compose.yml) | `engage-api`, `engage-mcp`, `engage-worker`, `engage-runner` (profile `runner`; opt-in offensive tools) |
 
 ## Full stack
 
@@ -124,3 +125,22 @@ GRAPH_PACK_VERSION=v0.4.2 ./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
 Script index: [scripts/README.md](../scripts/README.md).
+
+## Engage layer (opt-in)
+
+Offensive tooling is **not** part of the default full stack. Use a separate compose file:
+
+```bash
+docker compose -f deploy/engage/compose.yml up -d --build engage-api engage-mcp
+```
+
+| Service | Host port (dev) | Role |
+|---------|-----------------|------|
+| engage-api | 8890 | REST + workflows + async jobs |
+| engage-mcp | 8892 | Streamable HTTP MCP (`ENGAGE_MCP_HTTP_ENABLED=1`) |
+| engage-worker | — | Background job processor |
+| engage-runner | none | Toolbox image; `--profile runner` |
+
+Secure overlay: [engage/compose.secure.yml](engage/compose.secure.yml) + [profiles/secure-engage.env](profiles/secure-engage.env).
+
+Runtime: [docs/engage-runtime.md](../docs/engage-runtime.md). Catalog: [docs/engage-tools.md](../docs/engage-tools.md).

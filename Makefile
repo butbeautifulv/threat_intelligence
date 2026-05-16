@@ -1,4 +1,4 @@
-.PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
+.PHONY: test-scrape test-pipeline test-graph test-graph-serve test-graph-read-smoke test-engage test-engage-smoke catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-scrape:
@@ -26,6 +26,23 @@ test-graph-serve:
 
 test-graph-read-smoke:
 	./scripts/test/smoke-graph-read.sh
+
+test-engage:
+	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./... -count=1
+	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp ./cmd/worker
+
+test-engage-smoke:
+	./scripts/test/smoke-engage.sh
+	./scripts/test/smoke-engage-mcp.sh
+
+test-engage-minimal:
+	ENGAGE_TOOLS_MINIMAL=1 ./scripts/engage/enable-catalog-by-category.sh network
+
+test-engage-parity:
+	./scripts/engage/check-catalog-parity.sh
+
+catalog-engage:
+	python3 ./scripts/engage/extract-legacy-catalog.py
 
 graph-pack-export:
 	./scripts/graph-pack/export-cypher.sh

@@ -56,3 +56,6 @@ Thumbs.db
 .vscode/
 
 .external/
+
+# Local MCP binaries (use scripts/mcp/run-veil-mcp.sh)
+graph/serve/bin/

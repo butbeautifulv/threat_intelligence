@@ -1,0 +1,2 @@
+# Optional overrides: enable tools when binary is on PATH (see scripts/engage/enable-catalog-by-category.sh).
+tools: []

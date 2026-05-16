@@ -62,7 +62,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 	}
 
 	writeReq(1, "initialize", map[string]any{
-		"protocolVersion": protocolVersionStdio,
+		"protocolVersion": protocol20241105,
 		"capabilities":    map[string]any{},
 	})
 	init := readResp()
@@ -74,7 +74,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 		t.Fatalf("server name: %v", info["name"])
 	}
 	pv, _ := init.Result.(map[string]any)["protocolVersion"].(string)
-	if pv != protocolVersionStdio {
+	if pv != protocol20241105 {
 		t.Fatalf("protocol version: %v", pv)
 	}
 

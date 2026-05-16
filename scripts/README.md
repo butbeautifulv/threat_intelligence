@@ -25,7 +25,14 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [housekeeping/lint-markdown-dir-links.sh](housekeeping/lint-markdown-dir-links.sh) | Lint directory links (trailing `/`) in `*.md` |
 | [test/smoke-scrape-e2e.sh](test/smoke-scrape-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
 | [test/smoke-graph-read.sh](test/smoke-graph-read.sh) | Graph read smoke: Neo4j + API + MCP HTTP (no scrape/NATS) |
+| [mcp/run-veil-mcp.sh](mcp/run-veil-mcp.sh) | MCP stdio launcher for agents (logs on stderr) |
 | [smoke/mcp-smoke.sh](smoke/mcp-smoke.sh) | MCP stdio smoke against local Neo4j |
+| [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`) |
+| [engage/extract-legacy-catalog.py](engage/extract-legacy-catalog.py) | Regenerate `engage/serve/catalog/tools.yaml` |
+| [engage/enable-catalog-by-category.sh](engage/enable-catalog-by-category.sh) | Write `tools.enabled.yaml` when binaries on PATH |
+| [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 150 tools vs legacy MCP reference |
+| [test/smoke-engage.sh](test/smoke-engage.sh) | Engage API health + tools list |
+| [test/smoke-engage-mcp.sh](test/smoke-engage-mcp.sh) | Engage MCP initialize smoke |
 | [test/verify-nvd-enrichment.sh](test/verify-nvd-enrichment.sh) | Cypher QA for NVD CWE/CPE |
 | [housekeeping/graph-dedup-cleanup.sh](housekeeping/graph-dedup-cleanup.sh) | Post-ingest Neo4j dedup |
 

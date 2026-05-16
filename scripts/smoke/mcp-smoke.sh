@@ -11,12 +11,17 @@ NEO4J_USER="${NEO4J_USER:-neo4j}"
 NEO4J_PASS="${NEO4J_PASS:-neo4jpassword}"
 NEO4J_DB="${NEO4J_DB:-neo4j}"
 
+RUNNER="${ROOT}/scripts/mcp/run-veil-mcp.sh"
 MCP_BIN="${MCP_BIN:-}"
 if [[ -z "${MCP_BIN}" ]]; then
-  MCP_BIN="${ROOT}/graph/serve/bin/mcp"
-  if [[ ! -x "${MCP_BIN}" ]]; then
-    echo "Building mcp binary..."
-    (cd "${ROOT}/graph/serve" && env GOWORK="${ROOT}/graph/go.work" go build -o bin/mcp ./cmd/mcp)
+  if [[ -x "${RUNNER}" ]]; then
+    MCP_BIN="${RUNNER}"
+  else
+    MCP_BIN="${ROOT}/graph/serve/bin/mcp"
+    if [[ ! -x "${MCP_BIN}" ]]; then
+      echo "Building mcp binary..." >&2
+      (cd "${ROOT}/graph/serve" && env GOWORK="${ROOT}/graph/go.work" go build -o bin/mcp ./cmd/mcp)
+    fi
   fi
 fi
 
@@ -27,15 +32,23 @@ send_rpc() {
   printf 'Content-Length: %d\r\n\r\n%s' "${#body}" "$body"
 }
 
-echo "MCP smoke: initialize + tools/list + ti_health (Neo4j ${NEO4J_URI})"
+echo "MCP smoke: initialize (2024-11-05 + 2025-03-26) + tools/list + ti_health (Neo4j ${NEO4J_URI})"
 
-out=$( {
-  send_rpc 1 initialize '{"protocolVersion":"2024-11-05","capabilities":{}}'
-  send_rpc 2 ping '{}'
-  send_rpc 3 "tools/list" '{}'
-  send_rpc 4 "tools/call" '{"name":"ti_health","arguments":{}}'
-} | NEO4J_URI="$NEO4J_URI" NEO4J_USER="$NEO4J_USER" NEO4J_PASS="$NEO4J_PASS" NEO4J_DB="$NEO4J_DB" \
-  timeout 30 "${MCP_BIN}" 2>/dev/null || true)
+run_smoke() {
+  local init_ver="$1"
+  {
+    send_rpc 1 initialize "{\"protocolVersion\":\"${init_ver}\",\"capabilities\":{}}"
+    send_rpc 2 ping '{}'
+    send_rpc 3 "tools/list" '{}'
+    send_rpc 4 "tools/call" '{"name":"ti_health","arguments":{}}'
+  } | NEO4J_URI="$NEO4J_URI" NEO4J_USER="$NEO4J_USER" NEO4J_PASS="$NEO4J_PASS" NEO4J_DB="$NEO4J_DB" \
+    timeout 30 "${MCP_BIN}"
+}
+
+out=$(run_smoke "2024-11-05" 2>&1) || true
+if ! grep -q '"name":"veil-mcp"' <<<"$out" && ! grep -q '"name": "veil-mcp"' <<<"$out"; then
+  out=$(run_smoke "2025-03-26" 2>&1) || true
+fi
 
 if ! grep -q '"name":"veil-mcp"' <<<"$out" && ! grep -q '"name": "veil-mcp"' <<<"$out"; then
   echo "FAIL: initialize response missing veil-mcp" >&2

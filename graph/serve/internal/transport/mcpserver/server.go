@@ -7,15 +7,13 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
+	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/graph/serve/internal/usecase"
 	"github.com/butbeautifulv/veil/graph/serve/internal/version"
 )
 
-const (
-	protocolVersionStdio = "2025-03-26"
-	protocolVersionHTTP  = "2025-03-26"
-)
+// Latest protocol advertised when no client version is negotiated (HTTP default).
+const protocolVersionHTTP = protocol20250326
 
 type Server struct {
 	uc     *usecase.ReadUsecase
@@ -100,8 +98,9 @@ func (s *Server) ProcessMessage(ctx context.Context, msg rpcMessage, httpTranspo
 func (s *Server) handle(ctx context.Context, method string, params json.RawMessage, httpTransport bool) (any, error) {
 	switch method {
 	case "initialize":
-		pv := protocolVersionStdio
-		if httpTransport {
+		pv := negotiateProtocol(params)
+		if httpTransport && pv == defaultProtocol {
+			// HTTP transport may use newer streamable profile when client omits version.
 			pv = protocolVersionHTTP
 		}
 		return map[string]any{

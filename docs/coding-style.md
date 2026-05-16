@@ -22,9 +22,10 @@ Conventions for the three runtime layers — **scrape**, **pipeline**, **graph**
 | **Scrape** | [scrape/](../scrape/) | Fetch + ledger → `scrape.>` |
 | **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → NED → `ingest.>` |
 | **Graph** | [graph/](../graph/) | Consume `ingest.>` → Neo4j; API/MCP read |
-| **Wire types** | [pkg/](../pkg/) | `harvest`, `commit`, `natsjet`, `ti/*` |
+| **Engage** | [engage/](../engage/) | Tool execution, workflows, reports (HTTP API/MCP) |
+| **Wire types** | [pkg/](../pkg/) | `harvest`, `commit`, `natsjet`, `ti/*`, `auth`, `engage/*` |
 
-Layers communicate **only via NATS** and documented JSON schemas. No Go imports across `scrape/`, `pipeline/`, `graph/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
+Layers **scrape / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `scrape/`, `pipeline/`, `graph/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
 
 Layer-specific layout, env vars, and build commands:
 
@@ -41,6 +42,7 @@ Layer-specific layout, env vars, and build commands:
 | **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` | `commit`, Bolt, normalize |
 | **Pipeline (NED)** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt, MERGE |
 | **Graph** | [graph/](../graph/) | Consume `ingest.>` | `harvest`, feeds, Vitess |
+| **Engage** | [engage/](../engage/) | — (HTTP to veil-api only) | Bolt, NATS, scrape |
 
 Shared fetch policy (scrape only): [scrape/harvest/internal/feeds](../scrape/harvest/internal/feeds/), [scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
 

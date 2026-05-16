@@ -2,7 +2,7 @@
 
 Architecture rules: [docs/coding-style.md](../docs/coding-style.md).
 
-Consumes `ingest.>`, MERGE into Neo4j; HTTP API and MCP read Bolt.
+Consumes `ingest.>`, MERGE into Neo4j; HTTP API and MCP read Bolt. **Tool execution** (offensive scans) is a separate layer: [engage/README.md](../engage/README.md) (`veil-engage` MCP), which may call this API read-only via JWT.
 
 | Module | Path | Role |
 |--------|------|------|

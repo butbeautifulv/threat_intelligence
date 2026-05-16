@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
+	"github.com/butbeautifulv/veil/pkg/auth"
 )
 
 type Config struct {

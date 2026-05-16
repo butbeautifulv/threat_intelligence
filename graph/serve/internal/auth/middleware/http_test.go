@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth/keycloak"
+	"github.com/butbeautifulv/veil/pkg/auth"
+	"github.com/butbeautifulv/veil/pkg/auth/keycloak"
 	"github.com/butbeautifulv/veil/graph/serve/internal/config"
 )
 

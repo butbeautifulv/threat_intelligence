@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
+	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/graph/serve/internal/config"
 )
 

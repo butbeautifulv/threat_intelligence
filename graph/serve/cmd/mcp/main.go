@@ -30,7 +30,7 @@ func main() {
 	)
 	flag.Parse()
 
-	logger := components.SetupLogger(*env)
+	logger := components.SetupMCPLogger(*env)
 	cfg := config.LoadMCP()
 	cfg.Neo4j = config.Neo4jConfig{
 		URI:      *neo4jURI,
@@ -106,7 +106,7 @@ func main() {
 
 func runHealthcheck() int {
 	cfg := config.LoadMCP()
-	c, err := components.InitMCP(cfg, components.SetupLogger(cfg.Env))
+	c, err := components.InitMCP(cfg, components.SetupMCPLogger(cfg.Env))
 	if err != nil {
 		return 1
 	}

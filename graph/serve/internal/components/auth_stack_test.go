@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/butbeautifulv/veil/graph/serve/internal/auth"
+	"github.com/butbeautifulv/veil/pkg/auth"
 )
 
 func TestNewAuthStack_requiresIssuer(t *testing.T) {
