@@ -33,5 +33,14 @@ if missing:
     sys.exit(1)
 if extra:
     print("extra in catalog:", extra[:5])
+bridge = {
+    "analyze_target_intelligence", "create_attack_chain_ai", "intelligent_smart_scan",
+    "comprehensive_api_audit", "correlate_threat_intelligence", "discover_attack_chains",
+    "ai_vulnerability_assessment", "vulnerability_intelligence_dashboard",
+}
+missing_bridge = sorted(bridge - cat)
+if missing_bridge:
+    print("intelligence bridge tools missing from catalog:", missing_bridge)
+    sys.exit(1)
 print("parity OK:", len(legacy), "tools")
 PY

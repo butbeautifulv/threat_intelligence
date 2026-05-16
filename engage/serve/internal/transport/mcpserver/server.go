@@ -9,19 +9,31 @@ import (
 	"log/slog"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/files"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/version"
 	"github.com/butbeautifulv/veil/pkg/auth"
 )
 
 type Server struct {
-	runner *toolsuc.Runner
-	auth   *auth.Stack
-	logger *slog.Logger
+	runner      *toolsuc.Runner
+	intel       *intelligence.Service
+	workflows   *workflow.Service
+	auth        *auth.Stack
+	logger      *slog.Logger
+	catalogPath string
+	files       *files.Manager
 }
 
 func NewServer(runner *toolsuc.Runner, stack *auth.Stack, logger *slog.Logger) *Server {
 	return &Server{runner: runner, auth: stack, logger: logger}
+}
+
+// NewServerWithIntel wires in-process intelligence and workflow handlers for MCP tools/call.
+func NewServerWithIntel(runner *toolsuc.Runner, intel *intelligence.Service, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
+	return &Server{runner: runner, intel: intel, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
 }
 
 func (s *Server) Run(ctx context.Context, inReader any, outWriter any) error {

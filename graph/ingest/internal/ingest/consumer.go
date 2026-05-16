@@ -71,6 +71,8 @@ func handleMsg(ctx context.Context, log *slog.Logger, m *nats.Msg, rt *component
 		return rt.Apply.Lola(ctx, &env)
 	case commit.SourceDS:
 		return rt.Apply.DS(ctx, &env)
+	case commit.SourceEngage:
+		return rt.Apply.Engage(ctx, &env)
 	}
 
 	switch env.Kind {
@@ -172,6 +174,10 @@ func validateEnvelopeSource(e *commit.Envelope) error {
 	case commit.KindDSUpsertSigma, commit.KindDSUpsertYara, commit.KindDSUpsertAtomic, commit.KindDSUpsertCaldera:
 		if e.Source != commit.SourceDS {
 			return fmt.Errorf("kind %q expects source %q, got %q", e.Kind, commit.SourceDS, e.Source)
+		}
+	case commit.KindEngageToolRun, commit.KindEngageFinding:
+		if e.Source != commit.SourceEngage {
+			return fmt.Errorf("kind %q expects source %q, got %q", e.Kind, commit.SourceEngage, e.Source)
 		}
 	}
 	return nil

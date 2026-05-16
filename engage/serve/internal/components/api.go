@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
+	"github.com/butbeautifulv/veil/engage/serve/internal/events"
 	"github.com/butbeautifulv/veil/engage/serve/internal/client/veilgraph"
 	"github.com/butbeautifulv/veil/engage/serve/internal/config"
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cache"
+	cmduc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/command"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/recovery"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/files"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	jobuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/job"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
@@ -27,7 +33,17 @@ type APIComponents struct {
 	Workflows *workflow.Service
 	Jobs      *jobuc.Queue
 	Processes *process.Manager
-	Audit     *audit.Logger
+	Audit       *audit.Logger
+	AuditStore  *audit.Store
+	AuditReader audit.Reader
+	Files      *files.Manager
+	Cache     *cache.Store
+	Command            *cmduc.Runner
+	StartedAt          time.Time
+	MetricsEnabled     bool
+	AuditWebhookURL    string
+	AuditWebhookSecret string
+	CatalogPath          string
 }
 
 func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*APIComponents, error) {
@@ -51,17 +67,57 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		return nil, err
 	}
 	reg := tools.NewRegistry(specs)
+	procMgr := process.NewManager()
 	exec := &runner.Executor{
-		WorkDir: cfg.RunnerWork,
-		Sandbox: runner.NewSandboxFromEnv(),
+		WorkDir:   cfg.RunnerWork,
+		Sandbox:   runner.NewSandboxFromEnv(),
+		Processes: procMgr,
 	}
 	_ = os.MkdirAll(cfg.RunnerWork, 0o700)
-	auditLog := audit.New(nil)
+	var auditStore *audit.Store
+	var auditPG *audit.PostgresStore
+	var auditAppenders []audit.Appender
+	if cfg.AuditDir != "" {
+		auditStore, _ = audit.NewStore(cfg.AuditDir)
+		if auditStore != nil {
+			auditAppenders = append(auditAppenders, auditStore)
+		}
+	}
+	if cfg.AuditPostgresURL != "" {
+		if pg, err := audit.NewPostgresStore(cfg.AuditPostgresURL); err == nil {
+			auditPG = pg
+			auditAppenders = append(auditAppenders, pg)
+			if cfg.AuditRetentionDays > 0 {
+				_, _ = pg.Retention(time.Duration(cfg.AuditRetentionDays) * 24 * time.Hour)
+			}
+		}
+	}
+	var auditReader audit.Reader
+	if auditPG != nil {
+		auditReader = auditPG
+	} else {
+		auditReader = auditStore
+	}
+	var auditAppender audit.Appender
+	if len(auditAppenders) > 0 {
+		auditAppender = audit.NewMultiStore(auditAppenders...)
+	}
+	auditLog := audit.NewWithStore(nil, auditAppender)
+	var eventPub *events.Publisher
+	if cfg.EventsNATSEnabled && cfg.NATSURL != "" {
+		if pub, err := events.Connect(cfg.NATSURL, cfg.EventsNATSSubject); err == nil {
+			eventPub = pub
+			auditLog.SetEventPublisher(eventBridge{pub: pub})
+		}
+	}
+	resultCache := cache.New(15 * time.Minute)
 	toolRunner := &toolsuc.Runner{
 		Registry: reg,
 		Exec:     exec,
 		Audit:    auditLog,
 		Auth:     stack,
+		Cache:    resultCache,
+		Recovery: recovery.Default(),
 	}
 	veil := veilgraph.New(veilgraph.Config{
 		BaseURL:      cfg.VeilAPI.BaseURL,
@@ -69,17 +125,63 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 		ClientSecret: cfg.VeilAPI.ClientSecret,
 		TokenURL:     cfg.VeilAPI.TokenURL,
 	})
-	intel := &intelligence.Service{Veil: veil, Registry: reg}
-	wf := &workflow.Service{Intel: intel, Tools: toolRunner}
-	jobs := jobuc.NewQueue(toolRunner, 2)
+	intel := &intelligence.Service{
+		Veil:     veil,
+		Registry: reg,
+		Engine:   intelligence.DefaultDecisionEngine(),
+		Tools:    toolRunner,
+	}
+	var jobStore jobuc.Store = jobuc.NewMemoryStore()
+	switch cfg.JobsMode {
+	case jobuc.ModeFile:
+		_ = os.MkdirAll(cfg.JobsDir, 0o700)
+		jobStore = jobuc.NewFileStore(cfg.JobsDir)
+	case jobuc.ModeRedis:
+		rs, err := jobuc.NewRedisStore(cfg.RedisURL)
+		if err != nil {
+			return nil, fmt.Errorf("redis jobs: %w", err)
+		}
+		jobStore = rs
+	case jobuc.ModeNats:
+		ns, err := jobuc.NewNATSStore(cfg.NATSURL)
+		if err != nil {
+			return nil, fmt.Errorf("nats jobs: %w", err)
+		}
+		jobStore = ns
+	}
+	jobs := jobuc.NewQueue(toolRunner,
+		jobuc.WithStore(jobStore),
+		jobuc.WithMode(cfg.JobsMode),
+		jobuc.WithPollInterval(cfg.JobsPollInterval),
+		jobuc.WithConcurrency(cfg.WorkerConcurrency),
+	)
+	wf := &workflow.Service{Intel: intel, Tools: toolRunner, Jobs: jobs}
+	if eventPub != nil {
+		wf.Findings = findingBridge{pub: eventPub}
+	}
+	fileMgr, err := files.NewManager(cfg.FilesDir)
+	if err != nil {
+		return nil, fmt.Errorf("files: %w", err)
+	}
+	cmdRunner := cmduc.New(exec, reg)
 	return &APIComponents{
-		Auth:      stack,
-		Registry:  reg,
-		Tools:     toolRunner,
-		Intel:     intel,
-		Workflows: wf,
-		Jobs:      jobs,
-		Processes: process.NewManager(),
-		Audit:     auditLog,
+		Auth:               stack,
+		Registry:           reg,
+		Tools:              toolRunner,
+		Intel:              intel,
+		Workflows:          wf,
+		Jobs:               jobs,
+		Processes:          procMgr,
+		Audit:              auditLog,
+		AuditStore:         auditStore,
+		AuditReader:        auditReader,
+		Files:              fileMgr,
+		Cache:              resultCache,
+		Command:            cmdRunner,
+		StartedAt:          time.Now().UTC(),
+		MetricsEnabled:     cfg.MetricsEnabled,
+		AuditWebhookURL:    cfg.AuditWebhookURL,
+		AuditWebhookSecret: cfg.AuditWebhookSecret,
+		CatalogPath:        catalogPath,
 	}, nil
 }

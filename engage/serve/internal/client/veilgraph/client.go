@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -69,6 +70,17 @@ func (c *Client) GetJSON(ctx context.Context, path string) (json.RawMessage, err
 
 func (c *Client) Categories(ctx context.Context) (json.RawMessage, error) {
 	return c.GetJSON(ctx, "/v1/categories")
+}
+
+// Search queries veil-api category search endpoint.
+func (c *Client) Search(ctx context.Context, category, query string) (json.RawMessage, error) {
+	category = strings.TrimSpace(category)
+	query = strings.TrimSpace(query)
+	if category == "" || query == "" {
+		return nil, fmt.Errorf("category and query required")
+	}
+	path := fmt.Sprintf("/v1/categories/%s/search?q=%s", category, url.QueryEscape(query))
+	return c.GetJSON(ctx, path)
 }
 
 func (c *Client) bearer(ctx context.Context) (string, error) {

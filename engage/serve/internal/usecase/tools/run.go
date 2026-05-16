@@ -10,6 +10,9 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
+	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cache"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/recovery"
 	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
@@ -20,6 +23,15 @@ type Runner struct {
 	Exec     *runner.Executor
 	Audit    *audit.Logger
 	Auth     *auth.Stack
+	Cache    *cache.Store
+	Recovery *recovery.Handler
+}
+
+func (r *Runner) recovery() *recovery.Handler {
+	if r.Recovery != nil {
+		return r.Recovery
+	}
+	return recovery.Default()
 }
 
 func (r *Runner) List() []tool.Spec {
@@ -27,6 +39,50 @@ func (r *Runner) List() []tool.Spec {
 }
 
 func (r *Runner) Run(ctx context.Context, subject string, name string, req contract.ToolRunRequest) contract.ToolRunResponse {
+	res := r.runOnce(ctx, subject, name, req)
+	if res.Success {
+		return res
+	}
+	h := r.recovery()
+	errType := h.Classify(res.Error + " " + res.Output)
+	if !h.Recoverable(errType) {
+		return res
+	}
+	alt := h.SuggestAlternative(name, errType)
+	if alt != "" {
+		altName := tools.ResolveCatalogName(alt+"_scan", r.Registry)
+		if spec, ok := r.Registry.Get(altName); ok && spec.Enabled {
+			alt = altName
+		} else if _, ok := r.Registry.Get(alt); !ok {
+			alt = tools.ResolveCatalogName(alt, r.Registry)
+		}
+		retry := r.runOnce(ctx, subject, alt, req)
+		if retry.Success {
+			retry.Tool = name
+			retry.Output = "[recovery: " + alt + "] " + retry.Output
+			return retry
+		}
+	}
+	params := h.AdjustParams(name, errType, mergeParametersFromReq(name, req, r.Registry))
+	retry := r.runOnce(ctx, subject, name, contract.ToolRunRequest{
+		Target:     req.Target,
+		Parameters: params,
+	})
+	if retry.Success {
+		retry.Output = "[recovery: retry] " + retry.Output
+	}
+	return retry
+}
+
+func mergeParametersFromReq(name string, req contract.ToolRunRequest, reg *tools.Registry) map[string]string {
+	spec, err := reg.MustGet(name)
+	if err != nil {
+		return req.Parameters
+	}
+	return mergeParameters(spec, req)
+}
+
+func (r *Runner) runOnce(ctx context.Context, subject string, name string, req contract.ToolRunRequest) contract.ToolRunResponse {
 	if r.Auth != nil && r.Auth.Config.Enabled {
 		sub := &auth.Subject{Sub: subject}
 		if subject != "" {
@@ -48,8 +104,18 @@ func (r *Runner) Run(ctx context.Context, subject string, name string, req contr
 	}
 	params := mergeParameters(spec, req)
 	args := runner.BuildArgs(spec.ArgsTemplate, req.Target, req.AdditionalArgs, params)
+	cacheKey := fmt.Sprintf("tool:%s:%s:%v", name, req.Target, params)
+	if req.Parameters != nil && req.Parameters["use_cache"] == "false" {
+		cacheKey = ""
+	}
+	if cacheKey != "" && r.Cache != nil {
+		if out, ok := r.Cache.Get(cacheKey); ok {
+			return contract.ToolRunResponse{Success: true, Tool: name, Output: out, JobID: "cached"}
+		}
+	}
 	timeout := time.Duration(spec.TimeoutSec) * time.Second
-	res := r.Exec.Run(ctx, bin, args, timeout)
+	track := &runner.TrackInfo{Tool: name, Target: req.Target}
+	res := r.Exec.Run(ctx, bin, args, timeout, track)
 	jobID := fmt.Sprintf("%s-%d", name, time.Now().UnixNano())
 	out := res.Stdout
 	if res.Stderr != "" {
@@ -62,9 +128,13 @@ func (r *Runner) Run(ctx context.Context, subject string, name string, req contr
 	} else if res.ExitCode != 0 {
 		errMsg = fmt.Sprintf("exit code %d", res.ExitCode)
 	}
+	if ok && cacheKey != "" && r.Cache != nil {
+		r.Cache.Set(cacheKey, out)
+	}
 	if r.Audit != nil {
 		r.Audit.ToolRun(subject, name, req.Target, jobID, ok, errMsg)
 	}
+	telemetry.RecordToolRun(name, ok)
 	return contract.ToolRunResponse{
 		Success:  ok,
 		Tool:     name,
@@ -84,6 +154,20 @@ func mergeParameters(spec tool.Spec, req contract.ToolRunRequest) map[string]str
 	}
 	if req.Target != "" {
 		out["target"] = req.Target
+		for _, alias := range []string{"url", "domain"} {
+			if specHasParam(spec, alias) && out[alias] == "" {
+				out[alias] = req.Target
+			}
+		}
 	}
 	return out
+}
+
+func specHasParam(spec tool.Spec, name string) bool {
+	for _, p := range spec.Parameters {
+		if p.Name == name {
+			return true
+		}
+	}
+	return false
 }

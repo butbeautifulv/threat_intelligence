@@ -6,19 +6,25 @@ import (
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
+	jobuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/job"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
 // Service runs multi-step workflows (bug bounty, assessment).
 type Service struct {
-	Intel *intelligence.Service
-	Tools *toolsuc.Runner
+	Intel   *intelligence.Service
+	Tools   *toolsuc.Runner
+	Jobs    *jobuc.Queue
+	Findings FindingBus
 }
 
 func (s *Service) RunWorkflow(ctx context.Context, subject, name string, target string) map[string]any {
+	if name == "comprehensive" {
+		return s.Comprehensive(ctx, subject, target)
+	}
 	analysis := s.Intel.AnalyzeTarget(ctx, contract.AnalyzeTargetRequest{Target: target})
-	selected := s.Intel.SelectTools(ctx, analysis.TargetType, "comprehensive")
+	selected := s.Intel.SelectToolsForTarget(ctx, analysis.TargetType, "comprehensive", target)
 	results := make([]contract.ToolRunResponse, 0, len(selected))
 	for _, toolName := range selected {
 		if s.Tools == nil {
@@ -44,7 +50,12 @@ func (s *Service) Reconnaissance(ctx context.Context, subject, target string) ma
 }
 
 func (s *Service) Comprehensive(ctx context.Context, subject, target string) map[string]any {
-	return s.RunWorkflow(ctx, subject, "comprehensive-assessment", target)
+	return s.AssessmentReport(ctx, subject, SmartScanRequest{
+		Target:    target,
+		Objective: "comprehensive",
+		MaxTools:  8,
+		Async:     false,
+	})
 }
 
 // SummaryReport builds a minimal JSON report.

@@ -1,0 +1,14 @@
+package runner
+
+// TrackInfo identifies a tool run for process admin APIs.
+type TrackInfo struct {
+	Tool   string
+	Target string
+}
+
+// ProcessTracker records subprocess lifecycle (implemented by usecase/process.Manager).
+type ProcessTracker interface {
+	Register(pid int, tool, target, command string)
+	RegisterDocker(tool, target, command, session string) int
+	Finish(pid int, status string)
+}

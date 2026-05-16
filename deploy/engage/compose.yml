@@ -11,10 +11,15 @@ services:
       ENGAGE_ENV: ${ENGAGE_ENV:-local}
       ENGAGE_CATALOG_PATH: /app/catalog/tools.yaml
       ENGAGE_RUNNER_WORKDIR: /tmp/engage
+      ENGAGE_RUNNER_MODE: ${ENGAGE_RUNNER_MODE:-local}
+      ENGAGE_RUNNER_CONTAINER: ${ENGAGE_RUNNER_CONTAINER:-engage-runner}
+      ENGAGE_JOBS_MODE: ${ENGAGE_JOBS_MODE:-file}
+      ENGAGE_JOBS_DIR: ${ENGAGE_JOBS_DIR:-/var/veil/engage/jobs}
       ENGAGE_VEIL_API_URL: ${ENGAGE_VEIL_API_URL:-http://api:8090}
       AUTH_ENABLED: ${AUTH_ENABLED:-0}
     volumes:
       - ../../engage/serve/catalog:/app/catalog:ro
+      - engage_jobs:/var/veil/engage/jobs
     healthcheck:
       test: ["CMD", "/api", "healthcheck"]
       interval: 15s
@@ -50,9 +55,13 @@ services:
       ENGAGE_ENV: ${ENGAGE_ENV:-local}
       ENGAGE_CATALOG_PATH: /app/catalog/tools.yaml
       ENGAGE_RUNNER_WORKDIR: /tmp/engage
+      ENGAGE_JOBS_MODE: file
+      ENGAGE_JOBS_DIR: /var/veil/engage/jobs
+      ENGAGE_JOBS_POLL_SEC: ${ENGAGE_JOBS_POLL_SEC:-1}
       AUTH_ENABLED: ${AUTH_ENABLED:-0}
     volumes:
       - ../../engage/serve/catalog:/app/catalog:ro
+      - engage_jobs:/var/veil/engage/jobs
     depends_on:
       engage-api:
         condition: service_healthy
@@ -63,6 +72,7 @@ services:
       retries: 3
 
   engage-runner:
+    container_name: engage-runner
     build:
       context: ../..
       dockerfile: deploy/engage/docker/runner.Dockerfile
@@ -74,3 +84,4 @@ services:
 
 volumes:
   engage_work:
+  engage_jobs:

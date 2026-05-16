@@ -10,7 +10,7 @@
     "schema_version": { "type": "integer", "const": 1 },
     "source": {
       "type": "string",
-      "enum": ["sbom", "coderules", "nuclei", "ti", "vuln", "lola", "ds"]
+      "enum": ["sbom", "coderules", "nuclei", "ti", "vuln", "lola", "ds", "engage"]
     },
     "kind": { "type": "string", "minLength": 1 },
     "idempotency_key": { "type": "string", "minLength": 1 },

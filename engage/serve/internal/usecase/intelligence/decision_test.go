@@ -10,6 +10,14 @@ func TestDecisionEngine_OptimizeParameters_nmap(t *testing.T) {
 	}
 }
 
+func TestDecisionEngine_OptimizeParameters_gobuster(t *testing.T) {
+	d := DefaultDecisionEngine()
+	out := d.OptimizeParameters("web", "gobuster", map[string]string{})
+	if out["mode"] != "dir" {
+		t.Fatalf("mode: %q", out["mode"])
+	}
+}
+
 func TestDecisionEngine_RankTools(t *testing.T) {
 	d := DefaultDecisionEngine()
 	ranked := d.RankTools("web", []string{"nikto", "nuclei", "nmap"})

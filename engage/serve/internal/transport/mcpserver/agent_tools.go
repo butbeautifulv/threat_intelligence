@@ -1,0 +1,64 @@
+package mcpserver
+
+import (
+	"context"
+	"strings"
+
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/payloads"
+)
+
+func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]any) (any, bool, error) {
+	switch name {
+	case "ai_generate_payload":
+		if s.files == nil {
+			out, err := toolJSONResult(map[string]any{"success": false, "error": "files manager not configured"})
+			return out, true, err
+		}
+		size := argInt(args, "size", 256)
+		if size <= 0 {
+			size = 256
+		}
+		out, err := payloads.Generate(s.files, payloads.Request{
+			Type:     argString(args, "type", "buffer"),
+			Size:     size,
+			Pattern:  argString(args, "pattern", "A"),
+			Filename: argString(args, "filename", ""),
+		})
+		if err != nil {
+			return nil, true, rpcErrf(codeToolError, "%v", err)
+		}
+		out["note"] = "deterministic payload generation (not LLM)"
+		res, err := toolJSONResult(out)
+		return res, true, err
+
+	case "format_tool_output_visual":
+		toolName := argString(args, "tool_name", argString(args, "tool", ""))
+		output := argString(args, "output", "")
+		target := argTarget(args)
+		parsed := findings.ParseToolOutput(toolName, target, output)
+		severity := map[string]int{}
+		for _, f := range parsed {
+			severity[string(f.Severity)]++
+		}
+		res, err := toolJSONResult(map[string]any{
+			"tool":               toolName,
+			"target":             target,
+			"findings_count":     len(parsed),
+			"severity_breakdown": severity,
+			"findings":           parsed,
+			"visual":             "structured_json",
+			"success":            true,
+		})
+		return res, true, err
+	}
+	if strings.HasPrefix(name, "ai_generate_") {
+		res, err := toolJSONResult(map[string]any{
+			"tool":    name,
+			"success": false,
+			"note":    "use ai_generate_payload or HTTP /api/payloads/generate; not an LLM",
+		})
+		return res, true, err
+	}
+	return nil, false, nil
+}

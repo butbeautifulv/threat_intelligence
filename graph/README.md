@@ -2,7 +2,7 @@
 
 Architecture rules: [docs/coding-style.md](../docs/coding-style.md).
 
-Consumes `ingest.>`, MERGE into Neo4j; HTTP API and MCP read Bolt. **Tool execution** (offensive scans) is a separate layer: [engage/README.md](../engage/README.md) (`veil-engage` MCP), which may call this API read-only via JWT.
+Consumes `ingest.>`, MERGE into Neo4j; HTTP API and MCP read Bolt. Ingest includes TI/vuln/lola/ds/SBOM sources plus optional **engage** (`SourceEngage` → `EngageToolRun` / `EngageFinding` in [ingest/internal/sources/engage/](ingest/internal/sources/engage/)). **Tool execution** is a separate layer: [engage/README.md](../engage/README.md) (`veil-engage` MCP), which may call this API read-only via JWT and optionally publish scan metadata on `engage.events.>`.
 
 | Module | Path | Role |
 |--------|------|------|

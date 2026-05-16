@@ -1,0 +1,34 @@
+package workflow
+
+import (
+	"context"
+
+	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/report"
+)
+
+// AssessmentReport runs smart-scan and returns scan output plus summary report.
+func (s *Service) AssessmentReport(ctx context.Context, subject string, req SmartScanRequest) map[string]any {
+	scan := s.SmartScan(ctx, subject, req)
+	target, _ := scan["target"].(string)
+	var all []domainreport.Finding
+	if raw, ok := scan["findings"].([]domainreport.Finding); ok {
+		all = raw
+	} else if executed, ok := scan["tools_executed"].([]map[string]any); ok {
+		for _, e := range executed {
+			toolName, _ := e["tool"].(string)
+			stdout, _ := e["stdout"].(string)
+			all = append(all, findings.ParseToolOutput(toolName, target, stdout)...)
+		}
+		scan["findings"] = all
+		scan["total_vulnerabilities"] = len(all)
+	}
+	summary := report.FromSmartScan(target, scan)
+	return map[string]any{
+		"scan":           scan,
+		"summary_report": summary,
+		"findings":       all,
+		"severity_breakdown": report.SeverityBreakdown(all),
+	}
+}

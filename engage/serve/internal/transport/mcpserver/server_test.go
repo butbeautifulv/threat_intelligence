@@ -100,6 +100,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 	}
 
 	cancel()
+	_ = stdinW.Close()
 	select {
 	case err := <-errCh:
 		if err != nil && err != context.Canceled && !strings.Contains(err.Error(), "closed") {

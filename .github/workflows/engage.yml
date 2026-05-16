@@ -1,0 +1,82 @@
+name: engage
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'engage/**'
+      - 'pkg/auth/**'
+      - 'pkg/engage/**'
+      - 'scripts/engage/**'
+      - 'scripts/test/smoke-engage*.sh'
+      - 'deploy/engage/**'
+      - 'Makefile'
+      - '.github/workflows/engage.yml'
+  pull_request:
+    paths:
+      - 'engage/**'
+      - 'pkg/auth/**'
+      - 'pkg/engage/**'
+      - 'scripts/engage/**'
+      - 'scripts/test/smoke-engage*.sh'
+      - 'deploy/engage/**'
+      - 'Makefile'
+      - '.github/workflows/engage.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Unit tests and build
+        run: make test-engage
+
+      - name: Catalog parity
+        run: make test-engage-parity
+
+      - name: Enable tools on PATH
+        run: ./scripts/engage/enable-tools-on-path.sh network web
+
+      - name: MCP smoke (tools/list)
+        run: |
+          chmod +x ./scripts/test/smoke-engage-mcp.sh
+          ./scripts/test/smoke-engage-mcp.sh
+
+      - name: Metrics smoke
+        run: make test-engage-metrics
+
+      - name: Smoke tool matrix (10 tools, best-effort)
+        run: |
+          chmod +x ./scripts/test/smoke-engage-tool-matrix.sh
+          ./scripts/test/smoke-engage-tool-matrix.sh
+
+  engage-compose:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose e2e (async jobs + runner profile smoke)
+        run: make test-engage-compose
+
+  engage-events-e2e:
+    runs-on: ubuntu-latest
+    needs: test
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Engage events pipeline smoke
+        run: make test-engage-events-pipeline
+
+  engage-queue-e2e:
+    runs-on: ubuntu-latest
+    needs: test
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Redis 2-worker queue e2e
+        run: make test-engage-redis-workers

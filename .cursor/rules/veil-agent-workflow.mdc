@@ -9,13 +9,14 @@ Follow [AGENTS.md](../../AGENTS.md) and [docs/coding-style.md](../../docs/coding
 
 ## Architecture (do not break)
 
-- Three layers: `scrape/`, `pipeline/`, `graph/` — **no cross-layer Go imports**.
-- Integration via NATS only; shared wire types in `pkg/*`.
+- Four contexts: `scrape/`, `pipeline/`, `graph/`, `engage/` — **no cross-layer Go imports** between them.
+- TI integration via NATS (`scrape.>` → `ingest.>`); engage optional bus via `engage.events.>` → pipeline bridge → `ingest.engage.*` (engage never imports pipeline/graph).
+- Engage reads graph only via HTTP veil-api; shared wire types in `pkg/*`.
 - No root `go.work`.
 
 ## Required before finishing a task
 
-1. Run `make test-scrape`, `make test-pipeline`, and/or `make test-graph` for touched layers.
+1. Run `make test-scrape`, `make test-pipeline`, `make test-graph`, and/or `make test-engage` for touched layers.
 2. If ingest paths changed, run `./scripts/release/bump-graph-version.sh patch` and update `docs/schemas/` when `pkg/harvest` or `pkg/commit` changed.
 3. Run `make check-graph-version` before commit.
 4. **Commit** with a clear message.

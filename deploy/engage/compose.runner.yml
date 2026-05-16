@@ -1,0 +1,43 @@
+# Lab overlay: api/worker exec tools in engage-runner via docker exec.
+# Usage:
+#   docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.runner.yml \
+#     --profile runner up -d --build engage-runner engage-api engage-worker
+# Browser profile:
+#   ... --profile browser up -d engage-browser
+services:
+  engage-api:
+    build:
+      dockerfile: deploy/engage/docker/api-runner.Dockerfile
+    environment:
+      ENGAGE_RUNNER_MODE: docker
+      ENGAGE_RUNNER_CONTAINER: engage-runner
+      ENGAGE_CATALOG_PATH: /app/catalog/tools.live.yaml
+      ENGAGE_BROWSER_URL: ${ENGAGE_BROWSER_URL:-http://engage-browser:8910}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      engage-runner:
+        condition: service_started
+
+  engage-worker:
+    build:
+      dockerfile: deploy/engage/docker/worker-runner.Dockerfile
+    environment:
+      ENGAGE_RUNNER_MODE: docker
+      ENGAGE_RUNNER_CONTAINER: engage-runner
+      ENGAGE_CATALOG_PATH: /app/catalog/tools.live.yaml
+      ENGAGE_BROWSER_URL: ${ENGAGE_BROWSER_URL:-http://engage-browser:8910}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      engage-runner:
+        condition: service_started
+
+  engage-browser:
+    build:
+      context: ../..
+      dockerfile: deploy/engage/docker/browser.Dockerfile
+    ports:
+      - "${ENGAGE_BROWSER_PORT:-8910}:8910"
+    profiles:
+      - browser

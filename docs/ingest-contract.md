@@ -30,6 +30,20 @@ scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ �
 - Graph ingest **does not re-normalize**; Neo4j node `id` for IOC/Actor/Report comes from `idempotency_key` (`ti:ioc:…`, `ti:actor:…`, `ti:report:…`) via [pkg/commit/ti_node.go](../pkg/commit/ti_node.go).
 - NVD CWE/CPE parsing runs only in pipeline ([pipeline/pkg/nvd/](../pipeline/pkg/nvd/)); harvest publishes raw `scrape_nvd_page` only.
 
+### Engage commit payloads (cross-layer, optional)
+
+Engage does **not** publish directly to `ingest.>`. When `ENGAGE_EVENTS_NATS_ENABLED=1`, [engage/serve](../engage/serve/) publishes JSON to stream **`ENGAGE_EVENTS`** (`engage.events.>`). [pipeline/engage-events](../pipeline/engage-events/) consumes and republishes `commit.Envelope` messages:
+
+| Engage subject | Ingest subject | Kind | Graph labels |
+|----------------|----------------|------|--------------|
+| `engage.events.audit` | `ingest.engage.tool_run` | `engage_tool_run` | `EngageToolRun`, `EngageTarget` |
+| `engage.events.finding` | `ingest.engage.finding` | `engage_finding` | `EngageFinding`, `EngageTarget` |
+
+- **Source:** `engage` ([pkg/commit/envelope.go](../pkg/commit/envelope.go))
+- **Bridge:** [pipeline/connector/nats/engage_consumer.go](../pipeline/connector/nats/engage_consumer.go)
+- **Graph ingest:** [graph/ingest/internal/sources/engage/](../graph/ingest/internal/sources/engage/)
+- **Idempotency keys:** `engage:run:{tool}:{target}:{at}` and `engage:finding:{tool}:{target}:{title}`
+
 ## Vitess crawl ledger (scrape only)
 
 Persistent on host at `var/veil/ledger/mysql/` (bind mount). HTTP bodies: `var/veil/blobs/`. See [graph-pack.md](graph-pack.md#persistent-crawl-state-varveil).

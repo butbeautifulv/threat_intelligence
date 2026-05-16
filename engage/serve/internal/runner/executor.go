@@ -20,18 +20,31 @@ type Result struct {
 
 // Executor runs allowlisted binaries with timeout.
 type Executor struct {
-	WorkDir string
-	Sandbox *Sandbox
+	WorkDir   string
+	Sandbox   *Sandbox
+	Processes ProcessTracker
 }
 
-func (e *Executor) Run(ctx context.Context, binary string, args []string, timeout time.Duration) Result {
-	if e.Sandbox != nil && e.Sandbox.Enabled() {
-		return e.Sandbox.Exec(ctx, binary, args, timeout)
+func (e *Executor) Run(ctx context.Context, binary string, args []string, timeout time.Duration, track *TrackInfo) Result {
+	if proxy := NewBrowserProxyFromEnv(); proxy != nil && proxy.Enabled() && IsBrowserBinary(binary) {
+		if timeout <= 0 {
+			timeout = 5 * time.Minute
+		}
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
+		target := ""
+		if len(args) > 0 {
+			target = args[0]
+		}
+		return proxy.Exec(ctx, target, args)
 	}
-	return runLocal(ctx, e.WorkDir, binary, args, timeout)
+	if e.Sandbox != nil && e.Sandbox.Enabled() {
+		return e.Sandbox.Exec(ctx, binary, args, timeout, e.Processes, track)
+	}
+	return runLocal(ctx, e.WorkDir, binary, args, timeout, e.Processes, track)
 }
 
-func runLocal(ctx context.Context, workDir, binary string, args []string, timeout time.Duration) Result {
+func runLocal(ctx context.Context, workDir, binary string, args []string, timeout time.Duration, proc ProcessTracker, track *TrackInfo) Result {
 	if timeout <= 0 {
 		timeout = 5 * time.Minute
 	}
@@ -48,7 +61,23 @@ func runLocal(ctx context.Context, workDir, binary string, args []string, timeou
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err := cmd.Run()
+	var err error
+	if proc != nil && track != nil {
+		if err = cmd.Start(); err != nil {
+			return Result{ExitCode: -1, Err: err}
+		}
+		pid := cmd.Process.Pid
+		proc.Register(pid, track.Tool, track.Target, cmd.String())
+		err = cmd.Wait()
+		st := "done"
+		if err != nil {
+			st = "failed"
+		}
+		proc.Finish(pid, st)
+	} else {
+		err = cmd.Run()
+	}
+
 	res := Result{
 		Stdout: stdout.String(),
 		Stderr: stderr.String(),

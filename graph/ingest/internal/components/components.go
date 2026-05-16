@@ -10,6 +10,7 @@ import (
 	sbomneo "github.com/butbeautifulv/veil/graph/ingest/internal/appsec/sbom"
 	"github.com/butbeautifulv/veil/graph/ingest/internal/config"
 	dsingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/ds/envelope"
+	engageingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/engage/envelope"
 	lolaingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/envelope"
 	tiingest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/envelope"
 	vulningest "github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/envelope"
@@ -26,10 +27,11 @@ type Runtime struct {
 }
 
 type DomainAppliers struct {
-	TI   func(context.Context, *commit.Envelope) error
-	Vuln func(context.Context, *commit.Envelope) error
-	Lola func(context.Context, *commit.Envelope) error
-	DS   func(context.Context, *commit.Envelope) error
+	TI     func(context.Context, *commit.Envelope) error
+	Vuln   func(context.Context, *commit.Envelope) error
+	Lola   func(context.Context, *commit.Envelope) error
+	DS     func(context.Context, *commit.Envelope) error
+	Engage func(context.Context, *commit.Envelope) error
 }
 
 func Init(ctx context.Context, cfg config.Config, log *slog.Logger) (*Runtime, error) {
@@ -95,10 +97,23 @@ func Init(ctx context.Context, cfg config.Config, log *slog.Logger) (*Runtime, e
 		_ = lolaClose(ctx)
 		return nil, err
 	}
+	engageEnsure, engageApply, engageClose, err := engageingest.SetupWriter(ctx, engageingest.NeoConfig{
+		URI: neoCfg.URI, Username: neoCfg.Username, Password: neoCfg.Password, Database: neoCfg.Database,
+	})
+	if err != nil {
+		_ = sbomSt.Close(ctx)
+		_ = crSt.Close(ctx)
+		_ = nuSt.Close(ctx)
+		_ = tiClose(ctx)
+		_ = vulnClose(ctx)
+		_ = lolaClose(ctx)
+		_ = dsClose(ctx)
+		return nil, err
+	}
 
 	for _, fn := range []func(context.Context) error{
 		sbomSt.EnsureSchema, crSt.EnsureSchema, nuSt.EnsureSchema,
-		tiEnsure, vulnEnsure, lolaEnsure, dsEnsure,
+		tiEnsure, vulnEnsure, lolaEnsure, dsEnsure, engageEnsure,
 	} {
 		if err := fn(ctx); err != nil {
 			rt := &Runtime{SBOM: sbomSt, CR: crSt, Nuclei: nuSt}
@@ -112,9 +127,9 @@ func Init(ctx context.Context, cfg config.Config, log *slog.Logger) (*Runtime, e
 		CR:     crSt,
 		Nuclei: nuSt,
 		Apply: DomainAppliers{
-			TI: tiApply, Vuln: vulnApply, Lola: lolaApply, DS: dsApply,
+			TI: tiApply, Vuln: vulnApply, Lola: lolaApply, DS: dsApply, Engage: engageApply,
 		},
-		close: []func(context.Context) error{tiClose, vulnClose, lolaClose, dsClose},
+		close: []func(context.Context) error{tiClose, vulnClose, lolaClose, dsClose, engageClose},
 	}, nil
 }
 

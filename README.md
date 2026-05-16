@@ -18,8 +18,10 @@ flowchart LR
   end
   subgraph pipeline [pipeline]
     PW[pipeline_worker]
+    EEW[engage_events_worker]
     NATS1 --> PW
     PW -->|commit| NATS2[NATS INGEST]
+    EEW -->|commit| NATS2
   end
   subgraph graph [graph read]
     IW[ingest_worker]
@@ -37,13 +39,15 @@ flowchart LR
     EngMCP --> EngAPI
     EngAPI --> Runner
     EngAPI -.->|JWT read| API
+    EngAPI -.->|optional| NATS_E[engage.events]
+    NATS_E -.-> EEW
   end
 ```
 
 | Layer | Path | Role | Agent MCP |
 |-------|------|------|-----------|
 | **Scrape** | [scrape/](scrape/) | Fetch feeds, Vitess ledger, publish `harvest` | — |
-| **Pipeline** | [pipeline/](pipeline/) | Normalize/dedup → `commit` | — |
+| **Pipeline** | [pipeline/](pipeline/) | NED → `commit`; [engage-events/](pipeline/engage-events/) bridges `engage.events.>` → `ingest.engage.*` | — |
 | **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) read API + MCP | `veil-mcp` (read-only) |
 | **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports | `veil-engage` (exec) |
 
@@ -67,7 +71,7 @@ docker compose up --build -d
 
 Production secure overlay (TLS on **443** only, no published Neo4j): [docs/deploy-secure.md](docs/deploy-secure.md).
 
-`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`) when published, unless `GRAPH_PACK_SKIP=1`.
+`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently **v0.4.3**) when published, unless `GRAPH_PACK_SKIP=1`.
 
 ```bash
 curl -sS http://localhost:8090/health
@@ -89,6 +93,14 @@ curl -sS http://localhost:8890/api/tools | jq .
 | engage-runner | — | `docker compose --profile runner` + `ENGAGE_RUNNER_MODE=docker` |
 
 Docs: [engage/README.md](engage/README.md) · [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md)
+
+**Events bus (optional):** tool runs and findings publish to NATS when `ENGAGE_EVENTS_NATS_ENABLED=1`; pipeline bridges to `ingest.engage.*` and graph ingest persists `EngageToolRun` / `EngageFinding` nodes.
+
+```bash
+docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.events.yml \
+  up -d --build nats engage-api engage-events-worker
+make test-engage-events-pipeline
+```
 
 ### Full scrape pipeline
 
@@ -140,6 +152,8 @@ make test-graph-serve        # graph/serve unit tests (-race)
 make test-graph-read-smoke   # Docker: Neo4j + API + MCP HTTP
 make test-engage             # engage layer unit tests + build
 make test-engage-parity      # catalog 150 tools vs legacy MCP reference
+make test-engage-compose     # Docker: async jobs + runner profile
+make test-engage-events-pipeline  # Docker: engage.events → ingest.engage.*
 ```
 
 ## Smoke Cypher

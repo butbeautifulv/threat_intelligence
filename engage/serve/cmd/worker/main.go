@@ -17,12 +17,16 @@ func main() {
 		os.Exit(0)
 	}
 	cfg := config.LoadAPI()
+	switch cfg.JobsMode {
+	case jobuc.ModeFile, jobuc.ModeRedis, jobuc.ModeNats:
+	default:
+		cfg.JobsMode = jobuc.ModeFile
+	}
 	logger := components.SetupLogger(cfg.Env)
 	api, err := components.InitAPI(cfg, logger)
 	if err != nil {
 		log.Fatal(err)
 	}
-	queue := jobuc.NewQueue(api.Tools, 2)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -33,8 +37,8 @@ func main() {
 		cancel()
 	}()
 
-	log.Println("engage worker: async job queue ready (enqueue via API in future releases)")
-	if err := queue.RunWorker(ctx); err != nil && err != context.Canceled {
+	log.Printf("engage worker: mode=%s", cfg.JobsMode)
+	if err := api.Jobs.RunWorker(ctx); err != nil && err != context.Canceled {
 		log.Fatal(err)
 	}
 }

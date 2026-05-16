@@ -6,9 +6,19 @@ RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
     go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl nmap \
-  && rm -rf /var/lib/apt/lists/*
+ARG APT_MIRROR=
+RUN set -eux; \
+    if [ -n "${APT_MIRROR}" ]; then \
+      sed -i "s|deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+      sed -i "s|deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list; \
+    fi; \
+    for i in 1 2 3; do \
+      apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates curl nmap masscan sqlmap nikto gobuster \
+      && break; \
+      echo "apt retry $i" >&2; sleep 5; \
+    done; \
+    rm -rf /var/lib/apt/lists/*
 COPY --from=pd /go/bin/nuclei /go/bin/httpx /go/bin/subfinder /usr/local/bin/
 ARG FEROX_VERSION=2.11.0
 RUN curl -fsSL -o /tmp/ferox.tgz \

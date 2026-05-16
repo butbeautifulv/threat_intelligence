@@ -101,3 +101,101 @@ tools:
     timeout_sec: 600
     description: Trivy container/image scan
     enabled: true
+  - name: ffuf_scan
+    category: web
+    binary: ffuf
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/dirb/common.txt"
+        required: false
+    args:
+      - "-u"
+      - "{url}"
+      - "-w"
+      - "{wordlist}"
+    timeout_sec: 600
+    description: "web tool: ffuf scan"
+    enabled: true
+  - name: arjun_scan
+    category: web
+    binary: arjun
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+    args:
+      - "-u"
+      - "{url}"
+    timeout_sec: 300
+    description: "web tool: arjun scan"
+    enabled: true
+  - name: api_fuzzer
+    category: web
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: base_url
+        type: string
+        required: true
+    args:
+      - "{base_url}"
+    timeout_sec: 300
+    description: "web tool: api fuzzer"
+    enabled: true
+  - name: graphql_scanner
+    category: web
+    binary: graphql
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: endpoint
+        type: string
+        required: true
+    args:
+      - "{endpoint}"
+    timeout_sec: 300
+    description: "web tool: graphql scanner"
+    enabled: true
+  - name: jwt_analyzer
+    category: intelligence
+    binary: jwt
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: jwt_token
+        type: string
+        required: true
+    args:
+      - "{jwt_token}"
+    timeout_sec: 120
+    description: "intelligence tool: jwt analyzer"
+    enabled: true
+  - name: api_schema_analyzer
+    category: intelligence
+    binary: api
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: schema_url
+        type: string
+        required: true
+    args:
+      - "{schema_url}"
+    timeout_sec: 300
+    description: "intelligence tool: api schema analyzer"
+    enabled: true

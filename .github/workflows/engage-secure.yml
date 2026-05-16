@@ -1,0 +1,14 @@
+name: engage-secure
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  secure-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secure compose smoke (nginx TLS)
+        run: make test-engage-secure

@@ -20,6 +20,7 @@ const (
 	SourceVuln      = "vuln"
 	SourceLola      = "lola"
 	SourceDS        = "ds"
+	SourceEngage    = "engage"
 )
 
 // Event kinds per source (extend as needed).
@@ -62,6 +63,10 @@ const (
 	KindDSUpsertYara     = "ds_upsert_yara"
 	KindDSUpsertAtomic   = "ds_upsert_atomic"
 	KindDSUpsertCaldera  = "ds_upsert_caldera"
+
+	// engage — active security testing tool runs (engage → pipeline ingest).
+	KindEngageToolRun = "engage_tool_run"
+	KindEngageFinding = "engage_finding"
 )
 
 // Envelope is the on-wire JSON for JetStream / HTTP bridges.
@@ -408,3 +413,31 @@ func DSSigmaIdempotencyKey(id string) string   { return "ds:sigma:" + strings.Tr
 func DSYaraIdempotencyKey(id string) string     { return "ds:yara:" + strings.TrimSpace(id) }
 func DSAtomicIdempotencyKey(id string) string   { return "ds:atomic:" + strings.TrimSpace(id) }
 func DSCalderaIdempotencyKey(id string) string  { return "ds:caldera:" + strings.TrimSpace(id) }
+
+// --- engage ---
+
+// EngageToolRunPayload is published when engage records a tool execution (cross-layer NATS).
+type EngageToolRunPayload struct {
+	Tool    string `json:"tool"`
+	Target  string `json:"target"`
+	Subject string `json:"subject"`
+	Success bool   `json:"success"`
+	At      string `json:"at"` // RFC3339
+}
+
+func EngageToolRunIdempotencyKey(tool, target, at string) string {
+	return "engage:run:" + strings.TrimSpace(tool) + ":" + strings.TrimSpace(target) + ":" + strings.TrimSpace(at)
+}
+
+// EngageFindingPayload is a vulnerability finding from engage smart-scan / assessment.
+type EngageFindingPayload struct {
+	Tool        string `json:"tool"`
+	Target      string `json:"target"`
+	Title       string `json:"title"`
+	Severity    string `json:"severity"`
+	Description string `json:"description"`
+}
+
+func EngageFindingIdempotencyKey(tool, target, title string) string {
+	return "engage:finding:" + strings.TrimSpace(tool) + ":" + strings.TrimSpace(target) + ":" + strings.TrimSpace(title)
+}

@@ -154,6 +154,8 @@ tools:
         default: ""
         required: false
     args:
+      - "{mode}"
+      - "-d"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -255,6 +257,7 @@ tools:
         default: "/usr/share/wordlists/api/api-endpoints.txt"
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -355,7 +358,10 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
+      - "-m"
+      - "{method}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: arjun scan"
@@ -916,13 +922,14 @@ tools:
         default: ""
         required: false
     args:
+      - "-d"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: checkov iac scan"
     enabled: false
   - name: checksec_analyze
-    category: intelligence
+    category: binary
     binary: checksec
     parameters:
       - name: target
@@ -1002,7 +1009,9 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "{action}"
+      - "--account"
+      - "{account}"
       - "{additional_args}"
     timeout_sec: 300
     description: "cloud tool: cloudmapper analysis"
@@ -1183,6 +1192,7 @@ tools:
         default: ""
         required: false
     args:
+      - "url"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1237,6 +1247,8 @@ tools:
         required: false
     args:
       - "{target}"
+      - "-w"
+      - "{wordlist}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: dirb scan"
@@ -1272,7 +1284,10 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
+      - "-e"
+      - "{extensions}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: dirsearch scan"
@@ -1366,7 +1381,6 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: docker bench security scan"
@@ -1387,6 +1401,9 @@ tools:
         default: ""
         required: false
     args:
+      - "-m"
+      - "{mode}"
+      - "-h"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1567,7 +1584,6 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: falco runtime monitoring"
@@ -1595,7 +1611,12 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
+      - "-w"
+      - "{wordlist}"
+      - "-t"
+      - "{threads}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: feroxbuster scan"
@@ -1627,7 +1648,10 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
+      - "-w"
+      - "{wordlist}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: ffuf scan"
@@ -1651,6 +1675,7 @@ tools:
         default: ""
         required: false
     args:
+      - "--domain"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1679,6 +1704,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-i"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1734,6 +1760,7 @@ tools:
         default: ""
         required: false
     args:
+      - "--subs"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -1988,7 +2015,7 @@ tools:
         default: ""
         required: false
     args:
-      - "dir"
+      - "{mode}"
       - "-u"
       - "{target}"
       - "-w"
@@ -2060,6 +2087,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-url"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2095,7 +2123,12 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "-m"
+      - "{hash_type}"
+      - "-a"
+      - "{attack_mode}"
+      - "{hash_file}"
+      - "{wordlist}"
       - "{additional_args}"
     timeout_sec: 300
     description: "auth tool: hashcat crack"
@@ -2331,7 +2364,13 @@ tools:
         default: ""
         required: false
     args:
+      - "-l"
+      - "{username}"
+      - "-P"
+      - "{password_file}"
       - "{target}"
+      - "-s"
+      - "{service}"
       - "{additional_args}"
     timeout_sec: 300
     description: "auth tool: hydra attack"
@@ -2436,7 +2475,8 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "{hash_file}"
+      - "--wordlist={wordlist}"
       - "{additional_args}"
     timeout_sec: 300
     description: "auth tool: john crack"
@@ -2492,6 +2532,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2525,7 +2566,7 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "{targets}"
       - "{additional_args}"
     timeout_sec: 300
     description: "cloud tool: kube bench cis"
@@ -2563,7 +2604,8 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "--remote"
+      - "{remote}"
       - "{additional_args}"
     timeout_sec: 300
     description: "cloud tool: kube hunter scan"
@@ -2664,6 +2706,10 @@ tools:
         required: false
     args:
       - "{target}"
+      - "-p"
+      - "{ports}"
+      - "--rate"
+      - "{rate}"
       - "{additional_args}"
     timeout_sec: 300
     description: "network tool: masscan high speed"
@@ -2682,7 +2728,8 @@ tools:
         type: string
         required: true
     args:
-      - "{target}"
+      - "-r"
+      - "{resource}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: metasploit run"
@@ -2766,7 +2813,8 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "-p"
+      - "{payload}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: msfvenom generate"
@@ -2845,6 +2893,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-h"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -2894,8 +2943,13 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "{scan_type}"
+      - "-p"
+      - "{ports}"
+      - "--script"
+      - "{nse_scripts}"
       - "{additional_args}"
+      - "{target}"
     timeout_sec: 300
     description: "network tool: nmap advanced scan"
     enabled: false
@@ -2960,7 +3014,7 @@ tools:
     description: "web tool: nuclei scan"
     enabled: false
   - name: objdump_analyze
-    category: intelligence
+    category: binary
     binary: objdump
     parameters:
       - name: target
@@ -2978,6 +3032,7 @@ tools:
         default: ""
         required: false
     args:
+      - "-d"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -3176,7 +3231,9 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "{provider}"
+      - "--profile"
+      - "{profile}"
       - "{additional_args}"
     timeout_sec: 300
     description: "cloud tool: prowler scan"
@@ -3504,7 +3561,10 @@ tools:
         default: ""
         required: false
     args:
+      - "-a"
       - "{target}"
+      - "-p"
+      - "{ports}"
       - "{additional_args}"
     timeout_sec: 300
     description: "network tool: rustscan fast scan"
@@ -3541,7 +3601,9 @@ tools:
         default: ""
         required: false
     args:
-      - "{target}"
+      - "{provider}"
+      - "--profile"
+      - "{profile}"
       - "{additional_args}"
     timeout_sec: 300
     description: "cloud tool: scout suite assessment"
@@ -3624,7 +3686,10 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
+      - "--data"
+      - "{data}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: sqlmap scan"
@@ -3879,7 +3944,7 @@ tools:
     description: "web tool: uro url filtering"
     enabled: false
   - name: volatility3_analyze
-    category: intelligence
+    category: binary
     binary: volatility3
     parameters:
       - name: target
@@ -3906,7 +3971,7 @@ tools:
     description: "intelligence tool: volatility3 analyze"
     enabled: false
   - name: volatility_analyze
-    category: intelligence
+    category: binary
     binary: volatility
     parameters:
       - name: target
@@ -4009,7 +4074,10 @@ tools:
         default: ""
         required: false
     args:
+      - "-u"
       - "{target}"
+      - "-w"
+      - "{wordlist}"
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: wfuzz scan"
@@ -4029,6 +4097,7 @@ tools:
         default: ""
         required: false
     args:
+      - "--url"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -4089,6 +4158,7 @@ tools:
         default: ""
         required: false
     args:
+      - "--url"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300
@@ -4163,6 +4233,8 @@ tools:
         default: ""
         required: false
     args:
+      - "-cmd"
+      - "-quickurl"
       - "{target}"
       - "{additional_args}"
     timeout_sec: 300

@@ -9,12 +9,23 @@ import (
 )
 
 func (s *Server) callTool(ctx context.Context, name string, args map[string]any) (any, error) {
-	if _, ok := s.runner.Registry.Get(name); !ok {
-		return nil, rpcErrf(codeMethodNotFound, "unknown tool: %s", name)
-	}
+	target := argTarget(args)
 	subject := ""
 	if sub, ok := auth.SubjectFromContext(ctx); ok {
 		subject = sub.Sub
+	}
+	if out, ok, err := s.tryPlaybookByName(ctx, subject, name, target, argBool(args, "async")); ok {
+		return out, err
+	}
+	if out, ok, err := s.tryAgentTool(ctx, name, args); ok {
+		return out, err
+	}
+	spec, ok := s.runner.Registry.Get(name)
+	if !ok {
+		return nil, rpcErrf(codeMethodNotFound, "unknown tool: %s", name)
+	}
+	if IsIntelBridgeTool(name, spec) {
+		return s.callIntelBridge(ctx, name, spec, args)
 	}
 	res := s.runner.Run(ctx, subject, name, argsToRequest(args))
 	if !res.Success && res.Error != "" {

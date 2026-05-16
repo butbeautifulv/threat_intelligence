@@ -8,6 +8,7 @@ Consumes `scrape.>`, applies **NED** (normalize, enrichment, deduplication), pub
 |--------|------|------|
 | **connector** | [connector/](connector/) | NATS JetStream publish + stream ensure |
 | **ned** | [ned/](ned/) | Transform worker (`pipeline_worker`) |
+| **engage-events** | [engage-events/](engage-events/) | Bridge `engage.events.>` → `ingest.engage.tool_run` / `ingest.engage.finding` (Phase 12–13) |
 
 - **Wire types:** [pkg/harvest/](../pkg/harvest/), [pkg/commit/](../pkg/commit/)
 - **Build:** `make test-pipeline` or:

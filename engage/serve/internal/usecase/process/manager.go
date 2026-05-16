@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -15,6 +16,7 @@ type Record struct {
 	Tool      string     `json:"tool,omitempty"`
 	Target    string     `json:"target,omitempty"`
 	Command   string     `json:"command,omitempty"`
+	Session   string     `json:"session,omitempty"` // docker exec session when PID is synthetic
 	Status    string     `json:"status"`
 	StartedAt time.Time  `json:"started_at"`
 	EndedAt   *time.Time `json:"ended_at,omitempty"`
@@ -22,8 +24,9 @@ type Record struct {
 
 // Manager tracks engage subprocesses for admin APIs.
 type Manager struct {
-	mu      sync.RWMutex
-	records map[int]*Record
+	mu           sync.RWMutex
+	records      map[int]*Record
+	nextDockerID int64
 }
 
 func NewManager() *Manager {
@@ -31,6 +34,10 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) Register(pid int, tool, target, command string) {
+	m.RegisterSession(pid, tool, target, command, "")
+}
+
+func (m *Manager) RegisterSession(pid int, tool, target, command, session string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.records[pid] = &Record{
@@ -38,9 +45,17 @@ func (m *Manager) Register(pid int, tool, target, command string) {
 		Tool:      tool,
 		Target:    target,
 		Command:   command,
+		Session:   session,
 		Status:    "running",
 		StartedAt: time.Now().UTC(),
 	}
+}
+
+// RegisterDocker records a docker exec session with a unique negative PID.
+func (m *Manager) RegisterDocker(tool, target, command, session string) int {
+	pid := int(atomic.AddInt64(&m.nextDockerID, -1))
+	m.RegisterSession(pid, tool, target, command, session)
+	return pid
 }
 
 func (m *Manager) Finish(pid int, status string) {
@@ -85,6 +100,34 @@ func (m *Manager) Terminate(_ context.Context, pid int) error {
 		}
 	}
 	m.Finish(pid, "terminated")
+	return nil
+}
+
+func (m *Manager) Pause(pid int) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	r, ok := m.records[pid]
+	if !ok {
+		return fmt.Errorf("pid %d not found", pid)
+	}
+	if r.Status != "running" {
+		return fmt.Errorf("pid %d is not running", pid)
+	}
+	r.Status = "paused"
+	return nil
+}
+
+func (m *Manager) Resume(pid int) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	r, ok := m.records[pid]
+	if !ok {
+		return fmt.Errorf("pid %d not found", pid)
+	}
+	if r.Status != "paused" {
+		return fmt.Errorf("pid %d is not paused", pid)
+	}
+	r.Status = "running"
 	return nil
 }
 

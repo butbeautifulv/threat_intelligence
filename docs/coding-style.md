@@ -42,7 +42,7 @@ Layer-specific layout, env vars, and build commands:
 | **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` | `commit`, Bolt, normalize |
 | **Pipeline (NED)** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt, MERGE |
 | **Graph** | [graph/](../graph/) | Consume `ingest.>` | `harvest`, feeds, Vitess |
-| **Engage** | [engage/](../engage/) | — (HTTP to veil-api only) | Bolt, NATS, scrape |
+| **Engage** | [engage/](../engage/) | Optional publish `engage.events.>` (`ENGAGE_EVENTS_NATS_ENABLED`); bridge via [pipeline/engage-events](../pipeline/engage-events/) → `ingest.engage.*` | Bolt, direct `ingest.>`, `scrape.>`, cross-layer Go imports |
 
 Shared fetch policy (scrape only): [scrape/harvest/internal/feeds](../scrape/harvest/internal/feeds/), [scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
 

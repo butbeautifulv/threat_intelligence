@@ -26,15 +26,159 @@ DEFAULT_BINARY = {
     "osint": "subfinder", "binary": "strings", "ctf": "file", "intelligence": "echo",
 }
 
+GENERIC_ARGS = ["{target}", "{additional_args}"]
+
 # Per-tool arg templates when parameters imply structured CLI.
 ARGS_TEMPLATES: dict[str, list[str]] = {
     "nmap_scan": ["{scan_type}", "-p", "{ports}", "{additional_args}", "{target}"],
+    "nmap_advanced_scan": [
+        "{scan_type}", "-p", "{ports}", "--script", "{nse_scripts}",
+        "{additional_args}", "{target}",
+    ],
+    "rustscan_fast_scan": ["-a", "{target}", "-p", "{ports}", "{additional_args}"],
+    "masscan_high_speed": ["{target}", "-p", "{ports}", "--rate", "{rate}", "{additional_args}"],
     "nuclei_scan": ["-u", "{target}", "-t", "{templates}", "{additional_args}"],
     "httpx_probe": ["-u", "{target}", "{additional_args}"],
+    "gobuster_scan": ["{mode}", "-u", "{target}", "-w", "{wordlist}", "{additional_args}"],
+    "nikto_scan": ["-h", "{target}", "{additional_args}"],
+    "sqlmap_scan": ["-u", "{target}", "--data", "{data}", "{additional_args}"],
+    "ffuf_scan": ["-u", "{target}", "-w", "{wordlist}", "{additional_args}"],
+    "feroxbuster_scan": ["-u", "{target}", "-w", "{wordlist}", "-t", "{threads}", "{additional_args}"],
+    "dirb_scan": ["{target}", "-w", "{wordlist}", "{additional_args}"],
+    "wpscan_analyze": ["--url", "{target}", "{additional_args}"],
     "subfinder_scan": ["-d", "{target}", "{additional_args}"],
+    "amass_scan": ["{mode}", "-d", "{target}", "{additional_args}"],
     "trivy_scan": ["image", "{target}", "{additional_args}"],
-    "gobuster_scan": ["dir", "-u", "{target}", "-w", "{wordlist}", "{additional_args}"],
+    "hydra_attack": [
+        "-l", "{username}", "-P", "{password_file}", "{target}", "-s", "{service}", "{additional_args}",
+    ],
+    "dirsearch_scan": ["-u", "{target}", "-e", "{extensions}", "{additional_args}"],
+    "wfuzz_scan": ["-u", "{target}", "-w", "{wordlist}", "{additional_args}"],
+    "fierce_scan": ["--domain", "{target}", "{additional_args}"],
+    "john_crack": ["{hash_file}", "--wordlist={wordlist}", "{additional_args}"],
+    "hashcat_crack": ["-m", "{hash_type}", "-a", "{attack_mode}", "{hash_file}", "{wordlist}", "{additional_args}"],
+    "arjun_scan": ["-u", "{target}", "-m", "{method}", "{additional_args}"],
+    "prowler_scan": ["{provider}", "--profile", "{profile}", "{additional_args}"],
+    "kube_hunter_scan": ["--remote", "{remote}", "{additional_args}"],
+    "dalfox_scan": ["url", "{target}", "{additional_args}"],
+    "katana_scan": ["-u", "{target}", "{additional_args}"],
+    "paramspider_scan": ["-d", "{target}", "{additional_args}"],
+    "wafw00f_scan": ["{target}", "{additional_args}"],
+    "enum4linux_scan": ["{target}", "{additional_args}"],
+    "smbmap_scan": ["{target}", "{additional_args}"],
+    "netexec_scan": ["{target}", "{additional_args}"],
+    "scout_suite_assessment": ["{provider}", "--profile", "{profile}", "{additional_args}"],
+    "cloudmapper_analysis": ["{action}", "--account", "{account}", "{additional_args}"],
+    "docker_bench_security_scan": ["{additional_args}"],
+    "kube_bench_cis": ["{targets}", "{additional_args}"],
+    "checkov_scan": ["-d", "{target}", "{additional_args}"],
+    "terrascan_scan": ["scan", "-d", "{target}", "{additional_args}"],
+    "autorecon_scan": ["{target}", "{additional_args}"],
+    "responder_scan": ["-I", "{interface}", "{additional_args}"],
+    "volatility_scan": ["-f", "{target}", "{additional_args}"],
+    "binwalk_scan": ["{target}", "{additional_args}"],
+    "strings_analyze": ["{target}", "{additional_args}"],
+    "objdump_analyze": ["-d", "{target}", "{additional_args}"],
+    "gdb_analyze": ["{target}", "{additional_args}"],
+    "radare2_scan": ["{target}", "{additional_args}"],
+    "ghidra_analyze": ["{target}", "{additional_args}"],
+    "msfvenom_generate": ["-p", "{payload}", "{additional_args}"],
+    "theharvester_scan": ["-d", "{target}", "{additional_args}"],
+    "recon_ng_run": ["{additional_args}"],
+    "spiderfoot_scan": ["{target}", "{additional_args}"],
+    # Extended templates (Phase 9 — catalog execution depth)
+    "naabu_port_scan": ["-host", "{target}", "-p", "{ports}", "{additional_args}"],
+    "dnsenum_scan": ["{target}", "{additional_args}"],
+    "dnsx_resolve": ["-d", "{target}", "{additional_args}"],
+    "gau_discovery": ["--subs", "{target}", "{additional_args}"],
+    "waybackurls_scan": ["{target}", "{additional_args}"],
+    "hakrawler_crawl": ["-url", "{target}", "{additional_args}"],
+    "katana_crawl": ["-u", "{target}", "{additional_args}"],
+    "xsstrike_scan": ["-u", "{target}", "{additional_args}"],
+    "commix_scan": ["-u", "{target}", "{additional_args}"],
+    "dalfox_xss_scan": ["url", "{target}", "{additional_args}"],
+    "xsser_scan": ["--url", "{target}", "{additional_args}"],
+    "medusa_attack": ["-h", "{target}", "-u", "{username}", "-P", "{password_file}", "-M", "{service}", "{additional_args}"],
+    "ncrack_scan": ["-p", "{ports}", "{target}", "{additional_args}"],
+    "searchsploit_search": ["{query}", "{additional_args}"],
+    "sslscan_probe": ["{target}", "{additional_args}"],
+    "testssl_scan": ["{target}", "{additional_args}"],
+    "snmpwalk_scan": ["-v", "{version}", "-c", "{community}", "{target}", "{additional_args}"],
+    "semgrep_scan": ["--config", "{config}", "{target}", "{additional_args}"],
+    "bandit_scan": ["-r", "{target}", "{additional_args}"],
+    "gitleaks_scan": ["detect", "--source", "{target}", "{additional_args}"],
+    "trufflehog_scan": ["filesystem", "{target}", "{additional_args}"],
+    "aquatone_scan": ["-scan-timeout", "{timeout}", "{target}", "{additional_args}"],
+    "eyewitness_capture": ["--web", "--single", "{target}", "{additional_args}"],
+    "enum4linux_ng_advanced": ["{target}", "{additional_args}"],
+    "autorecon_comprehensive": ["{target}", "{additional_args}"],
+    "binwalk_analyze": ["{target}", "{additional_args}"],
+    "clair_vulnerability_scan": ["{target}", "{additional_args}"],
+    "checkov_iac_scan": ["-d", "{target}", "{additional_args}"],
+    "ghidra_analysis": ["{target}", "{additional_args}"],
+    "gdb_peda_debug": ["{target}", "{additional_args}"],
+    "foremost_carving": ["-i", "{target}", "{additional_args}"],
+    "exiftool_extract": ["{target}", "{additional_args}"],
+    "dotdotpwn_scan": ["-m", "{mode}", "-h", "{target}", "{additional_args}"],
+    "api_fuzzer": ["-u", "{target}", "{additional_args}"],
+    "burpsuite_scan": ["{target}", "{additional_args}"],
+    "arp_scan_discovery": ["{target}", "{additional_args}"],
+    "nbtscan_netbios": ["{target}", "{additional_args}"],
+    "rpcclient_enum": ["{target}", "{additional_args}"],
+    "impacket_secretsdump": ["{target}", "{additional_args}"],
+    "crackmapexec_scan": ["{target}", "{additional_args}"],
+    "bloodhound_ingest": ["-c", "{collection}", "{additional_args}"],
+    "pacu_exploit": ["{module}", "{additional_args}"],
+    "cloudsploit_scan": ["{provider}", "{additional_args}"],
+    "falco_runtime_monitoring": ["{additional_args}"],
+    "kubeaudit_scan": ["{target}", "{additional_args}"],
+    "lynis_audit": ["{additional_args}"],
+    "openvas_scan": ["{target}", "{additional_args}"],
+    "zap_scan": ["-cmd", "-quickurl", "{target}", "{additional_args}"],
+    "wpscan_enum": ["--url", "{target}", "{additional_args}"],
+    "cewl_wordlist": ["-u", "{target}", "-o", "{output}", "{additional_args}"],
+    "crunch_generate": ["{min}", "{max}", "{charset}", "-o", "{output}", "{additional_args}"],
+    "hashid_identify": ["{hash}", "{additional_args}"],
+    "ophcrack_crack": ["{target}", "{additional_args}"],
+    "aircrack_crack": ["{capture_file}", "{additional_args}"],
+    "bettercap_attack": ["-eval", "{script}", "{additional_args}"],
+    "mitmproxy_intercept": ["{target}", "{additional_args}"],
+    "responder_poison": ["-I", "{interface}", "{additional_args}"],
+    "enum4linux_scan": ["{target}", "{additional_args}"],
+    "sherlock_username": ["{username}", "{additional_args}"],
+    "maigret_username": ["{username}", "{additional_args}"],
+    "holehe_email": ["{email}", "{additional_args}"],
+    "social_mapper": ["{target}", "{additional_args}"],
+    "shodan_search": ["{query}", "{additional_args}"],
+    "censys_search": ["{query}", "{additional_args}"],
+    "metasploit_run": ["-r", "{resource}", "{additional_args}"],
+    "msfconsole_execute": ["-r", "{resource}", "{additional_args}"],
+    "nuclei_workflow": ["-u", "{target}", "-w", "{workflow}", "{additional_args}"],
+    "httprobe_alive": ["{target}", "{additional_args}"],
+    "tlsx_scan": ["-u", "{target}", "{additional_args}"],
+    "cdncheck_scan": ["-i", "{target}", "{additional_args}"],
+    "asnmap_lookup": ["-d", "{target}", "{additional_args}"],
+    "mapcidr_expand": ["-cidr", "{target}", "{additional_args}"],
+    "uncover_search": ["-q", "{query}", "{additional_args}"],
+    "notify_send": ["-data", "{target}", "{additional_args}"],
+    "interactsh_oob": ["{additional_args}"],
+    "browser_agent_inspect": ["{target}", "{additional_args}"],
+    "playwright_navigate": ["{target}", "{additional_args}"],
+    "selenium_navigate": ["{target}", "{additional_args}"],
 }
+
+# Tools that may use infer_args_template when not in ARGS_TEMPLATES.
+INFER_TOOLS = frozenset({
+    "nmap_scan", "nmap_advanced_scan", "rustscan_fast_scan", "masscan_high_speed",
+    "nuclei_scan", "httpx_probe", "gobuster_scan", "nikto_scan", "sqlmap_scan",
+    "ffuf_scan", "feroxbuster_scan", "dirb_scan", "wpscan_analyze",
+    "subfinder_scan", "amass_scan", "trivy_scan", "hydra_attack",
+    "prowler_scan", "kube_hunter_scan", "john_crack", "hashcat_crack",
+    "dirsearch_scan", "wfuzz_scan", "fierce_scan", "arjun_scan",
+    "naabu_port_scan", "dnsenum_scan", "gau_discovery", "xsstrike_scan",
+    "medusa_attack", "sslscan_probe", "testssl_scan", "semgrep_scan",
+    "enum4linux_ng_advanced", "autorecon_comprehensive", "browser_agent_inspect",
+})
 
 
 def category_for(name: str) -> str:
@@ -53,6 +197,50 @@ def category_for(name: str) -> str:
 
 def describe(name: str, cat: str) -> str:
     return f"{cat} tool: {name.replace('_', ' ')}"
+
+
+def infer_args_template(name: str, params: list[dict]) -> list[str]:
+    """Heuristic CLI templates from MCP parameter names (allowlist only)."""
+    names = {p["name"] for p in params}
+    if "scan_type" in names and "ports" in names:
+        if "nse_scripts" in names:
+            return ARGS_TEMPLATES.get("nmap_advanced_scan", [
+                "{scan_type}", "-p", "{ports}", "--script", "{nse_scripts}",
+                "{additional_args}", "{target}",
+            ])
+        return ARGS_TEMPLATES.get("nmap_scan", [
+            "{scan_type}", "-p", "{ports}", "{additional_args}", "{target}",
+        ])
+    if "rate" in names and "ports" in names:
+        return ["{target}", "-p", "{ports}", "--rate", "{rate}", "{additional_args}"]
+    if "service" in names and "username" in names:
+        return [
+            "-l", "{username}", "-P", "{password_file}", "{target}", "-s", "{service}",
+            "{additional_args}",
+        ]
+    if "wordlist" in names and ("url" in names or "target" in names):
+        if "threads" in names:
+            return ["-u", "{target}", "-w", "{wordlist}", "-t", "{threads}", "{additional_args}"]
+        if "mode" in names and "match_codes" in names:
+            return ["-u", "{target}", "-w", "{wordlist}", "{additional_args}"]
+        return ["{target}", "-w", "{wordlist}", "{additional_args}"]
+    if "templates" in names:
+        return ["-u", "{target}", "-t", "{templates}", "{additional_args}"]
+    if "domain" in names and "mode" in names:
+        return ["{mode}", "-d", "{target}", "{additional_args}"]
+    if "hash_file" in names and "wordlist" in names:
+        return ["{hash_file}", "--wordlist={wordlist}", "{additional_args}"]
+    if name.endswith("_scan") and "target" in names:
+        return ["-h", "{target}", "{additional_args}"] if "nikto" in name else GENERIC_ARGS
+    return GENERIC_ARGS
+
+
+def resolve_args_template(name: str, params: list[dict]) -> list[str]:
+    if name in ARGS_TEMPLATES:
+        return ARGS_TEMPLATES[name]
+    if name in INFER_TOOLS:
+        return infer_args_template(name, params)
+    return GENERIC_ARGS
 
 
 def parse_mcp_tools(text: str) -> dict[str, list[dict]]:
@@ -113,13 +301,16 @@ def main() -> int:
         "# enabled=false until runner image provides the binary on PATH.",
         "tools:",
     ]
+    non_generic = 0
     for name in names:
         cat = category_for(name)
         binary = name.split("_")[0] if "_" in name else name
         if len(binary) > 20:
             binary = DEFAULT_BINARY.get(cat, "echo")
         params = param_map.get(name, [{"name": "target", "type": "string", "required": True}])
-        args = ARGS_TEMPLATES.get(name, ["{target}", "{additional_args}"])
+        args = resolve_args_template(name, params)
+        if args != GENERIC_ARGS:
+            non_generic += 1
 
         lines.append(f"  - name: {name}")
         lines.append(f"    category: {cat}")
@@ -137,13 +328,13 @@ def main() -> int:
         lines.append("    args:")
         for a in args:
             lines.append(f"      - {yaml_quote(a)}")
-        lines.append(f"    timeout_sec: 300")
+        lines.append("    timeout_sec: 300")
         lines.append(f"    description: {yaml_quote(describe(name, cat))}")
-        lines.append(f"    enabled: false")
+        lines.append("    enabled: false")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"wrote {len(names)} tools to {OUT}")
+    print(f"wrote {len(names)} tools to {OUT} ({non_generic} non-generic args templates)")
     return 0
 
 

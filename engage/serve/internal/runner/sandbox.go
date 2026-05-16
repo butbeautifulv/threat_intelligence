@@ -20,7 +20,7 @@ func (s *Sandbox) Enabled() bool {
 	return s != nil && strings.EqualFold(s.Mode, "docker") && s.Container != ""
 }
 
-func (s *Sandbox) Exec(ctx context.Context, binary string, args []string, timeout time.Duration) Result {
+func (s *Sandbox) Exec(ctx context.Context, binary string, args []string, timeout time.Duration, proc ProcessTracker, track *TrackInfo) Result {
 	if timeout <= 0 {
 		timeout = 5 * time.Minute
 	}
@@ -44,7 +44,21 @@ func (s *Sandbox) Exec(ctx context.Context, binary string, args []string, timeou
 	}
 	cmd := exec.CommandContext(ctx, "docker", cmdArgs...)
 	cmd.Env = []string{"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}
-	return runCmd(cmd)
+
+	var trackPID int
+	if proc != nil && track != nil {
+		session := s.Container + ":" + inner
+		trackPID = proc.RegisterDocker(track.Tool, track.Target, "docker exec "+session, session)
+	}
+	res := runCmd(cmd)
+	if proc != nil && track != nil {
+		st := "done"
+		if res.ExitCode != 0 || res.Err != nil {
+			st = "failed"
+		}
+		proc.Finish(trackPID, st)
+	}
+	return res
 }
 
 func runCmd(cmd *exec.Cmd) Result {
