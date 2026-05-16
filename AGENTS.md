@@ -24,7 +24,8 @@ Keep diffs reviewable: **one git commit per completed phase or slice**, not one 
 4. **Execute one phase** — implement only what that phase plan covers; run tests for touched layers.
 5. **Commit on the branch** — `git add` + commit like `feat(engage): Phase N — <short title>`; `git push -u origin HEAD`; open a PR to `main`.
 6. **Critic gate** — the **orchestrator / main agent session** acts as critic & compliance ([.cursor/rules/veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc)): plan scope, architecture, tests, graph version; verdict APPROVE / REQUEST_CHANGES before merge.
-7. **Update master plan** — on merge, mark phase `done`, note merge commit SHA; clear or archive branch name.
+7. **Merge to `main` promptly** — after critic APPROVE, merge and `git push origin main` so the repo does not drift across parallel branches. See [veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) § Merge discipline.
+8. **Update master plan** — on merge, mark phase `done`, note merge commit SHA; clear or archive branch name.
 
 If the user asks to “stage all” or catch up after many phases, still document phase boundaries in the commit message body.
 
@@ -32,10 +33,10 @@ If the user asks to “stage all” or catch up after many phases, still documen
 
 | Role | Branch | Merge to `main` |
 |------|--------|-----------------|
-| Implementer (Task / subagent / second chat) | `engage/phase-NN-slug` | Only after critic APPROVE |
-| Critic & compliance (default for orchestrator chat) | stays on `main` or review-only checkout | Merges PR or instructs user to merge |
+| Implementer (Task / subagent / second chat) | `engage/phase-NN-slug`, `platform/p0-*` | Only after critic APPROVE; do not start next phase until prior merge is on `main` |
+| Critic & compliance (default for orchestrator chat) | `main` | Merges approved branches, pushes `main`, then starts next phase |
 
-Independent phases may run on **different branches at the same time**; serial phases rebase onto `main` after dependencies merge.
+Independent phases may run on **different branches at the same time** only if merges keep pace; otherwise **serialize merges** to avoid divergence. Serial phases rebase onto `main` after dependencies merge.
 
 ## End-of-task checklist (required)
 

@@ -59,7 +59,7 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-age
 <blocking issues or nits>
 ```
 
-6. **APPROVE** — user or implementer may merge; update master plan to `done` with merge SHA.
+6. **APPROVE** — merge to `main`, `git push origin main`, run applicable `make test-*` gates; update master plan to `done` with merge SHA (see [veil-agent-parallel-branches.mdc](veil-agent-parallel-branches.mdc) § Merge discipline).
 7. **REQUEST_CHANGES** — list concrete fixes; implementer pushes to the same branch; re-review.
 8. **BLOCKED** — wrong branch, wrong phase, or architectural violation; do not merge.
 
