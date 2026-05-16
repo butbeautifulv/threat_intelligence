@@ -34,11 +34,13 @@ test-graph-engage-category:
 	./scripts/test/smoke-graph-engage-category.sh
 
 test-engage-ctf:
+	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./internal/usecase/ctf/... -count=1 -run Golden
 	chmod +x ./scripts/test/smoke-ctf-web.sh ./scripts/test/smoke-ctf-pwn.sh
 	./scripts/test/smoke-ctf-web.sh
 	./scripts/test/smoke-ctf-pwn.sh
 
 test-engage-bugbounty:
+	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./internal/usecase/bugbounty/... -count=1 -run Golden
 	chmod +x ./scripts/test/smoke-bugbounty-recon.sh ./scripts/test/smoke-bugbounty-recon-execute.sh
 	./scripts/test/smoke-bugbounty-recon.sh
 	./scripts/test/smoke-bugbounty-recon-execute.sh
