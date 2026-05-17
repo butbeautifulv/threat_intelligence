@@ -152,4 +152,15 @@ var intelBridgeHandlers = map[string]intelBridgeHandler{
 		_ = spec
 		return s.callPlaybook(ctx, subject, argString(args, "playbook", argString(args, "name", "")), target, argBool(args, "async"))
 	},
+	"checksec_analyze": func(ctx context.Context, s *Server, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = ctx
+		_ = subject
+		_ = spec
+		return toolJSONResult(map[string]any{
+			"success":     true,
+			"target":      target,
+			"binary_path": argString(args, "binary_path", ""),
+			"note":        "use checksec via runner when binary is in engage-runner image",
+		})
+	},
 }

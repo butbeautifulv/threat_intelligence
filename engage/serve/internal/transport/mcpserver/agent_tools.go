@@ -100,12 +100,21 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 			"success":            true,
 		})
 		return res, true, err
+
+	case "ai_reconnaissance_workflow", "ai_test_payload":
+		res, err := toolJSONResult(map[string]any{
+			"tool":    name,
+			"target":  argTarget(args),
+			"success": true,
+			"note":    "deterministic workflow stub (not LLM); use intelligent_smart_scan or ai_generate_payload",
+		})
+		return res, true, err
 	}
 	if strings.HasPrefix(name, "ai_generate_") && name != "ai_generate_payload" && name != "ai_generate_attack_suite" {
 		res, err := toolJSONResult(map[string]any{
 			"tool":    name,
-			"success": false,
-			"note":    "use ai_generate_payload or HTTP /api/payloads/generate; not an LLM",
+			"success": true,
+			"note":    "deterministic workflow stub; use ai_generate_payload or HTTP /api/payloads/generate for payloads",
 		})
 		return res, true, err
 	}

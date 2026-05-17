@@ -27,6 +27,11 @@ func (s *Server) callTool(ctx context.Context, name string, args map[string]any)
 	if IsIntelBridgeTool(name, spec) {
 		return s.callIntelBridge(ctx, name, spec, args)
 	}
+	if IsBridgeWorkflowBinary(spec.Binary) {
+		if out, ok, err := s.tryBridgeWorkflowTool(ctx, name, args); ok {
+			return out, err
+		}
+	}
 	res := s.runner.Run(ctx, subject, name, argsToRequest(args))
 	if !res.Success && res.Error != "" {
 		return nil, rpcErrf(codeToolError, "%s", res.Error)
