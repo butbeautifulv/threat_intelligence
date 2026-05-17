@@ -107,6 +107,56 @@ nginx/gateway upstream blocks use Docker DNS or K8s service names with `least_co
 
 ---
 
+## Secure stack (P12h)
+
+Single HTTPS entry for graph read and engage exec when using [secure-unified](../deploy/stacks/secure-unified.yml). Nginx config: [deploy/platform/nginx/veil.conf](../deploy/platform/nginx/veil.conf).
+
+Only **platform nginx** publishes a host port (`UNIFIED_NGINX_HTTPS_PORT`, default `443`). Internal services use the Docker network; Neo4j has no host publish in secure overlays.
+
+Nginx forwards `Authorization: Bearer …` on every `proxy_pass` location. JWT validation and RBAC run in each Go service; the edge does not terminate OIDC.
+
+### Keycloak roles by path
+
+Use one realm (e.g. `veil`) and map AD/LDAP groups to realm or client roles. Veil services read roles from the access token (`realm_access.roles`, `resource_access.<client>.roles`).
+
+| Path prefix | Required roles (when `RBAC_ENABLED=1`) | Env overrides |
+|-------------|--------------------------------------|-----------------|
+| `/v1/*`, `/mcp/graph` | `veil-reader` and/or `veil-admin` | `RBAC_ROLE_READER`, `RBAC_ROLE_ADMIN` |
+| `/health` | None at API (public liveness) | — |
+| `/api/*`, `/mcp/engage` | `veil-engage-runner` and/or `veil-engage-admin` | `RBAC_ROLE_ENGAGE_RUNNER`, `RBAC_ROLE_ENGAGE_ADMIN` |
+
+Recommended realm roles: `veil-reader`, `veil-admin`, `veil-engage-runner`, `veil-engage-admin`. Grant `veil-reader` without `veil-engage-runner` for read-only TI access.
+
+See [auth-keycloak.md](auth-keycloak.md) for issuer setup, token examples, and MCP stdio tokens.
+
+### Bring-up
+
+```bash
+mkdir -p deploy/platform/nginx/certs
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout deploy/platform/nginx/certs/tls.key \
+  -out deploy/platform/nginx/certs/tls.crt \
+  -subj '/CN=localhost'
+
+set -a
+source deploy/profiles/secure-graph.env
+source deploy/profiles/secure-engage.env
+set +a
+
+docker compose \
+  -f deploy/knowledge/compose.yml \
+  -f deploy/knowledge/compose.secure.yml \
+  -f deploy/engage/compose.yml \
+  -f deploy/engage/compose.secure.yml \
+  -f deploy/platform/compose.secure-unified.yml \
+  --profile mcp \
+  up -d --build
+```
+
+Verify host binding: only `443` (or `UNIFIED_NGINX_HTTPS_PORT`). Call graph and engage paths with the appropriate role-bearing JWT.
+
+---
+
 ## Non-goals (P12)
 
 - Merging engage tool execution into `veil-mcp`.
@@ -131,4 +181,5 @@ make test-knowledge test-engage
 - [platform-architecture.md](platform-architecture.md) — layer diagram with unified edge
 - [mcp-agents.md](mcp-agents.md) — stdio setup (updated in P12j)
 - [deploy/README.md](../deploy/README.md) — compose stacks
+- [deploy/stacks/secure-unified.yml](../deploy/stacks/secure-unified.yml) — secure stack SSOT
 - [veil_platform_p12_unified_access.plan.md](../.cursor/plans/veil_platform_p12_unified_access.plan.md) — phase branches

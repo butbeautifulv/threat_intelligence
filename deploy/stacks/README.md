@@ -36,6 +36,7 @@ Prefer existing ops scripts when listed under `scripts:` in a stack file (they s
 | [secure-graph.yml](secure-graph.yml) | Graph nginx TLS + auth (`secure-graph.env`) |
 | [secure-engage.yml](secure-engage.yml) | Engage nginx TLS + hardening (`secure-engage.env`) |
 | [secure.yml](secure.yml) | Combined reference for both secure layers |
+| [secure-unified.yml](secure-unified.yml) | Graph + engage on one platform nginx (`deploy/platform/nginx`) |
 | [pentest-prod.yml](pentest-prod.yml) | Local prod-like pentest target (hardened graph + pentest overlays) |
 
 ## Profiles
@@ -47,6 +48,7 @@ Env profiles live in [../profiles/](../profiles/). A stack may list zero or more
 | `smoke-minimal.env` | `minimal`, `full-loop` |
 | `secure-graph.env` | `secure-graph`, `secure` |
 | `secure-engage.env` | `secure-engage`, `secure` |
+| `secure-graph.env` + `secure-engage.env` | `secure-unified` (both sourced) |
 | `pentest-prod.env` | `pentest-prod` |
 
 Graph-pack crawl profiles (`full-enrich`, `fast-rich`, `incremental-pack`, `full-rebuild`) are used by [scripts/graph-pack/](../../scripts/graph-pack/) and are not stack presets yet.
@@ -70,4 +72,5 @@ Graph-pack crawl profiles (`full-enrich`, `fast-rich`, `incremental-pack`, `full
 
 - [deploy/README.md](../README.md) — per-layer compose layout
 - [docs/deploy-secure.md](../../docs/deploy-secure.md) — secure knowledge/engage runtime
+- [docs/platform-unified-access.md](../../docs/platform-unified-access.md) — unified edge paths and RBAC
 - [docs/engage-runtime.md](../../docs/engage-runtime.md) — engage overlays and ports
