@@ -7,16 +7,16 @@ todos:
     status: pending
   - id: p9b-unified-dispatch
     content: "P9b: Единый ToolExecutor — bridge/playbook/agent до Runner; HTTP + MCP"
-    status: in_progress
+    status: completed
   - id: p9c-bridge-coverage
     content: "P9c: 55 bridge_api — handlers/playbooks; test-engage-bridge-coverage"
-    status: in_progress
+    status: completed
   - id: p9d-runner-breadth
     content: "P9d: runner tier-1 breadth + tools.live (57 runner_N/A → live)"
-    status: in_progress
+    status: cancelled
   - id: p9g-heavy-runner
     content: "P9g: Heavy stack в runner — burp, ghidra, hashcat, john, gdb, msf, angr, r2, volatility, wpscan (12 tools)"
-    status: in_progress
+    status: completed
   - id: p9f-ci-gate
     content: "P9f: test-engage-executable-matrix — 158/158 (subprocess+bridge)"
     status: pending
@@ -151,9 +151,9 @@ make test-engage-executable-matrix  # 158/158
 | Phase | Branch | Status |
 |-------|--------|--------|
 | P9a | `engage/p9a-tool-metrics-docs` | pending |
-| P9b | `engage/p9b-unified-tool-dispatch` | in_progress |
-| P9c | `engage/p9c-bridge-tool-coverage` | in_progress |
-| P9d | `engage/p9d-runner-burp-hydra` | in_progress |
-| P9g | `engage/p9g-runner-heavy-full` | in_progress |
+| P9b | `engage/p9b-unified-tool-dispatch` | done — `be1469e` |
+| P9c | `engage/p9c-bridge-tool-coverage` | done — `4ab733f` |
+| P9d | `engage/p9d-runner-burp-hydra` | skipped (not pushed; P9g covers heavy) |
+| P9g | `engage/p9g-runner-heavy-full` | done — `cdf3d51` |
 | P9f | `engage/p9f-executable-matrix-ci` | pending |
 | ~~P9e~~ | — | cancelled (no permanent N/A) |

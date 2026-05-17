@@ -31,6 +31,7 @@ var bridgeWorkflowHandlers = map[string]bridgeWorkflowHandler{
 	"autorecon_scan":               bridgeWorkflowNote("autorecon_scan", "use intelligent_smart_scan or subprocess recon tools"),
 	"checkov_iac_scan":             bridgeWorkflowNote("checkov_iac_scan", "use checkov CLI when enabled in runner profile"),
 	"clair_vulnerability_scan":     bridgeWorkflowNote("clair_vulnerability_scan", "use trivy/grype for container scanning"),
+	"checksec_analyze":           bridgeWorkflowNote("checksec_analyze", "use checksec in runner-full or ctf_binary_analyzer"),
 	"clear_cache": func(ctx context.Context, d *Dispatcher, name string, args map[string]any) (any, error) {
 		_ = ctx
 		cleared := 0

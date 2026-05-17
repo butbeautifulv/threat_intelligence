@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 LIVE = ROOT / "engage/serve/catalog/tools.live.yaml"
-MCP = ROOT / "engage/serve/internal/transport/mcpserver"
+DISPATCH = ROOT / "engage/serve/internal/usecase/tooldispatch"
 
 WORKFLOW_BINARIES = frozenset({
     "api", "bugbounty", "ai", "get", "http", "create", "execute", "generate",
@@ -126,11 +126,11 @@ def main() -> int:
     live = parse_tools(LIVE) if LIVE.is_file() else {}
     live_enabled = {n for n, t in live.items() if t.get("enabled") == "true"}
 
-    intel = map_keys(MCP / "intel_bridge_handlers.go", "intelBridgeHandlers")
-    ctf = map_keys(MCP / "intel_bridge_ctf.go", "ctfBridgeHandlers")
-    cve = map_keys(MCP / "intel_bridge_cve.go", "cveBridgeHandlers")
-    workflow = map_keys(MCP / "bridge_workflow.go", "bridgeWorkflowHandlers")
-    agent = agent_tool_cases(MCP / "agent_tools.go")
+    intel = map_keys(DISPATCH / "bridge_handlers.go", "intelBridgeHandlers")
+    ctf = map_keys(DISPATCH / "bridge_ctf.go", "ctfBridgeHandlers")
+    cve = map_keys(DISPATCH / "bridge_cve.go", "cveBridgeHandlers")
+    workflow = map_keys(DISPATCH / "bridge_workflow.go", "bridgeWorkflowHandlers")
+    agent = agent_tool_cases(DISPATCH / "agent_tools.go")
     playbooks = playbook_names()
 
     bridge_tools = [
