@@ -64,6 +64,14 @@ test-agent-eval-paper:
 	chmod +x ./scripts/eval/gaia/run-paper-examples.sh ./scripts/eval/gaia/solvers/stub.sh
 	./scripts/eval/gaia/run-paper-examples.sh
 
+pentest-veil-mcp:
+	chmod +x ./scripts/eval/pentest-veil-mcp.sh
+	./scripts/eval/pentest-veil-mcp.sh
+
+pentest-veil-dual:
+	chmod +x ./scripts/eval/run-dual-veil-pentest.sh
+	./scripts/eval/run-dual-veil-pentest.sh
+
 test-scrape:
 	cd pkg && env -u GOWORK go test ./harvest/... ./commit/...
 	cd scrape/pkg && env -u GOWORK go test ./...
