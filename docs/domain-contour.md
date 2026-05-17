@@ -22,7 +22,20 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`d
 | `pkg/engage/domain/report` | Finding, Severity | engage serve |
 | `pkg/engage/domain/job` | Job, Status | engage serve |
 | `pkg/engage/domain/tool` | Tool spec, catalog metadata | engage serve |
+| `pkg/engage/domain/target` | Scan subject (host, URL, CIDR) | engage serve (guard, workflows) |
 | `pkg/engage/events` | Finding events wire | engage, pipeline, graph ingest |
+
+## Knowledge serve read DTOs (layer-local, not in pkg)
+
+These types stay in the knowledge module because they are Neo4j projections and HTTP/MCP response shapes, not shared ingest entities. Engage reads them via HTTP veil-api only (no cross-layer Go import).
+
+| Location | Types | Role |
+|----------|-------|------|
+| `knowledge/connector/query` | `Node`, `Edge`, `Graph`, `KindCount`, `CategoryMeta`, `EngageFindingContext`, `EngageTargetContext` | Cypher read projections for API/MCP |
+| `knowledge/serve/internal/domain` | `ErrNodeNotFound` | HTTP 404 mapping for missing nodes |
+| `knowledge/serve/internal/usecase` | `TargetGraphOpts`, `TargetGraphState` | Aggregated target read model over category search + engage subgraph |
+
+Do not duplicate `pkg/ti/domain` entities here; graph nodes expose label/props maps for transport.
 
 ## Layer adapters (not in pkg)
 
@@ -31,7 +44,7 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`d
 | Scrape | `discovery/harvest/internal/sources/<src>/` | Fetch, parse → `harvest.Envelope` (uses `pkg/*/domain`) |
 | Pipeline | `pipeline/ned/internal/sources/<src>/` | Transform → normalize → `commit.Envelope` |
 | Graph ingest | `knowledge/ingest/internal/sources/<src>/` | Apply commit → Neo4j (uses `pkg/*/domain`) |
-| Engage | `engage/serve/internal/domain/target` | Target allowlist / guard (report, job, tool in `pkg/engage/domain`) |
+| Engage | `engage/serve/internal/security`, usecase adapters | Target guard, tool runners (domain types in `pkg/engage/domain`) |
 
 ## TI flow
 

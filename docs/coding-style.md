@@ -76,10 +76,10 @@ Shared entities live under **`pkg/*/domain/`** (single source of truth). Layers 
 | `pkg/ti/domain` | IOC, Actor, Campaign, … | scrape TI, pipeline NED, graph ingest TI |
 | `pkg/vuln/domain`, `pkg/lola/domain` | CVE, STIX artifacts | scrape, pipeline, graph |
 | `pkg/{ds,sbom,nuclei,coderules}/domain` | AppSec entities | scrape, pipeline, graph |
-| `pkg/engage/domain/{report,job,tool}` | Findings, jobs, tool spec | engage serve |
+| `pkg/engage/domain/{report,job,tool,target}` | Findings, jobs, tool spec, scan target | engage serve |
 | `pkg/ti/{validate,ids,normalize}` | Normalization (pipeline only for normalize) | pipeline NED |
 
-**Layer-local domain** (not in `pkg/`): engage `internal/domain/target` (guard/allowlist); graph serve read models under `knowledge/serve/internal/domain/`.
+**Layer-local domain** (not in `pkg/`): knowledge serve read DTOs — see [domain-contour.md](domain-contour.md#knowledge-serve-read-dtos-layer-local-not-in-pkg) (`knowledge/connector/query`, `knowledge/serve/internal/usecase`).
 
 **Rule:** new cross-layer entity → add to `pkg/<area>/domain` with `*_test.go`; do not duplicate `type IOC struct` in scrape/pipeline/graph.
 
