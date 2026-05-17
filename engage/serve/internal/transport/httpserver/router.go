@@ -2,9 +2,11 @@ package httpserver
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/tooldispatch"
 	"github.com/butbeautifulv/veil/pkg/api"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
@@ -35,7 +37,17 @@ func Register(mux *http.ServeMux, c *components.APIComponents) {
 			return
 		}
 		sub := subject(r)
-		writeJSON(w, http.StatusOK, c.Tools.Run(r.Context(), sub, name, req))
+		body, err := c.ToolDispatch.DispatchRequest(r.Context(), sub, name, req)
+		if err != nil {
+			status := http.StatusInternalServerError
+			var de *tooldispatch.DispatchError
+			if errors.As(err, &de) && de.NotFound {
+				status = http.StatusNotFound
+			}
+			writeJSON(w, status, map[string]any{"success": false, "tool": name, "error": err.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, body)
 	})
 
 	registerJobs(mux, c)

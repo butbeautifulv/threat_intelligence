@@ -1,4 +1,4 @@
-package mcpserver
+package tooldispatch
 
 import (
 	"context"
@@ -10,38 +10,35 @@ import (
 	pkgreport "github.com/butbeautifulv/veil/pkg/report"
 )
 
-func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]any) (any, bool, error) {
+func (d *Dispatcher) tryAgentTool(ctx context.Context, name string, args map[string]any) (any, bool, error) {
 	switch name {
 	case "ai_generate_payload":
-		if s.files == nil {
-			out, err := toolJSONResult(map[string]any{"success": false, "error": "files manager not configured"})
-			return out, true, err
+		if d.Files == nil {
+			return map[string]any{"success": false, "error": "files manager not configured"}, true, nil
 		}
 		size := argInt(args, "size", 256)
 		if size <= 0 {
 			size = 256
 		}
-		out, err := payloads.Generate(s.files, payloads.Request{
+		out, err := payloads.Generate(d.Files, payloads.Request{
 			Type:     argString(args, "type", "buffer"),
 			Size:     size,
 			Pattern:  argString(args, "pattern", "A"),
 			Filename: argString(args, "filename", ""),
 		})
 		if err != nil {
-			return nil, true, rpcErrf(codeToolError, "%v", err)
+			return nil, true, dispatchToolError("%v", err)
 		}
 		out["note"] = "deterministic payload generation (not LLM)"
-		res, err := toolJSONResult(out)
-		return res, true, err
+		return out, true, nil
 
 	case "ai_generate_attack_suite":
-		if s.intel == nil {
-			res, err := toolJSONResult(map[string]any{"success": false, "error": "intelligence not configured"})
-			return res, true, err
+		if d.Intel == nil {
+			return map[string]any{"success": false, "error": "intelligence not configured"}, true, nil
 		}
 		target := argTarget(args)
 		objective := argString(args, "objective", "comprehensive")
-		chain := s.intel.CreateAttackChain(ctx, target, objective)
+		chain := d.Intel.CreateAttackChain(ctx, target, objective)
 		out := map[string]any{
 			"target":       target,
 			"objective":    objective,
@@ -49,21 +46,19 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 			"success":      true,
 			"note":         "deterministic attack chain from patterns + ranked tools (not LLM)",
 		}
-		if s.files != nil {
-			if p, err := payloads.Generate(s.files, payloads.Request{Type: "buffer", Size: 64, Pattern: "A"}); err == nil {
+		if d.Files != nil {
+			if p, err := payloads.Generate(d.Files, payloads.Request{Type: "buffer", Size: 64, Pattern: "A"}); err == nil {
 				out["sample_payload"] = p
 			}
 		}
-		res, err := toolJSONResult(out)
-		return res, true, err
+		return out, true, nil
 
 	case "browser_agent_inspect":
-		if s.browser == nil || !s.browser.Enabled() {
-			res, err := toolJSONResult(map[string]any{
+		if d.Browser == nil || !d.Browser.Enabled() {
+			return map[string]any{
 				"success": false,
 				"error":   "discovery browser not configured (DISCOVERY_BROWSER_URL)",
-			})
-			return res, true, err
+			}, true, nil
 		}
 		target := argTarget(args)
 		params := map[string]string{}
@@ -72,17 +67,13 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 				params[k] = s
 			}
 		}
-		out := s.browser.Inspect(ctx, browser.InspectFromParams(target, params))
-		res, err := toolJSONResult(out)
-		return res, true, err
+		return d.Browser.Inspect(ctx, browser.InspectFromParams(target, params)), true, nil
 
 	case "get_process_dashboard", "get_live_dashboard":
-		if s.processes == nil {
-			res, err := toolJSONResult(map[string]any{"success": false, "error": "process manager not configured"})
-			return res, true, err
+		if d.Processes == nil {
+			return map[string]any{"success": false, "error": "process manager not configured"}, true, nil
 		}
-		res, err := toolJSONResult(s.processes.Dashboard())
-		return res, true, err
+		return d.Processes.Dashboard(), true, nil
 
 	case "format_tool_output_visual":
 		toolName := argString(args, "tool_name", argString(args, "tool", ""))
@@ -90,7 +81,7 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 		target := argTarget(args)
 		parsed := findings.ParseToolOutput(toolName, target, output)
 		severity := pkgreport.SeverityBreakdown(parsed)
-		res, err := toolJSONResult(map[string]any{
+		return map[string]any{
 			"tool":               toolName,
 			"target":             target,
 			"findings_count":     len(parsed),
@@ -98,16 +89,14 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 			"findings":           parsed,
 			"visual":             "structured_json",
 			"success":            true,
-		})
-		return res, true, err
+		}, true, nil
 	}
 	if strings.HasPrefix(name, "ai_generate_") && name != "ai_generate_payload" && name != "ai_generate_attack_suite" {
-		res, err := toolJSONResult(map[string]any{
+		return map[string]any{
 			"tool":    name,
 			"success": false,
 			"note":    "use ai_generate_payload or HTTP /api/payloads/generate; not an LLM",
-		})
-		return res, true, err
+		}, true, nil
 	}
 	return nil, false, nil
 }
