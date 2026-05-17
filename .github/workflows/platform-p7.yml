@@ -1,0 +1,37 @@
+name: platform-p7
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'pkg/**'
+      - 'scrape/**'
+      - 'pipeline/**'
+      - 'graph/**'
+      - 'engage/**'
+      - 'Makefile'
+      - 'docs/domain-contour.md'
+      - '.github/workflows/platform-p7.yml'
+  pull_request:
+    paths:
+      - 'pkg/**'
+      - 'scrape/**'
+      - 'pipeline/**'
+      - 'graph/**'
+      - 'engage/**'
+      - 'Makefile'
+      - 'docs/domain-contour.md'
+      - '.github/workflows/platform-p7.yml'
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Platform P7 unit tests (pkg domain + layer slices)
+        run: make test-platform-p7

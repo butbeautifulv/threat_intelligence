@@ -21,6 +21,7 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`s
 | `pkg/engage/contract` | Engage HTTP/MCP DTOs | engage serve |
 | `pkg/engage/domain/report` | Finding, Severity | engage serve |
 | `pkg/engage/domain/job` | Job, Status | engage serve |
+| `pkg/engage/domain/tool` | Tool spec, catalog metadata | engage serve |
 | `pkg/engage/events` | Finding events wire | engage, pipeline, graph ingest |
 
 ## Layer adapters (not in pkg)
@@ -30,7 +31,7 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`s
 | Scrape | `scrape/harvest/internal/sources/<src>/` | Fetch, parse → `harvest.Envelope` (uses `pkg/*/domain`) |
 | Pipeline | `pipeline/ned/internal/sources/<src>/` | Transform → normalize → `commit.Envelope` |
 | Graph ingest | `graph/ingest/internal/sources/<src>/` | Apply commit → Neo4j (uses `pkg/*/domain`) |
-| Engage | `engage/serve/internal/domain/` | Tool specs, targets (report/job in `pkg/engage/domain`) |
+| Engage | `engage/serve/internal/domain/target` | Target allowlist / guard (report, job, tool in `pkg/engage/domain`) |
 
 ## TI flow
 

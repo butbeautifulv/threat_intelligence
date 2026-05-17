@@ -28,10 +28,10 @@ todos:
     status: completed
   - id: p7i-layer-migration
     content: "P7i: Миграция слоёв на pkg/domain — thin adapters, delete dup entity.go"
-    status: in_progress
+    status: completed
   - id: p7j-ci-enforce
     content: "P7j: CI enforce — test-platform-p7, critic checklist, docs/coding-style"
-    status: pending
+    status: in_progress
 isProject: false
 ---
 
@@ -359,5 +359,5 @@ make test-engage          # после P7g
 | P7f | `platform/p7f-graph-serve-tests` | done — merged `9c2cec8` |
 | P7g | `platform/p7g-engage-tests` | done — merged `c723e6d` |
 | P7h | `platform/p7h-pkg-domain-sot` | done — `pkg/ti/{validate,ids,normalize}`, docs/domain-contour.md |
-| P7i | `platform/p7i-domain-migration` | in progress — TI/vuln/lola → pkg (dup entity.go removed) |
-| P7j | `platform/p7j-ci-enforce` | pending |
+| P7i | `platform/p7i-*` | done — ti/vuln/lola + appsec + engage report/job/tool → pkg |
+| P7j | `platform/p7j-ci-enforce` | in progress — `.github/workflows/platform-p7.yml` |
