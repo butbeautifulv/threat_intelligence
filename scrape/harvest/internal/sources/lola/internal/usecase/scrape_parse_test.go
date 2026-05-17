@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/lola/domain"
 )
 
 func TestParseLOLBASYAML(t *testing.T) {

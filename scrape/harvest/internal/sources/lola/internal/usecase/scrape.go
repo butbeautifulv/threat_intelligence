@@ -17,7 +17,7 @@ import (
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/lola/domain"
 	"github.com/butbeautifulv/veil/scrape/pkg/proxypool"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/repository"
 )

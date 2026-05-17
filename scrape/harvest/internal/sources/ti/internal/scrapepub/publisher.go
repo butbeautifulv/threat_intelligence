@@ -11,7 +11,7 @@ import (
 	"github.com/butbeautifulv/veil/pkg/harvest"
 	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/repository"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/butbeautifulv/veil/pkg/commit"
 	"github.com/butbeautifulv/veil/pkg/harvest"
-	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln/domain"
+	"github.com/butbeautifulv/veil/pkg/vuln/domain"
 	"github.com/butbeautifulv/veil/pipeline/ned/internal/sources/vuln/enrich"
 )
 

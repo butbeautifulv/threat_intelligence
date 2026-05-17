@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 )
 
 func (u *Ingestor) UpsertActor(ctx context.Context, a domain.Actor) error {

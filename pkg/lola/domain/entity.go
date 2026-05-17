@@ -1,3 +1,4 @@
+// Package domain holds shared LOLA artifact entities for scrape and graph ingest.
 package domain
 
 type Artifact struct {

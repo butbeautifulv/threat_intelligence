@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/butbeautifulv/veil/pkg/commit"
-	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/jsonl"
 	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/repository"
 )

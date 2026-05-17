@@ -7,7 +7,7 @@ import (
 
 	"github.com/butbeautifulv/veil/pkg/commit"
 
-	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 )
 
 type fakeTIRepo struct {

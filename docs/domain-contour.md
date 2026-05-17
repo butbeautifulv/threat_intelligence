@@ -6,7 +6,9 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`s
 
 | Package | Role | Imported by |
 |---------|------|-------------|
-| `pkg/ti/domain` | IOC, Actor, Campaign, Cluster, Report | scrape (aliases), pipeline NED, graph ingest |
+| `pkg/ti/domain` | IOC, Actor, Campaign, Cluster, Report | scrape TI, pipeline NED, graph ingest TI |
+| `pkg/vuln/domain` | Vulnerability, CVSS, CPE, ExploitRef | scrape vuln, pipeline NED, graph ingest vuln |
+| `pkg/lola/domain` | Artifact, Command, Detection, … | scrape lola, graph ingest lola |
 | `pkg/ti/validate` | Pure validation (type, empty fields) | `pkg/ti/normalize` |
 | `pkg/ti/normalize` | NED normalization (IOC canonical form) | **pipeline only** — not graph ingest |
 | `pkg/ti/ids` | Stable actor/report/IOC ids for dedup | pipeline NED (`normalize` re-exports) |
@@ -19,10 +21,10 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`s
 
 | Layer | Path pattern | Responsibility |
 |-------|--------------|----------------|
-| Scrape | `scrape/harvest/internal/sources/<src>/` | Fetch, parse feeds → `harvest.Envelope` |
-| Pipeline | `pipeline/ned/internal/sources/<src>/` | Transform → normalize TI → `commit.Envelope` |
-| Graph ingest | `graph/ingest/internal/sources/<src>/` | Apply commit → Neo4j (expects NED-normalized TI) |
-| Engage | `engage/serve/internal/domain/` | Tool specs, jobs, findings (not wire DTOs) |
+| Scrape | `scrape/harvest/internal/sources/<src>/` | Fetch, parse → `harvest.Envelope` (uses `pkg/*/domain`) |
+| Pipeline | `pipeline/ned/internal/sources/<src>/` | Transform → normalize → `commit.Envelope` |
+| Graph ingest | `graph/ingest/internal/sources/<src>/` | Apply commit → Neo4j (uses `pkg/*/domain`) |
+| Engage | `engage/serve/internal/domain/` | Tool specs, jobs, findings (not wire DTOs; P7i next) |
 
 ## TI flow
 

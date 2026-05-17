@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 )
 
 type GraphRepository interface {

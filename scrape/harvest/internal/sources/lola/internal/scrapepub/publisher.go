@@ -7,7 +7,7 @@ import (
 	"github.com/butbeautifulv/veil/pkg/harvest"
 	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/lola/domain"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/repository"
 )
 

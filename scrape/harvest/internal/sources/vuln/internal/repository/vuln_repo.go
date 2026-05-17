@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/vuln/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/vuln/domain"
 )
 
 type VulnerabilityRepository interface {

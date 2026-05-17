@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/lola/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/lola/domain"
 )
 
 type LolaRepository interface {

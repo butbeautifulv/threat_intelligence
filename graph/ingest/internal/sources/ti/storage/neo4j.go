@@ -8,7 +8,7 @@ import (
 	"time"
 
 	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/ti/repository"
 
 	graphneo4j "github.com/butbeautifulv/veil/graph/connector/neo4j"

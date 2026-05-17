@@ -7,7 +7,7 @@ import (
 
 	"github.com/butbeautifulv/veil/pkg/commit"
 
-	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/domain"
+	"github.com/butbeautifulv/veil/pkg/lola/domain"
 	neo4jstore "github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/storage"
 )
 

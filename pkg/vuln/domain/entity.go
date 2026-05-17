@@ -1,3 +1,4 @@
+// Package domain holds shared vulnerability entities for scrape, NED, and graph ingest.
 package domain
 
 type Vulnerability struct {

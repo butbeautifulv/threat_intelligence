@@ -10,7 +10,7 @@ import (
 	driver "github.com/neo4j/neo4j-go-driver/v5/neo4j"
 
 	"github.com/butbeautifulv/veil/graph/connector/neo4j"
-	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/domain"
+	"github.com/butbeautifulv/veil/pkg/lola/domain"
 	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/lola/repository"
 )
 

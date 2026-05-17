@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/domain"
+	"github.com/butbeautifulv/veil/pkg/ti/domain"
 )
 
 func TestIocFromThreatFoxExport(t *testing.T) {
