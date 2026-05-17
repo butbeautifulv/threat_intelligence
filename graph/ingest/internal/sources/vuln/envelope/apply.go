@@ -8,11 +8,11 @@ import (
 	"github.com/butbeautifulv/veil/pkg/commit"
 
 	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/domain"
-	neo4jstore "github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/storage"
+	"github.com/butbeautifulv/veil/graph/ingest/internal/sources/vuln/repository"
 )
 
 // ApplyEnvelope applies vuln kinds to Neo4j.
-func ApplyEnvelope(ctx context.Context, st *neo4jstore.Store, env *commit.Envelope) error {
+func ApplyEnvelope(ctx context.Context, st repository.VulnerabilityRepository, env *commit.Envelope) error {
 	switch env.Kind {
 	case commit.KindVulnUpsert:
 		var v domain.Vulnerability
