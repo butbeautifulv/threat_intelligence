@@ -13,16 +13,16 @@ todos:
     status: completed
   - id: p6d-makefile-smoke-lib
     content: "scripts/test/lib/smoke.sh + Makefile test-pkg-shared"
-    status: in_progress
+    status: completed
   - id: p6e-deploy-stack-presets
     content: "deploy/stacks presets SSOT for compose overlays"
-    status: pending
+    status: completed
   - id: p6f-engage-package-split
     content: "Split intel_bridge, analyze.go, findings/parse.go"
-    status: pending
+    status: completed
   - id: p6g-natsjet-envelope-pub
     content: "pkg/natsjet envelope publish helper; thin scrape/pipeline connectors"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -50,12 +50,18 @@ isProject: false
 | **scrape/harvest/internal/scrapepub** | `RawPublisher`, `Base`, `NewRaw`; factory type alias |
 | **Migrated** | ti, vuln, ds, lola per-source scrapepub embed shared base |
 
-## Next batches (priority)
+## Completed (P6d–g, merged `505806a`)
 
-1. **P6d** — `scripts/test/lib/smoke.sh` (wait_http, skip_no_docker)
-3. **P6e** — `deploy/stacks/*.yml` compose preset chains
-4. **P6f** — engage large file splits (in-layer only)
-5. **P6g** — `pkg/natsjet` typed publish facade for scrape/pipeline connectors
+| Item | Change |
+|------|--------|
+| **P6d** | `smoke_wait_http` label arg; 4 platform smokes source `lib/smoke.sh` |
+| **P6e** | `deploy/stacks/{minimal,full-loop,secure*,pentest-prod}.yml` + README |
+| **P6f** | Split `intel_bridge_*`, `findings/parse_*`, `intelligence/{attack_chain,select_tools}` |
+| **P6g** | `pkg/natsjet/publish.go`; thin scrape/pipeline connector publish |
+
+## Next batches
+
+- Engage Phase 29 / platform v4 CI — see master engage & v4 plans
 
 ## Verification per batch
 
