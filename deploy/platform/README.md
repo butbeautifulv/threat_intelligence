@@ -9,6 +9,7 @@ Unified access layer: one TLS nginx edge for graph (`api`, `mcp`) and engage (`e
 | [nginx/veil.conf](nginx/veil.conf) | Route map for unified edge |
 | [nginx/upstreams.conf](nginx/upstreams.conf) | Docker service upstreams |
 | [compose.edge.yml](compose.edge.yml) | Compose overlay (unpublishes layer ports, adds `veil-edge`) |
+| [compose.edge-hostless.yml](compose.edge-hostless.yml) | CI/smoke: `ports: !reset []` when merge appends host binds |
 | [docker/nginx.Dockerfile](docker/nginx.Dockerfile) | `veil-edge` image |
 | [../stacks/unified-edge.yml](../stacks/unified-edge.yml) | Full stack preset |
 

@@ -21,7 +21,7 @@
 | Platform P6 refactor | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) — **done** |
 | Platform P7 pkg/domain | [veil_platform_p7_tests_then_pkg_domain.plan.md](.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) — **done**; `make test-platform-p7` |
 | Platform v8 layers | [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md) — **done** (P8a–i) |
-| Platform P12 unified access | [veil_platform_p12_unified_access.plan.md](.cursor/plans/veil_platform_p12_unified_access.plan.md) — **in progress**; operator contract [platform-unified-access.md](docs/platform-unified-access.md) |
+| Platform P12 unified access | [veil_platform_p12_unified_access.plan.md](.cursor/plans/veil_platform_p12_unified_access.plan.md) — **done**; operator contract [platform-unified-access.md](docs/platform-unified-access.md) |
 | Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — **active** (158 catalog → 158 executable; **P9f** gate) |
 | Finish | This file § End-of-task checklist |
 

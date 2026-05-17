@@ -66,3 +66,11 @@ make test-platform-unified-edge
 make test-platform-p7
 make test-knowledge test-engage
 ```
+
+## Sign-off (2026-05)
+
+All phases P12a–P12j merged to `main`. Release gate for operators:
+
+- `make test-platform-unified-edge` — Docker smoke through `veil-edge` (CI job `platform.yml` → `unified-edge`)
+- ADR and path map: [docs/platform-unified-access.md](../../docs/platform-unified-access.md)
+- Dev TLS: [deploy/platform/nginx/certs/README.md](../../deploy/platform/nginx/certs/README.md) (do not commit keys)

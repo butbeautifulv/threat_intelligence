@@ -59,6 +59,9 @@ deploy/knowledge/nginx/certs/*.key
 deploy/engage/nginx/certs/*.crt
 deploy/engage/nginx/certs/*.key
 !deploy/engage/nginx/certs/README.md
+deploy/platform/nginx/certs/*.crt
+deploy/platform/nginx/certs/*.key
+!deploy/platform/nginx/certs/README.md
 
 # OS / editor
 .DS_Store

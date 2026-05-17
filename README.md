@@ -78,7 +78,7 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 | **Platform P6** | **Done** — events, auth, scrapepub, stacks, natsjet publish | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
 | **Platform P7** | **Done** — `pkg/*/domain`, `test-platform-p7` CI | [domain-contour.md](docs/domain-contour.md) |
 | **Platform v8** | **Done** — layer renames, `pkg/report`, `pkg/decision`, `pkg/exec`, `pkg/api`, `pkg/mcp`, browser → discovery | [platform-architecture.md](docs/platform-architecture.md), [v8 master plan](.cursor/plans/veil_platform_v8_layers_master.plan.md) |
-| **Platform P12** | **In progress** — single TLS edge, path routing, stateless scale **4/8/16**, Neo4j Enterprise 3-core (prod) | [platform-unified-access.md](docs/platform-unified-access.md), [P12 master plan](.cursor/plans/veil_platform_p12_unified_access.plan.md) |
+| **Platform P12** | **Done** — unified TLS edge (`veil-edge`), `/v1` + `/api` + `/mcp/graph` + `/mcp/engage`, scale **4/8/16**, Neo4j Enterprise 3-core (prod), `make test-platform-unified-edge` | [platform-unified-access.md](docs/platform-unified-access.md), [P12 master plan](.cursor/plans/veil_platform_p12_unified_access.plan.md) |
 | **Security** | veil-controls + engage hardening; prod pentest 0 HIGH | [external-security-frameworks.md](docs/external-security-frameworks.md) |
 | **Agent eval** | GAIA offline harness | [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
 

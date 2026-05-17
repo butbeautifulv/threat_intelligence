@@ -16,9 +16,9 @@ fi
 
 smoke_skip_no_docker
 
-export COMPOSE_FILES="-f deploy/knowledge/compose.yml -f deploy/knowledge/compose.graph-read.yml -f deploy/engage/compose.yml -f deploy/platform/compose.edge.yml"
+export COMPOSE_FILES="-f deploy/knowledge/compose.yml -f deploy/knowledge/compose.graph-read.yml -f deploy/engage/compose.yml -f deploy/platform/compose.edge.yml -f deploy/platform/compose.edge-hostless.yml"
 export GRAPH_PACK_SKIP="${GRAPH_PACK_SKIP:-1}"
-export VEIL_EDGE_HTTPS_PORT="${VEIL_EDGE_HTTPS_PORT:-443}"
+export VEIL_EDGE_HTTPS_PORT="${VEIL_EDGE_HTTPS_PORT:-8443}"
 export EDGE_URL="https://127.0.0.1:${VEIL_EDGE_HTTPS_PORT}"
 export WAIT_SEC="${SMOKE_UNIFIED_EDGE_WAIT_SEC:-420}"
 export CURL=(curl -skS --connect-timeout 5 --max-time 30)
