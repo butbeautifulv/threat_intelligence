@@ -2,6 +2,8 @@
 # Smoke: full Veil stack with engage on shared NATS — tool run -> ingest -> veil-api engage search.
 # Prerequisite: ./scripts/ops/compose-up-veil-engage.sh (or equivalent compose with compose.veil-stack.yml).
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/smoke.sh"
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
@@ -14,17 +16,12 @@ WAIT_SEC="${SMOKE_VEIL_ENGAGE_WAIT_SEC:-120}"
 log() { printf '[veil-engage-smoke] %s\n' "$*"; }
 fail() { log "FAIL: $*"; exit 1; }
 
-if ! command -v curl >/dev/null 2>&1; then
-  log "SKIP: curl not available"
-  exit 0
-fi
-
-if ! curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; then
+if ! smoke_wait_http "${ENGAGE_URL}/health" 5 "engage-api" 1 2>/dev/null; then
   log "SKIP: engage-api not reachable at ${ENGAGE_URL} (run compose-up-veil-engage.sh first)"
   exit 0
 fi
 
-if ! curl -sf "${API_URL}/health" >/dev/null 2>&1; then
+if ! smoke_wait_http "${API_URL}/health" 5 "veil-api" 1 2>/dev/null; then
   log "SKIP: veil-api not reachable at ${API_URL}"
   exit 0
 fi
