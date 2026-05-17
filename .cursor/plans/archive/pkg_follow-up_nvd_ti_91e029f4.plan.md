@@ -63,7 +63,7 @@ flowchart TB
 |----------|-----|------|
 | Двойной NVD parse | [`scrape/harvest/.../vuln/usecase/scrape.go`](scrape/harvest/internal/sources/vuln/internal/usecase/scrape.go) | `parseNVD` + `nvdmap.FromNVD` только для `len(vulns)` / логов; на wire уходит **сырой** `harvest.VulnNVDPage` через [`PublishNVDPage`](scrape/harvest/internal/sources/vuln/internal/scrapepub/publisher.go) |
 | NVD в корневом `pkg/` | [`pkg/nvd/parse`](pkg/nvd/parse), [`pkg/nvd/map`](pkg/nvd/map) | Импорты: harvest + [`pipeline/ned/.../enrich/nvd.go`](pipeline/ned/internal/sources/vuln/enrich/nvd.go) |
-| Двойной TI normalize | pipeline + graph | NED нормализует в [`pipeline/ned/internal/sources/ti/transform.go`](pipeline/ned/internal/sources/ti/transform.go); graph снова в [`usecase/ingest.go`](graph/ingest/internal/sources/ti/usecase/ingest.go) и [`storage/neo4j.go`](graph/ingest/internal/sources/ti/storage/neo4j.go) |
+| Двойной TI normalize | pipeline + graph | NED нормализует в [`pipeline/ned/internal/sources/ti/transform.go`](pipeline/ned/internal/sources/ti/transform.go); graph снова в [`usecase/ingest.go`](knowledge/ingest/internal/sources/ti/usecase/ingest.go) и [`storage/neo4j.go`](knowledge/ingest/internal/sources/ti/storage/neo4j.go) |
 
 `pkg/ti/domain` остаётся в корневом [`pkg/`](pkg/) — нужен scrape (alias), pipeline и graph.
 
@@ -134,20 +134,20 @@ pipeline/pkg/
 
 ### 2.2 Graph: убрать повторную нормализацию
 
-Удалить пакет [`graph/ingest/internal/sources/ti/normalize/`](graph/ingest/internal/sources/ti/normalize/).
+Удалить пакет [`knowledge/ingest/internal/sources/ti/normalize/`](knowledge/ingest/internal/sources/ti/normalize/).
 
-**[`usecase/ingest.go`](graph/ingest/internal/sources/ti/usecase/ingest.go):**
+**[`usecase/ingest.go`](knowledge/ingest/internal/sources/ti/usecase/ingest.go):**
 
 - `UpsertIOC`: не вызывать `NormalizeIOC`; upsert как есть (invalid → skip по пустому value, если нужно — только validate, не normalize).
 - `UpsertCampaign` / `UpsertCluster`: убрать `NormalizeCampaign` / `NormalizeCluster`.
 - `KindTIJSONLRecord` → `IngestOne`: либо deprecate в пользу уже развернутых NED kinds, либо оставить без normalize (данные уже из commit line, разобранные NED в `jsonlToIngest`).
 
-**[`envelope/apply.go`](graph/ingest/internal/sources/ti/envelope/apply.go):**
+**[`envelope/apply.go`](knowledge/ingest/internal/sources/ti/envelope/apply.go):**
 
 - Для upsert kinds передавать в repo **`env.IdempotencyKey`** (или извлечённый canonical id) вместо пересчёта в storage.
 - Link kinds (`KindTILinkCampaignIOC`, …): payload IOC уже нормализован NED; link repo должен использовать тот же id, что и upsert (см. 2.3).
 
-**[`storage/neo4j.go`](graph/ingest/internal/sources/ti/storage/neo4j.go):**
+**[`storage/neo4j.go`](knowledge/ingest/internal/sources/ti/storage/neo4j.go):**
 
 - Заменить `normalize.CanonicalID(i)` на параметр `id string` в `UpsertIOC` / link-методах **или** парсинг canonical из `idempotency_key` (`strings.TrimPrefix(key, "ti:ioc:")`).
 - Убрать импорт `pkg/ti/normalize`.

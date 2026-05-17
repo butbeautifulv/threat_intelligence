@@ -89,7 +89,7 @@ flowchart TB
 - Детальные таблицы модулей scrape/graph/pipeline (L61–157) → ссылки:
   - Scrape: [scrape/README.md](../scrape/README.md)
   - Pipeline: [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md)
-  - Graph: [graph/README.md](../graph/README.md)
+  - Graph: [graph/README.md](../knowledge/README.md)
 - Секция Wire envelopes (L160–165) → одна строка: «см. [ingest-contract.md](ingest-contract.md); Go SOT: `pkg/harvest`, `pkg/commit`»
 - Дублирующая секция Errors (L202–206) — слить с Go style Errors
 
@@ -99,7 +99,7 @@ flowchart TB
 - Graph serve: `internal/domain/`
 - Pipeline: domain там, где есть сущности (сейчас `vuln/domain/`; остальные — transform без отдельного domain-пакета)
 
-Формулировка: «domain-пакет у источника, без I/O; точный путь — по эталону в `scrape/.../ti` и `graph/ingest/.../ti`».
+Формулировка: «domain-пакет у источника, без I/O; точный путь — по эталону в `scrape/.../ti` и `knowledge/ingest/.../ti`».
 
 ---
 
@@ -118,7 +118,7 @@ flowchart TB
 - Добавить якорную ссылку на PR checklist в coding-style (опционально одна строка)
 
 ### Layer READMEs
-В начало [scrape/README.md](scrape/README.md), [pipeline/README.md](pipeline/README.md), [graph/README.md](graph/README.md):
+В начало [scrape/README.md](scrape/README.md), [pipeline/README.md](pipeline/README.md), [graph/README.md](knowledge/README.md):
 - Одна строка: architecture rules → [docs/coding-style.md](../docs/coding-style.md)
 - Убрать повтор «Layers communicate only via NATS» из pipeline/graph README (достаточно в coding-style) **или** оставить одну короткую фразу без таблиц
 

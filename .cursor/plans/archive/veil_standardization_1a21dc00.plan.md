@@ -9,10 +9,10 @@ todos:
     content: "P1: docs/schemas/ + scripts/gen-contracts.sh + contract modules в слоях"
     status: completed
   - id: p2-graph-sources
-    content: "P2: Перенести scrapers/*/graph/ingest → graph/sources/*; убрать replace на scrapers"
+    content: "P2: Перенести scrapers/*/knowledge/ingest → knowledge/sources/*; убрать replace на scrapers"
     status: completed
   - id: p3-scrape-tree
-    content: "P3: Собрать scrape/ (ingest/scrape + scrapers); удалить graph/ingestv1 из sources"
+    content: "P3: Собрать scrape/ (ingest/scrape + scrapers); удалить knowledge/ingestv1 из sources"
     status: completed
   - id: p4-pipeline-tree
     content: "P4: Собрать pipeline/; pkg/tinormalize и др. → internal/normalize"
@@ -38,7 +38,7 @@ flowchart TB
     Docs[docs/]
     DeployScrape[deploy/scrape/]
     DeployPipe[deploy/pipeline/]
-    DeployGraph[deploy/graph/]
+    DeployGraph[deploy/knowledge/]
   end
   subgraph scrapeCtx [scrape/]
     SW[scrape_worker]
@@ -67,9 +67,9 @@ flowchart TB
 | Зона | Содержимое | Запрещено |
 |------|------------|-----------|
 | **Корень** | `README`, `LICENSE`, `AGENTS.md`, [`docs/`](docs/), [`deploy/`](deploy/) | `go.work`, прикладной Go-код, `pkg/`, `scrapers/`, `ingest/` |
-| **`scrape/`** | worker, factory, feeds, ledger, pub, `sources/*` | `ingestv1`, Neo4j, импорт `pipeline/` или `graph/` |
+| **`scrape/`** | worker, factory, feeds, ledger, pub, `sources/*` | `ingestv1`, Neo4j, импорт `pipeline/` или `knowledge/` |
 | **`pipeline/`** | worker, normalize handlers, pub | HTTP fetch feeds, Bolt, импорт `scrape/sources/*` |
-| **`graph/`** | ingest_worker, storage, api, mcp, query, domain writers | `scrapev1`, feeds, Vitess |
+| **`knowledge/`** | ingest_worker, storage, api, mcp, query, domain writers | `scrapev1`, feeds, Vitess |
 
 **Интеграция только через NATS** + документированные схемы ([`docs/ingest-contract.md`](docs/ingest-contract.md) расширить до machine-readable SOT).
 
@@ -84,7 +84,7 @@ flowchart TB
 | Принцип | Правило в репо |
 |---------|----------------|
 | **CLEAN CODE** | Маленькие функции, говорящие имена, один уровень абстракции; `cmd` только wiring |
-| **DRY** | Общий fetch/ledger — только в `scrape/`; normalize — только в `pipeline/`; MERGE — только в `graph/`; дублирование контрактов — только через schema/codegen |
+| **DRY** | Общий fetch/ledger — только в `scrape/`; normalize — только в `pipeline/`; MERGE — только в `knowledge/`; дублирование контрактов — только через schema/codegen |
 | **KISS** | Один бинарь на слой в runtime; без лишних абстракций и «на всякий случай» интерфейсов |
 | **DDD** | **`internal/domain/` обязателен** в каждом модуле-источнике и в каждом worker-модуле; доменные типы не тянут Neo4j/NATS/HTTP |
 
@@ -121,7 +121,7 @@ storage/       → adapters (Neo4j — только graph; pub — в своём
 | `ingestv1-envelope.json` | pipeline (publish) | graph (consume) |
 
 - Обновить [`docs/ingest-contract.md`](docs/ingest-contract.md): ссылка на схемы, матрица `source`×`kind`, примеры payload.
-- Генерация (минимальный v1): `scripts/gen-contracts.sh` → `scrape/contract/scrapev1`, `pipeline/contract/ingestv1`, `graph/contract/ingestv1` (graph — read-only копия или общий submodule `contract-ingestv1` **вне** runtime-слоёв, только как артефакт сборки).
+- Генерация (минимальный v1): `scripts/gen-contracts.sh` → `scrape/contract/scrapev1`, `pipeline/contract/ingestv1`, `knowledge/contract/ingestv1` (graph — read-only копия или общий submodule `contract-ingestv1` **вне** runtime-слоёв, только как артефакт сборки).
 - В CI/CONTRIBUTING: `make contracts` перед `go test` в слое, если схема изменилась.
 - **Запрет:** ручное редактирование сгенерированных `*.gen.go` (или пометка `// Code generated`).
 
@@ -151,7 +151,7 @@ scrape/
 - `internal/domain/` — **обязательно**
 - `scrapesource/` — регистрация в factory
 - `internal/feeds/`, `internal/usecase/`, `internal/scrapepub/`
-- **Удалить:** `graph/`, `graph/neo4j/`, зависимости на `pkg/ingestv1`, `ingest/graph`
+- **Удалить:** `knowledge/`, `knowledge/neo4j/`, зависимости на `pkg/ingestv1`, `ingest/graph`
 
 ### `pipeline/` (из `ingest/pipeline/`)
 
@@ -164,21 +164,21 @@ pipeline/
   internal/normalize/     # бывший pkg/tinormalize, vulndomain, appsecparse
 ```
 
-### `graph/` (из `ingest/graph/` + `api/` + `mcp/` + `graph/query`)
+### `knowledge/` (из `ingest/graph/` + `api/` + `mcp/` + `knowledge/query`)
 
 ```
 graph/
   ingest_worker/
   workeringest/           # тонкие адаптеры
   storage/                # sbom, coderules, nuclei + neo4j
-  sources/                # бывший scrapers/*/graph/ingest
+  sources/                # бывший scrapers/*/knowledge/ingest
     ti/ vuln/ lola/ ds/
   contract/ingestv1/      # generated (consumer)
-  query/                  # бывший graph/query
+  query/                  # бывший knowledge/query
   api/ mcp/
 ```
 
-[`graph/`](graph/) (neo4j driver) сливается в `graph/internal/neo4j` или `graph/pkg/neo4j` внутри слоя.
+[`knowledge/`](knowledge/) (neo4j driver) сливается в `knowledge/internal/neo4j` или `knowledge/pkg/neo4j` внутри слоя.
 
 ---
 
@@ -190,12 +190,12 @@ graph/
 |------|------------|
 | `deploy/scrape/compose.yml` | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
 | `deploy/pipeline/compose.yml` | `nats`, `pipeline_worker` |
-| `deploy/graph/compose.yml` | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api`; profiles `mcp`, `deploy` (nginx) |
-| `deploy/graph/compose.full.yml` | optional overlay: все три слоя + shared `nats` network для local E2E |
+| `deploy/knowledge/compose.yml` | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api`; profiles `mcp`, `deploy` (nginx) |
+| `deploy/knowledge/compose.full.yml` | optional overlay: все три слоя + shared `nats` network для local E2E |
 
 Перенести Dockerfiles из [`docker/`](docker/) → `deploy/<layer>/docker/` (контекст сборки — **только каталог слоя**, не весь репо: `COPY . .` → `context: ../../scrape`).
 
-Корневой [`docker-compose.yml`](docker-compose.yml) → thin redirect в `docs/` («для local: `docker compose -f deploy/graph/compose.yml ...`») или удалить после миграции docs.
+Корневой [`docker-compose.yml`](docker-compose.yml) → thin redirect в `docs/` («для local: `docker compose -f deploy/knowledge/compose.yml ...`») или удалить после миграции docs.
 
 Обновить [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md), [`docs/deploy.md`](docs/deploy.md), [`README.md`](README.md).
 
@@ -218,8 +218,8 @@ graph/
 
 **Порядок миграции импортов (критичный путь):**
 
-1. Перенести `scrapers/*/graph/ingest` → `graph/sources/*`; обновить `workeringest` (сейчас в [`ingest/graph/workeringest/`](ingest/graph/workeringest/))
-2. Удалить `graph/` и `ingestv1` из go.mod всех `scrapers/*`
+1. Перенести `scrapers/*/knowledge/ingest` → `knowledge/sources/*`; обновить `workeringest` (сейчас в [`ingest/graph/workeringest/`](ingest/graph/workeringest/))
+2. Удалить `knowledge/` и `ingestv1` из go.mod всех `scrapers/*`
 3. Слить `scrapers/*` под `scrape/sources/*` с единым factory
 4. Перенести normalize-пакеты в `pipeline/internal/normalize`
 5. Удалить `go.work`; проверить `go build ./...` **внутри каждого слоя отдельно**
@@ -244,7 +244,7 @@ flowchart LR
 |------|-----------|---------------------|
 | **P0** | coding-style + AGENTS + принципы | PR checklist в docs; domain mandatory |
 | **P1** | `docs/schemas/`, `scripts/gen-contracts.sh`, contract modules | `go test` contract packages; ingest-contract ссылается на schema |
-| **P2** | graph writers в `graph/sources/` | `ingest/graph` не `replace` scrapers; ti/vuln/lola/ds graph tests green |
+| **P2** | graph writers в `knowledge/sources/` | `ingest/graph` не `replace` scrapers; ti/vuln/lola/ds graph tests green |
 | **P3** | `scrape/` tree, sources без graph | scrape build; no ingestv1 import |
 | **P4** | `pipeline/` tree, normalize internal | pipeline build; handlers use generated ingestv1 |
 | **P5** | `deploy/*`, Docker context per layer | `docker compose -f deploy/scrape/...` поднимает только scrape stack |
@@ -268,7 +268,7 @@ flowchart LR
 | `internal/scrapepub/` | map domain → `scrapev1` kinds |
 | `scrapesource/` | `factory.Register` |
 
-Для graph-источника зеркально в `graph/sources/ti/`:
+Для graph-источника зеркально в `knowledge/sources/ti/`:
 
 - `internal/domain/` (или reuse pipeline-normalized shapes as DTOs в contract only)
 - `ingest/` — MERGE из `ingestv1` payload
@@ -291,7 +291,7 @@ flowchart LR
 
 - [ ] Корень: только docs + deploy + мета-файлы
 - [ ] Нет `go.work` в корне
-- [ ] Три каталога `scrape/`, `pipeline/`, `graph/` — независимая сборка
+- [ ] Три каталога `scrape/`, `pipeline/`, `knowledge/` — независимая сборка
 - [ ] Контракты: schema в docs → codegen; NATS — единственная связь
 - [ ] `internal/domain/` в каждом модуле
 - [ ] coding-style: CLEAN, DRY, KISS, DDD

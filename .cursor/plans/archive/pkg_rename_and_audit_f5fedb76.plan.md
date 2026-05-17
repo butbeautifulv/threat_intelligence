@@ -102,7 +102,7 @@ flowchart LR
 
 Аналогично `ingestv1` → `commit`. Типы `scrapev1.Envelope` → `harvest.Envelope`, `ingestv1.Kind*` → `commit.Kind*`.
 
-**Зоны:** [`scrape/connector`](scrape/connector/), [`scrape/harvest`](scrape/harvest/), [`pipeline/ned`](pipeline/ned/), [`pipeline/connector`](pipeline/connector/), [`graph/ingest`](graph/ingest/).
+**Зоны:** [`scrape/connector`](scrape/connector/), [`scrape/harvest`](scrape/harvest/), [`pipeline/ned`](pipeline/ned/), [`pipeline/connector`](pipeline/connector/), [`knowledge/ingest`](knowledge/ingest/).
 
 ### 1.3 Документация и схемы
 
@@ -147,7 +147,7 @@ make test-scrape test-pipeline test-graph
 - Добавить в [`scrape/go.work`](scrape/go.work); убрать `../pkg/githubraw`, `../pkg/proxypool`.
 - Удалить [`pkg/githubraw/`](pkg/githubraw/), [`pkg/proxypool/`](pkg/proxypool/).
 
-### Не создавать `graph/pkg/` и `pipeline/pkg/` в этом PR
+### Не создавать `knowledge/pkg/` и `pipeline/pkg/` в этом PR
 
 - **graph:** кроме wire (`commit`) и TI — своих shared libs нет.
 - **pipeline:** `nvd`/`tinormalize` пока нельзя изолировать без нарушения границ или дублирования; оставить в корневом `pkg/` до опционального vuln raw-only рефактора.
@@ -178,7 +178,7 @@ pkg/
 
 - Перенести `nvdparse` → `pkg/nvd/parse`, `nvdmap` → `pkg/nvd/map` (package `parse` / `map` или `nvdparse` внутри — предпочтительно короткие имена по [Google naming](https://google.github.io/styleguide/go/best-practices): `nvd.Parse`, `nvd.MapCVE` через подпакеты `nvd/parse`, `nvd/map`).
 - Перенести `tidomain` → `pkg/ti/domain`, `tinormalize` → `pkg/ti/normalize`.
-- Удалить отдельные `pkg/*/go.mod`; в [`scrape/go.work`](scrape/go.work), [`pipeline/go.work`](pipeline/go.work), [`graph/go.work`](graph/go.work) — одна строка `../pkg`.
+- Удалить отдельные `pkg/*/go.mod`; в [`scrape/go.work`](scrape/go.work), [`pipeline/go.work`](pipeline/go.work), [`knowledge/go.work`](knowledge/go.work) — одна строка `../pkg`.
 - В layer `go.mod`: одна зависимость `pkg` + `replace` вместо 5–7.
 
 ### 3.2 Итоговая карта зависимостей

@@ -8,7 +8,7 @@ cd "${VEIL_ROOT}"
 errors=0
 
 DIR_SUFFIXES=(
-  'scrape/' 'pipeline/' 'graph/' 'deploy/' 'pkg/' 'docs/' 'scripts/'
+  'scrape/' 'pipeline/' 'knowledge/' 'deploy/' 'pkg/' 'docs/' 'scripts/'
   'harvest/' 'connector/' 'ned/' 'ingest/' 'serve/' 'sources/'
   'internal/' 'domain/' 'feeds/' 'ledger/' 'schemas/'
 )

@@ -7,13 +7,13 @@ description: >
 profiles:
   - deploy/profiles/secure-graph.env
 compose:
-  - deploy/graph/compose.yml
-  - deploy/graph/compose.secure.yml
+  - deploy/knowledge/compose.yml
+  - deploy/knowledge/compose.secure.yml
 compose_profiles:
   - mcp
 notes:
   - >-
-    Do not use deploy/graph/compose.neo4j-publish.yml with this stack; secure
+    Do not use deploy/knowledge/compose.neo4j-publish.yml with this stack; secure
     overlay keeps Neo4j off the host.
   - See docs/deploy-secure.md for TLS certs and Keycloak wiring.
 scripts:

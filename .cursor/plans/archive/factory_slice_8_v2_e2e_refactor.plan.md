@@ -6,7 +6,7 @@ todos:
     content: scripts/smoke_scrape_e2e.sh + docs; compose ×2, NATS lag, crawl_resource, Cypher, API/MCP
     status: pending
   - id: structure-rename
-    content: "Переименования: ingest/graph/ingest_worker, pipeline_worker, scrape_worker; docker/*.Dockerfile; compose; go.work"
+    content: "Переименования: ingest/knowledge/ingest_worker, pipeline_worker, scrape_worker; docker/*.Dockerfile; compose; go.work"
     status: completed
   - id: graph-finish-no-legacy
     content: "Завершить graph: promote workeringest/storage или оставить один слой; убрать ingest/graph/legacy после переноса"
@@ -63,7 +63,7 @@ ingest/
     ledger/
   pipeline/
     pipeline_worker/          # был ingest/pipeline-worker
-  graph/
+  knowledge/
     ingest_worker/            # был ingest/graph/worker
     storage/                  # sbom, coderules, nuclei (+ ti/vuln/lola/ds когда promote)
     workeringest/             # цель: без legacy/
@@ -72,7 +72,7 @@ pkg/
   ingestv1/
 scrapers/                     # только fetch + scrapev1 publish (scrapesource)
   {ti,vuln,...}/scrapesource/
-api/  mcp/  graph/
+api/  mcp/  knowledge/
 ```
 
 **Именование (единый стиль):**
@@ -83,7 +83,7 @@ api/  mcp/  graph/
 | `pipeline-worker` | `pipeline_worker` |
 | `ingest-worker` | `ingest_worker` |
 | compose service | `scrape_worker`, `pipeline_worker`, `ingest_worker` (или alias с `profiles`; синхронно с бинарями) |
-| Go module `ingest-worker` | `ingest_worker` или `github.com/.../ingest/graph/ingest_worker` |
+| Go module `ingest-worker` | `ingest_worker` или `github.com/.../ingest/knowledge/ingest_worker` |
 
 `go.work`, [docker-compose.yml](../../docker-compose.yml), [docker/*.Dockerfile](../../docker/), CI — обновить **в одном PR** среза 8 v2 (риск из master plan).
 
@@ -126,7 +126,7 @@ docker compose restart scrape-worker
 1. Переименовать каталоги:
    - `ingest/scrape/cmd` → `ingest/scrape/scrape_worker`
    - `ingest/pipeline-worker` → `ingest/pipeline/pipeline_worker`
-   - `ingest/graph/worker` → `ingest/graph/ingest_worker`
+   - `ingest/graph/worker` → `ingest/knowledge/ingest_worker`
 2. Dockerfiles: `docker/scrape_worker.Dockerfile`, `pipeline_worker.Dockerfile`, `ingest_worker.Dockerfile`
 3. `docker-compose.yml`: service names + build dockerfile paths + `ENTRYPOINT` бинарии
 4. `go.work` paths
@@ -187,7 +187,7 @@ docker compose restart scrape-worker
 
 - [ ] `scripts/smoke_scrape_e2e.sh` проходит 2× (до и после rename)
 - [ ] Compose profile `scrape`: все 7 sources → Neo4j nodes растут vs пустой граф
-- [ ] Каталоги `ingest/scrape/scrape_worker`, `ingest/pipeline/pipeline_worker`, `ingest/graph/ingest_worker`
+- [ ] Каталоги `ingest/scrape/scrape_worker`, `ingest/pipeline/pipeline_worker`, `ingest/knowledge/ingest_worker`
 - [ ] Бинарии и Dockerfiles: `scrape_worker`, `pipeline_worker`, `ingest_worker`
 - [ ] Нет `ingest/graph/legacy/`; нет `forward.go` в scrapers AppSec storage
 - [ ] `go test` / `go build` зелёные; `go.work` актуален

@@ -3,7 +3,7 @@ name: Engage Phase 13
 overview: Phase 13 закрывает полный Veil loop (engage → pipeline → graph ingest), усиливает events e2e, расширяет catalog execution в CI и добивает ops/agent polish, оставшиеся после Phase 12.
 todos:
   - id: engage-r63-graph-ingest
-    content: "R63: graph/ingest SourceEngage handler + Neo4j EngageToolRun schema + graph pack bump"
+    content: "R63: knowledge/ingest SourceEngage handler + Neo4j EngageToolRun schema + graph pack bump"
     status: completed
   - id: engage-r64-events-e2e
     content: "R64: Harden smoke-engage-events-pipeline + optional graph-ingest compose + CI job"
@@ -29,7 +29,7 @@ isProject: false
 
 [Phase 12](.cursor/plans/engage_phase_12.plan.md) (R57–R62) закрыла playbooks run, MCP/graph intelligence, `ExecuteAttackChain`, Postgres audit read, `ENGAGE_PDF_ENGINE`, pipeline [`engage-events-worker`](pipeline/engage-events/cmd/worker).
 
-**Критический разрыв в стеке:** [`engage_consumer.go`](pipeline/connector/nats/engage_consumer.go) публикует `commit.Envelope` с `SourceEngage` / `KindEngageToolRun` на `ingest.engage.tool_run`, но [`graph/ingest/internal/ingest/consumer.go`](graph/ingest/internal/ingest/consumer.go) не имеет ветки для `SourceEngage` — сообщения попадают в `default: unknown kind` и **молча ack без записи в Neo4j**.
+**Критический разрыв в стеке:** [`engage_consumer.go`](pipeline/connector/nats/engage_consumer.go) публикует `commit.Envelope` с `SourceEngage` / `KindEngageToolRun` на `ingest.engage.tool_run`, но [`knowledge/ingest/internal/ingest/consumer.go`](knowledge/ingest/internal/ingest/consumer.go) не имеет ветки для `SourceEngage` — сообщения попадают в `default: unknown kind` и **молча ack без записи в Neo4j**.
 
 ```mermaid
 flowchart LR
@@ -55,10 +55,10 @@ flowchart LR
 
 | Deliverable | Детали |
 |-------------|--------|
-| Ingest module | `graph/ingest/internal/sources/engage/` — `envelope/setup.go`, `apply.go`, `storage/neo4j.go` |
+| Ingest module | `knowledge/ingest/internal/sources/engage/` — `envelope/setup.go`, `apply.go`, `storage/neo4j.go` |
 | Schema | MERGE `(:EngageToolRun {id})` + optional `(:Host\|Target {name})-[:ENGAGE_RAN]->(:EngageToolRun)`; поля: tool, target, subject, success, at |
-| Router | В [`consumer.go`](graph/ingest/internal/ingest/consumer.go): `case commit.SourceEngage:` → `rt.Apply.Engage`; в `validateEnvelopeSource` — case для `KindEngageToolRun` |
-| Components | `DomainAppliers.Engage` в [`components.go`](graph/ingest/internal/components/components.go) |
+| Router | В [`consumer.go`](knowledge/ingest/internal/ingest/consumer.go): `case commit.SourceEngage:` → `rt.Apply.Engage`; в `validateEnvelopeSource` — case для `KindEngageToolRun` |
+| Components | `DomainAppliers.Engage` в [`components.go`](knowledge/ingest/internal/components/components.go) |
 | Wire | Использовать существующий [`EngageToolRunPayload`](pkg/commit/envelope.go) |
 | Version | `./scripts/release/bump-graph-version.sh patch` + cypher в graph pack при новых labels |
 | Tests | Unit test apply + опционально ingest consumer test с mock Neo4j |

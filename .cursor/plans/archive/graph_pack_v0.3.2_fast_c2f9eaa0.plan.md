@@ -82,7 +82,7 @@ flowchart LR
 
 ```bash
 cd /home/bbv/Desktop/threat_intelligence
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml down -v --remove-orphans
+docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/knowledge/compose.yml down -v --remove-orphans
 
 ./scripts/graph-pack-run-v032.sh   # новый: export env + compose-up-full
 ```
@@ -90,7 +90,7 @@ docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f de
 Мониторинг до `scrape_worker` **Exited (0)**:
 
 ```bash
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml logs -f scrape_worker
+docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/knowledge/compose.yml logs -f scrape_worker
 ```
 
 После scrape — ingest drain (~3–8 мин при профиле выше):
@@ -118,7 +118,7 @@ docker compose ... exec -T neo4j cypher-shell -u neo4j -p neo4jpassword \
 
 Убирает параллельные `HAS_ADVISORY`; isolated IOC cleanup по умолчанию off.
 
-Pipeline/ingest уже дедуплируют по `ingestv1.idempotency_key` ([`pipeline/pub/publish.go`](pipeline/pub/publish.go), MERGE в [`graph/sources/*/ingest`](graph/sources/ti/ingest/)).
+Pipeline/ingest уже дедуплируют по `ingestv1.idempotency_key` ([`pipeline/pub/publish.go`](pipeline/pub/publish.go), MERGE в [`knowledge/sources/*/ingest`](knowledge/sources/ti/ingest/)).
 
 ---
 
@@ -137,7 +137,7 @@ du -h data/neo4j_user_export/graph.cypher data/neo4j_user_export/releases/threat
 ## Фаза 4 — Release и конфиги
 
 1. `gh release create v0.3.2-graph-pack ...`
-2. [`deploy/graph/docker/graph-bootstrap.sh`](deploy/graph/docker/graph-bootstrap.sh) → URL v0.3.2
+2. [`deploy/knowledge/docker/graph-bootstrap.sh`](deploy/knowledge/docker/graph-bootstrap.sh) → URL v0.3.2
 3. [`docker-compose.testpack.yml`](docker-compose.testpack.yml) → `threat-intel-graph-v0.3.2.zip`
 4. [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — секция «fast-rich profile» + v0.3.2
 

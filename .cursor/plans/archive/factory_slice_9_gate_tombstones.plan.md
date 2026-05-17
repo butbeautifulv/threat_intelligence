@@ -61,7 +61,7 @@ isProject: false
 
 | Файл | Правка |
 |------|--------|
-| [docs/coding-style.md](../../docs/coding-style.md) | `ingest/pipeline/pipeline_worker`, `ingest/graph/ingest_worker`; lifecycle example → `ingest/scrape/scrape_worker` |
+| [docs/coding-style.md](../../docs/coding-style.md) | `ingest/pipeline/pipeline_worker`, `ingest/knowledge/ingest_worker`; lifecycle example → `ingest/scrape/scrape_worker` |
 | [README.md](../../README.md) | Mermaid: один `scrape_worker`, `pipeline_worker`, `ingest_worker`; убрать ingest-worker из layout |
 | [scrapers/README.md](../../scrapers/README.md) | ссылка на scrape_worker вместо per-scraper cmd |
 

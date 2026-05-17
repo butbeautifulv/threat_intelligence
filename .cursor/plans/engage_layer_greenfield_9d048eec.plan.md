@@ -6,7 +6,7 @@ todos:
     content: "R0: engage/go.work, serve module, cmd/api+mcp, deploy/engage compose, catalog schema"
     status: completed
   - id: pkg-auth-extract
-    content: Вынести Keycloak JWT+RBAC в pkg/auth; graph/serve + engage/serve используют общий пакет
+    content: Вынести Keycloak JWT+RBAC в pkg/auth; knowledge/serve + engage/serve используют общий пакет
     status: completed
   - id: engage-r1-core
     content: "R1: runner executor, registry, veilgraph client, 5 tools e2e, audit log"
@@ -123,7 +123,7 @@ isProject: false
 
 ## Архитектурное решение
 
-Ваше ощущение верное: **pentest / discovery / отчёты / запуск tools** — это не `graph/serve` (read-only intel), а **отдельный runtime-контекст**, как scrape vs pipeline vs graph.
+Ваше ощущение верное: **pentest / discovery / отчёты / запуск tools** — это не `knowledge/serve` (read-only intel), а **отдельный runtime-контекст**, как scrape vs pipeline vs graph.
 
 | Слой | Ответственность | MCP / API |
 |------|----------------|-----------|-----------|
@@ -165,7 +165,7 @@ flowchart TB
   VeilAPI -.-> KC
 ```
 
-**Связь с графом (выбор):** engage **внутри** вызывает [veil-api](graph/serve/cmd/api) через [`engage/serve/internal/client/veilgraph`](engage/serve/internal/client/veilgraph) (client credentials / service account JWT, роль `veil-reader`). Агенты могут дополнительно держать dual MCP (`veil-graph` + `veil-engage`), но workflows не зависят от IDE-конфига.
+**Связь с графом (выбор):** engage **внутри** вызывает [veil-api](knowledge/serve/cmd/api) через [`engage/serve/internal/client/veilgraph`](engage/serve/internal/client/veilgraph) (client credentials / service account JWT, роль `veil-reader`). Агенты могут дополнительно держать dual MCP (`veil-graph` + `veil-engage`), но workflows не зависят от IDE-конфига.
 
 **Стратегия «без diff, но всё переделано»:**
 
@@ -184,7 +184,7 @@ flowchart TB
 engage/
   go.work
   README.md
-  serve/                          # один Go module (как graph/serve)
+  serve/                          # один Go module (как knowledge/serve)
     cmd/
       api/                        # REST + workflows + reports
       mcp/                        # veil-engage MCP (stdio + optional HTTP)
@@ -204,7 +204,7 @@ engage/
         tools/                    # RunTool, ListTools
       transport/
         httpserver/               # /api/tools/*, /api/intelligence/*, /health
-        mcpserver/                # reuse patterns from graph/serve
+        mcpserver/                # reuse patterns from knowledge/serve
         securityhttp/
       runner/
         executor.go               # subprocess, timeout, cwd, env allowlist
@@ -228,7 +228,7 @@ pkg/
   engage/
     toolid/                       # stable tool IDs, categories enum
     contract/                     # JSON shapes for API/MCP (OpenAPI source)
-  auth/                           # NEW: вынести Keycloak JWT+RBAC из graph/serve (DRY)
+  auth/                           # NEW: вынести Keycloak JWT+RBAC из knowledge/serve (DRY)
     keycloak/
     rbac/
 deploy/
@@ -249,7 +249,7 @@ docs/
 
 **Правила слоя engage (добавить в coding-style / AGENTS):**
 
-- Engage **не импортирует** `scrape/`, `pipeline/`, `graph/ingest`.
+- Engage **не импортирует** `scrape/`, `pipeline/`, `knowledge/ingest`.
 - Может импортировать `pkg/*`, `pkg/auth`, `pkg/engage/*`.
 - Вызов Neo4j только через **HTTP veil-api**, не Bolt напрямую (граница ответственности).
 - Каждый tool — один файл или пара `register.go` + `run_*.go` в категории; общий runner — DRY.
@@ -258,7 +258,7 @@ docs/
 
 ## Auth и RBAC (Keycloak)
 
-Переиспользовать паттерн [graph/serve/internal/auth](graph/serve/internal/auth), вынести в [**`pkg/auth`**](pkg/auth) (рефактор graph/serve в том же PR или сразу после R0):
+Переиспользовать паттерн [graph/serve/internal/auth](knowledge/serve/internal/auth), вынести в [**`pkg/auth`**](pkg/auth) (рефактор knowledge/serve в том же PR или сразу после R0):
 
 | Realm role | Permission |
 |------------|------------|
@@ -380,7 +380,7 @@ Makefile targets:
 ## Порядок работ (первый PR — R0)
 
 1. Создать `engage/go.work`, module `engage/serve`, пустые `cmd/api`, `cmd/mcp`.
-2. Вынести `pkg/auth` из graph/serve (минимальный refactor + тесты).
+2. Вынести `pkg/auth` из knowledge/serve (минимальный refactor + тесты).
 3. `internal/config`, `securityhttp`, `httpserver` `/health`, `mcpserver` initialize.
 4. `client/veilgraph` + integration test с mock HTTP.
 5. `deploy/engage/compose.yml` + Dockerfiles (api/mcp distroless, runner stub).
@@ -568,7 +568,7 @@ Phase 12 (R57–R62) complete.
 
 | Release | Статус | Содержание |
 |---------|--------|------------|
-| **R63** | done | `graph/ingest` `SourceEngage`: `EngageToolRun` / `EngageTarget` in Neo4j; graph pack v0.4.3 |
+| **R63** | done | `knowledge/ingest` `SourceEngage`: `EngageToolRun` / `EngageTarget` in Neo4j; graph pack v0.4.3 |
 | **R64** | done | `smoke-engage-events-pipeline.sh`, `compose.events.yml` profile `graph-ingest`, CI `engage-events-e2e` |
 | **R65** | done | `tools.live.yaml` 11 tools; smoke matrix + catalog parity bridge check |
 | **R66** | done | `export_webhook_test.go` (HMAC); covered by `make test-engage` in CI |

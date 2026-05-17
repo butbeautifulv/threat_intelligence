@@ -22,7 +22,7 @@ Mitigations in this repo:
 
 ## Network layout
 
-### Development (default `deploy/graph/compose.yml`)
+### Development (default `deploy/knowledge/compose.yml`)
 
 - Neo4j: `7474` (browser), `7687` (Bolt)
 - API: `8090`
@@ -52,10 +52,10 @@ Only **nginx** publishes a host port. API and MCP listen on the Docker network; 
 1. Place TLS material (or use your cert-manager volume):
 
    ```bash
-   mkdir -p deploy/graph/nginx/certs
+   mkdir -p deploy/knowledge/nginx/certs
    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-     -keyout deploy/graph/nginx/certs/tls.key \
-     -out deploy/graph/nginx/certs/tls.crt \
+     -keyout deploy/knowledge/nginx/certs/tls.key \
+     -out deploy/knowledge/nginx/certs/tls.crt \
      -subj '/CN=localhost'
    ```
 
@@ -69,8 +69,8 @@ Only **nginx** publishes a host port. API and MCP listen on the Docker network; 
 
    ```bash
    docker compose \
-     -f deploy/graph/compose.yml \
-     -f deploy/graph/compose.secure.yml \
+     -f deploy/knowledge/compose.yml \
+     -f deploy/knowledge/compose.secure.yml \
      --profile mcp \
      --env-file deploy/profiles/secure-graph.env \
      up -d --build
@@ -85,7 +85,7 @@ make test-graph-serve          # unit tests + race
 make test-graph-read-smoke     # docker: neo4j + api + mcp HTTP
 ```
 
-Overlay: `deploy/graph/compose.graph-read.yml` (skips ingest, `GRAPH_PACK_SKIP=1`).
+Overlay: `deploy/knowledge/compose.graph-read.yml` (skips ingest, `GRAPH_PACK_SKIP=1`).
 
 ## Hardening checklist
 

@@ -73,7 +73,7 @@ git remote set-url origin https://github.com/butbeautifulv/veil.git
 
 `github.com/butbeautifulv/threat_intelligence` → `github.com/butbeautifulv/veil`
 
-Затронутые модули ([pkg/go.mod](pkg/go.mod), [scrape/harvest/go.mod](scrape/harvest/go.mod), [pipeline/ned/go.mod](pipeline/ned/go.mod), [graph/ingest/go.mod](graph/ingest/go.mod), и остальные 6 `go.mod`).
+Затронутые модули ([pkg/go.mod](pkg/go.mod), [scrape/harvest/go.mod](scrape/harvest/go.mod), [pipeline/ned/go.mod](pipeline/ned/go.mod), [graph/ingest/go.mod](knowledge/ingest/go.mod), и остальные 6 `go.mod`).
 
 После замены в каждом слое:
 
@@ -81,7 +81,7 @@ git remote set-url origin https://github.com/butbeautifulv/veil.git
 make test-scrape test-pipeline test-graph
 ```
 
-При необходимости `go work sync` в `scrape/`, `pipeline/`, `graph/`.
+При необходимости `go work sync` в `scrape/`, `pipeline/`, `knowledge/`.
 
 ### 3. Документация и артефакты
 
@@ -90,7 +90,7 @@ make test-scrape test-pipeline test-graph
 | [README.md](README.md), [deploy/README.md](deploy/README.md) | Ссылки на releases (`github.com/.../veil/releases/...`) |
 | [docs/coding-style.md](docs/coding-style.md) | Строка про Go module path |
 | [docs/schemas/*.json](docs/schemas/), [docs/graph-pack-manifest.schema.json](docs/graph-pack-manifest.schema.json) | `$id` URLs |
-| [deploy/graph/docker/graph-bootstrap.sh](deploy/graph/docker/graph-bootstrap.sh) | `DEFAULT_PACK_URL` |
+| [deploy/knowledge/docker/graph-bootstrap.sh](deploy/knowledge/docker/graph-bootstrap.sh) | `DEFAULT_PACK_URL` |
 | [LICENSE](LICENSE) | Имя проекта, если упоминается старое |
 
 **Не трогать** (исторические): `.cursor/plans/archive/*` — опционально, по желанию.

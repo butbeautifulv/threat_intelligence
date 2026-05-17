@@ -108,7 +108,7 @@ def check_repo_deploy_hybrid_layout() -> tuple[bool, str]:
 
 
 def check_compose_graph_secure_overlay_exists() -> tuple[bool, str]:
-    if not (ROOT / "deploy/graph/compose.secure.yml").exists():
+    if not (ROOT / "deploy/knowledge/compose.secure.yml").exists():
         return False, "compose.secure.yml missing"
     return True, "ok"
 

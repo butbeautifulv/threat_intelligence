@@ -23,7 +23,7 @@ isProject: false
 | **9** | [factory_slice_9](factory_slice_9_gate_tombstones.plan.md) | **done** — tombstones, docs paths |
 | **10** | [factory_slice_10](factory_slice_10_scrape_dead_code.plan.md) | **done** — components, mongo yaml, cue_schemas |
 | **11** | [factory_slice_11](factory_slice_11_scrapev1_only.plan.md) | **done** — scrapev1-only в scrapepub |
-| **12** | [factory_slice_12](factory_slice_12_graph_promote.plan.md) | **done** — `ingest/graph/workeringest`, `scrapers/*/graph/ingest` |
+| **12** | [factory_slice_12](factory_slice_12_graph_promote.plan.md) | **done** — `ingest/graph/workeringest`, `scrapers/*/knowledge/ingest` |
 | **13** | [factory_slice_13](factory_slice_13_pub_relocate.plan.md) | **done** — pub под `ingest/scrape`, `ingest/pipeline` |
 
 **Текущий этап Veil:** cleanup **срезы 9–13 done**; опционально **формальный E2E** — `scripts/smoke_scrape_e2e.sh`. **Релиз graph-pack не делаем.**
@@ -35,7 +35,7 @@ isProject: false
 | A — NATS + skeleton | **done** |
 | B — scrape factory (7 sources → `scrape_worker`) | **done** |
 | C — Vitess crawl ledger | **done** (slices 5–6) |
-| D — `ingest/graph` cleanup | **done** — AppSec в [`ingest/graph/storage/`](../ingest/graph/storage/); domain writers в `scrapers/*/graph/ingest` + [`ingest/graph/workeringest/`](../ingest/graph/workeringest/) |
+| D — `ingest/graph` cleanup | **done** — AppSec в [`ingest/graph/storage/`](../ingest/graph/storage/); domain writers в `scrapers/*/knowledge/ingest` + [`ingest/graph/workeringest/`](../ingest/graph/workeringest/) |
 | E — E2E + структура + legacy | **done** (срезы 8–9); cleanup 10–13 **done** |
 | F — repo cleanup (9–13) | **done** — см. [repo_cleanup_slices](repo_cleanup_slices_8202be7e.plan.md) |
 
@@ -135,7 +135,7 @@ ingest/
     ledger/
   pipeline/
     pipeline_worker/     # (сейчас ingest/pipeline-worker — rename 8 v2)
-  graph/
+  knowledge/
     ingest_worker/       # (сейчас ingest/graph/worker — rename 8 v2)
     storage/             # sbom, coderules, nuclei — done
     workeringest/        # ti, vuln, lola, ds — цель 8 v2 (убрать legacy/)
@@ -278,7 +278,7 @@ Dedup на **втором** hop: `Nats-Msg-Id` = `ingestv1.idempotency_key` (к�
 **Оставить и сгруппировать:**
 - [scrapers/ingest-worker](scrapers/ingest-worker) → `ingest/graph/worker`
 - `*/storage/neo4j` + `*/workeringest` → `ingest/graph/storage/{sbom,ti,vuln,...}`
-- [api/](api/), [mcp/](mcp/), [graph/query](graph/query) — **только чтение** Bolt; не импортируют scrape/feeds/Vitess.
+- [api/](api/), [mcp/](mcp/), [graph/query](knowledge/query) — **только чтение** Bolt; не импортируют scrape/feeds/Vitess.
 
 **ingest-worker** — единственный writer **Neo4j**; читает **только** `ingest.>` (без изменения MERGE-семантики). [docs/ingest-contract.md](docs/ingest-contract.md): два контракта (`scrapev1` + `ingestv1`) и матрица kind→handler.
 
@@ -311,13 +311,13 @@ Dedup на **втором** hop: `Nats-Msg-Id` = `ingestv1.idempotency_key` (к�
 9. Compose `crawl-db` + `VITESS_DSN`.
 
 ### D. Graph ctx3 cleanup — **done** (срезы 7–8 v2)
-10. **done:** `ingest_worker` → [`ingest/graph/ingest_worker`](../ingest/graph/ingest_worker/); AppSec → [`ingest/graph/storage/`](../ingest/graph/storage/); domain writers → `scrapers/*/graph/workeringest` (Go `internal` rule).
+10. **done:** `ingest_worker` → [`ingest/knowledge/ingest_worker`](../ingest/knowledge/ingest_worker/); AppSec → [`ingest/graph/storage/`](../ingest/graph/storage/); domain writers → `scrapers/*/graph/workeringest` (Go `internal` rule).
 11. **done:** [`ingest/graph/README.md`](../ingest/graph/README.md), [`docs/ingest-contract.md`](../docs/ingest-contract.md).
 
 ### E. E2E + структура + legacy — **mostly done** ([factory_slice_8_v2](factory_slice_8_v2_e2e_refactor.plan.md))
 
 1. **E2E (pending run):** [`scripts/smoke_scrape_e2e.sh`](../scripts/smoke_scrape_e2e.sh) — compose profile `scrape` ×2; lag SCRAPE/INGEST → 0; `crawl_resource`; Cypher counts; API `/health`.
-2. **done — Структура:** `ingest/scrape/scrape_worker`, `ingest/pipeline/pipeline_worker`, `ingest/graph/ingest_worker`; Dockerfiles и compose в snake_case.
+2. **done — Структура:** `ingest/scrape/scrape_worker`, `ingest/pipeline/pipeline_worker`, `ingest/knowledge/ingest_worker`; Dockerfiles и compose в snake_case.
 3. **done — Graph finish:** нет [`ingest/graph/legacy/`](../ingest/graph/legacy/); `workeringest` в `scrapers/*/graph/`.
 4. **partial — Legacy:** deprecated `scrapers/*/cmd` stubs; TI dead HTTP helpers removed; `forward.go` AppSec удалён.
 

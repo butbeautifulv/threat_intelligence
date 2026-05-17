@@ -66,6 +66,6 @@ A read-side or batch **enrichment engine** (outside the Neo4j write path) can ma
 
 - [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, NATS, **`ingest_worker`**
 - [scrape/README.md](../scrape/README.md) — scrape sources and env vars
-- [graph/ingest/README.md](../graph/ingest/README.md) — graph consumer
+- [knowledge/ingest/README.md](../knowledge/ingest/README.md) — graph consumer
 - [deploy/README.md](../deploy/README.md) — compose, scaling, graph packs
 - [coding-style.md](coding-style.md) — architecture and PR checklist

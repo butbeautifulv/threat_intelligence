@@ -9,8 +9,8 @@ profiles:
 compose:
   - deploy/scrape/compose.yml
   - deploy/pipeline/compose.yml
-  - deploy/graph/compose.yml
-  - deploy/graph/compose.neo4j-publish.yml
+  - deploy/knowledge/compose.yml
+  - deploy/knowledge/compose.neo4j-publish.yml
 optional_compose:
   - deploy/compose.scale.yml
 notes:

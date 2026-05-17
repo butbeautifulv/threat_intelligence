@@ -70,8 +70,8 @@ isProject: false
 | `pkg/*` | частично | `ti/domain`, `engage/contract`, `auth/httpmiddleware` |
 | scrape | ~15% | `ti/feeds/runner.go`, `feeds/github.go`, lola/ds usecase |
 | pipeline | ~23% | `ds/transform`, `ti/normalize`, `nvd/map` |
-| graph/ingest | ~7% | Neo4j stores, appsec stores |
-| graph/serve+connector | ~23% | `connector/query/service.go` (430 LOC) |
+| knowledge/ingest | ~7% | Neo4j stores, appsec stores |
+| knowledge/serve+connector | ~23% | `connector/query/service.go` (430 LOC) |
 | engage | ~33% | `intelligence/*`, audit stores, components |
 
 Завершённые программы для few-shot: **v3 P0–P3** (`make test-platform-p0`), **P6a–b** (`pkg/engage/events`, `pkg/auth/httpmiddleware`).
@@ -176,7 +176,7 @@ make test-platform-p7   # green на main до начала миграций
 
 | Компонент | Тесты |
 |-----------|--------|
-| `graph/connector/query/service.go` | разбить на pure query builders + test; HTTP через mock Neo4j driver interface |
+| `knowledge/connector/query/service.go` | разбить на pure query builders + test; HTTP через mock Neo4j driver interface |
 | `internal/usecase/read.go` | TargetGraphState, categories, auth context |
 | `internal/transport/httpserver` | route table parity (есть частично) |
 | MCP read tools | mock usecase |

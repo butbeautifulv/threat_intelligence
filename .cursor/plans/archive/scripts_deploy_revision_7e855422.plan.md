@@ -63,7 +63,7 @@ isProject: false
 | Graph pack | ZIP `threat-intel-graph-${VERSION}.zip`, schema `threat-intelligence.graph-pack/1`, тег `v0.3.2-graph-pack` |
 | Профиль fast-rich | Зашит в [scripts/graph-pack-run-v032.sh](scripts/graph-pack-run-v032.sh) (имя привязано к v0.3.2) |
 | Тесты | Go `*_test.go` рядом с кодом (норма для Go); shell smoke/QA в `scripts/` вперемешку с ops |
-| Deploy | Дубли: [deploy/README.md](deploy/README.md) + [docs/threatintel-runtime.md](docs/threatintel-runtime.md); [deploy/graph/compose.full.yml](deploy/graph/compose.full.yml) почти не используется |
+| Deploy | Дубли: [deploy/README.md](deploy/README.md) + [docs/threatintel-runtime.md](docs/threatintel-runtime.md); [deploy/knowledge/compose.full.yml](deploy/knowledge/compose.full.yml) почти не используется |
 
 Выбранная схема релизов: **ZIP `veil-graph-v0.4.0.zip`**, **GitHub tag `veil-graph-v0.4.0`**.
 
@@ -121,7 +121,7 @@ scripts/
 
 ### A2. Bootstrap и testpack
 
-- [deploy/graph/docker/graph-bootstrap.sh](deploy/graph/docker/graph-bootstrap.sh): `DEFAULT_PACK_URL` → `.../releases/download/veil-graph-v0.4.0/veil-graph-v0.4.0.zip` (после первого релиза) или env-only до релиза
+- [deploy/knowledge/docker/graph-bootstrap.sh](deploy/knowledge/docker/graph-bootstrap.sh): `DEFAULT_PACK_URL` → `.../releases/download/veil-graph-v0.4.0/veil-graph-v0.4.0.zip` (после первого релиза) или env-only до релиза
 - [docker-compose.testpack.yml](docker-compose.testpack.yml): mount `veil-graph-v0.4.0.zip`
 
 ### A3. Import backward-compat
@@ -197,7 +197,7 @@ test-smoke:
 ### D1. Единый compose entrypoint
 
 - Зафиксировать в `lib/common.sh`: `VEIL_COMPOSE_FILES` (3 файла layer)
-- [deploy/graph/compose.full.yml](deploy/graph/compose.full.yml): либо удалить, либо документировать как альтернативу `include` (сейчас дублирует `compose-up-full`)
+- [deploy/knowledge/compose.full.yml](deploy/knowledge/compose.full.yml): либо удалить, либо документировать как альтернативу `include` (сейчас дублирует `compose-up-full`)
 
 ### D2. Профили env вместо hardcode
 
@@ -214,7 +214,7 @@ test-smoke:
 ### D4. Docker / bootstrap
 
 - Сверить Dockerfiles с путями `harvest/`, `ned/`, `ingest/` (уже после refactor)
-- [graph-bootstrap.sh](deploy/graph/docker/graph-bootstrap.sh): читать версию pack из `GRAPH_PACK_VERSION` default
+- [graph-bootstrap.sh](deploy/knowledge/docker/graph-bootstrap.sh): читать версию pack из `GRAPH_PACK_VERSION` default
 
 ---
 

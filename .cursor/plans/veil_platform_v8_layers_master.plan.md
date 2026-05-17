@@ -27,7 +27,7 @@ todos:
     content: "P8h: Rename module scrape/ → discovery/ (paths, deploy, Makefile, CI)"
     status: in_progress
   - id: v8i-rename-graph-knowledge
-    content: "P8i: Rename module graph/ → knowledge/ (paths, deploy, Makefile, CI)"
+    content: "P8i: Rename module knowledge/ → knowledge/ (paths, deploy, Makefile, CI)"
     status: in_progress
 isProject: false
 ---
@@ -44,12 +44,12 @@ isProject: false
 |-------|------------|------------------|--------|
 | **Discovery** | `scrape/` | **`discovery/`** | P8h rename; `harvest` wire unchanged |
 | **Pipeline** | `pipeline/` | `pipeline/` | name kept (NED role is clear) |
-| **Knowledge** | `graph/` | **`knowledge/`** | P8i rename; veil-api / veil-mcp brands may stay |
+| **Knowledge** | `knowledge/` | **`knowledge/`** | P8i rename; veil-api / veil-mcp brands may stay |
 | **Engage** | `engage/` | `engage/` | offensive tools layer name kept |
 | **Report** | engage `report/` | **`pkg/report`** | P8b |
 | **API/MCP** | layer transports | **`pkg/api`**, **`pkg/mcp`** | P8d |
 
-**Naming rule:** documentation and repo top-level dirs use **Discovery** / **Knowledge**; until P8h/P8i merge, legacy paths `scrape/` and `graph/` remain valid in code.
+**Naming rule:** documentation and repo top-level dirs use **Discovery** / **Knowledge**; until P8h/P8i merge, legacy paths `scrape/` and `knowledge/` remain valid in code.
 
 ## Constraints
 
@@ -77,7 +77,7 @@ isProject: false
 
 - [ ] Extract `engage/serve/internal/usecase/report` → `pkg/report/` (templates, render ports)
 - [ ] Engage HTTP handlers call `pkg/report` adapters
-- [ ] Optional: graph/pipeline consumers later (same package, no layer import)
+- [ ] Optional: knowledge/pipeline consumers later (same package, no layer import)
 - [ ] Tests: golden HTML fragment tests in `pkg/report`
 
 **DoD:** `make test-engage`; no Neo4j in `pkg/report`.
@@ -161,7 +161,7 @@ isProject: false
 
 ---
 
-## P8i — Rename `graph/` → `knowledge/`
+## P8i — Rename `knowledge/` → `knowledge/`
 
 **Branch:** `platform/p8i-rename-knowledge`  
 **Depends on:** ingest tests green; **serialize merge with P8h** on `main` (both touch Makefile/root docs) or one combined `platform/p8hi-layer-rename` branch.
@@ -169,10 +169,10 @@ isProject: false
 | Area | Action |
 |------|--------|
 | Repo | `git mv graph knowledge`; module `github.com/butbeautifulv/veil/knowledge/...` |
-| Deploy | `deploy/graph/` → `deploy/knowledge/`; Neo4j compose paths |
+| Deploy | `deploy/knowledge/` → `deploy/knowledge/`; Neo4j compose paths |
 | Binaries / brands | `veil-api`, `veil-mcp`, `ingest_worker` — **keep user-facing names**; only repo path `knowledge/` |
 | Makefile | `test-graph` → `test-knowledge`; `test-graph-serve` → `test-knowledge-serve`; aliases one release |
-| CI | engage.yml path filters `graph/` → `knowledge/` |
+| CI | engage.yml path filters `knowledge/` → `knowledge/` |
 | Docs | `docs/threatintel-runtime.md` → split or rename `knowledge-runtime.md`; graph-pack.md may keep “graph pack” as artifact name |
 | Versions | `GRAPH_PACK_VERSION` env key unchanged in P8i (rename env is P8i-follow-up optional) |
 
@@ -231,4 +231,4 @@ make check-graph-version   # if ingest touched
 | P8f | `platform/p8f-engage-slim` | pending |
 | P8g | `platform/p8g-discovery-browser` | pending |
 | P8h | `platform/p8h-rename-discovery` | pending — `scrape/` → `discovery/` |
-| P8i | `platform/p8i-rename-knowledge` | pending — `graph/` → `knowledge/` |
+| P8i | `platform/p8i-rename-knowledge` | pending — `knowledge/` → `knowledge/` |

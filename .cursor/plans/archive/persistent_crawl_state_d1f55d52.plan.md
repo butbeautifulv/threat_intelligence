@@ -77,7 +77,7 @@ flowchart LR
 var/veil/
   blobs/              # HTTP-тела (бывш. data/cache), content by path key
   ledger/             # MySQL datadir (bind mount crawl-db)
-  graph/
+  knowledge/
     working/graph.cypher
     releases/veil-graph-vX.Y.Z.zip
 ```
@@ -96,7 +96,7 @@ var/veil/
 - [`deploy/scrape/compose.yml`](deploy/scrape/compose.yml) — volumes:
   - `../../var/veil/blobs:/data/cache` (пока путь в контейнере `/data/cache` для минимального diff)
   - `../../var/veil/ledger/mysql:/var/lib/mysql` вместо anonymous `crawl_db_data`
-- [`deploy/graph/compose.yml`](deploy/graph/compose.yml) — `../../var/veil/graph:/var/lib/neo4j/import/user_export`
+- [`deploy/knowledge/compose.yml`](deploy/knowledge/compose.yml) — `../../var/veil/graph:/var/lib/neo4j/import/user_export`
 - [`deploy/compose.scale.yml`](deploy/compose.scale.yml) — те же mounts
 - [`docker-compose.testpack.yml`](docker-compose.testpack.yml) — путь к zip в `var/veil/graph/releases/`
 - [`.gitignore`](.gitignore), [`.dockerignore`](.dockerignore) — `var/veil/blobs/`, `var/veil/ledger/`, `var/veil/graph/` (оставить `.gitkeep` в пустых каталогах)
@@ -201,7 +201,7 @@ sequenceDiagram
 
 ## 5. Compose: bootstrap vs ingest (из опыта v0.4.1)
 
-В [`deploy/graph/compose.yml`](deploy/graph/compose.yml):
+В [`deploy/knowledge/compose.yml`](deploy/knowledge/compose.yml):
 
 - `ingest_worker` должен **`depends_on: graph-bootstrap: service_completed_successfully`** (как `api`), иначе при testpack/import создаёт constraints до Cypher и import падает.
 

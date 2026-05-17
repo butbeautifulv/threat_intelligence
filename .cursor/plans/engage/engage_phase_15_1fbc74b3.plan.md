@@ -55,7 +55,7 @@ flowchart TB
 | Full stack | [compose-up-full.sh](scripts/ops/compose-up-full.sh) поднимает scrape/pipeline/graph **без** engage; events smoke использует **отдельный** NATS в [compose.events.yml](deploy/engage/compose.events.yml) |
 | Pack release | R74: publish `veil-graph-v0.4.4` на GitHub — может быть не выполнен |
 | Target-centric UX | Агент ищет по hostname (`example.com`), а не по `elementId`; neighbors для `EngageTarget` работают generically, но нет одного HTTP «timeline по target» |
-| CI | `engage-events-e2e` — `continue-on-error: true`; workflow не триггерится на `graph/connector` / `graph/ingest/engage` |
+| CI | `engage-events-e2e` — `continue-on-error: true`; workflow не триггерится на `knowledge/connector` / `knowledge/ingest/engage` |
 | Catalog runner | 15 live tools, но runner image без rustscan/dalfox/gobuster; matrix best-effort |
 
 **Не редактировать:** [engage_phase_14_9a37abf5.plan.md](.cursor/plans/engage_phase_14_9a37abf5.plan.md), phase 10–13 plan files.
@@ -70,7 +70,7 @@ flowchart TB
 
 | Deliverable | Детали |
 |-------------|--------|
-| Compose overlay | Новый [deploy/engage/compose.veil-stack.yml](deploy/engage/compose.veil-stack.yml): `engage-api`, `engage-events-worker`, env `ENGAGE_EVENTS_NATS_ENABLED=1`, `ENGAGE_VEIL_API_URL=http://api:8090`, `NATS_URL=nats://nats:4222` (shared с graph/pipeline) |
+| Compose overlay | Новый [deploy/engage/compose.veil-stack.yml](deploy/engage/compose.veil-stack.yml): `engage-api`, `engage-events-worker`, env `ENGAGE_EVENTS_NATS_ENABLED=1`, `ENGAGE_VEIL_API_URL=http://api:8090`, `NATS_URL=nats://nats:4222` (shared с knowledge/pipeline) |
 | Script | [scripts/ops/compose-up-veil-engage.sh](scripts/ops/compose-up-veil-engage.sh) — вызывает `compose-up-full.sh` + engage overlay + optional `profile graph-ingest` / shared `ingest_worker` |
 | Smoke | [scripts/test/smoke-veil-engage-stack.sh](scripts/test/smoke-veil-engage-stack.sh): tool run → `GET /v1/categories/engage/search?q=` → count ≥ 1 |
 | Docs | [deploy/README.md](deploy/README.md), [docs/engage-runtime.md](docs/engage-runtime.md) |
@@ -106,7 +106,7 @@ flowchart TB
 
 | Deliverable | Детали |
 |-------------|--------|
-| Node lookup | В [service.go](graph/connector/query/service.go) `GetNode` / seed match: добавить `seed.name` для `EngageTarget` (hostname lookup) |
+| Node lookup | В [service.go](knowledge/connector/query/service.go) `GetNode` / seed match: добавить `seed.name` для `EngageTarget` (hostname lookup) |
 | MCP smoke | [scripts/test/smoke-graph-engage-category.sh](scripts/test/smoke-graph-engage-category.sh) — с testpack/compose: categories contains `engage`, search returns 200 |
 | veil-mcp docs | Пример `ti_search_in_category` с `category=engage` в [docs/mcp-agents.md](docs/mcp-agents.md) |
 
@@ -116,7 +116,7 @@ flowchart TB
 
 | Deliverable | Детали |
 |-------------|--------|
-| engage.yml | Paths: `graph/connector/**`, `graph/ingest/internal/sources/engage/**`, `pipeline/engage-events/**`; `engage-events-e2e` **required** when Docker available (убрать silent pass on Neo4j fail) |
+| engage.yml | Paths: `knowledge/connector/**`, `knowledge/ingest/internal/sources/engage/**`, `pipeline/engage-events/**`; `engage-events-e2e` **required** when Docker available (убрать silent pass on Neo4j fail) |
 | Runner | [runner.Dockerfile](deploy/engage/docker/runner.Dockerfile): `rustscan`, `dalfox`, `gobuster` (apt или static); align с [tools.live.yaml](engage/serve/catalog/tools.live.yaml) |
 | Matrix | [smoke-engage-tool-matrix.sh](scripts/test/smoke-engage-tool-matrix.sh): document 15 defined / N exercised policy; optional CI step on runner profile |
 
@@ -129,7 +129,7 @@ flowchart TB
 | Deliverable | Детали |
 |-------------|--------|
 | Cypher/read | В [target-timeline](engage/serve/internal/usecase/intelligence/) или graph query helper: для findings с CVE — optional `MATCH (f)-[:MAY_RELATE_TO]->(v:Vulnerability)` и включить в JSON |
-| Ingest test | Расширить [cve_test.go](graph/ingest/internal/sources/engage/storage/cve_test.go) + doc в [ingest-contract.md](docs/ingest-contract.md) |
+| Ingest test | Расширить [cve_test.go](knowledge/ingest/internal/sources/engage/storage/cve_test.go) + doc в [ingest-contract.md](docs/ingest-contract.md) |
 | Graph version | Bump **patch** только если меняется ingest Cypher снова |
 
 ---

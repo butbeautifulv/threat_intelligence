@@ -44,7 +44,7 @@ PREV_TAG="$(git tag -l 'veil-graph-v*' --sort=-v:refname 2>/dev/null | head -1 |
 INGEST_PATHS=(
   scrape/harvest/internal/sources
   pipeline/ned/internal/sources
-  graph/ingest/internal/sources
+  knowledge/ingest/internal/sources
   pkg/harvest
   pkg/commit
   docs/schemas

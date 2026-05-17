@@ -7,7 +7,7 @@ Named **stacks** are the single source of truth for which `deploy/profiles/*.env
 | Approach | When to use |
 |----------|-------------|
 | **Stack preset** (`*.yml` in this directory) | Pick a documented scenario (smoke, full-loop, secure, pentest). Copy the `compose` list and `profiles` into your shell or automation. |
-| **Raw compose** | One-off debugging, partial layer up (`deploy/graph/compose.yml` only), or experimenting with overlays not yet captured in a stack file. |
+| **Raw compose** | One-off debugging, partial layer up (`deploy/knowledge/compose.yml` only), or experimenting with overlays not yet captured in a stack file. |
 
 Stacks do **not** invoke Docker themselves. Translate a preset to a command from the repo root:
 
@@ -17,8 +17,8 @@ set -a && source deploy/profiles/smoke-minimal.env && set +a
 docker compose \
   -f deploy/scrape/compose.yml \
   -f deploy/pipeline/compose.yml \
-  -f deploy/graph/compose.yml \
-  -f deploy/graph/compose.neo4j-publish.yml \
+  -f deploy/knowledge/compose.yml \
+  -f deploy/knowledge/compose.neo4j-publish.yml \
   -f deploy/engage/compose.yml \
   -f deploy/engage/compose.veil-stack.yml \
   up -d --build engage-api engage-events-worker
@@ -63,10 +63,10 @@ Graph-pack crawl profiles (`full-enrich`, `fast-rich`, `incremental-pack`, `full
 | `services_up` | Suggested service subset when not using `compose-up-*.sh` |
 | `scripts` | Repo-relative helpers that implement this stack |
 | `notes` | Warnings, port defaults, mutual exclusions |
-| `stacks` | (combined presets only) Nested graph/engage chains |
+| `stacks` | (combined presets only) Nested knowledge/engage chains |
 
 ## Related docs
 
 - [deploy/README.md](../README.md) — per-layer compose layout
-- [docs/deploy-secure.md](../../docs/deploy-secure.md) — secure graph/engage runtime
+- [docs/deploy-secure.md](../../docs/deploy-secure.md) — secure knowledge/engage runtime
 - [docs/engage-runtime.md](../../docs/engage-runtime.md) — engage overlays and ports

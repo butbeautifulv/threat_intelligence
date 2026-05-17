@@ -13,7 +13,7 @@ Thank you for improving this project. Small, focused changes are easier to revie
    |------|----------|
    | Scrape | `make test-scrape` |
    | Pipeline | `make test-pipeline` |
-   | Graph | `make test-graph`, `make test-graph-serve` |
+   | Graph | `make test-graph`, `make test-knowledge-serve` |
    | Engage | `make test-engage`, `make test-engage-parity` (catalog changes), `make test-engage-hardening` (security guards) |
    | Agent eval (GAIA) | `make test-agent-eval-pilot`, `make test-agent-eval-paper` (offline, [arXiv:2311.12983](https://arxiv.org/abs/2311.12983)); HF download optional — [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
    | Platform P7 (pkg domain + bus, no Docker) | `make test-platform-p7`, `make test-pkg-domain` — see [docs/domain-contour.md](docs/domain-contour.md) |
@@ -22,9 +22,9 @@ Thank you for improving this project. Small, focused changes are easier to revie
 
    Docker smokes when relevant: `make test-graph-read-smoke`, `make test-engage-veil-stack-ci`, `make test-engage-events-pipeline`, `make test-platform-full-loop` (heavy).
 
-   **CI:** PRs and `main` pushes touching `pkg/`, `scrape/`, `pipeline/`, `graph/`, or `engage/` run [`.github/workflows/platform.yml`](.github/workflows/platform.yml) (`make test-platform-p7`); closed-loop Docker smoke runs on `main`/`master` push only.
+   **CI:** PRs and `main` pushes touching `pkg/`, `scrape/`, `pipeline/`, `knowledge/`, or `engage/` run [`.github/workflows/platform.yml`](.github/workflows/platform.yml) (`make test-platform-p7`); closed-loop Docker smoke runs on `main`/`master` push only.
 
-5. **Graph read path:** `graph/serve` (`api`, `mcp`) must not import NATS or scrape packages.
+5. **Graph read path:** `knowledge/serve` (`api`, `mcp`) must not import NATS or scrape packages.
 6. If you change Compose, Terraform, Ansible, Helm, or env vars, update **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**, **[deploy/](deploy/)**, and **[docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)** when production deploy behavior changes.
 7. **Graph pack version:** if you change ingest-affecting code (sources, `pkg/harvest`, `pkg/commit`, schemas), run `./scripts/release/bump-graph-version.sh patch` and `make check-graph-version`. Current defaults live in **[versions.env](versions.env)**.
 8. **Documentation (required for agents and recommended for humans):** after merge-worthy changes, update:

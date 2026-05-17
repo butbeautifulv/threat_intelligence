@@ -52,7 +52,7 @@ At startup, **InitAPI** merges YAML in order (later overrides): `tools.yaml` →
 | `ENGAGE_PLAYBOOKS_PATH` | — | Override bug bounty playbook YAML |
 | `ENGAGE_PDF_ENGINE` | `gofpdf` | `wkhtml` uses `wkhtmltopdf` for PDF export |
 | Pipeline engage bridge | `pipeline/engage-events` | Consumes `engage.events.>` → `ingest.engage.tool_run` / `ingest.engage.finding` |
-| Graph ingest (engage) | `graph/ingest` `SourceEngage` | Persists `EngageToolRun` / `EngageFinding` in Neo4j (`GRAPH_PACK_VERSION` ≥ v0.4.3) |
+| Graph ingest (engage) | `knowledge/ingest` `SourceEngage` | Persists `EngageToolRun` / `EngageFinding` in Neo4j (`GRAPH_PACK_VERSION` ≥ v0.4.3) |
 
 ### Async jobs (API + worker)
 

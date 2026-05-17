@@ -30,7 +30,7 @@ isProject: false
 
 ## Constraints (unchanged)
 
-- No cross-imports: `scrape/`, `pipeline/`, `graph/`, `engage/`.
+- No cross-imports: `scrape/`, `pipeline/`, `knowledge/`, `engage/`.
 - Shared wire: `pkg/harvest`, `pkg/commit`, `pkg/natsjet`, `pkg/auth`, `pkg/engage/*`.
 - Engage → graph: HTTP only.
 

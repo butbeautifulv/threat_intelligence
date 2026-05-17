@@ -1,6 +1,6 @@
 ---
 name: pipeline NED structure
-overview: "Привести слой pipeline/ к той же архитектуре, что graph/: два Go-модуля (connector + ned), явное разделение Normalize / Enrich / Dedup в коде и документации. Каталог pipeline/ не переименовываем; compose-сервис pipeline_worker сохраняем. Скрипты в scripts/ в этом рефакторинге не трогаем — только документируем границы NED vs graph housekeeping."
+overview: "Привести слой pipeline/ к той же архитектуре, что knowledge/: два Go-модуля (connector + ned), явное разделение Normalize / Enrich / Dedup в коде и документации. Каталог pipeline/ не переименовываем; compose-сервис pipeline_worker сохраняем. Скрипты в scripts/ в этом рефакторинге не трогаем — только документируем границы NED vs graph housekeeping."
 todos:
   - id: doc-pipeline-ned-semantics
     content: "docs/coding-style.md: connector + ned pack, NED phases, scripts boundary"
@@ -114,7 +114,7 @@ flowchart LR
 | **ned pack** | JetStream consumer + transform по доменам | `pipeline_worker` как «отдельный продукт» |
 | **connector** | NATS publish + ensure streams (ex [`pipeline/pub`](pipeline/pub/)) | Business normalize |
 
-**Межслойное взаимодействие** — только NATS + `pkg/*`. `pipeline/` не импортирует `scrape/` или `graph/`.
+**Межслойное взаимодействие** — только NATS + `pkg/*`. `pipeline/` не импортирует `scrape/` или `knowledge/`.
 
 `pipeline_worker` — **driving adapter** (hexagonal): pull `scrape.>`, делегирует NED, publish `ingest.>`.
 
@@ -217,7 +217,7 @@ flowchart TB
 - Переименование `pipeline/` → `ned/` на верхнем уровне репо
 - Перенос/переписывание `scripts/*` (только документация границ)
 - Объединение connector + ned в один `go.mod`
-- Изменения `scrape/`, `graph/`, `pkg/*` кроме удаления дублирующих import path в pipeline
+- Изменения `scrape/`, `knowledge/`, `pkg/*` кроме удаления дублирующих import path в pipeline
 
 ---
 

@@ -39,7 +39,7 @@ agents:
     template: |
       Layer work on branch `{branch}` per `{plan_path}`.
       Run `make test-scrape` and/or `make test-pipeline` as applicable.
-      No imports from graph/ or engage/ into scrape/pipeline.
+      No imports from knowledge/ or engage/ into scrape/pipeline.
 
   - id: agent-eval-runner
     description: GAIA / agent evaluation harness maintainer

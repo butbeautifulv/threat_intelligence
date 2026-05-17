@@ -4,10 +4,10 @@ set -euo pipefail
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 
-MCP_BIN="${VEIL_MCP_BIN:-${VEIL_ROOT}/graph/serve/bin/mcp}"
+MCP_BIN="${VEIL_MCP_BIN:-${VEIL_ROOT}/knowledge/serve/bin/mcp}"
 if [[ ! -x "${MCP_BIN}" ]]; then
   echo "[veil-mcp] building ${MCP_BIN}..." >&2
-  (cd "${VEIL_ROOT}/graph/serve" && env GOWORK="${VEIL_ROOT}/graph/go.work" go build -o bin/mcp ./cmd/mcp)
+  (cd "${VEIL_ROOT}/knowledge/serve" && env GOWORK="${VEIL_ROOT}/knowledge/go.work" go build -o bin/mcp ./cmd/mcp)
 fi
 
 export NEO4J_URI="${NEO4J_URI:-neo4j://localhost:7687}"

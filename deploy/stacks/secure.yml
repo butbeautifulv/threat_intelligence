@@ -9,8 +9,8 @@ profiles:
 stacks:
   graph:
     compose:
-      - deploy/graph/compose.yml
-      - deploy/graph/compose.secure.yml
+      - deploy/knowledge/compose.yml
+      - deploy/knowledge/compose.secure.yml
     compose_profiles:
       - mcp
   engage:

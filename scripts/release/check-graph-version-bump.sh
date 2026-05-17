@@ -9,7 +9,7 @@ BASE="${1:-main}"
 INGEST_PATHS=(
   scrape/harvest/internal/sources
   pipeline/ned/internal/sources
-  graph/ingest/internal/sources
+  knowledge/ingest/internal/sources
   pkg/harvest
   pkg/commit
   docs/schemas

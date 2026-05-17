@@ -142,7 +142,7 @@ AllowRawCommand bool // false when ENGAGE_ENV=prod or ENGAGE_DENY_RAW_COMMAND=1
   run: make check-graph-version
 ```
 
-   - Скрипт уже сравнивает `graph/ingest`, `pkg/harvest`, `pkg/commit`, `docs/schemas` vs `versions.env`.
+   - Скрипт уже сравнивает `knowledge/ingest`, `pkg/harvest`, `pkg/commit`, `docs/schemas` vs `versions.env`.
    - На PR base = `main`; fork PRs — document fallback `HEAD~1` (уже в скрипте).
 
 2. Обновить [`docs/engage-runtime.md`](docs/engage-runtime.md) / [`CONTRIBUTING.md`](CONTRIBUTING.md): engage PRs, затрагивающие ingest, требуют `make bump-graph-patch` + `check-graph-version`.

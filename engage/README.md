@@ -1,6 +1,6 @@
 # Engage layer (active security testing)
 
-Fourth Veil runtime context: **authorized tool execution**, intelligence workflows, and structured reports. Threat-intel **read** stays in [graph/serve](../graph/serve/) (`veil-mcp`); **execution** is here (`veil-engage`).
+Fourth Veil runtime context: **authorized tool execution**, intelligence workflows, and structured reports. Threat-intel **read** stays in [knowledge/serve](../knowledge/serve/) (`veil-mcp`); **execution** is here (`veil-engage`).
 
 ## What it is
 
@@ -92,7 +92,7 @@ make test-engage-browser
 
 ## Events bus (Phase 13)
 
-When `ENGAGE_EVENTS_NATS_ENABLED=1`, engage publishes tool audit and smart-scan findings to JetStream (`engage.events.audit`, `engage.events.finding`). The pipeline worker [engage-events](../pipeline/engage-events/) bridges to `ingest.engage.tool_run` / `ingest.engage.finding`; [graph ingest](../graph/ingest/internal/sources/engage/) persists `EngageToolRun` and `EngageFinding` in Neo4j.
+When `ENGAGE_EVENTS_NATS_ENABLED=1`, engage publishes tool audit and smart-scan findings to JetStream (`engage.events.audit`, `engage.events.finding`). The pipeline worker [engage-events](../pipeline/engage-events/) bridges to `ingest.engage.tool_run` / `ingest.engage.finding`; [graph ingest](../knowledge/ingest/internal/sources/engage/) persists `EngageToolRun` and `EngageFinding` in Neo4j.
 
 ```bash
 docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.events.yml \
@@ -134,7 +134,7 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Boundaries
 
-- **Does not** import `scrape/`, `pipeline/`, or `graph/ingest`
+- **Does not** import `scrape/`, `pipeline/`, or `knowledge/ingest`
 - **Does not** connect to Neo4j directly — use `ENGAGE_VEIL_API_URL` → veil-api
 - **May** import `pkg/auth`, `pkg/engage/*`
 

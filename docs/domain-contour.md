@@ -1,6 +1,6 @@
 # Veil domain contour (pkg SOT)
 
-Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`scrape/`, `pipeline/`, `graph/`, `engage/`) keep source-specific adapters only.
+Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`scrape/`, `pipeline/`, `knowledge/`, `engage/`) keep source-specific adapters only.
 
 ## Package map
 
@@ -30,7 +30,7 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`s
 |-------|--------------|----------------|
 | Scrape | `scrape/harvest/internal/sources/<src>/` | Fetch, parse → `harvest.Envelope` (uses `pkg/*/domain`) |
 | Pipeline | `pipeline/ned/internal/sources/<src>/` | Transform → normalize → `commit.Envelope` |
-| Graph ingest | `graph/ingest/internal/sources/<src>/` | Apply commit → Neo4j (uses `pkg/*/domain`) |
+| Graph ingest | `knowledge/ingest/internal/sources/<src>/` | Apply commit → Neo4j (uses `pkg/*/domain`) |
 | Engage | `engage/serve/internal/domain/target` | Target allowlist / guard (report, job, tool in `pkg/engage/domain`) |
 
 ## TI flow

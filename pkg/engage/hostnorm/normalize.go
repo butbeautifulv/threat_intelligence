@@ -3,7 +3,7 @@ package hostnorm
 
 import "strings"
 
-// NormalizeHost strips scheme, path, and port; lowercases host (matches graph/connector/query).
+// NormalizeHost strips scheme, path, and port; lowercases host (matches knowledge/connector/query).
 func NormalizeHost(target string) string {
 	t := strings.TrimSpace(target)
 	t = strings.TrimPrefix(t, "https://")

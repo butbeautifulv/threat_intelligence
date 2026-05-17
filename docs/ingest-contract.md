@@ -3,7 +3,7 @@
 Veil uses **two NATS streams** between isolated layers:
 
 ```text
-scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ → Neo4j
+scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → knowledge/ → Neo4j
 ```
 
 **Go source of truth:** [pkg/harvest/](../pkg/harvest/), [pkg/commit/](../pkg/commit/). **JSON docs:** [schemas/harvest-envelope.json](schemas/harvest-envelope.json), [schemas/commit-envelope.json](schemas/commit-envelope.json) — update manually when pkg types change.
@@ -21,7 +21,7 @@ scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ �
 - **Go:** [pkg/commit/](../pkg/commit/) (pipeline + graph)
 - **Stream:** `INGEST`, subjects `ingest.>`
 - **Publisher:** pipeline via [pipeline/connector/](../pipeline/connector/)
-- **Consumer:** [graph/ingest/](../graph/ingest/) (`cmd/ingest_worker`)
+- **Consumer:** [knowledge/ingest/](../knowledge/ingest/) (`cmd/ingest_worker`)
 - **Dedup:** `Nats-Msg-Id` = `idempotency_key`
 
 ### TI commit payloads (NED → graph)
@@ -41,7 +41,7 @@ Engage does **not** publish directly to `ingest.>`. When `ENGAGE_EVENTS_NATS_ENA
 
 - **Source:** `engage` ([pkg/commit/envelope.go](../pkg/commit/envelope.go))
 - **Bridge:** [pipeline/connector/nats/engage_consumer.go](../pipeline/connector/nats/engage_consumer.go)
-- **Graph ingest:** [graph/ingest/internal/sources/engage/](../graph/ingest/internal/sources/engage/)
+- **Graph ingest:** [knowledge/ingest/internal/sources/engage/](../knowledge/ingest/internal/sources/engage/)
 - **Idempotency keys:** `engage:run:{tool}:{target}:{at}` and `engage:finding:{tool}:{target}:{title}`
 
 ## Vitess crawl ledger (scrape only)
@@ -59,4 +59,4 @@ If ledger says skip but cache file is missing, [FetchIfDue](../scrape/harvest/in
 
 ## Deploy
 
-Per-layer Compose: [deploy/scrape](../deploy/scrape/compose.yml), [deploy/pipeline](../deploy/pipeline/compose.yml), [deploy/graph](../deploy/graph/compose.yml). Full stack: include all three or use [deploy/graph/compose.full.yml](../deploy/graph/compose.full.yml).
+Per-layer Compose: [deploy/scrape](../deploy/scrape/compose.yml), [deploy/pipeline](../deploy/pipeline/compose.yml), [deploy/knowledge](../deploy/knowledge/compose.yml). Full stack: include all three or use [deploy/knowledge/compose.full.yml](../deploy/knowledge/compose.full.yml).
