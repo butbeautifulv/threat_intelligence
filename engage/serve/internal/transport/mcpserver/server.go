@@ -12,6 +12,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/files"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/tooldispatch"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/version"
 	"github.com/butbeautifulv/veil/pkg/auth"
@@ -19,6 +20,7 @@ import (
 )
 
 type Server struct {
+	dispatch    *tooldispatch.Dispatcher
 	runner      *toolsuc.Runner
 	intel       ports.IntelProvider
 	cve         ports.CVEProvider
@@ -34,22 +36,41 @@ type Server struct {
 }
 
 func NewServer(runner *toolsuc.Runner, stack *auth.Stack, logger *slog.Logger) *Server {
-	return &Server{runner: runner, auth: stack, logger: logger}
+	return &Server{
+		dispatch: tooldispatch.NewDispatcher(runner, nil, nil, nil, nil, nil, nil, nil, "", nil),
+		runner:   runner,
+		auth:     stack,
+		logger:   logger,
+	}
 }
 
 // NewServerWithIntel wires in-process intelligence and workflow handlers for MCP tools/call.
 func NewServerWithIntel(runner *toolsuc.Runner, intel ports.IntelProvider, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
-	return &Server{runner: runner, intel: intel, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
+	return &Server{
+		dispatch:    tooldispatch.NewDispatcher(runner, intel, nil, nil, nil, nil, nil, wf, catalogPath, fileMgr),
+		runner: runner, intel: intel, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr,
+	}
 }
 
 // NewServerWithCTF wires intelligence, CTF, and workflow handlers.
 func NewServerWithCTF(runner *toolsuc.Runner, intel ports.IntelProvider, ctfSvc ports.CTFProvider, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
-	return &Server{runner: runner, intel: intel, ctf: ctfSvc, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
+	return &Server{
+		dispatch:    tooldispatch.NewDispatcher(runner, intel, nil, ctfSvc, nil, nil, nil, wf, catalogPath, fileMgr),
+		runner: runner, intel: intel, ctf: ctfSvc, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr,
+	}
 }
 
 // NewServerFull wires intelligence, CVE, CTF, bug bounty, browser, processes, and workflow handlers.
 func NewServerFull(runner *toolsuc.Runner, intel ports.IntelProvider, cveSvc ports.CVEProvider, ctfSvc ports.CTFProvider, bb *bugbounty.Service, browserSvc *browser.Service, proc *process.Manager, wf *workflow.Service, stack *auth.Stack, logger *slog.Logger, catalogPath string, fileMgr *files.Manager) *Server {
-	return &Server{runner: runner, intel: intel, cve: cveSvc, ctf: ctfSvc, bugbounty: bb, browser: browserSvc, processes: proc, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr}
+	return &Server{
+		dispatch:    tooldispatch.NewDispatcher(runner, intel, cveSvc, ctfSvc, bb, browserSvc, proc, wf, catalogPath, fileMgr),
+		runner: runner, intel: intel, cve: cveSvc, ctf: ctfSvc, bugbounty: bb, browser: browserSvc, processes: proc, workflows: wf, auth: stack, logger: logger, catalogPath: catalogPath, files: fileMgr,
+	}
+}
+
+// NewServerWithDispatch uses a shared dispatcher (e.g. from components.InitAPI).
+func NewServerWithDispatch(dispatch *tooldispatch.Dispatcher, runner *toolsuc.Runner, stack *auth.Stack, logger *slog.Logger) *Server {
+	return &Server{dispatch: dispatch, runner: runner, auth: stack, logger: logger}
 }
 
 func (s *Server) Run(ctx context.Context, inReader any, outWriter any) error {

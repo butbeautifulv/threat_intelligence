@@ -10,21 +10,10 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/tooldispatch"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/pkg/engage/toolid"
 )
-
-func TestIsIntelBridgeTool(t *testing.T) {
-	if !IsIntelBridgeTool("comprehensive_api_audit", tool.Spec{Category: toolid.CategoryWeb}) {
-		t.Fatal("comprehensive_api_audit should bridge")
-	}
-	if !IsIntelBridgeTool("analyze_target_intelligence", tool.Spec{Category: toolid.CategoryIntel}) {
-		t.Fatal("intelligence category should bridge")
-	}
-	if !IsIntelBridgeTool("monitor_cve_feeds", tool.Spec{Category: toolid.CategoryWeb}) {
-		t.Fatal("monitor_cve_feeds should bridge")
-	}
-}
 
 type mockNVD struct{}
 
@@ -49,7 +38,8 @@ func TestCallIntelBridge_monitorCVE(t *testing.T) {
 	})
 	runner := &toolsuc.Runner{Registry: reg}
 	cveSvc := cve.NewService(nil, mockNVD{})
-	srv := NewServerFull(runner, &intelligence.Service{Engine: intelligence.DefaultDecisionEngine()}, cveSvc, nil, nil, nil, nil, nil, nil, slog.Default(), "", nil)
+	d := tooldispatch.NewDispatcher(runner, &intelligence.Service{Engine: intelligence.DefaultDecisionEngine()}, cveSvc, nil, nil, nil, nil, nil, "", nil)
+	srv := NewServerWithDispatch(d, runner, nil, slog.Default())
 
 	out, err := srv.callTool(context.Background(), "monitor_cve_feeds", map[string]any{
 		"hours": 24,
@@ -61,7 +51,8 @@ func TestCallIntelBridge_monitorCVE(t *testing.T) {
 	if !ok {
 		t.Fatalf("unexpected type %T", out)
 	}
-	if len(m["content"].([]map[string]any)) == 0 {
+	content, _ := m["content"].([]any)
+	if len(content) == 0 {
 		t.Fatal("expected content")
 	}
 }
@@ -72,7 +63,8 @@ func TestCallIntelBridge_generateExploitFromCVE(t *testing.T) {
 	})
 	runner := &toolsuc.Runner{Registry: reg}
 	cveSvc := cve.NewService(nil, mockNVD{})
-	srv := NewServerFull(runner, &intelligence.Service{Engine: intelligence.DefaultDecisionEngine()}, cveSvc, nil, nil, nil, nil, nil, nil, slog.Default(), "", nil)
+	d := tooldispatch.NewDispatcher(runner, &intelligence.Service{Engine: intelligence.DefaultDecisionEngine()}, cveSvc, nil, nil, nil, nil, nil, "", nil)
+	srv := NewServerWithDispatch(d, runner, nil, slog.Default())
 
 	out, err := srv.callTool(context.Background(), "generate_exploit_from_cve", map[string]any{
 		"cve_id":       "CVE-2020-0001",
@@ -85,27 +77,8 @@ func TestCallIntelBridge_generateExploitFromCVE(t *testing.T) {
 	if !ok {
 		t.Fatalf("unexpected type %T", out)
 	}
-	if len(m["content"].([]map[string]any)) == 0 {
-		t.Fatal("expected content")
-	}
-}
-
-func TestTryAgentTool_getProcessDashboard(t *testing.T) {
-	reg := tools.NewRegistry([]tool.Spec{
-		{Name: "get_process_dashboard", Category: toolid.CategoryWeb, Enabled: true},
-	})
-	runner := &toolsuc.Runner{Registry: reg}
-	proc := process.NewManager()
-	srv := NewServerFull(runner, nil, nil, nil, nil, nil, proc, nil, nil, slog.Default(), "", nil)
-	out, ok, err := srv.tryAgentTool(context.Background(), "get_process_dashboard", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !ok {
-		t.Fatal("expected handled")
-	}
-	m, _ := out.(map[string]any)
-	if len(m["content"].([]map[string]any)) == 0 {
+	content, _ := m["content"].([]any)
+	if len(content) == 0 {
 		t.Fatal("expected content")
 	}
 }
@@ -116,7 +89,8 @@ func TestCallIntelBridge_analyzeTarget(t *testing.T) {
 	})
 	runner := &toolsuc.Runner{Registry: reg}
 	intel := &intelligence.Service{Engine: intelligence.DefaultDecisionEngine()}
-	srv := NewServerWithIntel(runner, intel, nil, nil, slog.Default(), "", nil)
+	d := tooldispatch.NewDispatcher(runner, intel, nil, nil, nil, nil, nil, nil, "", nil)
+	srv := NewServerWithDispatch(d, runner, nil, slog.Default())
 
 	out, err := srv.callTool(context.Background(), "analyze_target_intelligence", map[string]any{
 		"target": "https://example.com",
@@ -128,7 +102,30 @@ func TestCallIntelBridge_analyzeTarget(t *testing.T) {
 	if !ok {
 		t.Fatalf("unexpected type %T", out)
 	}
-	if len(m["content"].([]map[string]any)) == 0 {
+	content, _ := m["content"].([]any)
+	if len(content) == 0 {
+		t.Fatal("expected content")
+	}
+}
+
+func TestCallAgentTool_getProcessDashboard(t *testing.T) {
+	reg := tools.NewRegistry([]tool.Spec{
+		{Name: "get_process_dashboard", Category: toolid.CategoryWeb, Enabled: true},
+	})
+	runner := &toolsuc.Runner{Registry: reg}
+	proc := process.NewManager()
+	d := tooldispatch.NewDispatcher(runner, nil, nil, nil, nil, nil, proc, nil, "", nil)
+	srv := NewServerWithDispatch(d, runner, nil, slog.Default())
+	out, err := srv.callTool(context.Background(), "get_process_dashboard", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m, ok := out.(map[string]any)
+	if !ok {
+		t.Fatalf("unexpected type %T", out)
+	}
+	content, _ := m["content"].([]any)
+	if len(content) == 0 {
 		t.Fatal("expected content")
 	}
 }

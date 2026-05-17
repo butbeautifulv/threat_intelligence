@@ -27,6 +27,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	jobuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/job"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
+	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/tooldispatch"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
 	"github.com/butbeautifulv/veil/pkg/auth"
@@ -43,6 +44,7 @@ type APIComponents struct {
 	Auth      *auth.Stack
 	Registry  *tools.Registry
 	Tools     *toolsuc.Runner
+	ToolDispatch *tooldispatch.Dispatcher
 	Intel     IntelProvider
 	CVE       CVEProvider
 	CTF        CTFProvider
@@ -207,10 +209,12 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 	}
 	cmdRunner := cmduc.New(exec, reg, cfg.Security.AllowRawCommand)
 	ctfSvc := ctf.NewService(reg, toolRunner, intel, cfg.FilesDir)
+	toolDispatch := tooldispatch.NewDispatcher(toolRunner, intel, cveSvc, ctfSvc, bbSvc, browserSvc, procMgr, wf, catalogPath, fileMgr)
 	return &APIComponents{
 		Auth:               stack,
 		Registry:           reg,
 		Tools:              toolRunner,
+		ToolDispatch:       toolDispatch,
 		Intel:              intel,
 		CVE:                cveSvc,
 		CTF:                ctfSvc,
