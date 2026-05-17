@@ -15,7 +15,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
 	"github.com/butbeautifulv/veil/engage/serve/internal/config"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
-	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domainjob "github.com/butbeautifulv/veil/pkg/engage/domain/job"
 )
 
 type testNVDClient struct{}

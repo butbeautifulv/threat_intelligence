@@ -3,7 +3,7 @@ package bugbounty
 import (
 	"context"
 
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"

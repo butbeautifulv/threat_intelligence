@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 	"github.com/butbeautifulv/veil/pkg/auth"
 )
 

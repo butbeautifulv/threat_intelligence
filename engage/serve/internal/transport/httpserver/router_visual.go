@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/report"
 )
 

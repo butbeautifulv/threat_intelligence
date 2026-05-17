@@ -1,5 +1,9 @@
 package report
 
+import (
+	engageevents "github.com/butbeautifulv/veil/pkg/engage/events"
+)
+
 // Severity classifies a finding.
 type Severity string
 
@@ -19,4 +23,15 @@ type Finding struct {
 	Target      string   `json:"target"`
 	Tool        string   `json:"tool,omitempty"`
 	Evidence    string   `json:"evidence,omitempty"`
+}
+
+// ToFindingEvent converts a finding to the NATS wire event shape.
+func (f Finding) ToFindingEvent() engageevents.FindingEvent {
+	return engageevents.FindingEvent{
+		Tool:        f.Tool,
+		Target:      f.Target,
+		Title:       f.Title,
+		Severity:    string(f.Severity),
+		Description: f.Description,
+	}
 }

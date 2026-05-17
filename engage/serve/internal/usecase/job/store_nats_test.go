@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	domain "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domain "github.com/butbeautifulv/veil/pkg/engage/domain/job"
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats-server/v2/test"
 )

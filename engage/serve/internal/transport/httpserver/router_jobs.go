@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
-	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domainjob "github.com/butbeautifulv/veil/pkg/engage/domain/job"
 )
 
 func registerJobs(mux *http.ServeMux, c *components.APIComponents) {
