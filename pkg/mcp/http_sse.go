@@ -1,4 +1,4 @@
-package mcpserver
+package mcp
 
 import (
 	"encoding/json"
@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-func wantsSSE(r *http.Request, preferSSE bool) bool {
+// WantsSSE reports whether the client prefers SSE responses.
+func WantsSSE(r *http.Request, preferSSE bool) bool {
 	if preferSSE {
 		return true
 	}
@@ -72,7 +73,8 @@ func trimSpace(s string) string {
 	return s
 }
 
-func writeSSEMessages(w http.ResponseWriter, messages []rpcMessage) error {
+// WriteSSEMessages streams JSON-RPC messages as text/event-stream.
+func WriteSSEMessages(w http.ResponseWriter, messages []Message) error {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		return fmt.Errorf("streaming not supported")

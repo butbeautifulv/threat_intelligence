@@ -37,7 +37,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 			rawParams = b
 		}
 		rw := newFramedRW(strings.NewReader(""), stdinW)
-		if err := rw.writeJSON(ctx, rpcMessage{
+		if err := rw.WriteJSON(ctx, rpcMessage{
 			JSONRPC: "2.0",
 			ID:      id,
 			Method:  method,
@@ -50,7 +50,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 	readResp := func() rpcMessage {
 		t.Helper()
 		rw := newFramedRW(stdoutR, io.Discard)
-		payload, err := rw.read(ctx)
+		payload, err := rw.Read(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -135,13 +135,13 @@ func TestServer_unknownMethod(t *testing.T) {
 	go func() { _ = srv.Run(ctx, stdinR, stdoutW) }()
 
 	rw := newFramedRW(strings.NewReader(""), stdinW)
-	_ = rw.writeJSON(ctx, rpcMessage{
+	_ = rw.WriteJSON(ctx, rpcMessage{
 		JSONRPC: "2.0",
 		ID:      9,
 		Method:  "nope/method",
 	})
 	rwOut := newFramedRW(stdoutR, io.Discard)
-	payload, err := rwOut.read(ctx)
+	payload, err := rwOut.Read(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -38,13 +38,13 @@ func TestServer_toolsCall_requiresAuth(t *testing.T) {
 	write := func(id int, method string, params any) {
 		b, _ := json.Marshal(params)
 		rw := newFramedRW(strings.NewReader(""), stdinW)
-		_ = rw.writeJSON(context.Background(), rpcMessage{
+		_ = rw.WriteJSON(context.Background(), rpcMessage{
 			JSONRPC: "2.0", ID: id, Method: method, Params: b,
 		})
 	}
 	read := func() rpcMessage {
 		rw := newFramedRW(stdoutR, io.Discard)
-		payload, err := rw.read(context.Background())
+		payload, err := rw.Read(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -70,13 +70,13 @@ func TestServer_toolsCall_requiresAuth(t *testing.T) {
 	write2 := func(id int, method string, params any) {
 		b, _ := json.Marshal(params)
 		rw := newFramedRW(strings.NewReader(""), stdinW2)
-		_ = rw.writeJSON(context.Background(), rpcMessage{
+		_ = rw.WriteJSON(context.Background(), rpcMessage{
 			JSONRPC: "2.0", ID: id, Method: method, Params: b,
 		})
 	}
 	read2 := func() rpcMessage {
 		rw := newFramedRW(stdoutR2, io.Discard)
-		payload, _ := rw.read(context.Background())
+		payload, _ := rw.Read(context.Background())
 		var msg rpcMessage
 		_ = json.Unmarshal(payload, &msg)
 		return msg
