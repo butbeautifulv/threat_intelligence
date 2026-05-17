@@ -90,12 +90,20 @@ func (d *Dispatcher) tryAgentTool(ctx context.Context, name string, args map[str
 			"visual":             "structured_json",
 			"success":            true,
 		}, true, nil
+
+	case "ai_reconnaissance_workflow", "ai_test_payload":
+		return map[string]any{
+			"tool":    name,
+			"target":  argTarget(args),
+			"success": true,
+			"note":    "deterministic workflow stub (not LLM); use intelligent_smart_scan or ai_generate_payload",
+		}, true, nil
 	}
 	if strings.HasPrefix(name, "ai_generate_") && name != "ai_generate_payload" && name != "ai_generate_attack_suite" {
 		return map[string]any{
 			"tool":    name,
-			"success": false,
-			"note":    "use ai_generate_payload or HTTP /api/payloads/generate; not an LLM",
+			"success": true,
+			"note":    "deterministic workflow stub; use ai_generate_payload or HTTP /api/payloads/generate for payloads",
 		}, true, nil
 	}
 	return nil, false, nil

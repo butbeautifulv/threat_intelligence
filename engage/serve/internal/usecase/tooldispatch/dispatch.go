@@ -60,6 +60,11 @@ func (d *Dispatcher) Dispatch(ctx context.Context, subject, name string, args ma
 	if IsIntelBridgeTool(name, spec) {
 		return d.callIntelBridge(ctx, name, spec, args)
 	}
+	if IsBridgeWorkflowBinary(spec.Binary) {
+		if out, ok, err := d.tryBridgeWorkflowTool(ctx, name, args); ok {
+			return out, err
+		}
+	}
 	res := d.Runner.Run(ctx, subject, name, RequestFromArgs(args))
 	if !res.Success && res.Error != "" {
 		return nil, dispatchToolError("%s", res.Error)
