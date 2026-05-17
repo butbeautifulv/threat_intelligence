@@ -1,6 +1,6 @@
 # Engage tool catalog
 
-Tools are defined in YAML and loaded at startup (merged: `tools.yaml` ← `tools.live.yaml` ← `tools.enabled.yaml`).
+Tools are defined in YAML and loaded at startup (merged in order, **later overrides**): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`.
 
 | File | Purpose |
 |------|---------|
