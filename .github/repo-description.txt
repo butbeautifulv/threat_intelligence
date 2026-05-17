@@ -1,1 +1,1 @@
-Neo4j TI platform + Go engage (113 live tools). scrape→pipeline→graph→engage on NATS; pkg domain SOT; dual MCP; v8 roadmap: discovery/knowledge/report/pkg/exec. MIT.
+Neo4j TI platform + Go engage (113 live tools). discovery→pipeline→knowledge→engage on NATS; pkg domain/report/decision/exec/api/mcp; dual MCP; v8 layers done. MIT.

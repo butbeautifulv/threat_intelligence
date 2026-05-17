@@ -1,6 +1,6 @@
 ---
 name: Veil Platform v8 Layers Master
-overview: "Целевая архитектура: discovery, knowledge, pipeline, engage, shared report, unified API/MCP; переименование scrape→discovery и graph→knowledge; pkg/domain; pkg/exec."
+overview: "Done (main 1f40c77): discovery, knowledge, pipeline, engage, pkg/report, pkg/decision, pkg/exec, pkg/api, pkg/mcp, engage slim, discovery browser."
 todos:
   - id: v8a-domain-complete
     content: "P8a: Завершить pkg/domain — engage target, knowledge read models, zero dup structs"

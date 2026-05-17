@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Veil** is a Neo4j-backed threat-intelligence platform with an optional **active security testing** layer. The graph stores vulnerabilities (CVE, CWE, CPE), LOLbins-style artifacts, detection content (Sigma/YARA/Caldera), TI feeds, SBOM advisories, and code-rule templates. Runtime is split into **four isolated Go contexts** — **scrape**, **pipeline**, **graph** (read intel), and **engage** (tool execution) — connected by **NATS JetStream** for ingestion and **dual MCP** servers for AI agents.
+**Veil** is a Neo4j-backed threat-intelligence platform with an optional **active security testing** layer. The graph stores vulnerabilities (CVE, CWE, CPE), LOLbins-style artifacts, detection content (Sigma/YARA/Caldera), TI feeds, SBOM advisories, and code-rule templates. Runtime is split into **four isolated Go contexts** — **discovery**, **pipeline**, **knowledge** (read intel), and **engage** (tool execution) — connected by **NATS JetStream** for ingestion and **dual MCP** servers for AI agents.
 
 **License:** [MIT](LICENSE) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Agents / AI:** [AGENTS.md](AGENTS.md) · **Security:** [SECURITY.md](SECURITY.md) · **Code of conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
@@ -23,7 +23,7 @@
 
 ```mermaid
 flowchart LR
-  subgraph scrape [scrape]
+  subgraph discovery [discovery]
     SW[scrape_worker]
     SW -->|harvest| NATS1[NATS SCRAPE]
   end
@@ -34,7 +34,7 @@ flowchart LR
     PW -->|commit| NATS2[NATS INGEST]
     EEW -->|commit| NATS2
   end
-  subgraph graph [graph read]
+  subgraph knowledge [knowledge read]
     IW[ingest_worker]
     Neo4j[(Neo4j)]
     API[veil-api]
@@ -62,7 +62,7 @@ flowchart LR
 | **Knowledge** | [knowledge/](knowledge/) | MERGE into Neo4j; [serve/](knowledge/serve/) read API + MCP | `veil-mcp` (read-only) |
 | **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports (hardened) | `veil-engage` (exec) |
 
-**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs). **No Go imports** across `discovery/`, `pipeline/`, `knowledge/`, `engage/`.
+**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs), plus v8 shared logic: [pkg/report](pkg/report/), [pkg/decision](pkg/decision/), [pkg/exec](pkg/exec/), [pkg/api](pkg/api/), [pkg/mcp](pkg/mcp/). **No Go imports** across `discovery/`, `pipeline/`, `knowledge/`, `engage/`.
 
 Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
 
@@ -77,24 +77,22 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 | **Platform P5** | Hybrid deploy skeleton (TF + Ansible + Helm) | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
 | **Platform P6** | **Done** — events, auth, scrapepub, stacks, natsjet publish | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
 | **Platform P7** | **Done** — `pkg/*/domain`, `test-platform-p7` CI | [domain-contour.md](docs/domain-contour.md) |
-| **Platform v8 (next)** | Logical layers + `pkg/report`, `pkg/decision`, `pkg/exec` | [platform-architecture.md](docs/platform-architecture.md), [v8 master plan](.cursor/plans/veil_platform_v8_layers_master.plan.md) |
+| **Platform v8** | **Done** — layer renames, `pkg/report`, `pkg/decision`, `pkg/exec`, `pkg/api`, `pkg/mcp`, browser → discovery | [platform-architecture.md](docs/platform-architecture.md), [v8 master plan](.cursor/plans/veil_platform_v8_layers_master.plan.md) |
 | **Security** | veil-controls + engage hardening; prod pentest 0 HIGH | [external-security-frameworks.md](docs/external-security-frameworks.md) |
 | **Agent eval** | GAIA offline harness | [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
 
-## Roadmap (v8 — high level)
+## Platform v8 (done)
 
-| Logical layer | Path today → target | Next step |
-|---------------|---------------------|-----------|
-| **Discovery** | `discovery/` | **P8h done**; next: `pkg/exec`, browser (P8g) |
-| **Pipeline** | `pipeline/` | `pkg/ti/*`, `pkg/commit` |
-| **Knowledge** | `knowledge/` → **`knowledge/`** | **P8i** rename; **pkg/decision** (P8c) |
-| **Engage** | `engage/` | slim (P8f); pentest tools + runner |
-| **Report** | (in engage) → **`pkg/report`** | P8b |
-| **API + MCP** | per-layer → **`pkg/api`**, **`pkg/mcp`** | P8d |
+| Logical layer | Path | Shared `pkg/` |
+|---------------|------|----------------|
+| **Discovery** | [discovery/](discovery/) | `pkg/exec` (optional fetcher spike), [discovery/pkg/browser](discovery/pkg/browser/) |
+| **Pipeline** | [pipeline/](pipeline/) | `pkg/ti/*`, `pkg/commit` |
+| **Knowledge** | [knowledge/](knowledge/) | `pkg/api`, `pkg/mcp` (transport); read via veil-api |
+| **Engage** | [engage/](engage/) | `pkg/report`, `pkg/decision`, `pkg/exec` (runner adapter) |
+| **Report** | — | [pkg/report](pkg/report/) |
+| **API + MCP** | veil-api / veil-mcp / veil-engage | [pkg/api](pkg/api/), [pkg/mcp](pkg/mcp/) |
 
-**Rename wave first on `main` (recommended):** P8h + P8i, then P8a–g on new paths. Wire (`scrape.>`, `ingest.>`, veil-api) stays stable — see [platform-architecture.md](docs/platform-architecture.md).
-
-Master plan: [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md).
+NATS wire (`scrape.>`, `ingest.>`) and product names (veil-api, veil-mcp) unchanged. Master plan (all phases merged): [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md).
 
 ## Quick start
 
