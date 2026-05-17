@@ -6,8 +6,8 @@ todos:
     content: "Зафиксировать sign-off: Flask :8888 out, veil-engage Go only (docs + README)"
     status: completed
   - id: p11-runner-docker-parity
-    content: "P11a: executable matrix в CI на engage-runner-full (не только stubs на host)"
-    status: pending
+    content: "P11a: executable matrix в CI на engage-runner-full (не только stubs on host)"
+    status: completed
   - id: p11-llm-stub-policy
     content: "P11b: документировать ai_* stubs vs real LLM (out of scope)"
     status: completed
@@ -87,4 +87,5 @@ make test-engage-benchmark-regression
 | P9 execution | **done** on main |
 | P10 behavioral | **done** on main |
 | Golang sign-off | **confirmed** |
-| P11 optional | pending |
+| P11 hardening | **done** on main (`985b64a`) |
+| P11e gates | **done** (route/bridge/na-matrix) |
