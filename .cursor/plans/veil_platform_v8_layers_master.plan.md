@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: v8d-api-mcp-facade
     content: "P8d: pkg/api + pkg/mcp — shared transport; graph + optional engage mount"
-    status: in_progress
+    status: completed
   - id: v8e-pkg-exec
     content: "P8e: pkg/exec — Sandbox/Executor/audit; engage migrate; scrape fetcher profile optional"
-    status: in_progress
+    status: completed
   - id: v8f-engage-slim
     content: "P8f: Engage slim — pentest tools, workflows, guard; drop report/decision/browser"
     status: pending
@@ -226,8 +226,8 @@ make check-graph-version   # if ingest touched
 | P8a | `platform/p8a-domain-complete` | done — `7ac8da4` |
 | P8b | `platform/p8b-pkg-report` | done — `9f3513f` |
 | P8c | `platform/p8c-pkg-decision` | done — `5d7bc03` |
-| P8d | `platform/p8d-api-mcp-facade` | pending |
-| P8e | `platform/p8e-pkg-exec` | pending |
+| P8d | `platform/p8d-api-mcp-facade` | done — `7fb348e` |
+| P8e | `platform/p8e-pkg-exec` | done — `b40f266` |
 | P8f | `platform/p8f-engage-slim` | pending |
 | P8g | `platform/p8g-discovery-browser` | pending |
 | P8h | `platform/p8h-rename-discovery` | done — merge `24af6ad` |
