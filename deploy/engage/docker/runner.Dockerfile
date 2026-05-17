@@ -69,10 +69,11 @@ RUN curl -fsSL -o /tmp/trivy.tgz \
 RUN printf '%s\n' '#!/bin/sh' 'exec paramspider "$@"' > /usr/local/bin/paramspider-cli \
   && chmod +x /usr/local/bin/paramspider-cli
 ARG TERRASCAN_VERSION=1.19.9
-RUN curl -fsSL -o /tmp/terrascan.tgz \
+RUN mkdir -p /opt/terrascan/bin \
+  && curl -fsSL -o /tmp/terrascan.tgz \
     "https://github.com/tenable/terrascan/releases/download/v${TERRASCAN_VERSION}/terrascan_${TERRASCAN_VERSION}_Linux_x86_64.tar.gz" \
-  && tar -xzf /tmp/terrascan.tgz -C /usr/local/bin terrascan \
-  && rm -f /tmp/terrascan.tgz && chmod +x /usr/local/bin/terrascan
+  && tar -xzf /tmp/terrascan.tgz -C /opt/terrascan/bin terrascan \
+  && rm -f /tmp/terrascan.tgz && chmod +x /opt/terrascan/bin/terrascan
 ARG PWNINIT_VERSION=3.3.1
 RUN curl -fsSL -o /usr/local/bin/pwninit \
     "https://github.com/levitatingpineapple/pwninit/releases/download/v${PWNINIT_VERSION}/pwninit-v${PWNINIT_VERSION}-x86_64-unknown-linux-gnu" \
@@ -86,9 +87,10 @@ RUN set -eux; \
     /usr/local/bin/prowler /usr/local/bin/pwninit /usr/local/bin/terrascan /usr/local/bin/zap; \
   for b in correlate delete detect discover display error format install intelligent \
     modify monitor optimize pause research resume select server terminate test threat \
-    vulnerability falco graphql; do \
+    vulnerability falco graphql kube kube-hunter kube-bench checkov clair; do \
     ln -sf engage-stub "/usr/local/bin/$b"; \
-  done
+  done; \
+  ln -sf docker /usr/local/bin/docker-bench-security
 RUN useradd -r -u 10001 runner
 
 FROM runner-os AS engage-runner

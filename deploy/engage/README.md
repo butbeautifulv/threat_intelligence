@@ -44,4 +44,16 @@ make test-engage-runner-full-smoke
 # or: ./scripts/test/smoke-engage-runner-full.sh
 ```
 
+**P10d cloud security smoke** (`scripts/test/smoke-engage-runner-full.sh`): after the P9g heavy-stack checks, verifies cloud subprocess tools on the runner image:
+
+| Tool | Check |
+|------|--------|
+| `prowler` | `--version` / `--help`, or engage-stub JSON |
+| `scout` / `scout-suite` | ScoutSuite `--help` via wrapper |
+| `pacu` | `/opt/pacu` CLI or stub |
+| `terrascan` | `version` / `--help` (`/opt/terrascan/bin`) |
+| `netexec` / `nxc` | `--help` |
+| `docker` / `docker-bench-security` | CIS bench script under `/opt/docker-bench` |
+| `kube-hunter`, `kube-bench`, `checkov`, `clair`, `falco`, `kube` | engage-stub placeholders (catalog / bridge until full install) |
+
 Docs: [docs/engage-tools.md](../../docs/engage-tools.md) · [docs/engage-runtime.md](../../docs/engage-runtime.md)
