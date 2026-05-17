@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Playwright + Chromium browser sidecar for web catalog tools.
+# Playwright + Chromium browser sidecar for discovery browser crawl.
 FROM mcr.microsoft.com/playwright:v1.49.1-jammy
 WORKDIR /app
 COPY discovery/cmd/browser-agent/package.json discovery/cmd/browser-agent/index.mjs ./

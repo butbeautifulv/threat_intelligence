@@ -2,6 +2,8 @@ go 1.25.0
 
 use (
 	../pkg
+	./browser
+	./cmd/browser-agent
 	./connector
 	./harvest
 	./pkg

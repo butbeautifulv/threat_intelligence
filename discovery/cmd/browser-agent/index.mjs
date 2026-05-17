@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { chromium } from 'playwright';
 
-const listen = process.env.ENGAGE_BROWSER_LISTEN || ':8910';
+const listen = process.env.DISCOVERY_BROWSER_SIDECAR_LISTEN || process.env.ENGAGE_BROWSER_LISTEN || ':8910';
 const port = Number.parseInt(listen.split(':').pop() || '8910', 10);
 
 const TECH_PATTERNS = [
@@ -190,7 +190,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.url === '/health' && req.method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: true, service: 'engage-browser-agent', engine: 'playwright' }));
+      res.end(JSON.stringify({ ok: true, service: 'discovery-browser-agent', engine: 'playwright' }));
       return;
     }
     if ((req.url === '/inspect' || req.url === '/exec') && req.method === 'POST') {
@@ -230,5 +230,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`engage browser-agent (playwright) on :${port}`);
+  console.log(`discovery browser-agent (playwright) on :${port}`);
 });

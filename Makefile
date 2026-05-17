@@ -92,8 +92,10 @@ pentest-veil-prod-aggressive:
 test-discovery:
 	cd pkg && env -u GOWORK go test ./harvest/... ./commit/...
 	cd discovery/pkg && env -u GOWORK go test ./...
-	cd discovery && env GOWORK=$$(pwd)/go.work go test ./connector/... ./harvest/...
+	cd discovery && env GOWORK=$$(pwd)/go.work go test ./connector/... ./harvest/... ./browser/...
 	cd discovery/harvest && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/scrape_worker
+	cd discovery/browser && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/serve
+	cd discovery/cmd/browser-agent && env GOWORK=$$(dirname $$(dirname $$(pwd)))/go.work go build -o /dev/null .
 
 # Deprecated alias (remove after one release)
 test-scrape:
@@ -186,7 +188,7 @@ test-engage-tool-matrix-strict:
 
 test-engage:
 	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./... -count=1
-	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp ./cmd/worker ./cmd/browser-agent
+	cd engage/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp ./cmd/worker
 
 test-engage-smoke:
 	./scripts/test/smoke-engage.sh
