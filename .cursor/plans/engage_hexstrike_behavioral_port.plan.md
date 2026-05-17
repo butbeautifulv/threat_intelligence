@@ -4,22 +4,22 @@ overview: "После execution wave (P9f–k): behavioral parity с hexstrike_s
 todos:
   - id: p10a-exploit-parity
     content: "P10a: AIExploitGenerator parity — шаблоны SQLi/XSS/RCE/XXE из legacy subset tests"
-    status: pending
+    status: completed
   - id: p10b-python-env
     content: "P10b: PythonEnvironmentManager — install_python + execute_python_script в runner"
-    status: pending
+    status: completed
   - id: p10c-golden-ctf-bb
     content: "P10c: Golden JSON CTF/BB vs .external fixtures (P1 audit backlog)"
-    status: pending
+    status: completed
   - id: p10d-cloud-runner-matrix
     content: "P10d: Cloud tools matrix — prowler/scout/pacu/terrascan/netexec в runner-full CI"
-    status: pending
+    status: completed
   - id: p10e-recovery-parity
     content: "P10e: Recovery parity — classify-error + parameter-adjustments vs IntelligentErrorHandler"
-    status: pending
+    status: completed
   - id: p10f-benchmark-regression
     content: "P10f: engage-hexstrike-parity.sh regression baseline (не 24x KPI)"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -131,9 +131,11 @@ make test-engage-runner-full-smoke
 
 | Phase | Branch | Status |
 |-------|--------|--------|
-| P10a | `engage/p10a-exploit-parity` | pending |
-| P10b | `engage/p10b-python-env` | pending |
-| P10c | `engage/p10c-golden-ctf-bb` | pending |
-| P10d | `engage/p10d-cloud-runner-matrix` | pending |
-| P10e | `engage/p10e-recovery-parity` | pending |
-| P10f | `engage/p10f-benchmark-regression` | pending |
+| P10a | `engage/p10a-exploit-parity` | merged main |
+| P10b | `engage/p10b-python-env` | merged main |
+| P10c | `engage/p10c-golden-ctf-bb` | merged main |
+| P10d | `engage/p10d-cloud-runner-matrix` | merged main |
+| P10e | `engage/p10e-recovery-parity` | merged main |
+| P10f | `engage/p10f-benchmark-regression` | merged main |
+
+**Next:** [engage_hexstrike_post_p10_signoff.plan.md](engage_hexstrike_post_p10_signoff.plan.md) (Golang sign-off + optional P11).

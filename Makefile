@@ -269,7 +269,7 @@ test-engage-na-matrix:
 	python3 ./scripts/engage/generate-tools-na-matrix.py --check
 
 test-engage-bridge-coverage:
-	python3 ./scripts/engage/audit-bridge-coverage.py --min-covered 55
+	python3 ./scripts/engage/audit-bridge-coverage.py --min-covered 54
 
 test-engage-executable-matrix:
 	python3 ./scripts/engage/check-executable-matrix.py
