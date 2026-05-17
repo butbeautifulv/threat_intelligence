@@ -33,7 +33,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 ## IOC freshness (TI)
 
-IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [scrape/harvest/internal/sources/ti/](../scrape/harvest/internal/sources/ti/)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
+IOC nodes store `firstSeen`, `lastSeen`, `sources`, and `updatedAt` (see [discovery/harvest/internal/sources/ti/](../discovery/harvest/internal/sources/ti/)). Feeds with fast-moving indicators (URLhaus, OpenPhish) should be aged or reaped using documented Cypher thresholds—not by implicit deletes in the write path.
 
 ## P3 roadmap (SOC-level rules, not implemented as scrapers yet)
 
@@ -65,7 +65,7 @@ A read-side or batch **enrichment engine** (outside the Neo4j write path) can ma
 ## Related documentation
 
 - [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, NATS, **`ingest_worker`**
-- [scrape/README.md](../scrape/README.md) — scrape sources and env vars
+- [discovery/README.md](../discovery/README.md) — scrape sources and env vars
 - [graph/ingest/README.md](../graph/ingest/README.md) — graph consumer
 - [deploy/README.md](../deploy/README.md) — compose, scaling, graph packs
 - [coding-style.md](coding-style.md) — architecture and PR checklist

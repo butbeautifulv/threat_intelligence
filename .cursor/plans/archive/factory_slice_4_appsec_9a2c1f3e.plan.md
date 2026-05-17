@@ -148,7 +148,7 @@ COPY --from=build /src/scrapers/sbom/fixtures/cve_list_seed.txt /fixtures/cve_li
 
 ## 6. Документация
 
-- [ingest/scrape/README.md](ingest/scrape/README.md)
+- [ingest/discovery/README.md](ingest/discovery/README.md)
 - [docs/threatintel-runtime.md](docs/threatintel-runtime.md)
 - [scrapers/README.md](scrapers/README.md)
 - [docs/ingest-contract.md](docs/ingest-contract.md) — фаза B factory: все producers в scrape-worker

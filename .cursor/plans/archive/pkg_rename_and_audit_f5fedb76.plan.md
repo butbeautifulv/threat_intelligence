@@ -1,6 +1,6 @@
 ---
 name: pkg rename and audit
-overview: Переименовать wire-контракты scrapev1/ingestv1 в pkg/harvest и pkg/commit, перенести scrape-only утилиты в scrape/pkg, упорядочить корневой pkg по Google Go Style (один модуль, чёткие границы), обновить docs и go.work во всех слоях.
+overview: Переименовать wire-контракты scrapev1/ingestv1 в pkg/harvest и pkg/commit, перенести scrape-only утилиты в discovery/pkg, упорядочить корневой pkg по Google Go Style (один модуль, чёткие границы), обновить docs и go.work во всех слоях.
 todos:
   - id: rename-harvest-commit
     content: pkg/scrapev1→pkg/harvest, pkg/ingestv1→pkg/commit; package names, error prefixes, tests
@@ -12,7 +12,7 @@ todos:
     content: Один pkg/go.mod; ti/domain+ti/normalize; nvd/parse+nvd/map; обновить go.work и layer go.mod
     status: completed
   - id: scrape-pkg-move
-    content: "scrape/pkg: githubraw + proxypool; убрать из корневого pkg; scrape/go.work"
+    content: "discovery/pkg: githubraw + proxypool; убрать из корневого pkg; discovery/go.work"
     status: completed
   - id: google-style-pass
     content: Package docs, API surface, errors; секция Google Go Style в docs/coding-style.md
@@ -39,7 +39,7 @@ isProject: false
 | tidomain | harvest ti (alias) | ned ti | ingest ti |
 | tinormalize | — | ned ti | ingest ti |
 
-Правило репозитория ([`docs/coding-style.md`](docs/coding-style.md), [`AGENTS.md`](AGENTS.md)): слои **не импортируют** друг друга; общее — только через NATS + общий `pkg/`. Перенос в `scrape/pkg` возможен **только** для кода, который не нужен pipeline/graph.
+Правило репозитория ([`docs/coding-style.md`](docs/coding-style.md), [`AGENTS.md`](AGENTS.md)): слои **не импортируют** друг друга; общее — только через NATS + общий `pkg/`. Перенос в `discovery/pkg` возможен **только** для кода, который не нужен pipeline/graph.
 
 **Выбранные имена:** `pkg/harvest` + `pkg/commit` (NATS `scrape.>` / `ingest.>` и JSON `kind` вида `scrape_*` / `ti_*` **не меняем** — это стабильный wire-контракт; меняются путь импорта, package name, префиксы ошибок, JSON schema filenames).
 
@@ -47,7 +47,7 @@ isProject: false
 flowchart LR
   subgraph scrapeLayer [scrape]
     HarvestMod[harvest worker]
-    ScrapePkg[scrape/pkg]
+    ScrapePkg[discovery/pkg]
   end
   subgraph rootPkg [pkg root]
     HarvestWire[pkg/harvest]
@@ -102,7 +102,7 @@ flowchart LR
 
 Аналогично `ingestv1` → `commit`. Типы `scrapev1.Envelope` → `harvest.Envelope`, `ingestv1.Kind*` → `commit.Kind*`.
 
-**Зоны:** [`scrape/connector`](scrape/connector/), [`scrape/harvest`](scrape/harvest/), [`pipeline/ned`](pipeline/ned/), [`pipeline/connector`](pipeline/connector/), [`graph/ingest`](graph/ingest/).
+**Зоны:** [`discovery/connector`](discovery/connector/), [`discovery/harvest`](discovery/harvest/), [`pipeline/ned`](pipeline/ned/), [`pipeline/connector`](pipeline/connector/), [`graph/ingest`](graph/ingest/).
 
 ### 1.3 Документация и схемы
 
@@ -134,17 +134,17 @@ make test-scrape test-pipeline test-graph
 | **harvest**, **commit** | Контракт NATS между 2+ слоями |
 | **natsjet** | Одинаковый JetStream bootstrap в трёх `connector` / graph ingest |
 | **ti/domain**, **ti/normalize** | Используются pipeline **и** graph (normalize для MERGE-ключей); scrape только алиасит domain |
-| **nvd/parse**, **nvd/map** | Сейчас и harvest vuln, и ned enrich ([`scrape/.../vuln/usecase/scrape.go`](scrape/harvest/internal/sources/vuln/internal/usecase/scrape.go) парсит NVD до publish). Перенос **только** в `pipeline/pkg` потребует отдельного рефактора: harvest публикует сырой `KindVulnNVDPage`, parse только в NED — **вынести в follow-up**, не блокировать rename |
+| **nvd/parse**, **nvd/map** | Сейчас и harvest vuln, и ned enrich ([`scrape/.../vuln/usecase/scrape.go`](discovery/harvest/internal/sources/vuln/internal/usecase/scrape.go) парсит NVD до publish). Перенос **только** в `pipeline/pkg` потребует отдельного рефактора: harvest публикует сырой `KindVulnNVDPage`, parse только в NED — **вынести в follow-up**, не блокировать rename |
 
-### Перенос в `scrape/pkg/` (только scrape)
+### Перенос в `discovery/pkg/` (только scrape)
 
 | Пакет | Новый путь | Импорты |
 |-------|------------|---------|
-| githubraw | [`scrape/pkg/githubraw/`](scrape/pkg/githubraw/) | nuclei, coderules usecase |
-| proxypool | [`scrape/pkg/proxypool/`](scrape/pkg/proxypool/) | ti feeds, vuln, ds, lola |
+| githubraw | [`discovery/pkg/githubraw/`](discovery/pkg/githubraw/) | nuclei, coderules usecase |
+| proxypool | [`discovery/pkg/proxypool/`](discovery/pkg/proxypool/) | ti feeds, vuln, ds, lola |
 
-- Отдельный `go.mod`: `module github.com/butbeautifulv/threat_intelligence/scrape/pkg` (один модуль, подпакеты `githubraw`, `proxypool`).
-- Добавить в [`scrape/go.work`](scrape/go.work); убрать `../pkg/githubraw`, `../pkg/proxypool`.
+- Отдельный `go.mod`: `module github.com/butbeautifulv/threat_intelligence/discovery/pkg` (один модуль, подпакеты `githubraw`, `proxypool`).
+- Добавить в [`discovery/go.work`](discovery/go.work); убрать `../pkg/githubraw`, `../pkg/proxypool`.
 - Удалить [`pkg/githubraw/`](pkg/githubraw/), [`pkg/proxypool/`](pkg/proxypool/).
 
 ### Не создавать `graph/pkg/` и `pipeline/pkg/` в этом PR
@@ -178,13 +178,13 @@ pkg/
 
 - Перенести `nvdparse` → `pkg/nvd/parse`, `nvdmap` → `pkg/nvd/map` (package `parse` / `map` или `nvdparse` внутри — предпочтительно короткие имена по [Google naming](https://google.github.io/styleguide/go/best-practices): `nvd.Parse`, `nvd.MapCVE` через подпакеты `nvd/parse`, `nvd/map`).
 - Перенести `tidomain` → `pkg/ti/domain`, `tinormalize` → `pkg/ti/normalize`.
-- Удалить отдельные `pkg/*/go.mod`; в [`scrape/go.work`](scrape/go.work), [`pipeline/go.work`](pipeline/go.work), [`graph/go.work`](graph/go.work) — одна строка `../pkg`.
+- Удалить отдельные `pkg/*/go.mod`; в [`discovery/go.work`](discovery/go.work), [`pipeline/go.work`](pipeline/go.work), [`graph/go.work`](graph/go.work) — одна строка `../pkg`.
 - В layer `go.mod`: одна зависимость `pkg` + `replace` вместо 5–7.
 
 ### 3.2 Итоговая карта зависимостей
 
 ```text
-scrape/go.work  → ../pkg, ./scrape/pkg, connector, harvest, proxybroker
+discovery/go.work  → ../pkg, ./discovery/pkg, connector, harvest, proxybroker
 pipeline/go.work → ../pkg, connector, ned
 graph/go.work   → ../pkg, connector, ingest, serve
 ```
@@ -193,7 +193,7 @@ graph/go.work   → ../pkg, connector, ingest, serve
 
 ## Фаза 4 — Ревизия по [Google Go Style Guide](https://google.github.io/styleguide/go/guide)
 
-Применить к **всем** пакетам в `pkg/` и новым `scrape/pkg/` (не массовый рефактор слоёв):
+Применить к **всем** пакетам в `pkg/` и новым `discovery/pkg/` (не массовый рефактор слоёв):
 
 ### Принципы (зафиксировать в docs)
 
@@ -216,7 +216,7 @@ graph/go.work   → ../pkg, connector, ingest, serve
 | `natsjet` | Убедиться, что публичный API минимален (EnsureStream, Publish helpers) |
 | `ti/normalize` | Импорт только `ti/domain`, не `commit` |
 | `nvd/*` | README из `nvdparse` перенести в `pkg/nvd/README.md` |
-| Дубли domain | [`scrape/.../ti/internal/domain`](scrape/harvest/internal/sources/ti/internal/domain/entity.go) — оставить type alias на `ti/domain` (уже так); не плодить третьи копии |
+| Дубли domain | [`scrape/.../ti/internal/domain`](discovery/harvest/internal/sources/ti/internal/domain/entity.go) — оставить type alias на `ti/domain` (уже так); не плодить третьи копии |
 
 ### Чего не делать в этом PR
 
@@ -230,7 +230,7 @@ graph/go.work   → ../pkg, connector, ingest, serve
 
 1. **harvest/commit rename** + docs/schemas + импорты + `make test-*` (можно с временными отдельными go.mod).
 2. **Консолидация `pkg/go.mod`** + перенос `ti/*`, `nvd/*` + обновление go.work/go.mod слоёв.
-3. **scrape/pkg** (githubraw, proxypool) + вычистка старых путей.
+3. **discovery/pkg** (githubraw, proxypool) + вычистка старых путей.
 4. **Style pass** + секция Google в coding-style.
 5. Финальный `make test-scrape test-pipeline test-graph`.
 
@@ -242,7 +242,7 @@ graph/go.work   → ../pkg, connector, ingest, serve
 |------|-----------|
 | Пропущенный импорт `scrapev1` в docs/compose | `rg 'scrapev1\|ingestv1'` по репо перед merge |
 | Сломанные `replace` в go.mod | После консолидации — один `replace .../pkg => ../../pkg` |
-| Путаница `harvest` (пакет) vs `scrape/harvest` (модуль) | В коде: import path `pkg/harvest`, локальный alias `harvestwire` только при коллизии имён |
+| Путаница `harvest` (пакет) vs `discovery/harvest` (модуль) | В коде: import path `pkg/harvest`, локальный alias `harvestwire` только при коллизии имён |
 
 ---
 

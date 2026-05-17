@@ -104,7 +104,7 @@ flowchart LR
 | **ingest pack** | Inbound-адаптер: JetStream consumer → MERGE | Слоем pipeline (тот только публикует `ingestv1`) |
 | **serve pack** | Inbound-адаптер: HTTP/MCP → read-only Cypher | Ingest worker |
 
-**Межслойное взаимодействие** — только NATS + [`pkg/ingestv1`](pkg/ingestv1). Код `graph/` не импортирует `scrape/` или `pipeline/`.
+**Межслойное взаимодействие** — только NATS + [`pkg/ingestv1`](pkg/ingestv1). Код `graph/` не импортирует `discovery/` или `pipeline/`.
 
 `ingest_worker` — это **порт/адаптер** (hexagonal: driving adapter с bus), не отдельный «бизнес-слой». Оркестрация MERGE — `internal/usecase`; Cypher — `internal/.../storage`.
 
@@ -202,7 +202,7 @@ graph/
 - Переименование `graph/` → другое (вы выбрали **keep graph**)
 - AppSec symmetry (`sources/` vs `storage/`) — только переезд в `ingest/internal/appsec/`
 - Объединение ingest + serve в **один** `go.mod` (вы разделили: serve = api+mcp, ingest = worker)
-- Изменения `deploy/scrape`, `pipeline/`, repo `pkg/*` (кроме import path при необходимости)
+- Изменения `deploy/discovery`, `pipeline/`, repo `pkg/*` (кроме import path при необходимости)
 
 ---
 

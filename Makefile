@@ -1,4 +1,4 @@
- .PHONY: test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain
+ .PHONY: test-discovery test-discovery-p7c test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain
 
 # Shared pkg contracts (harvest, commit, natsjet, auth, engage/events)
 test-pkg-shared:
@@ -14,9 +14,9 @@ test-pkg-domain:
 	cd pkg/auth && env -u GOWORK go test ./httpmiddleware/...
 
 # P7 gate: pkg + bus + layer unit tests (wave-1 parallel branches merged)
-test-platform-p7: test-pkg-domain test-platform-p0 test-scrape-p7c test-pipeline-p7d test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g
+test-platform-p7: test-pkg-domain test-platform-p0 test-discovery-p7c test-pipeline-p7d test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g
 
-# GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
+# GOWORK may point at discovery/go.work in the shell; each target uses the matching workspace.
 test-platform-p0: test-pkg-shared
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./connector/nats/...
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./ned/internal/consumer/... ./ned/internal/dedup/...
@@ -86,16 +86,25 @@ pentest-veil-prod-aggressive:
 	chmod +x ./scripts/eval/run-dual-veil-pentest-secure.sh
 	./scripts/eval/run-dual-veil-pentest-secure.sh
 
-test-scrape:
+test-discovery:
 	cd pkg && env -u GOWORK go test ./harvest/... ./commit/...
-	cd scrape/pkg && env -u GOWORK go test ./...
-	cd scrape && env GOWORK=$$(pwd)/go.work go test ./connector/... ./harvest/...
-	cd scrape/harvest && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/scrape_worker
+	cd discovery/pkg && env -u GOWORK go test ./...
+	cd discovery && env GOWORK=$$(pwd)/go.work go test ./connector/... ./harvest/...
+	cd discovery/harvest && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/scrape_worker
 
-# P7c slice: TI feeds/helpers + shared scrape feeds (see veil_platform_p7 plan)
+# Deprecated alias (remove after one release)
+test-scrape:
+	@echo 'DEPRECATED: use make test-discovery' >&2
+	@$(MAKE) test-discovery
+
+# P7c slice: TI feeds/helpers + shared discovery feeds (see veil_platform_p7 plan)
+test-discovery-p7c:
+	cd discovery && env GOWORK=$$(pwd)/go.work go test ./harvest/internal/sources/ti/... ./harvest/internal/sources/lola/... ./harvest/internal/sources/ds/... ./harvest/internal/feeds/...
+	cd discovery/pkg && env -u GOWORK go test ./proxypool/...
+
 test-scrape-p7c:
-	cd scrape && env GOWORK=$$(pwd)/go.work go test ./harvest/internal/sources/ti/... ./harvest/internal/sources/lola/... ./harvest/internal/sources/ds/... ./harvest/internal/feeds/...
-	cd scrape/pkg && env -u GOWORK go test ./proxypool/...
+	@echo 'DEPRECATED: use make test-discovery-p7c' >&2
+	@$(MAKE) test-discovery-p7c
 
 test-pipeline-p7d:
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./pkg/ti/normalize/... ./pkg/nvd/map/... ./ned/internal/sources/ds/... ./ned/internal/sources/lola/...

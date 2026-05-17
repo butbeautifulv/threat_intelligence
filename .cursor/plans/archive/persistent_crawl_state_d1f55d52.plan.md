@@ -56,7 +56,7 @@ flowchart LR
 |----------|-----|----------|
 | **Ledger** (`crawl_resource`) | MySQL volume `crawl_db_data` | Удаляется `profile-fast-rich.sh` → `compose down -v` |
 | **Disk cache (L1)** | [`data/cache`](data/cache) → `/data/cache` | Живёт на хосте, но **не связан жёстко** с ledger → баг MITRE: ledger «unchanged», файла нет |
-| **Skip publish** | [`FetchIfDue`](scrape/harvest/internal/feeds/fetch.go) `Unchanged` | После пустого Neo4j не переигрывает сообщения в NATS |
+| **Skip publish** | [`FetchIfDue`](discovery/harvest/internal/feeds/fetch.go) `Unchanged` | После пустого Neo4j не переигрывает сообщения в NATS |
 | **Force refetch** | [`deploy/profiles/fast-rich.env`](deploy/profiles/fast-rich.env) `SCRAPE_FORCE_REFETCH=1` | Игнорирует ledger на каждой сборке pack |
 | **Пустой граф** | `GRAPH_PACK_SKIP=1` | Не импортирует v0.4.0 перед crawl — всё с нуля |
 
@@ -93,7 +93,7 @@ var/veil/
 - [`scripts/lib/common.sh`](scripts/lib/common.sh) — новые дефолты:
   - `VEIL_VAR_DIR=${VEIL_VAR_DIR:-$VEIL_ROOT/var/veil}`
   - `SCRAPE_BLOB_DIR`, `CRAWL_LEDGER_DATA_DIR`, `GRAPH_PACK_DIR`, `NEO4J_EXPORT_*`
-- [`deploy/scrape/compose.yml`](deploy/scrape/compose.yml) — volumes:
+- [`deploy/discovery/compose.yml`](deploy/discovery/compose.yml) — volumes:
   - `../../var/veil/blobs:/data/cache` (пока путь в контейнере `/data/cache` для минимального diff)
   - `../../var/veil/ledger/mysql:/var/lib/mysql` вместо anonymous `crawl_db_data`
 - [`deploy/graph/compose.yml`](deploy/graph/compose.yml) — `../../var/veil/graph:/var/lib/neo4j/import/user_export`
@@ -117,7 +117,7 @@ mkdir -p var/veil/{blobs,ledger/mysql,graph/releases}
 
 ## 2. Исправить контракт ledger ↔ cache
 
-В [`scrape/harvest/internal/feeds/fetch.go`](scrape/harvest/internal/feeds/fetch.go), ветка `!ok` (ledger says skip):
+В [`discovery/harvest/internal/feeds/fetch.go`](discovery/harvest/internal/feeds/fetch.go), ветка `!ok` (ledger says skip):
 
 ```go
 if !ok {
@@ -131,7 +131,7 @@ if !ok {
 - Если ledger говорит «не fetch», но **cache miss** → **сделать HTTP fetch** (или вернуть явную ошибку с auto-refetch в вызывающем коде).
 - Лог: `ledger skip but cache miss; refetching` + `RecordFetch`.
 
-Покрыть тестом в [`fetch_test.go`](scrape/harvest/internal/feeds/fetch_test.go) (сценарий: ledger row есть, файл удалён → refetch, не `Skipped` без body).
+Покрыть тестом в [`fetch_test.go`](discovery/harvest/internal/feeds/fetch_test.go) (сценарий: ledger row есть, файл удалён → refetch, не `Skipped` без body).
 
 Это закрывает инцидент **lola MITRE** при `down -v` только для MySQL, но сохранённом/частичном cache.
 

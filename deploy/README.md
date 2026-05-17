@@ -4,7 +4,7 @@
 
 | Layer | Compose | Services |
 |-------|---------|----------|
-| Scrape | [scrape/compose.yml](scrape/compose.yml) | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
+| Discovery | [discovery/compose.yml](discovery/compose.yml) | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
 | Pipeline | [pipeline/compose.yml](pipeline/compose.yml) | `pipeline_worker` |
 | Graph | [graph/compose.yml](graph/compose.yml) | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api` |
 | Engage | [engage/compose.yml](engage/compose.yml) | `engage-api`, `engage-mcp`, `engage-worker`, `engage-runner` (profile `runner`; opt-in offensive tools) |
@@ -18,10 +18,10 @@
 Equivalent:
 
 ```bash
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
+docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
 ```
 
-Docker build context is the repository root; each Dockerfile copies only its layer tree (`scrape/`, `pipeline/`, or `graph/`).
+Docker build context is the repository root; each Dockerfile copies only its layer tree (`discovery/`, `pipeline/`, or `graph/`).
 
 ## Worker scaling (parallel NATS consumers)
 
@@ -44,7 +44,7 @@ SCRAPE_WORKER_PARTITION=1 ./scripts/ops/compose-up-full.sh
 Manual scale (without the script):
 
 ```bash
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml \
+docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml \
   up -d --scale pipeline_worker=3 --scale ingest_worker=3
 ```
 

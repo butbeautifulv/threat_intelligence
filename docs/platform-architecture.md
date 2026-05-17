@@ -1,8 +1,8 @@
 # Veil platform architecture (current + target)
 
-**Current runtime (2026-05):** four isolated Go modules — `scrape/`, `pipeline/`, `graph/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
+**Current runtime (2026-05):** four isolated Go modules — `discovery/`, `pipeline/`, `graph/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
 
-**Target (v8):** five logical layer names (**Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**) with **top-level renames** `scrape/` → **`discovery/`**, `graph/` → **`knowledge/`** (phases P8h, P8i); more code in `pkg/`; shared API/MCP and `pkg/exec`.
+**Target (v8):** five logical layer names (**Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**) with **top-level rename** `graph/` → **`knowledge/`** (phase P8i; **P8h** `discovery/` done); more code in `pkg/`; shared API/MCP and `pkg/exec`.
 
 ---
 
@@ -70,7 +70,7 @@ flowchart TB
 
 | Layer | Responsibility | Path today | Path target |
 |-------|----------------|------------|-------------|
-| **Discovery** | Fetch raw intel; ledger; optional browser | `scrape/` | **`discovery/`** (P8h) |
+| **Discovery** | Fetch raw intel; ledger; optional browser | `discovery/` | `discovery/` (**P8h done**) |
 | **Pipeline** | Normalize, enrich, dedup | `pipeline/` | `pipeline/` |
 | **Knowledge** | Neo4j ingest + read API + reasoning | `graph/` | **`knowledge/`** (P8i) |
 | **Engage** | Pentest catalog, runner, guard | `engage/` | `engage/` |
@@ -85,7 +85,7 @@ flowchart TB
 
 | Rename | Scope | Keep stable (compat) |
 |--------|--------|----------------------|
-| `scrape/` → **`discovery/`** | Go module path, `deploy/scrape/`, Makefile `test-scrape`, docs | NATS `scrape.>`; `pkg/harvest`; envelope `source` values; optional binary alias `scrape_worker` one release |
+| ~~`scrape/`~~ → **`discovery/`** (P8h **done**) | Go module path, `deploy/discovery/`, Makefile `test-discovery`, docs | NATS `scrape.>`; `pkg/harvest`; envelope `source` values; binary `scrape_worker` one release |
 | `graph/` → **`knowledge/`** | Go module, `deploy/graph/`, Makefile `test-graph*` | NATS `ingest.>`; `GRAPH_PACK_VERSION`; Neo4j labels; URLs `/v1/*`; product names **veil-api**, **veil-mcp** |
 
 **Order:** merge **P8h + P8i** to `main` before large P8b–g refactors (or rebase feature branches once). Details: [veil_platform_v8_layers_master.plan.md](../.cursor/plans/veil_platform_v8_layers_master.plan.md) § P8h, P8i.
@@ -98,7 +98,7 @@ flowchart TB
 
 They solve **different** problems today. Unifying the **name** without splitting concerns would blur security boundaries.
 
-| | **Discovery `factory`** (today `scrape/harvest/internal/factory`) | **Engage `runner`** |
+| | **Discovery `factory`** (today `discovery/harvest/internal/factory`) | **Engage `runner`** |
 |--|----------------------|---------------------|
 | **Purpose** | Register scheduled **sources**; inject `ScrapeDeps` (ledger, feeds, NATS publishers) | Execute **catalog tools** (subprocess) with audit, cache, target guard |
 | **Unit of work** | `Source.Run(ctx, deps)` per feed (ti, vuln, ds, …) | `Runner.Run(ctx, toolName, args)` per tool invocation |

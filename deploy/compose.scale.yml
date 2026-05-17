@@ -7,7 +7,7 @@ services:
       - scrape-partition
     build:
       context: ..
-      dockerfile: deploy/scrape/docker/scrape_worker.Dockerfile
+      dockerfile: deploy/discovery/docker/scrape_worker.Dockerfile
     environment:
       NATS_URL: nats://nats:4222
       SCRAPE_SOURCES: ti,sbom,coderules,nuclei
@@ -28,7 +28,7 @@ services:
       - scrape-partition
     build:
       context: ..
-      dockerfile: deploy/scrape/docker/scrape_worker.Dockerfile
+      dockerfile: deploy/discovery/docker/scrape_worker.Dockerfile
     environment:
       NATS_URL: nats://nats:4222
       SCRAPE_SOURCES: ds,vuln,lola

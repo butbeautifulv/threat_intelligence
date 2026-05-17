@@ -14,7 +14,7 @@ Mature production model: **Terraform** provisions cloud resources, **Ansible** c
 | Terraform | [deploy/terraform/](../deploy/terraform/) | VPC, EKS/VM, S3, IAM, secrets outputs, optional managed DB |
 | Ansible | [deploy/ansible/](../deploy/ansible/) | OS hardening, Docker, Compose deploy, scrape cron, TLS on VM |
 | Helm | [deploy/helm/veil/](../deploy/helm/veil/) | `api`, `engage-api`, `pipeline_worker`, `ingest_worker`, `scrape` CronJob |
-| Compose (dev/CI) | [deploy/scrape|pipeline|graph|engage/](../deploy/) | Source of service definitions; Helm values generated from same env keys |
+| Compose (dev/CI) | [deploy/discovery|pipeline|graph|engage/](../deploy/) | Source of service definitions; Helm values generated from same env keys |
 
 ## Workload placement
 

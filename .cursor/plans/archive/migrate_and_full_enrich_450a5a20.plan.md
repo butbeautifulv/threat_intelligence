@@ -52,7 +52,7 @@ rm -rf data/cache/* data/neo4j_user_export/*
 
 Удалить/обезвредить legacy:
 - Очистить [`data/cache/`](data/cache/) и [`data/neo4j_user_export/`](data/neo4j_user_export/) после rsync
-- В коде заменить fallback `./data/cache` → пустая строка или `var/veil/blobs` в [`scrape/harvest/internal/sources/*/scrapesource`](scrape/harvest/internal/sources/lola/scrapesource/source.go) и аналогах (vuln, ti) — чтобы без `SCRAPE_CACHE_DIR` не писать в старый путь
+- В коде заменить fallback `./data/cache` → пустая строка или `var/veil/blobs` в [`discovery/harvest/internal/sources/*/scrapesource`](discovery/harvest/internal/sources/lola/scrapesource/source.go) и аналогах (vuln, ti) — чтобы без `SCRAPE_CACHE_DIR` не писать в старый путь
 
 ---
 
@@ -70,20 +70,20 @@ flowchart TD
   publish -->|yes| skipPub[skip publish]
 ```
 
-### 2.1 MITRE STIX ([`mitre_stix.go`](scrape/harvest/internal/sources/lola/internal/usecase/mitre_stix.go))
+### 2.1 MITRE STIX ([`mitre_stix.go`](discovery/harvest/internal/sources/lola/internal/usecase/mitre_stix.go))
 
 После `FetchIfDue`:
 - Если `len(res.Body) > 0` — парсить STIX из `bytes.NewReader(res.Body)` (не только `os.Open(cache)`).
 - Иначе — открыть `filepath.Join(u.cache, cacheRel)` как сейчас.
 - Убрать ошибку «ledger without cache» на успешном refetch.
 
-### 2.2 CodeQL ([`coderules/.../github_fetch.go`](scrape/harvest/internal/sources/coderules/internal/usecase/github_fetch.go))
+### 2.2 CodeQL ([`coderules/.../github_fetch.go`](discovery/harvest/internal/sources/coderules/internal/usecase/github_fetch.go))
 
-- `coderulesGitRef()` → использовать [`feeds.gitHubRefs()`](scrape/harvest/internal/feeds/github.go) (`main`, `master`) в `GitHubRawURL` и codeload.
-- [`runCodeQL`](scrape/harvest/internal/sources/coderules/internal/usecase/runner.go): при ошибке list на одном ref — пробовать следующий; путь оставить `javascript/ql/src/Security/CWE-079` (существует на `main`).
+- `coderulesGitRef()` → использовать [`feeds.gitHubRefs()`](discovery/harvest/internal/feeds/github.go) (`main`, `master`) в `GitHubRawURL` и codeload.
+- [`runCodeQL`](discovery/harvest/internal/sources/coderules/internal/usecase/runner.go): при ошибке list на одном ref — пробовать следующий; путь оставить `javascript/ql/src/Security/CWE-079` (существует на `main`).
 - Ошибка list → **warn + return nil** (не валить весь `coderules`, как semgrep при `continue`).
 
-### 2.3 Nuclei ([`nuclei/.../config.go`](scrape/harvest/internal/sources/nuclei/internal/config/config.go), [`runner.go`](scrape/harvest/internal/sources/nuclei/internal/usecase/runner.go))
+### 2.3 Nuclei ([`nuclei/.../config.go`](discovery/harvest/internal/sources/nuclei/internal/config/config.go), [`runner.go`](discovery/harvest/internal/sources/nuclei/internal/usecase/runner.go))
 
 - Default `NUCLEI_YEARS`: `2023,2024,2025,2026`.
 - Если за прогон `count==0` — **warn** с `base` и `len(items)` (видно в логах).

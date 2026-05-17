@@ -1,6 +1,6 @@
 # Coding style (Veil)
 
-Conventions for the three runtime layers — **scrape**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [scrape/harvest/internal/sources/ti/](../scrape/harvest/internal/sources/ti/) (scrape) and [graph/ingest/internal/sources/ti/](../graph/ingest/internal/sources/ti/) (graph write path).
+Conventions for the three runtime layers — **Discovery**, **pipeline**, **graph** — and shared contracts. When in doubt, mirror [discovery/harvest/internal/sources/ti/](../discovery/harvest/internal/sources/ti/) (Discovery) and [graph/ingest/internal/sources/ti/](../graph/ingest/internal/sources/ti/) (graph write path).
 
 **Agents:** treat this file as source of truth; entry point [AGENTS.md](../AGENTS.md).
 
@@ -9,7 +9,7 @@ Conventions for the three runtime layers — **scrape**, **pipeline**, **graph**
 | Principle | Rule in this repo |
 |-----------|-------------------|
 | **CLEAN CODE** | Small functions, clear names, one level of abstraction; `cmd/` is wiring only |
-| **DRY** | Shared fetch/ledger only in `scrape/`; normalize only in `pipeline/`; MERGE only in `graph/`; cross-layer types in `pkg/*` (wire envelopes, NATS helpers, TI helpers) |
+| **DRY** | Shared fetch/ledger only in `discovery/`; normalize only in `pipeline/`; MERGE only in `graph/`; cross-layer types in `pkg/*` (wire envelopes, NATS helpers, TI helpers) |
 | **KISS** | One long-running binary per layer at runtime; no speculative abstractions |
 | **DDD** | Domain package per source module, no I/O (no Neo4j, NATS, HTTP clients in domain types) |
 
@@ -19,21 +19,21 @@ Conventions for the three runtime layers — **scrape**, **pipeline**, **graph**
 |------|------|------|
 | **Knowledge** | [docs/](./) | Schemas, runtime, contracts — no application Go code |
 | **Deploy** | [deploy/](../deploy/) | Compose per layer |
-| **Scrape** | [scrape/](../scrape/) | Fetch + ledger → `scrape.>` |
+| **Discovery** | [discovery/](../discovery/) | Fetch + ledger → `scrape.>` |
 | **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → NED → `ingest.>` |
 | **Graph** | [graph/](../graph/) | Consume `ingest.>` → Neo4j; API/MCP read |
 | **Engage** | [engage/](../engage/) | Tool execution, workflows, reports (HTTP API/MCP) |
 | **Wire types** | [pkg/](../pkg/) | `harvest`, `commit`, `natsjet`, `ti/*`, `auth`, `engage/*` |
 
-Layers **scrape / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `scrape/`, `pipeline/`, `graph/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
+Layers **Discovery / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `discovery/`, `pipeline/`, `graph/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
 
-**Logical layers (v8 target)** — see [platform-architecture.md](platform-architecture.md): **Discovery** (`scrape/` → `discovery/`, P8h), **Pipeline**, **Knowledge** (`graph/` → `knowledge/`, P8i), **Engage**, shared **Report**, API/MCP façade. Until P8h/P8i land, docs may say Discovery/Knowledge while paths remain `scrape/` and `graph/`. **Discovery `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only **`pkg/exec`**, do not rename factory to runner.
+**Logical layers (v8 target)** — see [platform-architecture.md](platform-architecture.md): **Discovery** (`discovery/`, P8h done), **Pipeline**, **Knowledge** (`graph/` → `knowledge/`, P8i), **Engage**, shared **Report**, API/MCP façade. **Discovery `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only **`pkg/exec`**, do not rename factory to runner.
 
 Layer-specific layout, env vars, and build commands:
 
 | Layer | Docs |
 |-------|------|
-| Scrape | [scrape/README.md](../scrape/README.md), [scrape/harvest/README.md](../scrape/harvest/README.md) |
+| Discovery | [discovery/README.md](../discovery/README.md), [discovery/harvest/README.md](../discovery/harvest/README.md) |
 | Pipeline | [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md) |
 | Graph | [graph/README.md](../graph/README.md), [graph/ingest/README.md](../graph/ingest/README.md) |
 
@@ -41,12 +41,12 @@ Layer-specific layout, env vars, and build commands:
 
 | Context | Code | NATS | Must not |
 |---------|------|------|----------|
-| **Scrape** | [scrape/](../scrape/) | Publish `scrape.>` | `commit`, Bolt, normalize |
+| **Discovery** | [discovery/](../discovery/) | Publish `scrape.>` | `commit`, Bolt, normalize |
 | **Pipeline (NED)** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt, MERGE |
 | **Graph** | [graph/](../graph/) | Consume `ingest.>` | `harvest`, feeds, Vitess |
 | **Engage** | [engage/](../engage/) | Optional publish `engage.events.>` (`ENGAGE_EVENTS_NATS_ENABLED`); bridge via [pipeline/engage-events](../pipeline/engage-events/) → `ingest.engage.*` | Bolt, direct `ingest.>`, `scrape.>`, cross-layer Go imports |
 
-Shared fetch policy (scrape only): [scrape/harvest/internal/feeds](../scrape/harvest/internal/feeds/), [scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
+Shared fetch policy (Discovery only): [discovery/harvest/internal/feeds](../discovery/harvest/internal/feeds/), [discovery/harvest/internal/ledger](../discovery/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
 
 Wire contracts: [ingest-contract.md](ingest-contract.md). Go SOT: [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/).
 
@@ -112,13 +112,13 @@ For automated agents and maintainers, before marking work done:
 | Step | Command / doc |
 |------|----------------|
 | Platform P7 (pkg domain + bus slices, no Docker) | `make test-platform-p7` — required when touching `pkg/*/domain`, `pkg/ti/*`, layer `domain/` or `usecase/` on the Veil contour |
-| Tests (touched layers) | `make test-scrape`, `make test-pipeline`, `make test-graph`; graph read/auth/MCP: `make test-graph-serve` |
+| Tests (touched layers) | `make test-discovery`, `make test-pipeline`, `make test-graph`; graph read/auth/MCP: `make test-graph-serve` |
 | Graph read smoke (Docker) | `make test-graph-read-smoke` — no scrape/NATS |
 | Graph version (ingest paths) | `./scripts/release/bump-graph-version.sh patch` → updates [versions.env](../versions.env) |
 | Verify bump when required | `make check-graph-version` |
 | Commit + push | See [AGENTS.md](../AGENTS.md) |
 
-Ingest-affecting paths: `scrape/harvest/internal/sources/`, `pipeline/ned/internal/sources/`, `graph/ingest/internal/sources/`, `pkg/harvest/`, `pkg/commit/`, `docs/schemas/`.
+Ingest-affecting paths: `discovery/harvest/internal/sources/`, `pipeline/ned/internal/sources/`, `graph/ingest/internal/sources/`, `pkg/harvest/`, `pkg/commit/`, `docs/schemas/`.
 
 ---
 
@@ -129,8 +129,8 @@ GitHub shows a folder icon only when the link target is a directory **and** the 
 | Target | Link form |
 |--------|-----------|
 | Directory | `[label](../path/to/dir/)` — trailing `/` required |
-| Layer README | `[Scrape](../scrape/README.md)` |
-| File | `[compose.yml](../deploy/scrape/compose.yml)` — no trailing `/` |
+| Layer README | `[Scrape](../discovery/README.md)` |
+| File | `[compose.yml](../deploy/discovery/compose.yml)` — no trailing `/` |
 
 Lint: `./scripts/housekeeping/lint-markdown-dir-links.sh`
 
@@ -150,7 +150,7 @@ Follow the [Google Go Style Guide](https://google.github.io/styleguide/go/guide)
 | **Errors** | Wrap with `%w`; stable prefixes (`harvest:`, `commit:`); no `panic` in libraries; log once at `usecase` or `cmd` |
 | **Tests** | Table-driven where useful; `testdata/` next to the package; Neo4j integration: build tag `integration` |
 
-`pkg/` layout: one module ([pkg/go.mod](../pkg/go.mod)); scrape-only helpers under [scrape/pkg/](../scrape/pkg/).
+`pkg/` layout: one module ([pkg/go.mod](../pkg/go.mod)); scrape-only helpers under [discovery/pkg/](../discovery/pkg/).
 
 ---
 

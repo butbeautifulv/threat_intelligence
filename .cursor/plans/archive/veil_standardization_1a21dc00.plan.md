@@ -36,11 +36,11 @@ isProject: false
 flowchart TB
   subgraph root [RepoRoot]
     Docs[docs/]
-    DeployScrape[deploy/scrape/]
+    DeployScrape[deploy/discovery/]
     DeployPipe[deploy/pipeline/]
     DeployGraph[deploy/graph/]
   end
-  subgraph scrapeCtx [scrape/]
+  subgraph scrapeCtx [discovery/]
     SW[scrape_worker]
     Sources[sources/ti vuln ...]
     ScrapeContract[contract/scrapev1]
@@ -67,7 +67,7 @@ flowchart TB
 | Зона | Содержимое | Запрещено |
 |------|------------|-----------|
 | **Корень** | `README`, `LICENSE`, `AGENTS.md`, [`docs/`](docs/), [`deploy/`](deploy/) | `go.work`, прикладной Go-код, `pkg/`, `scrapers/`, `ingest/` |
-| **`scrape/`** | worker, factory, feeds, ledger, pub, `sources/*` | `ingestv1`, Neo4j, импорт `pipeline/` или `graph/` |
+| **`discovery/`** | worker, factory, feeds, ledger, pub, `sources/*` | `ingestv1`, Neo4j, импорт `pipeline/` или `graph/` |
 | **`pipeline/`** | worker, normalize handlers, pub | HTTP fetch feeds, Bolt, импорт `scrape/sources/*` |
 | **`graph/`** | ingest_worker, storage, api, mcp, query, domain writers | `scrapev1`, feeds, Vitess |
 
@@ -84,7 +84,7 @@ flowchart TB
 | Принцип | Правило в репо |
 |---------|----------------|
 | **CLEAN CODE** | Маленькие функции, говорящие имена, один уровень абстракции; `cmd` только wiring |
-| **DRY** | Общий fetch/ledger — только в `scrape/`; normalize — только в `pipeline/`; MERGE — только в `graph/`; дублирование контрактов — только через schema/codegen |
+| **DRY** | Общий fetch/ledger — только в `discovery/`; normalize — только в `pipeline/`; MERGE — только в `graph/`; дублирование контрактов — только через schema/codegen |
 | **KISS** | Один бинарь на слой в runtime; без лишних абстракций и «на всякий случай» интерфейсов |
 | **DDD** | **`internal/domain/` обязателен** в каждом модуле-источнике и в каждом worker-модуле; доменные типы не тянут Neo4j/NATS/HTTP |
 
@@ -133,7 +133,7 @@ storage/       → adapters (Neo4j — только graph; pub — в своём
 
 ## 3. Целевая структура каталогов
 
-### `scrape/` (из `ingest/scrape/` + `scrapers/`)
+### `discovery/` (из `ingest/scrape/` + `scrapers/`)
 
 ```
 scrape/
@@ -188,7 +188,7 @@ graph/
 
 | Путь | Содержимое |
 |------|------------|
-| `deploy/scrape/compose.yml` | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
+| `deploy/discovery/compose.yml` | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
 | `deploy/pipeline/compose.yml` | `nats`, `pipeline_worker` |
 | `deploy/graph/compose.yml` | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api`; profiles `mcp`, `deploy` (nginx) |
 | `deploy/graph/compose.full.yml` | optional overlay: все три слоя + shared `nats` network для local E2E |
@@ -213,7 +213,7 @@ graph/
 **Цель:**
 
 - Нет файла `go.work` в корне
-- Каждый слой: **один корневой `go.mod`** на слой (multi-package внутри) *или* локальный `scrape/go.work` только для `scrape/sources/*` — допустимо, но не на весь репо
+- Каждый слой: **один корневой `go.mod`** на слой (multi-package внутри) *или* локальный `discovery/go.work` только для `scrape/sources/*` — допустимо, но не на весь репо
 - Межслойные `replace ../../../scrapers` — **0**
 
 **Порядок миграции импортов (критичный путь):**
@@ -245,9 +245,9 @@ flowchart LR
 | **P0** | coding-style + AGENTS + принципы | PR checklist в docs; domain mandatory |
 | **P1** | `docs/schemas/`, `scripts/gen-contracts.sh`, contract modules | `go test` contract packages; ingest-contract ссылается на schema |
 | **P2** | graph writers в `graph/sources/` | `ingest/graph` не `replace` scrapers; ti/vuln/lola/ds graph tests green |
-| **P3** | `scrape/` tree, sources без graph | scrape build; no ingestv1 import |
+| **P3** | `discovery/` tree, sources без graph | scrape build; no ingestv1 import |
 | **P4** | `pipeline/` tree, normalize internal | pipeline build; handlers use generated ingestv1 |
-| **P5** | `deploy/*`, Docker context per layer | `docker compose -f deploy/scrape/...` поднимает только scrape stack |
+| **P5** | `deploy/*`, Docker context per layer | `docker compose -f deploy/discovery/...` поднимает только scrape stack |
 | **P6** | Удалить `go.work`, `ingest/`, `scrapers/`, `pkg/`, root `docker/` | grep по старым путям пуст; smoke [`scripts/smoke_scrape_e2e.sh`](scripts/smoke_scrape_e2e.sh) на overlay compose |
 
 **Не в scope:** graph-pack release, смена go module path, Vitess cluster prod.
@@ -283,7 +283,7 @@ flowchart LR
 | Большой diff | Строго P0→P6; не смешать с feature work |
 | Drift schema vs code | CI: `gen-contracts` + `git diff --exit-code` |
 | Docker build break | Сначала dual-path Dockerfiles, потом удалить `docker/` |
-| Короткие module names (`ti v0.0.0`) | При слиянии в слой — полные import paths `.../scrape/sources/ti` |
+| Короткие module names (`ti v0.0.0`) | При слиянии в слой — полные import paths `.../discovery/sources/ti` |
 
 ---
 
@@ -291,7 +291,7 @@ flowchart LR
 
 - [ ] Корень: только docs + deploy + мета-файлы
 - [ ] Нет `go.work` в корне
-- [ ] Три каталога `scrape/`, `pipeline/`, `graph/` — независимая сборка
+- [ ] Три каталога `discovery/`, `pipeline/`, `graph/` — независимая сборка
 - [ ] Контракты: schema в docs → codegen; NATS — единственная связь
 - [ ] `internal/domain/` в каждом модуле
 - [ ] coding-style: CLEAN, DRY, KISS, DDD

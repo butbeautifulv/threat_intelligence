@@ -3,16 +3,16 @@
 Veil uses **two NATS streams** between isolated layers:
 
 ```text
-scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ → Neo4j
+discovery/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ → Neo4j
 ```
 
 **Go source of truth:** [pkg/harvest/](../pkg/harvest/), [pkg/commit/](../pkg/commit/). **JSON docs:** [schemas/harvest-envelope.json](schemas/harvest-envelope.json), [schemas/commit-envelope.json](schemas/commit-envelope.json) — update manually when pkg types change.
 
-## harvest (scrape → pipeline)
+## harvest (Discovery → pipeline)
 
 - **Go:** [pkg/harvest/](../pkg/harvest/)
 - **Stream:** `SCRAPE`, subjects `scrape.>`
-- **Publisher:** [scrape/harvest/](../scrape/harvest/) (`cmd/scrape_worker`)
+- **Publisher:** [discovery/harvest/](../discovery/harvest/) (`cmd/scrape_worker`)
 - **Consumer:** [pipeline/ned/](../pipeline/ned/) (`cmd/pipeline_worker`)
 - **Dedup (optional):** `Nats-Msg-Id` = `content_key`
 
@@ -50,13 +50,13 @@ Persistent on host at `var/veil/ledger/mysql/` (bind mount). HTTP bodies: `var/v
 
 | Variable | Meaning |
 |----------|---------|
-| `VITESS_DSN` | MySQL-compatible ledger ([scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/)) |
+| `VITESS_DSN` | MySQL-compatible ledger ([discovery/harvest/internal/ledger](../discovery/harvest/internal/ledger/)) |
 | `SCRAPE_MIN_REFETCH_AFTER` | Default `24h` |
 | `SCRAPE_FORCE_REFETCH` | `1` = ignore ledger |
 | `SCRAPE_CACHE_DIR` | Disk cache root (`/data/cache` in compose → `var/veil/blobs` on host) |
 
-If ledger says skip but cache file is missing, [FetchIfDue](../scrape/harvest/internal/feeds/fetch.go) refetches over HTTP instead of failing silently.
+If ledger says skip but cache file is missing, [FetchIfDue](../discovery/harvest/internal/feeds/fetch.go) refetches over HTTP instead of failing silently.
 
 ## Deploy
 
-Per-layer Compose: [deploy/scrape](../deploy/scrape/compose.yml), [deploy/pipeline](../deploy/pipeline/compose.yml), [deploy/graph](../deploy/graph/compose.yml). Full stack: include all three or use [deploy/graph/compose.full.yml](../deploy/graph/compose.full.yml).
+Per-layer Compose: [deploy/discovery](../deploy/discovery/compose.yml), [deploy/pipeline](../deploy/pipeline/compose.yml), [deploy/graph](../deploy/graph/compose.yml). Full stack: include all three or use [deploy/graph/compose.full.yml](../deploy/graph/compose.full.yml).

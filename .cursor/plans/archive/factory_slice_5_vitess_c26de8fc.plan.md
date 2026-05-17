@@ -74,7 +74,7 @@ flowchart LR
 - `FetchIfDue` возвращает `Unchanged: true`, когда hash совпал — callers не публикуют.
 - Unit-тесты: mock DB / sqlmock или in-memory sqlite не нужен — table-driven на helper с fake `Store` interface при необходимости.
 
-**Env** (уже в compose): `VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH` — задокументировать поведение в [ingest/scrape/README.md](ingest/scrape/README.md).
+**Env** (уже в compose): `VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH` — задокументировать поведение в [ingest/discovery/README.md](ingest/discovery/README.md).
 
 ---
 
@@ -162,7 +162,7 @@ go test ./ingest/scrape/... ./scrapers/ti/... ./scrapers/vuln/... ./scrapers/ds/
 
 ## 6. Документация
 
-- [ingest/scrape/README.md](ingest/scrape/README.md) — таблица policies + resource_key conventions.
+- [ingest/discovery/README.md](ingest/discovery/README.md) — таблица policies + resource_key conventions.
 - [docs/threatintel-runtime.md](docs/threatintel-runtime.md) — `crawl-db`, ledger env, повторный scrape пропускает due URLs.
 - [docs/ingest-contract.md](docs/ingest-contract.md) — ledger только ctx1; pipeline dedup без изменений.
 

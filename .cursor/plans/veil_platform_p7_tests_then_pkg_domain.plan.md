@@ -128,7 +128,7 @@ make test-platform-p7   # green на main до начала миграций
 2. `ti/internal/feeds/runner.go` — extract pure functions → test без сети; HTTP через `httptest.Server`.
 3. `internal/feeds/github.go` — rate-limit / etag logic отдельно от HTTP.
 4. `vuln`, `ds`, `lola`, `sbom`, `nuclei`, `coderules` — domain + usecase/scrape по одному коммиту на source.
-5. `scrape/pkg/proxypool`, `githubraw` — unit tests.
+5. `discovery/pkg/proxypool`, `githubraw` — unit tests.
 
 **Паттерн:** `domain` + `usecase` тестируются без NATS; connector — отдельный тонкий test с `nats.Server` (как P0).
 

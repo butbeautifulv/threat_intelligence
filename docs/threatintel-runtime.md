@@ -18,14 +18,14 @@ Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape**
 
 Use this before a full scrape run or a reproducible graph pack.
 
-1. **Full stack build** — `docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml build` (or `./scripts/ops/compose-up-full.sh`). If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** for Docker builds or use a stable proxy.
+1. **Full stack build** — `docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml build` (or `./scripts/ops/compose-up-full.sh`). If builds fail with **EOF** or truncated module downloads, set **`GOPROXY`** for Docker builds or use a stable proxy.
 2. **Bolt / Browser ports** — if `7687` or `7474` are taken, set **`NEO4J_BOLT_PORT`** / **`NEO4J_HTTP_PORT`** and stop duplicate Neo4j containers.
 3. **Graph-only** — `docker compose up --build -d` then **`curl -sS http://localhost:${API_PORT:-8090}/health`**.
 4. **Full pipeline** — `./scripts/ops/compose-up-full.sh`; **`scrape_worker`** waits for **`nats` healthy**; **`ingest_worker`** waits for **Neo4j** and **NATS**. TLS/EOF during `go mod download` in Docker is usually network/proxy, not application code.
 
 ## Compose service reference
 
-Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), [deploy/pipeline/compose.yml](../deploy/pipeline/compose.yml), [deploy/graph/compose.yml](../deploy/graph/compose.yml). Root [docker-compose.yml](../docker-compose.yml) includes graph only. Optional local graph pack: [docker-compose.testpack.yml](../docker-compose.testpack.yml).
+Layer compose files: [deploy/discovery/compose.yml](../deploy/discovery/compose.yml), [deploy/pipeline/compose.yml](../deploy/pipeline/compose.yml), [deploy/graph/compose.yml](../deploy/graph/compose.yml). Root [docker-compose.yml](../docker-compose.yml) includes graph only. Optional local graph pack: [docker-compose.testpack.yml](../docker-compose.testpack.yml).
 
 ### neo4j
 
@@ -89,7 +89,7 @@ Layer compose files: [deploy/scrape/compose.yml](../deploy/scrape/compose.yml), 
 
 | | |
 |--|--|
-| **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) (full stack) |
+| **Compose** | [deploy/discovery/compose.yml](../deploy/discovery/compose.yml) (full stack) |
 | **Image** | `nats:2.10-alpine` |
 | **Command** | `-js -m 8222` (JetStream + monitoring) |
 | **Purpose** | Two-stream bus: scrapers → **`scrape.>`** (`SCRAPE`); **pipeline_worker** → **`ingest.>`** (`INGEST`) |
@@ -128,8 +128,8 @@ Use **`ingest_worker`** whenever scrape producers run; without it, messages stay
 
 | | |
 |--|--|
-| **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) |
-| **Build** | [deploy/scrape/docker/proxybroker.Dockerfile](../deploy/scrape/docker/proxybroker.Dockerfile) |
+| **Compose** | [deploy/discovery/compose.yml](../deploy/discovery/compose.yml) |
+| **Build** | [deploy/discovery/docker/proxybroker.Dockerfile](../deploy/discovery/docker/proxybroker.Dockerfile) |
 | **Purpose** | HTTP proxy pool for scrapers (`*_PROXY_URLS`) |
 | **Ports** | `${PROXYBROKER_PORT:-8099}:8099` |
 
@@ -137,15 +137,15 @@ Use **`ingest_worker`** whenever scrape producers run; without it, messages stay
 
 | | |
 |--|--|
-| **Compose** | [deploy/scrape/compose.yml](../deploy/scrape/compose.yml) |
-| **Build** | [deploy/scrape/docker/scrape_worker.Dockerfile](../deploy/scrape/docker/scrape_worker.Dockerfile) |
-| **Module** | [scrape/harvest/README.md](../scrape/harvest/README.md) |
-| **Purpose** | Runs selected sources via [scrape/harvest/internal/factory](../scrape/harvest/internal/factory/); publishes **`harvest`** to **`scrape.>`** (batch job, exits 0) |
+| **Compose** | [deploy/discovery/compose.yml](../deploy/discovery/compose.yml) |
+| **Build** | [deploy/discovery/docker/scrape_worker.Dockerfile](../deploy/discovery/docker/scrape_worker.Dockerfile) |
+| **Module** | [discovery/harvest/README.md](../discovery/harvest/README.md) |
+| **Purpose** | Runs selected sources via [discovery/harvest/internal/factory](../discovery/harvest/internal/factory/); publishes **`harvest`** to **`scrape.>`** (batch job, exits 0) |
 | **Depends on** | **`nats` healthy** |
 | **Partition** | `SCRAPE_WORKER_PARTITION=1` → `scrape_worker_fast` + `scrape_worker_slow` ([deploy/compose.scale.yml](../deploy/compose.scale.yml)) |
 | **Env** | **`SCRAPE_SOURCES`**, **`TI_FEEDS`**, **`TI_JSONL_FILE`**, **`SBOM_CVE_LIST_FILE`**, **`VITESS_DSN`**, per-source scrape subjects; optional `GITHUB_TOKEN` (rate limits only) |
 
-Sources live under [scrape/harvest/internal/sources/](../scrape/harvest/internal/sources/). They publish **`harvest`** only (no Bolt). **`pipeline_worker`** → **`commit`**; **`ingest_worker`** → Neo4j. See [scrape/README.md](../scrape/README.md).
+Sources live under [discovery/harvest/internal/sources/](../discovery/harvest/internal/sources/). They publish **`harvest`** only (no Bolt). **`pipeline_worker`** → **`commit`**; **`ingest_worker`** → Neo4j. See [discovery/README.md](../discovery/README.md).
 
 ### NATS subjects
 
@@ -171,7 +171,7 @@ Sources live under [scrape/harvest/internal/sources/](../scrape/harvest/internal
 | `NUCLEI_INGEST_SUBJECT` | `ingest.appsec.nuclei` | pipeline publish for nuclei |
 | `SBOM_CVE_LIST_FILE` | `/fixtures/cve_list_seed.txt` in Compose | CVE list for OSV (one `CVE-…` per line; `#` comments allowed) |
 | `SBOM_CVE_LIST_URL` | empty | Alternative CVE list URL if file unset |
-| `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([scrape/harvest/internal/ledger](../scrape/harvest/internal/ledger/)); records URL + `content_sha256` |
+| `VITESS_DSN` / `MYSQL_DSN` | `veil:veilpass@tcp(crawl-db:3306)/veil_ledger` in scrape compose | Crawl ledger ([discovery/harvest/internal/ledger](../discovery/harvest/internal/ledger/)); records URL + `content_sha256` |
 | `SCRAPE_MIN_REFETCH_AFTER` | `24h` | Min refetch interval (`periodic` policy) |
 | `SCRAPE_FORCE_REFETCH` | `0` | `1` = ignore ledger (full refetch). Graph-pack profiles use `0` except `full-rebuild` / `--full`. |
 | `SCRAPE_CACHE_DIR` | `/data/cache` in compose | Host bind: `var/veil/blobs` |
@@ -229,7 +229,7 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compo
 3. **Engage closed loop (Docker):** `make test-platform-closed-loop` — veil stack + engage overlay, act→ingest→`target-graph` ([platform-closed-loop-pilot.md](platform-closed-loop-pilot.md)).
 4. **Graph read path (no scrape/NATS/ingest):** `make test-graph-read-smoke` or `./scripts/test/smoke-graph-read.sh --up` — overlay [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml), `GRAPH_PACK_SKIP=1`, optional MCP HTTP.
 5. **Graph pack without GitHub download:** place **`veil-graph-v0.4.5.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
-6. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [scrape/README.md](../scrape/README.md), [graph/README.md](../graph/README.md)).
+6. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [discovery/README.md](../discovery/README.md), [graph/README.md](../graph/README.md)).
 7. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
 8. **Secure prod overlay:** TLS certs + Keycloak env → [deploy-secure.md](deploy-secure.md).
 

@@ -249,7 +249,7 @@ docs/
 
 **Правила слоя engage (добавить в coding-style / AGENTS):**
 
-- Engage **не импортирует** `scrape/`, `pipeline/`, `graph/ingest`.
+- Engage **не импортирует** `discovery/`, `pipeline/`, `graph/ingest`.
 - Может импортировать `pkg/*`, `pkg/auth`, `pkg/engage/*`.
 - Вызов Neo4j только через **HTTP veil-api**, не Bolt напрямую (граница ответственности).
 - Каждый tool — один файл или пара `register.go` + `run_*.go` в категории; общий runner — DRY.

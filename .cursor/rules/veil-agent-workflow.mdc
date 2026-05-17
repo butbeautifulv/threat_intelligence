@@ -9,7 +9,7 @@ Follow [AGENTS.md](../../AGENTS.md), [docs/coding-style.md](../../docs/coding-st
 
 ## Architecture (do not break)
 
-- Four contexts: `scrape/`, `pipeline/`, `graph/`, `engage/` — **no cross-layer Go imports** between them.
+- Four contexts: `discovery/`, `pipeline/`, `graph/`, `engage/` — **no cross-layer Go imports** between them.
 - TI integration via NATS (`scrape.>` → `ingest.>`); engage optional bus via `engage.events.>` → pipeline bridge → `ingest.engage.*` (engage never imports pipeline/graph).
 - Engage reads graph only via HTTP veil-api; shared wire types in `pkg/*`.
 - No root `go.work`.
@@ -32,7 +32,7 @@ Do not stack multiple phases without commits unless the user explicitly requests
 
 ## Required before finishing a task
 
-1. Run `make test-scrape`, `make test-pipeline`, `make test-graph`, and/or `make test-engage` for touched layers.
+1. Run `make test-discovery`, `make test-pipeline`, `make test-graph`, and/or `make test-engage` for touched layers.
 2. If ingest paths changed, run `./scripts/release/bump-graph-version.sh patch` and update `docs/schemas/` when `pkg/harvest` or `pkg/commit` changed.
 3. Run `make check-graph-version` before commit.
 4. **Commit** with a clear message (per phase when work was phased).

@@ -30,7 +30,7 @@ isProject: false
 
 ## Контекст
 
-Текущая версия: [`versions.env`](versions.env) → `GRAPH_PACK_VERSION=v0.4.0`. Ingest-код на `main` не менялся с последнего релиза — **bump обязателен только для артефакта** (v0.4.1), не для `check-graph-version` (нет правок в `scrape/`, `pipeline/`, `graph/ingest/`, `pkg/`).
+Текущая версия: [`versions.env`](versions.env) → `GRAPH_PACK_VERSION=v0.4.0`. Ingest-код на `main` не менялся с последнего релиза — **bump обязателен только для артефакта** (v0.4.1), не для `check-graph-version` (нет правок в `discovery/`, `pipeline/`, `graph/ingest/`, `pkg/`).
 
 Вы выбрали: **v0.4.1** + **публикация на GitHub**.
 
@@ -84,7 +84,7 @@ flowchart TB
 make test-pipeline
 
 # Свободные порты 7687/7474/4222/3306; Docker с достаточным RAM для Neo4j
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml ps
+docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml ps
 ```
 
 Опционально: `make test-scrape test-graph` если давно не гонялись.
@@ -114,7 +114,7 @@ make check-graph-version   # должен пройти (или N/A если не
 
 ```bash
 # в отдельном терминале
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml \
+docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml \
   ps -a scrape_worker
 docker compose ... logs -f scrape_worker
 ```

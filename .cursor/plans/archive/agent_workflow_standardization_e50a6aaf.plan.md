@@ -39,7 +39,7 @@ isProject: false
 | Markdown | ссылки на каталоги **без** trailing `/` (напр. `../pkg/commit`, `.../sources/ti`) — на GitHub нет иконки папки и возможен 404 |
 
 Политика bump (выбрано): **только ingest-пути** — patch +1 при изменениях в:
-- `scrape/harvest/internal/sources/**`
+- `discovery/harvest/internal/sources/**`
 - `pipeline/ned/internal/sources/**`
 - `graph/ingest/internal/sources/**`
 - `pkg/harvest/**`, `pkg/commit/**`
@@ -118,7 +118,7 @@ alwaysApply: true
 ### [`.cursor/rules/veil-ingest-graph-version.mdc`](.cursor/rules/veil-ingest-graph-version.mdc)
 
 ```yaml
-globs: scrape/harvest/**,pipeline/ned/**,graph/ingest/**,pkg/harvest/**,pkg/commit/**,docs/schemas/**
+globs: discovery/harvest/**,pipeline/ned/**,graph/ingest/**,pkg/harvest/**,pkg/commit/**,docs/schemas/**
 alwaysApply: false
 ```
 
@@ -176,8 +176,8 @@ gh repo edit butbeautifulv/veil --description "$(tr -d '\n' < .github/repo-descr
 | Тип | Формат ссылки |
 |-----|----------------|
 | Каталог | `[label](path/to/dir/)` — **обязательный** trailing `/` |
-| README слоя | `[Scrape](scrape/README.md)` — для навигации по доке |
-| Файл | `[compose.yml](deploy/scrape/compose.yml)` — без `/` |
+| README слоя | `[Scrape](discovery/README.md)` — для навигации по доке |
+| Файл | `[compose.yml](deploy/discovery/compose.yml)` — без `/` |
 
 **Аудит и правки** (ручной проход + скрипт):
 
@@ -185,7 +185,7 @@ gh repo edit butbeautifulv/veil --description "$(tr -d '\n' < .github/repo-descr
 
 Файлы с наибольшим числом правок:
 - [`docs/coding-style.md`](docs/coding-style.md) — `.../sources/ti` → `.../ti/`
-- [`docs/ingest-contract.md`](docs/ingest-contract.md) — `pkg/harvest`, `pkg/commit`, `scrape/harvest`, `pipeline/ned`, `graph/ingest`, `pipeline/connector`
+- [`docs/ingest-contract.md`](docs/ingest-contract.md) — `pkg/harvest`, `pkg/commit`, `discovery/harvest`, `pipeline/ned`, `graph/ingest`, `pipeline/connector`
 - [`docs/ontology-appsec.md`](docs/ontology-appsec.md)
 - [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — `pipeline/connector`, `pkg/commit`
 - Layer READMEs — уже в основном с `/` для `connector/`, `harvest/`; проверить `pkg/*` ссылки

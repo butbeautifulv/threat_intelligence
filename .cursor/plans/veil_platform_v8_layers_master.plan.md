@@ -42,14 +42,14 @@ isProject: false
 
 | Layer | Path today | Path target (v8) | Notes |
 |-------|------------|------------------|--------|
-| **Discovery** | `scrape/` | **`discovery/`** | P8h rename; `harvest` wire unchanged |
+| **Discovery** | `discovery/` | **`discovery/`** | P8h rename; `harvest` wire unchanged |
 | **Pipeline** | `pipeline/` | `pipeline/` | name kept (NED role is clear) |
 | **Knowledge** | `graph/` | **`knowledge/`** | P8i rename; veil-api / veil-mcp brands may stay |
 | **Engage** | `engage/` | `engage/` | offensive tools layer name kept |
 | **Report** | engage `report/` | **`pkg/report`** | P8b |
 | **API/MCP** | layer transports | **`pkg/api`**, **`pkg/mcp`** | P8d |
 
-**Naming rule:** documentation and repo top-level dirs use **Discovery** / **Knowledge**; until P8h/P8i merge, legacy paths `scrape/` and `graph/` remain valid in code.
+**Naming rule:** documentation and repo top-level dirs use **Discovery** / **Knowledge**; until P8h/P8i merge, legacy paths `discovery/` and `graph/` remain valid in code.
 
 ## Constraints
 
@@ -135,13 +135,13 @@ isProject: false
 
 **Branch:** `platform/p8g-discovery-browser`
 
-- [ ] Move browser-agent under `scrape/` or `cmd/discovery-browser/`
+- [ ] Move browser-agent under `discovery/` or `cmd/discovery-browser/`
 - [ ] Publish harvest-compatible events (new kind or reuse existing)
 - [ ] Engage deprecates direct browser service (HTTP proxy only if needed)
 
 ---
 
-## P8h — Rename `scrape/` → `discovery/`
+## P8h — Rename `discovery/` → `discovery/`
 
 **Branch:** `platform/p8h-rename-discovery`  
 **Depends on:** P8a recommended (fewer import churn); may run parallel to P8i if touch-disjoint.
@@ -149,7 +149,7 @@ isProject: false
 | Area | Action |
 |------|--------|
 | Repo | `git mv scrape discovery`; update `discovery/go.work`, module paths `github.com/butbeautifulv/veil/discovery/...` |
-| Deploy | `deploy/scrape/` → `deploy/discovery/`; compose service names (`discovery_worker` alias or replace `scrape_worker`) |
+| Deploy | `deploy/discovery/` → `deploy/discovery/`; compose service names (`discovery_worker` alias or replace `scrape_worker`) |
 | Makefile | `test-scrape` → `test-discovery` (+ temporary alias `test-scrape` → prints deprecate) |
 | CI | `.github/workflows/*` paths; `platform-p7` scrape slice → `test-discovery-p7c` |
 | Docs | README, coding-style, runtime docs; **logical name Discovery everywhere** |
@@ -230,5 +230,5 @@ make check-graph-version   # if ingest touched
 | P8e | `platform/p8e-pkg-exec` | pending |
 | P8f | `platform/p8f-engage-slim` | pending |
 | P8g | `platform/p8g-discovery-browser` | pending |
-| P8h | `platform/p8h-rename-discovery` | pending — `scrape/` → `discovery/` |
+| P8h | `platform/p8h-rename-discovery` | pending — `discovery/` → `discovery/` |
 | P8i | `platform/p8i-rename-knowledge` | pending — `graph/` → `knowledge/` |

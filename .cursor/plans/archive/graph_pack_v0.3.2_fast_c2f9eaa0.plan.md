@@ -82,7 +82,7 @@ flowchart LR
 
 ```bash
 cd /home/bbv/Desktop/threat_intelligence
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml down -v --remove-orphans
+docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml down -v --remove-orphans
 
 ./scripts/graph-pack-run-v032.sh   # новый: export env + compose-up-full
 ```
@@ -90,7 +90,7 @@ docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f de
 Мониторинг до `scrape_worker` **Exited (0)**:
 
 ```bash
-docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml logs -f scrape_worker
+docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml logs -f scrape_worker
 ```
 
 После scrape — ingest drain (~3–8 мин при профиле выше):

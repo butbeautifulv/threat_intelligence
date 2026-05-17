@@ -15,7 +15,7 @@ todos:
     content: Создать pkg/scrapev1 (go.mod + envelope из scrape/contract/scrapev1)
     status: pending
   - id: pkg-scrapev1-work-scrape
-    content: Добавить pkg/scrapev1 в scrape/go.work
+    content: Добавить pkg/scrapev1 в discovery/go.work
     status: pending
   - id: pkg-scrapev1-import-scrape-pub
     content: Переключить импорты scrape/pub на pkg/scrapev1
@@ -45,7 +45,7 @@ todos:
     content: go build scrape_worker + тесты scrape/pub
     status: pending
   - id: pkg-scrapev1-rm-contract
-    content: Удалить scrape/contract/, убрать из scrape/go.work
+    content: Удалить scrape/contract/, убрать из discovery/go.work
     status: pending
   - id: pkg-scrapev1-makefile
     content: Makefile test-scrape → pkg/scrapev1
@@ -172,7 +172,7 @@ isProject: false
 ## Цель
 
 - **DRY:** одинаковый код → [`pkg/`](pkg/) (включая дубли, которые сейчас только в scrape).
-- **Изоляция:** `scrape/`, `pipeline/`, `graph/` не импортируют друг друга; общение только через NATS + типы из `pkg/`.
+- **Изоляция:** `discovery/`, `pipeline/`, `graph/` не импортируют друг друга; общение только через NATS + типы из `pkg/`.
 - **В слоях остаётся:** оркестрация (`usecase`, `handle`, `ingest_worker`, `factory`, Cypher MERGE).
 - **Убрать:** `*/contract/*`, [`scripts/gen-contracts.sh`](scripts/gen-contracts.sh), `make contracts`, копию `graph/contract/ingestv1`.
 - **Схемы:** [`docs/schemas/`](docs/schemas/) остаются **документацией**; SOT для Go — ручное поддержание `pkg/scrapev1`, `pkg/ingestv1` (без codegen).
@@ -183,7 +183,7 @@ isProject: false
 ```mermaid
 flowchart TB
   subgraph today [Сейчас]
-    SC[scrape/contract/scrapev1]
+    SC[discovery/contract/scrapev1]
     PC[pipeline/contract/ingestv1]
     GC[graph/contract/ingestv1]
     GEN[gen-contracts.sh]
@@ -199,7 +199,7 @@ flowchart TB
     PSV[pkg/scrapev1]
     PIV[pkg/ingestv1]
   end
-  scrape[scrape/] --> PSV
+  scrape[discovery/] --> PSV
   scrape --> NATS1[NATS scrape.>]
   NATS1 --> pipeline[pipeline/]
   pipeline --> PSV
@@ -230,7 +230,7 @@ flowchart TB
 - Запрет cross-layer: `scrape` ↛ `pipeline` ↛ `graph`.
 - Разрешено всем слоям: `pkg/*` (каждый модуль — свой `go.mod`, как [`pkg/nvdparse`](pkg/nvdparse/go.mod)).
 - **Нет** root `go.work` ([`AGENTS.md`](AGENTS.md)).
-- Каждый [`scrape/go.work`](scrape/go.work), [`pipeline/go.work`](pipeline/go.work), [`graph/go.work`](graph/go.work) добавляет нужные `../pkg/...` через `use (...)`.
+- Каждый [`discovery/go.work`](discovery/go.work), [`pipeline/go.work`](pipeline/go.work), [`graph/go.work`](graph/go.work) добавляет нужные `../pkg/...` через `use (...)`.
 
 ## Стратегия «без большого diff»
 
@@ -255,9 +255,9 @@ flowchart TB
 
 | ID | Действие |
 |----|----------|
-| `pkg-scrapev1-init` | Создать `pkg/scrapev1/go.mod`, скопировать `envelope.go` (+ тесты) из [`scrape/contract/scrapev1`](scrape/contract/scrapev1/) |
-| `pkg-scrapev1-work-scrape` | Добавить `../pkg/scrapev1` в [`scrape/go.work`](scrape/go.work) |
-| `pkg-scrapev1-import-scrape-pub` | Переключить импорты в [`scrape/pub`](scrape/pub/), [`scrape/pub/domain.go`](scrape/pub/domain.go) |
+| `pkg-scrapev1-init` | Создать `pkg/scrapev1/go.mod`, скопировать `envelope.go` (+ тесты) из [`scrape/contract/scrapev1`](discovery/contract/scrapev1/) |
+| `pkg-scrapev1-work-scrape` | Добавить `../pkg/scrapev1` в [`discovery/go.work`](discovery/go.work) |
+| `pkg-scrapev1-import-scrape-pub` | Переключить импорты в [`scrape/pub`](discovery/pub/), [`scrape/pub/domain.go`](discovery/pub/domain.go) |
 | `pkg-scrapev1-import-ti` | Переключить `scrape/sources/ti/...` (scrapepub, usecase) |
 | `pkg-scrapev1-import-vuln` | vuln source |
 | `pkg-scrapev1-import-lola` | lola source |
@@ -265,9 +265,9 @@ flowchart TB
 | `pkg-scrapev1-import-sbom` | sbom source |
 | `pkg-scrapev1-import-coderules` | coderules source |
 | `pkg-scrapev1-import-nuclei` | nuclei source |
-| `pkg-scrapev1-import-factory` | [`scrape/factory`](scrape/factory/) если есть ссылки |
-| `pkg-scrapev1-test-scrape` | `cd scrape/scrape_worker && go build`; тесты `scrape/pub` |
-| `pkg-scrapev1-rm-contract` | Удалить [`scrape/contract/`](scrape/contract/), убрать из `scrape/go.work` |
+| `pkg-scrapev1-import-factory` | [`scrape/factory`](discovery/factory/) если есть ссылки |
+| `pkg-scrapev1-test-scrape` | `cd discovery/scrape_worker && go build`; тесты `scrape/pub` |
+| `pkg-scrapev1-rm-contract` | Удалить [`scrape/contract/`](discovery/contract/), убрать из `discovery/go.work` |
 | `pkg-scrapev1-makefile` | [`Makefile`](Makefile) `test-scrape`: `pkg/scrapev1` вместо `scrape/contract` |
 
 ---
@@ -315,7 +315,7 @@ flowchart TB
 |----|----------|
 | `pkg-natsjet-init` | `pkg/natsjet`: `Connect`, `Publisher[T]`, `EnsureStream` |
 | `pkg-natsjet-test` | unit-тесты на marshal + MsgId |
-| `pkg-natsjet-scrape-pub` | [`scrape/pub/publish.go`](scrape/pub/publish.go) — thin wrapper: dedup = `ContentKey`, validate `scrapev1` |
+| `pkg-natsjet-scrape-pub` | [`scrape/pub/publish.go`](discovery/pub/publish.go) — thin wrapper: dedup = `ContentKey`, validate `scrapev1` |
 | `pkg-natsjet-pipeline-pub` | [`pipeline/pub/publish.go`](pipeline/pub/publish.go) — dedup = `IdempotencyKey` |
 | `pkg-natsjet-graph-ensure` | [`graph/internal/natsensure`](graph/internal/natsensure/ensure.go) → вызов `pkg/natsjet.EnsureStream("INGEST", ...)` |
 | `pkg-natsjet-pipeline-ensure` | `EnsureBothStreams` в pipeline/pub |
@@ -344,7 +344,7 @@ flowchart TB
 | ID | Действие |
 |----|----------|
 | `pkg-nvdmap-init` | `ToVulnRecord(v nvdparse.Vulnerability) VulnRecord` — единая структура |
-| `pkg-nvdmap-scrape` | [`scrape/sources/vuln/internal/usecase/scrape.go`](scrape/sources/vuln/internal/usecase/scrape.go): убрать `nvdToDomain` |
+| `pkg-nvdmap-scrape` | [`scrape/sources/vuln/internal/usecase/scrape.go`](discovery/sources/vuln/internal/usecase/scrape.go): убрать `nvdToDomain` |
 | `pkg-nvdmap-pipeline` | [`pipeline/.../handle/vuln.go`](pipeline/pipeline_worker/internal/handle/vuln.go): убрать `nvdToVulnDomain` |
 | `pkg-nvdmap-test` | тесты на CVE/CVSS/CPE mapping |
 
@@ -396,7 +396,7 @@ flowchart TB
 | ID | Действие |
 |----|----------|
 | `docs-readme-pkg` | [`README.md`](README.md): таблица `pkg/*`, убрать `make contracts` |
-| `docs-scrape-readme` | [`scrape/README.md`](scrape/README.md), [`pipeline/README.md`](pipeline/README.md), [`graph/README.md`](graph/README.md) |
+| `docs-scrape-readme` | [`discovery/README.md`](discovery/README.md), [`pipeline/README.md`](pipeline/README.md), [`graph/README.md`](graph/README.md) |
 | `docs-schemas-note` | В [`docs/schemas/`](docs/schemas/): комментарий «синхронизировать вручную с pkg/*» |
 | `ci-makefile-final` | Финальный [`Makefile`](Makefile): все `test-*` через pkg |
 | `e2e-smoke` | `scripts/compose-up-full.sh` или layer smoke — scrape → pipeline → graph |
@@ -422,7 +422,7 @@ flowchart TB
 ## Критерии готовности
 
 - Нет каталогов `*/contract/`, нет `gen-contracts.sh`, нет `make contracts`.
-- `pipeline` не импортирует ничего из `scrape/` или `graph/`.
-- `graph` не импортирует `scrape/` или `pipeline/`.
+- `pipeline` не импортирует ничего из `discovery/` или `graph/`.
+- `graph` не импортирует `discovery/` или `pipeline/`.
 - Все три `go.work` ссылаются только на нужные `pkg/*`.
 - `make test-scrape test-pipeline test-graph` зелёные.

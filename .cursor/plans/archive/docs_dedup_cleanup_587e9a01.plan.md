@@ -51,7 +51,7 @@ flowchart TB
   README[README.md] -->|index + quick start| canonical
   AGENTS[AGENTS.md] --> CS
   CONTRIB[CONTRIBUTING.md] --> CS
-  scrapeR[scrape/README.md] --> CS
+  scrapeR[discovery/README.md] --> CS
   pipelineR[pipeline/README.md] --> CS
   graphR[graph/README.md] --> CS
 ```
@@ -79,7 +79,7 @@ flowchart TB
 ## 1. Переписать `docs/coding-style.md` (главный фокус)
 
 **Оставить и уплотнить:**
-- Design principles + таблица «что где делается» (scrape/pipeline/graph)
+- Design principles + таблица «что где делается» (discovery/pipeline/graph)
 - Одна компактная таблица repo map (5 зон: docs, deploy, scrape, pipeline, graph, pkg)
 - Layering diagram (`cmd` → domain → usecase → …) + **один объединённый PR checklist** (сейчас три разрозненных: общий L57, harvest L89, NED L156)
 - Go style (Google) — одна секция
@@ -87,7 +87,7 @@ flowchart TB
 
 **Убрать или заменить ссылками** (дубли с layer READMEs):
 - Детальные таблицы модулей scrape/graph/pipeline (L61–157) → ссылки:
-  - Scrape: [scrape/README.md](../scrape/README.md)
+  - Scrape: [discovery/README.md](../discovery/README.md)
   - Pipeline: [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md)
   - Graph: [graph/README.md](../graph/README.md)
 - Секция Wire envelopes (L160–165) → одна строка: «см. [ingest-contract.md](ingest-contract.md); Go SOT: `pkg/harvest`, `pkg/commit`»
@@ -118,7 +118,7 @@ flowchart TB
 - Добавить якорную ссылку на PR checklist в coding-style (опционально одна строка)
 
 ### Layer READMEs
-В начало [scrape/README.md](scrape/README.md), [pipeline/README.md](pipeline/README.md), [graph/README.md](graph/README.md):
+В начало [discovery/README.md](discovery/README.md), [pipeline/README.md](pipeline/README.md), [graph/README.md](graph/README.md):
 - Одна строка: architecture rules → [docs/coding-style.md](../docs/coding-style.md)
 - Убрать повтор «Layers communicate only via NATS» из pipeline/graph README (достаточно в coding-style) **или** оставить одну короткую фразу без таблиц
 

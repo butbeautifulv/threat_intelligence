@@ -10,7 +10,7 @@ fi
 source "${VEIL_ROOT}/versions.env"
 
 COMPOSE="${COMPOSE:-docker compose}"
-VEIL_COMPOSE_FILES="-f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml -f deploy/graph/compose.neo4j-publish.yml"
+VEIL_COMPOSE_FILES="-f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml -f deploy/graph/compose.neo4j-publish.yml"
 COMPOSE_FILES="${COMPOSE_FILES:-${VEIL_COMPOSE_FILES}}"
 
 PACK_BASENAME="veil-graph"

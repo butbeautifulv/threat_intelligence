@@ -7,7 +7,7 @@ source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 
 BASE="${1:-main}"
 INGEST_PATHS=(
-  scrape/harvest/internal/sources
+  discovery/harvest/internal/sources
   pipeline/ned/internal/sources
   graph/ingest/internal/sources
   pkg/harvest

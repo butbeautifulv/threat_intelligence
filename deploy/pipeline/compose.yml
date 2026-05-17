@@ -1,5 +1,5 @@
 # Pipeline layer: consumes scrape.>, publishes ingest.>
-# Requires NATS (start deploy/scrape or external NATS_URL).
+# Requires NATS (start deploy/discovery or external NATS_URL).
 services:
   pipeline_worker:
     build:

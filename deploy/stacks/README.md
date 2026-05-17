@@ -15,7 +15,7 @@ Stacks do **not** invoke Docker themselves. Translate a preset to a command from
 # Example: full-loop (after reading deploy/stacks/full-loop.yml)
 set -a && source deploy/profiles/smoke-minimal.env && set +a
 docker compose \
-  -f deploy/scrape/compose.yml \
+  -f deploy/discovery/compose.yml \
   -f deploy/pipeline/compose.yml \
   -f deploy/graph/compose.yml \
   -f deploy/graph/compose.neo4j-publish.yml \

@@ -99,7 +99,7 @@ res, err := feeds.FetchIfDue(ctx, fc, led, key, source, url, policy, cacheRel, b
 if res.Unchanged { return nil } // skip Publish
 ```
 
-Справочник ключей дополнить в [ingest/scrape/README.md](ingest/scrape/README.md).
+Справочник ключей дополнить в [ingest/discovery/README.md](ingest/discovery/README.md).
 
 ### B.1 TI — остальные feeds ([scrapers/ti/internal/feeds/runner.go](scrapers/ti/internal/feeds/runner.go))
 
@@ -151,7 +151,7 @@ CWE zip уже: `coderules:cwe:mitre_zip` (`PolicyStatic`).
 
 ### B.7 Документация (кроме veil_refactor)
 
-- [ingest/scrape/README.md](ingest/scrape/README.md) — полная таблица resource_key.
+- [ingest/discovery/README.md](ingest/discovery/README.md) — полная таблица resource_key.
 - [scrapers/README.md](scrapers/README.md) — одна строка «ledger: все публичные HTTP feeds через `FetchIfDue`».
 
 ---

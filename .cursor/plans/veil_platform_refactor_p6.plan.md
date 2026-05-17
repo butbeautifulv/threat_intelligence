@@ -9,7 +9,7 @@ todos:
     content: "pkg/auth/httpmiddleware; thin engage/graph wrappers"
     status: completed
   - id: p6c-scrape-scrapepub
-    content: "scrape/harvest/internal/scrapepub base; migrate ti→vuln→ds"
+    content: "discovery/harvest/internal/scrapepub base; migrate ti→vuln→ds"
     status: completed
   - id: p6d-makefile-smoke-lib
     content: "scripts/test/lib/smoke.sh + Makefile test-pkg-shared"
@@ -30,7 +30,7 @@ isProject: false
 
 ## Constraints (unchanged)
 
-- No cross-imports: `scrape/`, `pipeline/`, `graph/`, `engage/`.
+- No cross-imports: `discovery/`, `pipeline/`, `graph/`, `engage/`.
 - Shared wire: `pkg/harvest`, `pkg/commit`, `pkg/natsjet`, `pkg/auth`, `pkg/engage/*`.
 - Engage → graph: HTTP only.
 
@@ -47,7 +47,7 @@ isProject: false
 
 | Item | Change |
 |------|--------|
-| **scrape/harvest/internal/scrapepub** | `RawPublisher`, `Base`, `NewRaw`; factory type alias |
+| **discovery/harvest/internal/scrapepub** | `RawPublisher`, `Base`, `NewRaw`; factory type alias |
 | **Migrated** | ti, vuln, ds, lola per-source scrapepub embed shared base |
 
 ## Completed (P6d–g, merged `505806a`)

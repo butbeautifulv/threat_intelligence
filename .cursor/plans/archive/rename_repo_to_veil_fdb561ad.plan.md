@@ -73,7 +73,7 @@ git remote set-url origin https://github.com/butbeautifulv/veil.git
 
 `github.com/butbeautifulv/threat_intelligence` → `github.com/butbeautifulv/veil`
 
-Затронутые модули ([pkg/go.mod](pkg/go.mod), [scrape/harvest/go.mod](scrape/harvest/go.mod), [pipeline/ned/go.mod](pipeline/ned/go.mod), [graph/ingest/go.mod](graph/ingest/go.mod), и остальные 6 `go.mod`).
+Затронутые модули ([pkg/go.mod](pkg/go.mod), [discovery/harvest/go.mod](discovery/harvest/go.mod), [pipeline/ned/go.mod](pipeline/ned/go.mod), [graph/ingest/go.mod](graph/ingest/go.mod), и остальные 6 `go.mod`).
 
 После замены в каждом слое:
 
@@ -81,7 +81,7 @@ git remote set-url origin https://github.com/butbeautifulv/veil.git
 make test-scrape test-pipeline test-graph
 ```
 
-При необходимости `go work sync` в `scrape/`, `pipeline/`, `graph/`.
+При необходимости `go work sync` в `discovery/`, `pipeline/`, `graph/`.
 
 ### 3. Документация и артефакты
 

@@ -1,8 +1,8 @@
 # Optional: compose include merge (same as three -f files).
 # Preferred entrypoint: ./scripts/ops/compose-up-full.sh (scaling, partition overlay).
-# Manual: docker compose -f deploy/scrape/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
+# Manual: docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
 include:
-  - path: ../scrape/compose.yml
+  - path: ../discovery/compose.yml
   - path: ../pipeline/compose.yml
   - path: compose.yml
 

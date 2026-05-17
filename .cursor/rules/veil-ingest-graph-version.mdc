@@ -1,6 +1,6 @@
 ---
 description: Bump graph pack version when ingest wire or sources change
-globs: scrape/harvest/**,pipeline/ned/**,graph/ingest/**,pkg/harvest/**,pkg/commit/**,docs/schemas/**
+globs: discovery/harvest/**,pipeline/ned/**,graph/ingest/**,pkg/harvest/**,pkg/commit/**,docs/schemas/**
 alwaysApply: false
 ---
 

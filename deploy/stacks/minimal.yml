@@ -7,7 +7,7 @@ description: >
 profiles:
   - deploy/profiles/smoke-minimal.env
 compose:
-  - deploy/scrape/compose.yml
+  - deploy/discovery/compose.yml
   - deploy/pipeline/compose.yml
   - deploy/graph/compose.yml
   - deploy/graph/compose.neo4j-publish.yml

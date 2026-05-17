@@ -114,7 +114,7 @@ flowchart LR
 | **ned pack** | JetStream consumer + transform по доменам | `pipeline_worker` как «отдельный продукт» |
 | **connector** | NATS publish + ensure streams (ex [`pipeline/pub`](pipeline/pub/)) | Business normalize |
 
-**Межслойное взаимодействие** — только NATS + `pkg/*`. `pipeline/` не импортирует `scrape/` или `graph/`.
+**Межслойное взаимодействие** — только NATS + `pkg/*`. `pipeline/` не импортирует `discovery/` или `graph/`.
 
 `pipeline_worker` — **driving adapter** (hexagonal): pull `scrape.>`, делегирует NED, publish `ingest.>`.
 
@@ -217,7 +217,7 @@ flowchart TB
 - Переименование `pipeline/` → `ned/` на верхнем уровне репо
 - Перенос/переписывание `scripts/*` (только документация границ)
 - Объединение connector + ned в один `go.mod`
-- Изменения `scrape/`, `graph/`, `pkg/*` кроме удаления дублирующих import path в pipeline
+- Изменения `discovery/`, `graph/`, `pkg/*` кроме удаления дублирующих import path в pipeline
 
 ---
 

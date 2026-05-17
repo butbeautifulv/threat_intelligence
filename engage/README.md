@@ -134,7 +134,7 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Boundaries
 
-- **Does not** import `scrape/`, `pipeline/`, or `graph/ingest`
+- **Does not** import `discovery/`, `pipeline/`, or `graph/ingest`
 - **Does not** connect to Neo4j directly — use `ENGAGE_VEIL_API_URL` → veil-api
 - **May** import `pkg/auth`, `pkg/engage/*`
 

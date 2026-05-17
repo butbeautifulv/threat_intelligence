@@ -130,7 +130,7 @@ docker compose restart scrape-worker
 2. Dockerfiles: `docker/scrape_worker.Dockerfile`, `pipeline_worker.Dockerfile`, `ingest_worker.Dockerfile`
 3. `docker-compose.yml`: service names + build dockerfile paths + `ENTRYPOINT` бинарии
 4. `go.work` paths
-5. Документация: [ingest/README.md](../../ingest/README.md), [ingest/scrape/README.md](../../ingest/scrape/README.md), [scrapers/README.md](../../scrapers/README.md)
+5. Документация: [ingest/README.md](../../ingest/README.md), [ingest/discovery/README.md](../../ingest/discovery/README.md), [scrapers/README.md](../../scrapers/README.md)
 
 **Не трогать** пока: перенос `scrapers/*/internal` в `ingest/` (только пути worker/cmd).
 

@@ -7,7 +7,7 @@ description: >
 profiles:
   - deploy/profiles/smoke-minimal.env
 compose:
-  - deploy/scrape/compose.yml
+  - deploy/discovery/compose.yml
   - deploy/pipeline/compose.yml
   - deploy/graph/compose.yml
   - deploy/graph/compose.neo4j-publish.yml
@@ -22,13 +22,13 @@ notes:
   - >-
     Do not combine compose.veil-stack.yml with compose.events.yml (standalone NATS
     / graph-ingest profile); veil-stack expects shared infrastructure from the
-    scrape/pipeline/graph chain.
+    discovery/pipeline/graph chain.
   - >-
     Equivalent to VEIL_COMPOSE_FILES plus engage overlays; see
     scripts/ops/compose-up-veil-engage.sh.
   - >-
     Graph-only merge file deploy/graph/compose.full.yml mirrors the three-layer
-    scrape/pipeline/graph chain but does not include engage.
+    discovery/pipeline/graph chain but does not include engage.
 scripts:
   - scripts/ops/compose-up-veil-engage.sh
   - scripts/test/smoke-platform-full-loop.sh

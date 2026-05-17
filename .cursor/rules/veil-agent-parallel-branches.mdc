@@ -62,7 +62,7 @@ make test-platform-p0   # if platform/pkg/bus touched
 make test-engage        # if engage touched
 make test-pipeline      # if pipeline touched
 make test-graph         # if graph touched
-make test-scrape        # if scrape touched
+make test-discovery     # if discovery touched
 ```
 
 Then notify other streams: **rebase** open branches onto `origin/main`.

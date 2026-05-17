@@ -1,7 +1,7 @@
 locals {
   compose_file_args = concat(
     [
-      "-f", "${var.repo_root}/deploy/scrape/compose.yml",
+      "-f", "${var.repo_root}/deploy/discovery/compose.yml",
       "-f", "${var.repo_root}/deploy/pipeline/compose.yml",
       "-f", "${var.repo_root}/deploy/graph/compose.yml",
     ],

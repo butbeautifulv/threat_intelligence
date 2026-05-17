@@ -164,7 +164,7 @@ docker compose --profile scrape up --build -d scrape-worker pipeline-worker inge
 
 ## 6. Документация
 
-- [ingest/scrape/README.md](ingest/scrape/README.md) — зарегистрированные sources: `ds`, `vuln`, `lola`
+- [ingest/discovery/README.md](ingest/discovery/README.md) — зарегистрированные sources: `ds`, `vuln`, `lola`
 - [docs/threatintel-runtime.md](docs/threatintel-runtime.md) — `scrape-worker` env vuln/lola; убрать `vuln`/`lola` из таблицы отдельных сервисов
 - [scrapers/README.md](scrapers/README.md) — compose service column для vuln/lola → `scrape-worker`
 

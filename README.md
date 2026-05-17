@@ -57,12 +57,12 @@ flowchart LR
 
 | Layer | Path | Role | Agent MCP |
 |-------|------|------|-----------|
-| **Scrape** | [scrape/](scrape/) | Fetch feeds, Vitess ledger, publish `harvest` | — |
+| **Discovery** | [discovery/](discovery/) | Fetch feeds, Vitess ledger, publish `harvest` | — |
 | **Pipeline** | [pipeline/](pipeline/) | NED → `commit`; [engage-events/](pipeline/engage-events/) bridges `engage.events.>` → `ingest.engage.*` | — |
 | **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) read API + MCP | `veil-mcp` (read-only) |
 | **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports (hardened) | `veil-engage` (exec) |
 
-**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs). **No Go imports** across `scrape/`, `pipeline/`, `graph/`, `engage/`.
+**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs). **No Go imports** across `discovery/`, `pipeline/`, `graph/`, `engage/`.
 
 Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
 
@@ -85,7 +85,7 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 
 | Logical layer | Path today → target | Next step |
 |---------------|---------------------|-----------|
-| **Discovery** | `scrape/` → **`discovery/`** | **P8h** rename; then `pkg/exec`, browser (P8g) |
+| **Discovery** | `discovery/` | **P8h done**; next: `pkg/exec`, browser (P8g) |
 | **Pipeline** | `pipeline/` | `pkg/ti/*`, `pkg/commit` |
 | **Knowledge** | `graph/` → **`knowledge/`** | **P8i** rename; **pkg/decision** (P8c) |
 | **Engage** | `engage/` | slim (P8f); pentest tools + runner |
@@ -206,7 +206,7 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [docs/external-security-frameworks.md](docs/external-security-frameworks.md) | JCSF / DAF / OWASP → Veil controls |
 | [docs/external-agent-store.md](docs/external-agent-store.md) | Agent Store reference patterns |
 | [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) | GAIA eval (arXiv primary; HF optional) |
-| [scrape/README.md](scrape/README.md) | Scrape sources and env vars |
+| [discovery/README.md](discovery/README.md) | Discovery sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
 | [engage/README.md](engage/README.md) | Tool catalog, veil-engage MCP, workflows |
@@ -234,7 +234,7 @@ See [docs/graph-pack.md](docs/graph-pack.md).
 
 ```bash
 make test-pkg-shared              # pkg/harvest, commit, natsjet, auth, engage/events
-make test-scrape
+make test-discovery
 make test-pipeline
 make test-graph                   # graph modules + serve build
 make test-graph-serve             # graph/serve unit tests (-race)
