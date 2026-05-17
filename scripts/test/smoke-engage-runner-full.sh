@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # P9j: build engage-runner-full and verify heavy-stack binaries + minimal invocations.
 # P10d: cloud security tools (prowler, scout-suite, pacu, terrascan, netexec, stubs).
+# P11c: engage-python-install + engage-python-exec e2e under /tmp/engage/pyenv.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "${ROOT}"
@@ -133,5 +134,31 @@ echo "engage-runner-full smoke: cloud catalog stubs"
 for s in "${CLOUD_STUBS[@]}"; do
   assert_stub "${s}"
 done
+
+echo "engage-runner-full smoke: python install + exec (P11c)"
+assert_on_path engage-python-install engage-python-exec
+PYENV_ENV="p11c-smoke"
+install_out="$(run engage-python-install --env "${PYENV_ENV}" --package requests --target local 2>&1)" || {
+  echo "engage-runner-full smoke: engage-python-install failed" >&2
+  echo "${install_out}" >&2
+  exit 1
+}
+if ! echo "${install_out}" | grep -q 'engage-python-install: ok'; then
+  echo "engage-runner-full smoke: engage-python-install missing ok marker" >&2
+  echo "${install_out}" >&2
+  exit 1
+fi
+echo "  ok engage-python-install (requests → /tmp/engage/pyenv)"
+exec_out="$(run engage-python-exec --env "${PYENV_ENV}" --script "print('hello from engage-python-exec smoke')" --target local 2>&1)" || {
+  echo "engage-runner-full smoke: engage-python-exec failed" >&2
+  echo "${exec_out}" >&2
+  exit 1
+}
+if ! echo "${exec_out}" | grep -q 'hello from engage-python-exec smoke'; then
+  echo "engage-runner-full smoke: engage-python-exec missing hello output" >&2
+  echo "${exec_out}" >&2
+  exit 1
+fi
+echo "  ok engage-python-exec (hello script)"
 
 echo "OK engage-runner-full smoke"
