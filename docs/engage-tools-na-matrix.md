@@ -7,7 +7,7 @@ python3 scripts/engage/generate-tools-na-matrix.py
 make test-engage-na-matrix
 ```
 
-**Catalog tools:** 158 | **Live enabled (tools.live.yaml):** 113 | **Catalog ∩ live:** 34
+**Catalog tools:** 158 | **Live enabled (tools.live.yaml):** 136 | **Catalog ∩ live:** 46
 
 | Tool | Binary | Category | Status | Reason |
 |------|--------|----------|--------|--------|
@@ -20,7 +20,7 @@ make test-engage-na-matrix
 | `amass_scan` | `amass` | osint | live | enabled in tools.live.yaml |
 | `analyze_target_intelligence` | `analyze` | intelligence | bridge_api | workflow placeholder binary `analyze` |
 | `anew_data_processing` | `anew` | web | runner_N/A | binary not in engage-runner image |
-| `angr_symbolic_execution` | `angr` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `angr_symbolic_execution` | `angr` | web | live | enabled in tools.live.yaml |
 | `api_fuzzer` | `api` | web | bridge_api | in-process MCP bridge handler |
 | `api_schema_analyzer` | `api` | intelligence | bridge_api | in-process MCP bridge handler |
 | `arjun_parameter_discovery` | `arjun` | web | live | enabled in tools.live.yaml |
@@ -37,8 +37,8 @@ make test-engage-na-matrix
 | `bugbounty_osint_gathering` | `bugbounty` | intelligence | bridge_api | workflow placeholder binary `bugbounty` |
 | `bugbounty_reconnaissance_workflow` | `bugbounty` | intelligence | bridge_api | workflow placeholder binary `bugbounty` |
 | `bugbounty_vulnerability_hunting` | `bugbounty` | intelligence | bridge_api | workflow placeholder binary `bugbounty` |
-| `burpsuite_alternative_scan` | `burpsuite` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
-| `burpsuite_scan` | `burpsuite` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `burpsuite_alternative_scan` | `burpsuite` | web | live | enabled in tools.live.yaml |
+| `burpsuite_scan` | `burpsuite` | web | live | enabled in tools.live.yaml |
 | `checkov_iac_scan` | `checkov` | web | bridge_api | workflow placeholder binary `checkov` |
 | `checksec_analyze` | `checksec` | intelligence | bridge_api | workflow placeholder binary `checksec` |
 | `clair_vulnerability_scan` | `clair` | web | bridge_api | workflow placeholder binary `clair` |
@@ -80,8 +80,8 @@ make test-engage-na-matrix
 | `foremost_carving` | `foremost` | web | runner_N/A | binary not in engage-runner image |
 | `format_tool_output_visual` | `format` | web | runner_N/A | binary not in engage-runner image |
 | `gau_discovery` | `gau` | web | live | enabled in tools.live.yaml |
-| `gdb_analyze` | `gdb` | binary | permanent_N/A | GUI or heavy stack — out of runner image by design |
-| `gdb_peda_debug` | `gdb` | binary | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `gdb_analyze` | `gdb` | binary | live | enabled in tools.live.yaml |
+| `gdb_peda_debug` | `gdb` | binary | live | enabled in tools.live.yaml |
 | `generate_exploit_from_cve` | `generate` | web | bridge_api | workflow placeholder binary `generate` |
 | `generate_payload` | `generate` | web | bridge_api | workflow placeholder binary `generate` |
 | `get_cache_stats` | `get` | web | bridge_api | workflow placeholder binary `get` |
@@ -89,11 +89,11 @@ make test-engage-na-matrix
 | `get_process_dashboard` | `get` | web | bridge_api | workflow placeholder binary `get` |
 | `get_process_status` | `get` | web | bridge_api | workflow placeholder binary `get` |
 | `get_telemetry` | `get` | web | bridge_api | workflow placeholder binary `get` |
-| `ghidra_analysis` | `ghidra` | binary | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `ghidra_analysis` | `ghidra` | binary | live | enabled in tools.live.yaml |
 | `gobuster_scan` | `gobuster` | web | live | enabled in tools.live.yaml |
 | `graphql_scanner` | `graphql` | web | runner_N/A | binary not in engage-runner image |
 | `hakrawler_crawl` | `hakrawler` | web | runner_N/A | binary not in engage-runner image |
-| `hashcat_crack` | `hashcat` | auth | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `hashcat_crack` | `hashcat` | auth | live | enabled in tools.live.yaml |
 | `hashpump_attack` | `hashpump` | web | runner_N/A | binary not in engage-runner image |
 | `http_framework_test` | `http` | web | bridge_api | workflow placeholder binary `http` |
 | `http_intruder` | `http` | web | bridge_api | workflow placeholder binary `http` |
@@ -105,7 +105,7 @@ make test-engage-na-matrix
 | `install_python_package` | `install` | web | runner_N/A | binary not in engage-runner image |
 | `intelligent_smart_scan` | `intelligent` | web | runner_N/A | binary not in engage-runner image |
 | `jaeles_vulnerability_scan` | `jaeles` | web | live | enabled in tools.live.yaml |
-| `john_crack` | `john` | auth | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `john_crack` | `john` | auth | live | enabled in tools.live.yaml |
 | `jwt_analyzer` | `jwt` | intelligence | runner_N/A | binary not in engage-runner image |
 | `katana_crawl` | `katana` | web | live | enabled in tools.live.yaml |
 | `kube_bench_cis` | `kube` | cloud | bridge_api | workflow placeholder binary `kube` |
@@ -114,7 +114,7 @@ make test-engage-na-matrix
 | `list_active_processes` | `list` | web | bridge_api | workflow placeholder binary `list` |
 | `list_files` | `list` | web | bridge_api | workflow placeholder binary `list` |
 | `masscan_high_speed` | `masscan` | network | live | enabled in tools.live.yaml |
-| `metasploit_run` | `metasploit` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `metasploit_run` | `metasploit` | web | live | enabled in tools.live.yaml |
 | `modify_file` | `modify` | web | runner_N/A | binary not in engage-runner image |
 | `monitor_cve_feeds` | `monitor` | web | runner_N/A | binary not in engage-runner image |
 | `msfvenom_generate` | `msfvenom` | web | runner_N/A | binary not in engage-runner image |
@@ -135,7 +135,7 @@ make test-engage-na-matrix
 | `pwninit_setup` | `pwninit` | web | runner_N/A | binary not in engage-runner image |
 | `pwntools_exploit` | `pwntools` | web | runner_N/A | binary not in engage-runner image |
 | `qsreplace_parameter_replacement` | `qsreplace` | web | runner_N/A | binary not in engage-runner image |
-| `radare2_analyze` | `radare2` | binary | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `radare2_analyze` | `radare2` | binary | live | enabled in tools.live.yaml |
 | `research_zero_day_opportunities` | `research` | web | runner_N/A | binary not in engage-runner image |
 | `responder_credential_harvest` | `responder` | web | runner_N/A | binary not in engage-runner image |
 | `resume_process` | `resume` | web | runner_N/A | binary not in engage-runner image |
@@ -159,12 +159,12 @@ make test-engage-na-matrix
 | `trivy_scan` | `trivy` | cloud | live | enabled in tools.live.yaml |
 | `uro_url_filtering` | `uro` | web | runner_N/A | binary not in engage-runner image |
 | `volatility3_analyze` | `volatility3` | intelligence | runner_N/A | binary not in engage-runner image |
-| `volatility_analyze` | `volatility` | intelligence | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `volatility_analyze` | `volatility` | intelligence | live | enabled in tools.live.yaml |
 | `vulnerability_intelligence_dashboard` | `vulnerability` | intelligence | runner_N/A | binary not in engage-runner image |
 | `wafw00f_scan` | `wafw00f` | web | live | enabled in tools.live.yaml |
 | `waybackurls_discovery` | `waybackurls` | web | live | enabled in tools.live.yaml |
 | `wfuzz_scan` | `wfuzz` | web | runner_N/A | binary not in engage-runner image |
-| `wpscan_analyze` | `wpscan` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `wpscan_analyze` | `wpscan` | web | live | enabled in tools.live.yaml |
 | `x8_parameter_discovery` | `x8` | web | live | enabled in tools.live.yaml |
 | `xsser_scan` | `xsser` | web | runner_N/A | binary not in engage-runner image |
 | `xxd_hexdump` | `xxd` | web | runner_N/A | binary not in engage-runner image |

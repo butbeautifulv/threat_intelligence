@@ -19,6 +19,9 @@ RUNNER_BINARIES = frozenset({
     "dnsenum", "fierce", "hydra", "wafw00f", "enum4linux", "enum4linux-ng",
     "sslscan", "testssl", "dirb",
     "whatweb", "nbtscan", "binwalk", "jaeles", "x8",
+    # P9g: engage-runner-full (headless wrappers)
+    "burpsuite", "ghidra", "hashcat", "john", "gdb", "metasploit",
+    "angr", "radare2", "volatility", "wpscan",
 })
 
 # Phase audit P0: align with apt packages in deploy/engage/docker/runner.Dockerfile.
@@ -58,6 +61,16 @@ PREFERRED = {
     "binwalk": "binwalk_analyze",
     "jaeles": "jaeles_vulnerability_scan",
     "x8": "x8_parameter_discovery",
+    "burpsuite": "burpsuite_scan",
+    "ghidra": "ghidra_analysis",
+    "hashcat": "hashcat_crack",
+    "john": "john_crack",
+    "gdb": "gdb_analyze",
+    "metasploit": "metasploit_run",
+    "angr": "angr_symbolic_execution",
+    "radare2": "radare2_analyze",
+    "volatility": "volatility_analyze",
+    "wpscan": "wpscan_analyze",
 }
 
 
@@ -212,6 +225,18 @@ def main() -> int:
         ("hydra_http", "hydra", "hydra_attack"),
         ("wafw00f_aggressive", "wafw00f", "wafw00f_scan"),
         ("dirb_small", "dirb", "dirb_scan"),
+        # P9g: heavy stack (runner-full)
+        ("burpsuite_alt_headless", "burpsuite", "burpsuite_scan"),
+        ("ghidra_quick", "ghidra", "ghidra_analysis"),
+        ("hashcat_dict", "hashcat", "hashcat_crack"),
+        ("john_wordlist", "john", "john_crack"),
+        ("gdb_batch", "gdb", "gdb_analyze"),
+        ("gdb_peda_batch", "gdb", "gdb_peda_debug"),
+        ("metasploit_resource", "metasploit", "metasploit_run"),
+        ("angr_quick", "angr", "angr_symbolic_execution"),
+        ("radare2_headless", "radare2", "radare2_analyze"),
+        ("volatility_mem", "volatility", "volatility_analyze"),
+        ("wpscan_enum", "wpscan", "wpscan_analyze"),
     ]
     synthetic_blocks: list[str] = []
     for new_name, binary, src in SYNTHETIC:

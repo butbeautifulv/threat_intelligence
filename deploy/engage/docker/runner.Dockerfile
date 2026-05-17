@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 # Toolbox image for subprocess tools (nmap, nuclei, …). Not distroless.
+# Targets: engage-runner (default tier-1), engage-runner-full (P9g heavy stack).
 FROM golang:1.25-bookworm AS pd
 RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
     go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
@@ -15,7 +16,7 @@ RUN go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
     go install github.com/jaeles-project/jaeles@latest && \
     go install github.com/Sh1Yo/x8/cmd/x8@latest
 
-FROM debian:bookworm-slim
+FROM debian:bookworm-slim AS runner-os
 ARG APT_MIRROR=
 RUN set -eux; \
     if [ -n "${APT_MIRROR}" ]; then \
@@ -52,10 +53,40 @@ RUN curl -fsSL -o /tmp/trivy.tgz \
     "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
   && tar -xzf /tmp/trivy.tgz -C /usr/local/bin trivy \
   && rm /tmp/trivy.tgz && chmod +x /usr/local/bin/trivy
-# paramspider expects output dir; wrapper for non-interactive runs
 RUN printf '%s\n' '#!/bin/sh' 'exec paramspider "$@"' > /usr/local/bin/paramspider-cli \
   && chmod +x /usr/local/bin/paramspider-cli
 RUN useradd -r -u 10001 runner
+
+FROM runner-os AS engage-runner
 USER 10001
 WORKDIR /tmp/engage
 CMD ["sleep", "infinity"]
+
+# P9g: tier-1 + heavy stack (headless wrappers). Build: --target engage-runner-full
+FROM engage-runner AS engage-runner-full
+USER root
+RUN set -eux; \
+    apt-get update && apt-get install -y --no-install-recommends \
+      hashcat john gdb radare2 metasploit-framework \
+      default-jre-headless ruby ruby-dev build-essential zlib1g-dev libxml2-dev libcurl4-openssl-dev libssl-dev pkg-config \
+      unzip wget \
+    && gem install wpscan --no-document \
+    && mkdir -p /opt/wpscan \
+    && WPSCAN_GEM="$(command -v wpscan)" && cp "$WPSCAN_GEM" /opt/wpscan/wpscan-bin \
+    && pip3 install --break-system-packages --no-cache-dir angr volatility3 \
+    && rm -rf /var/lib/apt/lists/*
+ARG BURP_VERSION=2024.11.2
+RUN mkdir -p /opt/burp \
+  && wget -q -O /opt/burp/burpsuite_community.jar \
+    "https://portswigger-cdn.net/burp/releases/download?product=community&version=${BURP_VERSION}&type=Jar"
+ARG GHIDRA_VERSION=11.2.1
+RUN wget -q -O /tmp/ghidra.zip \
+    "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_${GHIDRA_VERSION}_build/ghidra_${GHIDRA_VERSION}_PUBLIC_20241105.zip" \
+  && unzip -q /tmp/ghidra.zip -d /opt \
+  && mv /opt/ghidra_* /opt/ghidra \
+  && rm -f /tmp/ghidra.zip
+COPY deploy/engage/docker/wrappers/ /usr/local/bin/
+RUN chmod +x /usr/local/bin/burpsuite /usr/local/bin/ghidra /usr/local/bin/hashcat \
+    /usr/local/bin/john /usr/local/bin/gdb /usr/local/bin/metasploit /usr/local/bin/angr \
+    /usr/local/bin/radare2 /usr/local/bin/volatility /usr/local/bin/wpscan
+USER 10001

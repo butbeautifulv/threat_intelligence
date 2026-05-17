@@ -27,6 +27,43 @@ tools:
     timeout_sec: 300
     description: "osint tool: amass scan"
     enabled: true
+  - name: angr_symbolic_execution
+    category: web
+    binary: angr
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: script_content
+        type: string
+        default: ""
+        required: false
+      - name: find_address
+        type: string
+        default: ""
+        required: false
+      - name: avoid_addresses
+        type: string
+        default: ""
+        required: false
+      - name: analysis_type
+        type: string
+        default: "symbolic"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: angr symbolic execution"
+    enabled: true
   - name: arjun_scan
     category: web
     binary: arjun
@@ -134,6 +171,78 @@ tools:
       - "{additional_args}"
     timeout_sec: 300
     description: "binary tool: binwalk analyze"
+    enabled: true
+  - name: burpsuite_scan
+    category: web
+    binary: burpsuite
+    parameters:
+      - name: project_file
+        type: string
+        default: ""
+        required: false
+      - name: config_file
+        type: string
+        default: ""
+        required: false
+      - name: target
+        type: string
+        default: ""
+        required: false
+      - name: headless
+        type: string
+        default: "False"
+        required: false
+      - name: scan_type
+        type: string
+        default: ""
+        required: false
+      - name: scan_config
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: burpsuite scan"
+    enabled: true
+  - name: burpsuite_alternative_scan
+    category: web
+    binary: burpsuite
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "comprehensive"
+        required: false
+      - name: headless
+        type: string
+        default: "True"
+        required: false
+      - name: max_depth
+        type: string
+        default: "3"
+        required: false
+      - name: max_pages
+        type: string
+        default: "50"
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: burpsuite alternative scan"
     enabled: true
   - name: dalfox_xss_scan
     category: web
@@ -460,6 +569,103 @@ tools:
     timeout_sec: 300
     description: "web tool: gau discovery"
     enabled: true
+  - name: gdb_analyze
+    category: binary
+    binary: gdb
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: commands
+        type: string
+        default: ""
+        required: false
+      - name: script_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: gdb analyze"
+    enabled: true
+  - name: gdb_peda_debug
+    category: binary
+    binary: gdb
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        default: ""
+        required: false
+      - name: commands
+        type: string
+        default: ""
+        required: false
+      - name: attach_pid
+        type: string
+        default: "0"
+        required: false
+      - name: core_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: gdb peda debug"
+    enabled: true
+  - name: ghidra_analysis
+    category: binary
+    binary: ghidra
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: project_name
+        type: string
+        default: "hexstrike_analysis"
+        required: false
+      - name: script_file
+        type: string
+        default: ""
+        required: false
+      - name: analysis_timeout
+        type: string
+        default: "300"
+        required: false
+      - name: output_format
+        type: string
+        default: "xml"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: ghidra analysis"
+    enabled: true
   - name: gobuster_scan
     category: web
     binary: gobuster
@@ -491,6 +697,46 @@ tools:
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: gobuster scan"
+    enabled: true
+  - name: hashcat_crack
+    category: auth
+    binary: hashcat
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: hash_file
+        type: string
+        required: true
+      - name: hash_type
+        type: string
+        required: true
+      - name: attack_mode
+        type: string
+        default: "0"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/rockyou.txt"
+        required: false
+      - name: mask
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-m"
+      - "{hash_type}"
+      - "-a"
+      - "{attack_mode}"
+      - "{hash_file}"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "auth tool: hashcat crack"
     enabled: true
   - name: httpx_probe
     category: web
@@ -617,6 +863,35 @@ tools:
     timeout_sec: 300
     description: "web tool: jaeles vulnerability scan"
     enabled: true
+  - name: john_crack
+    category: auth
+    binary: john
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: hash_file
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/rockyou.txt"
+        required: false
+      - name: format_type
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{hash_file}"
+      - "--wordlist={wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "auth tool: john crack"
+    enabled: true
   - name: katana_crawl
     category: web
     binary: katana
@@ -698,6 +973,26 @@ tools:
       - "{additional_args}"
     timeout_sec: 300
     description: "network tool: masscan high speed"
+    enabled: true
+  - name: metasploit_run
+    category: web
+    binary: metasploit
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: module
+        type: string
+        required: true
+      - name: options
+        type: string
+        required: true
+    args:
+      - "-r"
+      - "{resource}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: metasploit run"
     enabled: true
   - name: nbtscan_netbios
     category: web
@@ -923,6 +1218,31 @@ tools:
     timeout_sec: 300
     description: "web tool: paramspider mining"
     enabled: true
+  - name: radare2_analyze
+    category: binary
+    binary: radare2
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: commands
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-f"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: radare2 analyze"
+    enabled: true
   - name: rustscan_fast_scan
     category: network
     binary: rustscan
@@ -1055,6 +1375,33 @@ tools:
     timeout_sec: 300
     description: "cloud tool: trivy scan"
     enabled: true
+  - name: volatility_analyze
+    category: intelligence
+    binary: volatility
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: memory_file
+        type: string
+        required: true
+      - name: plugin
+        type: string
+        required: true
+      - name: profile
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "intelligence tool: volatility analyze"
+    enabled: true
   - name: wafw00f_scan
     category: web
     binary: wafw00f
@@ -1101,6 +1448,27 @@ tools:
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: waybackurls discovery"
+    enabled: true
+  - name: wpscan_analyze
+    category: web
+    binary: wpscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--url"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: wpscan analyze"
     enabled: true
   - name: x8_parameter_discovery
     category: web
@@ -3871,5 +4239,354 @@ tools:
       - "{additional_args}"
     timeout_sec: 300
     description: "web tool: dirb scan"
+    enabled: true
+
+  - name: burpsuite_alt_headless
+    category: web
+    binary: burpsuite
+    parameters:
+      - name: project_file
+        type: string
+        default: ""
+        required: false
+      - name: config_file
+        type: string
+        default: ""
+        required: false
+      - name: target
+        type: string
+        default: ""
+        required: false
+      - name: headless
+        type: string
+        default: "False"
+        required: false
+      - name: scan_type
+        type: string
+        default: ""
+        required: false
+      - name: scan_config
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: burpsuite scan"
+    enabled: true
+
+  - name: ghidra_quick
+    category: binary
+    binary: ghidra
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: project_name
+        type: string
+        default: "hexstrike_analysis"
+        required: false
+      - name: script_file
+        type: string
+        default: ""
+        required: false
+      - name: analysis_timeout
+        type: string
+        default: "300"
+        required: false
+      - name: output_format
+        type: string
+        default: "xml"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: ghidra analysis"
+    enabled: true
+
+  - name: hashcat_dict
+    category: auth
+    binary: hashcat
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: hash_file
+        type: string
+        required: true
+      - name: hash_type
+        type: string
+        required: true
+      - name: attack_mode
+        type: string
+        default: "0"
+        required: false
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/rockyou.txt"
+        required: false
+      - name: mask
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-m"
+      - "{hash_type}"
+      - "-a"
+      - "{attack_mode}"
+      - "{hash_file}"
+      - "{wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "auth tool: hashcat crack"
+    enabled: true
+
+  - name: john_wordlist
+    category: auth
+    binary: john
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: hash_file
+        type: string
+        required: true
+      - name: wordlist
+        type: string
+        default: "/usr/share/wordlists/rockyou.txt"
+        required: false
+      - name: format_type
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{hash_file}"
+      - "--wordlist={wordlist}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "auth tool: john crack"
+    enabled: true
+
+  - name: gdb_batch
+    category: binary
+    binary: gdb
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: commands
+        type: string
+        default: ""
+        required: false
+      - name: script_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: gdb analyze"
+    enabled: true
+
+  - name: gdb_peda_batch
+    category: binary
+    binary: gdb
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        default: ""
+        required: false
+      - name: commands
+        type: string
+        default: ""
+        required: false
+      - name: attach_pid
+        type: string
+        default: "0"
+        required: false
+      - name: core_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: gdb peda debug"
+    enabled: true
+
+  - name: metasploit_resource
+    category: web
+    binary: metasploit
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: module
+        type: string
+        required: true
+      - name: options
+        type: string
+        required: true
+    args:
+      - "-r"
+      - "{resource}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: metasploit run"
+    enabled: true
+
+  - name: angr_quick
+    category: web
+    binary: angr
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: script_content
+        type: string
+        default: ""
+        required: false
+      - name: find_address
+        type: string
+        default: ""
+        required: false
+      - name: avoid_addresses
+        type: string
+        default: ""
+        required: false
+      - name: analysis_type
+        type: string
+        default: "symbolic"
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: angr symbolic execution"
+    enabled: true
+
+  - name: radare2_headless
+    category: binary
+    binary: radare2
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: binary
+        type: string
+        required: true
+      - name: commands
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "-f"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "binary tool: radare2 analyze"
+    enabled: true
+
+  - name: volatility_mem
+    category: intelligence
+    binary: volatility
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: memory_file
+        type: string
+        required: true
+      - name: plugin
+        type: string
+        required: true
+      - name: profile
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "intelligence tool: volatility analyze"
+    enabled: true
+
+  - name: wpscan_enum
+    category: web
+    binary: wpscan
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: url
+        type: string
+        required: true
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--url"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: wpscan analyze"
     enabled: true
 
