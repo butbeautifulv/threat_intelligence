@@ -27,4 +27,21 @@ export ENGAGE_RUNNER_PROFILE=full
 
 Lab overlay with docker exec: [compose.runner.yml](compose.runner.yml).
 
+## `ENGAGE_RUNNER_PROFILE=full`
+
+Use the full runner when catalog tools need the P9g heavy stack (Burp, Ghidra, hashcat, Metasploit, angr, etc.):
+
+```bash
+export ENGAGE_RUNNER_PROFILE=full
+export ENGAGE_RUNNER_IMAGE=engage-runner-full
+export ENGAGE_RUNNER_CONTAINER=engage-runner-full
+```
+
+Compose profile `runner-full` builds the same image as Dockerfile target `engage-runner-full`. Local verification (skips if Docker is unavailable):
+
+```bash
+make test-engage-runner-full-smoke
+# or: ./scripts/test/smoke-engage-runner-full.sh
+```
+
 Docs: [docs/engage-tools.md](../../docs/engage-tools.md) · [docs/engage-runtime.md](../../docs/engage-runtime.md)
