@@ -113,6 +113,10 @@ func repoRootFromCatalog(catalogPath string) string {
 }
 
 func setupMatrixBinaryPath(repoRoot string) error {
+	// P11a: in engage-runner-full use the image PATH (real binaries + image wrappers), not host stub dir.
+	if os.Getenv("ENGAGE_MATRIX_IN_RUNNER") == "1" {
+		return nil
+	}
 	wrappers := filepath.Join(repoRoot, "deploy", "engage", "docker", "wrappers")
 	stub := filepath.Join(wrappers, "engage-stub")
 	if _, err := os.Stat(stub); err != nil {

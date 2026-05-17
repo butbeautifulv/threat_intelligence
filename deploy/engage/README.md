@@ -44,6 +44,8 @@ make test-engage-runner-full-smoke
 # or: ./scripts/test/smoke-engage-runner-full.sh
 ```
 
+**P11a executable matrix in runner** (`scripts/test/engage-executable-matrix-runner.sh`): builds `engage-runner-full`, runs `go run ./cmd/executable-matrix` inside the image with `ENGAGE_MATRIX_IN_RUNNER=1` (skips host stub PATH layer; uses image `/usr/local/bin`). Local: `make test-engage-executable-matrix-runner`. CI: set repository variable or workflow env `ENGAGE_MATRIX_IN_RUNNER=1` to enable the `engage-runner-executable-matrix` job in [`.github/workflows/engage.yml`](../../.github/workflows/engage.yml).
+
 **P10d cloud security smoke** (`scripts/test/smoke-engage-runner-full.sh`): after the P9g heavy-stack checks, verifies cloud subprocess tools on the runner image:
 
 | Tool | Check |
