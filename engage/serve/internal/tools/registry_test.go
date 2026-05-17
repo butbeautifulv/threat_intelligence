@@ -34,14 +34,14 @@ func TestLoadCatalog_productionMergeOrder(t *testing.T) {
 	}
 	reg := NewRegistry(specs)
 	enabledCount := len(reg.List())
-	if enabledCount < 100 {
-		t.Fatalf("expected >=100 enabled tools after live overlay, got %d", enabledCount)
+	if enabledCount < 103 {
+		t.Fatalf("expected >=103 subprocess-enabled tools after live overlay, got %d", enabledCount)
 	}
 	s, ok := reg.Get("nmap_scan")
 	if !ok || !s.Enabled {
 		t.Fatal("nmap_scan should be enabled via tools.live.yaml overlay")
 	}
-	if len(reg.ListAll()) < 150 {
-		t.Fatalf("expected full catalog >=150 names, got %d", len(reg.ListAll()))
+	if len(reg.ListAll()) < 158 {
+		t.Fatalf("expected full catalog >=158 names, got %d", len(reg.ListAll()))
 	}
 }
