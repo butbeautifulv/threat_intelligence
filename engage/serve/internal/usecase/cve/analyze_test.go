@@ -25,11 +25,13 @@ func TestAnalyzeExploitability_log4j(t *testing.T) {
 
 func TestClassifyVuln(t *testing.T) {
 	cases := map[string]string{
-		"SQL injection in login":  "sql_injection",
-		"stored cross-site scripting": "xss",
-		"XML external entity expansion": "xxe",
-		"unsafe deserialization": "deserialization",
-		"remote code execution": "rce",
+		"SQL injection in login":        "sql_injection",
+		"stored cross-site scripting":   "xss",
+		"XML external entity expansion":   "xxe",
+		"unsafe deserialization":        "deserialization",
+		"remote code execution":         "rce",
+		"authentication bypass in auth": "authentication_bypass",
+		"stack buffer overflow":         "buffer_overflow",
 	}
 	for desc, want := range cases {
 		if got := ClassifyVuln(desc); got != want {
