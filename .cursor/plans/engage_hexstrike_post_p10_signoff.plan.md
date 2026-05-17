@@ -16,7 +16,7 @@ todos:
     status: pending
   - id: p11-decommission-external
     content: "P11d: .external/hexstrike-ai-master — archive-only, CI guard no import"
-    status: pending
+    status: completed
 isProject: false
 ---
 
