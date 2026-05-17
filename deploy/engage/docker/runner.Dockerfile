@@ -33,7 +33,7 @@ RUN set -eux; \
         whatweb nbtscan binwalk \
         arp-scan exiftool foremost steghide xxd binutils \
         samba-common-bin responder hashpump dotdotpwn xsser \
-        python3 python3-pip \
+        python3 python3-pip python3-venv \
       && break; \
       echo "apt retry $i" >&2; sleep 5; \
     done; \
@@ -84,13 +84,15 @@ RUN set -eux; \
     /usr/local/bin/scout /usr/local/bin/volatility3 /usr/local/bin/msfvenom \
     /usr/local/bin/one /usr/local/bin/libc /usr/local/bin/jwt /usr/local/bin/pwntools \
     /usr/local/bin/ropgadget /usr/local/bin/netexec /usr/local/bin/pacu \
-    /usr/local/bin/prowler /usr/local/bin/pwninit /usr/local/bin/terrascan /usr/local/bin/zap; \
-  for b in correlate delete detect discover display error format install intelligent \
+    /usr/local/bin/prowler /usr/local/bin/pwninit /usr/local/bin/terrascan /usr/local/bin/zap \
+    /usr/local/bin/engage-python-install /usr/local/bin/engage-python-exec; \
+  for b in correlate delete detect discover display error format intelligent \
     modify monitor optimize pause research resume select server terminate test threat \
     vulnerability falco graphql kube kube-hunter kube-bench checkov clair; do \
     ln -sf engage-stub "/usr/local/bin/$b"; \
   done; \
   ln -sf docker /usr/local/bin/docker-bench-security
+ENV ENGAGE_PYTHON_BASE=/tmp/engage/pyenv
 RUN useradd -r -u 10001 runner
 
 FROM runner-os AS engage-runner

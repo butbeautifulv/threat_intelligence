@@ -1644,7 +1644,7 @@ tools:
     enabled: false
   - name: execute_python_script
     category: web
-    binary: execute
+    binary: engage-python-exec
     parameters:
       - name: target
         type: string
@@ -1661,12 +1661,17 @@ tools:
         default: ""
         required: false
     args:
-      - "-u"
+      - "--env"
+      - "{env_name}"
+      - "--script"
+      - "{script}"
+      - "--filename"
+      - "{filename}"
+      - "--target"
       - "{target}"
-      - "{additional_args}"
     timeout_sec: 300
     description: "web tool: execute python script"
-    enabled: false
+    enabled: true
   - name: exiftool_extract
     category: web
     binary: exiftool
@@ -2529,7 +2534,7 @@ tools:
     enabled: true
   - name: install_python_package
     category: web
-    binary: install
+    binary: engage-python-install
     parameters:
       - name: target
         type: string
@@ -2542,9 +2547,12 @@ tools:
         default: "default"
         required: false
     args:
-      - "-u"
+      - "--env"
+      - "{env_name}"
+      - "--package"
+      - "{package}"
+      - "--target"
       - "{target}"
-      - "{additional_args}"
     timeout_sec: 300
     description: "web tool: install python package"
     enabled: true

@@ -60,6 +60,8 @@ PREFERRED = {
     "radare2": "radare2_analyze",
     "volatility": "volatility_analyze",
     "wpscan": "wpscan_analyze",
+    "engage-python-install": "install_python_package",
+    "engage-python-exec": "execute_python_script",
 }
 
 

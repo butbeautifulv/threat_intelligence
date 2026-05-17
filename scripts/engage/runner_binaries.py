@@ -30,4 +30,12 @@ RUNNER_BINARIES_P9I = frozenset({
     "threat", "uro", "volatility3", "vulnerability", "wfuzz", "xsser", "xxd", "zap",
 })
 
-RUNNER_BINARIES = RUNNER_BINARIES_TIER1 | RUNNER_BINARIES_FULL | RUNNER_BINARIES_P9I
+# P10b: PythonEnvironmentManager wrappers on engage-runner PATH.
+RUNNER_BINARIES_P10B = frozenset({
+    "engage-python-install",
+    "engage-python-exec",
+})
+
+RUNNER_BINARIES = (
+    RUNNER_BINARIES_TIER1 | RUNNER_BINARIES_FULL | RUNNER_BINARIES_P9I | RUNNER_BINARIES_P10B
+)

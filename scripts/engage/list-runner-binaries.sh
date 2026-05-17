@@ -11,6 +11,7 @@ bins=(
   arjun dirsearch paramspider rustscan trivy
   dnsenum fierce hydra wafw00f enum4linux enum4linux-ng sslscan testssl dirb
   whatweb nbtscan binwalk jaeles x8
+  engage-python-install engage-python-exec
   # P9i: remaining catalog subprocess binaries
   anew arp correlate delete detect discover display docker dotdotpwn error exiftool
   falco foremost format graphql hakrawler hashpump install intelligent jwt libc modify

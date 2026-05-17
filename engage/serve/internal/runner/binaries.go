@@ -22,6 +22,7 @@ var CatalogBinaries = map[string]struct{}{
 	"select": {}, "server": {}, "smbmap": {}, "steghide": {}, "strings": {}, "terminate": {},
 	"terrascan": {}, "test": {}, "threat": {}, "uro": {}, "volatility3": {},
 	"vulnerability": {}, "wfuzz": {}, "xsser": {}, "xxd": {}, "zap": {},
+	"engage-python-install": {}, "engage-python-exec": {},
 }
 
 // IsCatalogBinary reports whether name is a known engage-runner catalog binary.

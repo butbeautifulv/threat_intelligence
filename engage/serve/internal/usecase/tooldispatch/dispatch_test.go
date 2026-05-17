@@ -3,14 +3,19 @@ package tooldispatch
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/butbeautifulv/veil/pkg/engage/domain/tool"
+	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/cve"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/process"
+	"github.com/butbeautifulv/veil/pkg/engage/contract"
 	"github.com/butbeautifulv/veil/pkg/engage/toolid"
 )
 
@@ -80,6 +85,119 @@ func TestDispatch_getProcessDashboard(t *testing.T) {
 	}
 	if out == nil {
 		t.Fatal("expected dashboard")
+	}
+}
+
+func engageRepoRoot(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller failed")
+	}
+	root := filepath.Join(filepath.Dir(file), "..", "..", "..", "..", "..")
+	abs, err := filepath.Abs(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(abs, "deploy", "engage", "docker", "wrappers")); err != nil {
+		t.Fatalf("repo root: %v", err)
+	}
+	return abs
+}
+
+func prependEngagePythonWrappers(t *testing.T) {
+	t.Helper()
+	wrap := filepath.Join(engageRepoRoot(t), "deploy", "engage", "docker", "wrappers")
+	for _, name := range []string{"engage-python-install", "engage-python-exec"} {
+		if _, err := os.Stat(filepath.Join(wrap, name)); err != nil {
+			t.Fatalf("missing wrapper %s: %v", name, err)
+		}
+	}
+	t.Setenv("PATH", wrap+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("ENGAGE_PYTHON_BASE", filepath.Join(t.TempDir(), "pyenv"))
+}
+
+func TestIsBridgeWorkflowBinary_pythonRunnerBinaries(t *testing.T) {
+	for _, bin := range []string{"engage-python-install", "engage-python-exec"} {
+		if IsBridgeWorkflowBinary(bin) {
+			t.Fatalf("binary %q should run via subprocess runner, not workflow bridge", bin)
+		}
+	}
+}
+
+func TestDispatch_pythonTools_useRunnerNotBridge(t *testing.T) {
+	prependEngagePythonWrappers(t)
+	reg := tools.NewRegistry([]tool.Spec{
+		{
+			Name:       "install_python_package",
+			Binary:     "engage-python-install",
+			Category:   toolid.CategoryWeb,
+			Enabled:    true,
+			TimeoutSec: 300,
+			Parameters: []tool.Param{
+				{Name: "target", Required: true},
+				{Name: "package", Required: true},
+				{Name: "env_name", Default: "default"},
+			},
+			ArgsTemplate: []string{"--env", "{env_name}", "--package", "{package}", "--target", "{target}"},
+		},
+		{
+			Name:       "execute_python_script",
+			Binary:     "engage-python-exec",
+			Category:   toolid.CategoryWeb,
+			Enabled:    true,
+			TimeoutSec: 300,
+			Parameters: []tool.Param{
+				{Name: "target", Required: true},
+				{Name: "script", Required: true},
+				{Name: "env_name", Default: "default"},
+				{Name: "filename", Default: ""},
+			},
+			ArgsTemplate: []string{
+				"--env", "{env_name}", "--script", "{script}",
+				"--filename", "{filename}", "--target", "{target}",
+			},
+		},
+	})
+	run := &toolsuc.Runner{Registry: reg, Exec: &runner.Executor{}}
+	d := NewDispatcher(run, nil, nil, nil, nil, nil, nil, nil, "", nil)
+
+	for _, tc := range []struct {
+		tool string
+		args map[string]any
+	}{
+		{
+			tool: "install_python_package",
+			args: map[string]any{"target": "local", "package": "six"},
+		},
+		{
+			tool: "execute_python_script",
+			args: map[string]any{"target": "local", "script": "print('engage-p10b')"},
+		},
+	} {
+		t.Run(tc.tool, func(t *testing.T) {
+			out, err := d.Dispatch(context.Background(), "", tc.tool, tc.args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, ok := out.(map[string]any); ok {
+				t.Fatalf("%s: expected runner ToolRunResponse, got workflow bridge map", tc.tool)
+			}
+			res, ok := out.(contract.ToolRunResponse)
+			if !ok {
+				t.Fatalf("%s: unexpected result type %T", tc.tool, out)
+			}
+			if res.Tool != tc.tool {
+				t.Fatalf("tool = %q", res.Tool)
+			}
+			// Binary may be absent on dev PATH; runner path must still be taken.
+			if res.Success {
+				return
+			}
+			if res.Error == "" {
+				t.Fatal("expected error when binary missing or command failed")
+			}
+		})
 	}
 }
 
