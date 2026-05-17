@@ -126,8 +126,8 @@ They solve **different** problems today. Unifying the **name** without splitting
 |-----------|-------|--------|
 | Decision / attack chain / tool selection | `engage/.../intelligence/` | `pkg/decision` (+ graph client interface) |
 | Report generation | `engage/.../report/` | `pkg/report` |
-| Browser automation | `engage/.../browser/` | `discovery/` worker or `scrape/.../browser/` |
-| HTTP route tables / MCP handlers | duplicated graph vs engage | `pkg/api`, `pkg/mcp` + small `cmd/` wiring |
+| Browser automation | `engage/.../browser/` | `discovery/` worker (after P8h) |
+| HTTP route tables / MCP handlers | duplicated knowledge vs engage | `pkg/api`, `pkg/mcp` + small `cmd/` wiring |
 | Domain entities | mostly `pkg/engage/domain`, `pkg/ti/domain` | finish P7 contour ([domain-contour.md](domain-contour.md)) |
 
 ---
