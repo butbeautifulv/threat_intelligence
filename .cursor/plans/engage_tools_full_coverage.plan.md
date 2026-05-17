@@ -1,147 +1,141 @@
 ---
-name: Engage tools full coverage (158 → full port)
-overview: "Полный порт HexStrike: 158/158 executable (HTTP+MCP). Нет permanent_N/A — heavy stack в engage-runner-full."
+name: Engage HexStrike full port (158 executable)
+overview: "Честный full port: 158/158 callable (HTTP+MCP), tools.live = catalog names only, runner_N/A=0, CI P9f, Docker smoke."
 todos:
-  - id: p9a-metrics-docs
-    content: "P9a: Метрики — 158 catalog / live / bridge / subprocess; README KPI full port"
-    status: pending
   - id: p9b-unified-dispatch
-    content: "P9b: Единый ToolExecutor — bridge/playbook/agent до Runner; HTTP + MCP"
+    content: "P9b: unified tooldispatch HTTP+MCP"
     status: completed
   - id: p9c-bridge-coverage
-    content: "P9c: 55 bridge_api — handlers/playbooks; test-engage-bridge-coverage"
+    content: "P9c: bridge 55/55"
     status: completed
-  - id: p9d-runner-breadth
-    content: "P9d: runner tier-1 breadth + tools.live (57 runner_N/A → live)"
-    status: cancelled
   - id: p9g-heavy-runner
-    content: "P9g: Heavy stack в runner — burp, ghidra, hashcat, john, gdb, msf, angr, r2, volatility, wpscan (12 tools)"
+    content: "P9g: heavy wrappers in runner"
     status: completed
-  - id: p9f-ci-gate
-    content: "P9f: test-engage-executable-matrix — 158/158 (subprocess+bridge)"
-    status: pending
+  - id: p9f-executable-matrix
+    content: "P9f: check-executable-matrix + make test-engage-executable-matrix (158/158)"
+    status: in_progress
+  - id: p9h-catalog-live-sync
+    content: "P9h: tools.live = 1:1 catalog names; убрать 90 orphan synthetic; subprocess enabled"
+    status: in_progress
+  - id: p9i-runner-remaining-binaries
+    content: "P9i: закрыть ~57 runner_N/A — Dockerfile + RUNNER_BINARIES + LookupBinary"
+    status: in_progress
+  - id: p9j-runner-full-smoke
+    content: "P9j: Docker smoke engage-runner-full — sample + matrix subprocess"
+    status: in_progress
+  - id: p9k-docs-honest-kpi
+    content: "P9k: README, engage-audit, engage-legacy-parity — три метрики, не «готово» одним словом"
+    status: in_progress
 isProject: false
 ---
 
-# Engage — полный порт каталога (158/158)
+# HexStrike full port — execution wave (post-P9b/c/g)
 
-## Политика покрытия (operator)
+**Prerequisite on main:** P9b dispatch, P9c bridge 55/55, P9g heavy wrappers (`7cbf556`).
 
-**Нет исключений permanent_N/A.** Все 158 имён каталога должны быть **исполняемы** (MCP + HTTP):
+## Problem (honest)
 
-| Путь | Инструменты |
-|------|-------------|
-| **bridge** | ~55 intel / CTF / BB / agent (in-process) |
-| **subprocess (runner)** | ~103 CLI — включая «тяжёлые» 12 |
+| Metric | Today | Target |
+|--------|-------|--------|
+| Catalog names | 158 | 158 |
+| `tools.live` rows | 136 (90 **orphan** names not in catalog) | **158** rows = catalog only |
+| Catalog names `enabled` in live | ~46 | **~103** subprocess `enabled: true` |
+| `runner_N/A` in matrix | ~57 | **0** |
+| `make test-engage-executable-matrix` | missing | **158/158** |
 
-### 12 бывших permanent_N/A → P9g (headless в runner)
-
-| Binary | Catalog tool(s) | Установка (target) |
-|--------|-----------------|-------------------|
-| `burpsuite` | burpsuite_scan, burpsuite_alternative_scan | Community JAR + wrapper CLI |
-| `ghidra` | ghidra_analysis | Ghidra + `analyzeHeadless` |
-| `hashcat` | hashcat_crack | apt `hashcat` |
-| `john` | john_crack | apt `john` |
-| `hydra` | hydra_attack | apt `hydra` (уже в runner) |
-| `gdb` | gdb_analyze, gdb_peda_debug | apt `gdb` (+ peda optional) |
-| `metasploit` | metasploit_run | `msfconsole -q -x` wrapper или msfvenom batch |
-| `angr` | angr_symbolic_execution | pip `angr` + thin Python driver script |
-| `radare2` | radare2_analyze | apt `radare2` |
-| `volatility` | volatility_analyze | pip volatility3 + wrapper |
-| `wpscan` | wpscan_analyze | gem или официальный Docker-stage copy binary |
-
-Образ: расширить [runner.Dockerfile](../../deploy/engage/docker/runner.Dockerfile) или профиль **`engage-runner-full`** ([compose.runner.yml](../../deploy/engage/compose.runner.yml)).
-
-**Удалить:** `PERMANENT_NA_BINARIES` из [generate-tools-na-matrix.py](../../scripts/engage/generate-tools-na-matrix.py) — классификация только `live` | `bridge_api` | `runner_pending`.
+**Sign-off 2026-05-16** = decommission `:8888` + name/route parity, **not** full subprocess clone.
 
 ---
 
-## Почему сейчас «113 live»
+## P9f — Executable matrix CI
 
-| Метрика | Значение |
-|---------|----------|
-| **158** | `tools.yaml` — все имена |
-| **113** | `tools.live.yaml` — subprocess enabled (lab slice) |
-| **~55** | bridge — MCP only сегодня; HTTP после P9b |
-| **~57+12** | не в live / считались permanent — **закрываем P9d+P9g** |
+**Branch:** `engage/p9f-executable-matrix`
 
----
+- [ ] `scripts/engage/check-executable-matrix.py` — for each catalog name: `tooldispatch` classify + minimal dispatch (unit) or HTTP against test API
+- [ ] Success = `success:true` OR structured bridge stub (not `tool disabled`, not `unknown tool`)
+- [ ] `make test-engage-executable-matrix`; wire `.github/workflows/engage.yml`
+- [ ] Fail report: `docs/engage-executable-gaps.md` (auto)
 
-## Целевое покрытие
-
-| Цель | Число | Критерий |
-|------|-------|----------|
-| **Catalog parity** | 158 | `make test-engage-parity` |
-| **Executable (full port)** | **158** | `make test-engage-executable-matrix` — каждый tool success/stub |
-| **Subprocess live** | **~103** | все non-bridge с бинарником в runner-full |
-| **Bridge** | **55** | `make test-engage-bridge-coverage` |
-
-~~P9e permanent_N/A~~ — **отменено** (заменено P9g).
+**DoD:** gate passes 158/158 on main after P9h+i merged.
 
 ---
 
-## P9b — Unified dispatch
+## P9h — Catalog ↔ live sync
 
-**Branch:** `engage/p9b-unified-tool-dispatch`
+**Branch:** `engage/p9h-catalog-live-sync`
 
-HTTP `POST /api/tools/{name}` = MCP `tools/call` (playbook → agent → bridge → runner).
+- [ ] Replace `generate-tools-live.py` policy OR add `generate-tools-catalog-overlay.py`:
+  - **One row per catalog name** (158)
+  - **bridge_api** (~55): `enabled: false` OK (dispatch uses `Get`, not `MustGet`)
+  - **subprocess**: `enabled: true`
+  - **Drop** synthetic-only names not in `tools.yaml` (nmap_quick_scan clones)
+- [ ] `make test-engage-na-matrix`: live count = subprocess enabled count; orphan = 0
+- [ ] Update `TestLoadCatalog_productionMergeOrder` threshold
 
----
-
-## P9c — Bridge (55)
-
-**Branch:** `engage/p9c-bridge-tool-coverage`
-
----
-
-## P9d — Runner breadth (tier-1 + tier-2 CLI)
-
-**Branch:** `engage/p9d-runner-burp-hydra` / `engage/p9d-runner-breadth`
-
-exiftool, hakrawler, graphql, … + regen `tools.live.yaml`.
+**DoD:** `live in catalog` = 103 subprocess enabled + 55 bridge defined; 0 orphan live rows.
 
 ---
 
-## P9g — Heavy runner (12 tools) — **full port**
+## P9i — Runner remaining binaries (~57)
 
-**Branch:** `engage/p9g-runner-heavy-full`
+**Branch:** `engage/p9i-runner-remaining-binaries`
 
-- [ ] `deploy/engage/docker/runner-heavy.Dockerfile` OR multi-stage в runner.Dockerfile с ARG `RUNNER_PROFILE=full`
-- [ ] Wrappers в `deploy/engage/docker/wrappers/` для headless-only
-- [ ] `RUNNER_BINARIES` + `generate-tools-live.py` — все 12 binary
-- [ ] `LookupBinary` allowlist
-- [ ] Docs: image size, RAM, `ENGAGE_RUNNER_IMAGE=…-full`
+- [ ] Parse `docs/engage-tools-na-matrix.md` `runner_N/A` → install list
+- [ ] `deploy/engage/docker/runner.Dockerfile` + apt/pip/go; wrappers where needed
+- [ ] Extend `RUNNER_BINARIES` in `generate-tools-live.py` / `generate-tools-na-matrix.py`
+- [ ] `engage/serve/internal/runner` LookupBinary allowlist
+- [ ] Regen matrix: `runner_N/A` = 0
 
-**DoD:** 12/12 в `list-runner-binaries.sh`; catalog tools enabled in live; matrix **0 permanent_N/A**.
+**DoD:** `list-runner-binaries.sh` covers every subprocess catalog binary.
 
----
-
-## P9f — CI gate 158/158
-
-**Branch:** `engage/p9f-executable-matrix-ci`
-
-После P9b+c+d+g.
+**Touch-disjoint with P9h:** only Dockerfile + runner allowlist + na-matrix script (P9h owns tools.live.yaml).
 
 ---
 
-## Параллельность
+## P9j — Runner-full Docker smoke
+
+**Branch:** `engage/p9j-runner-full-smoke`
+
+- [ ] `scripts/test/smoke-engage-runner-full.sh` — build runner image, exec sample tools (nmap, burpsuite wrapper, hashcat --help, …)
+- [ ] `make test-engage-runner-full-smoke` (optional CI job, allow skip without Docker)
+- [ ] Document `ENGAGE_RUNNER_PROFILE=full` in deploy/engage/README.md
+
+**DoD:** smoke green when Docker available.
+
+---
+
+## P9k — Honest docs
+
+**Branch:** `engage/p9k-docs-honest-kpi`
+
+- [ ] README: three KPIs (catalog / executable / subprocess-in-runner)
+- [ ] [engage-audit-report.md](../../docs/engage-audit-report.md): amend execution row; link P9f
+- [ ] [engage-legacy-parity.md](../../docs/engage-legacy-parity.md): replace «80 enabled»
+- [ ] AGENTS.md: full port = P9f gate required before claiming «HexStrike execution done»
+
+**DoD:** no doc says «113 live = full port».
+
+---
+
+## Merge order
 
 ```text
-P9b ──► P9c
-  └──► P9d ∥ P9g (heavy Dockerfile touch-disjoint from dispatch)
-         └──► P9f
-P9a anytime
+P9f ∥ P9h ∥ P9i ∥ P9j ∥ P9k  (parallel)
+  → merge P9k, P9i, P9h (conflict: tools.live — P9h last)
+  → merge P9f
+  → orchestrator: regen matrix, test-engage-executable-matrix, push main
 ```
 
-## Verification
+## Verification (orchestrator after all merges)
 
 ```bash
 make test-engage
 make test-engage-parity
 make test-engage-bridge-coverage
-make test-engage-na-matrix          # expect permanent_N/A count = 0
-make test-engage-runner-profile     # full image
-make test-engage-executable-matrix  # 158/158
+make test-engage-na-matrix
+make test-engage-executable-matrix   # 158/158
+make test-engage-runner-full-smoke   # optional Docker
+python3 scripts/engage/generate-tools-na-matrix.py --check
 ```
 
 ---
@@ -150,10 +144,11 @@ make test-engage-executable-matrix  # 158/158
 
 | Phase | Branch | Status |
 |-------|--------|--------|
-| P9a | `engage/p9a-tool-metrics-docs` | pending |
-| P9b | `engage/p9b-unified-tool-dispatch` | done — `be1469e` |
-| P9c | `engage/p9c-bridge-tool-coverage` | done — `4ab733f` |
-| P9d | `engage/p9d-runner-burp-hydra` | skipped (not pushed; P9g covers heavy) |
-| P9g | `engage/p9g-runner-heavy-full` | done — `cdf3d51` |
-| P9f | `engage/p9f-executable-matrix-ci` | pending |
-| ~~P9e~~ | — | cancelled (no permanent N/A) |
+| P9b | — | done `be1469e` |
+| P9c | — | done `4ab733f` |
+| P9g | — | done `cdf3d51` |
+| P9f | `engage/p9f-executable-matrix` | in_progress |
+| P9h | `engage/p9h-catalog-live-sync` | in_progress |
+| P9i | `engage/p9i-runner-remaining-binaries` | in_progress |
+| P9j | `engage/p9j-runner-full-smoke` | in_progress |
+| P9k | `engage/p9k-docs-honest-kpi` | in_progress |
