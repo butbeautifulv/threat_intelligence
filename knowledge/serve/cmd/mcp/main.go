@@ -92,6 +92,11 @@ func main() {
 		}()
 	}
 
+	if cfg.MCPHTTP.Enabled {
+		<-ctx.Done()
+		return
+	}
+
 	go func() {
 		<-ctx.Done()
 		os.Exit(0)

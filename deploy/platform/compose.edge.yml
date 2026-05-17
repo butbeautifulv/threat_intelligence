@@ -1,7 +1,7 @@
 # Unified Veil TLS edge (P12b): single nginx for graph + engage APIs and MCP.
 services:
   api:
-    ports: []
+    ports: !reset []
     healthcheck:
       test: ["CMD", "/api", "healthcheck"]
       interval: 15s
@@ -12,7 +12,7 @@ services:
   mcp:
     profiles:
       - mcp
-    ports: []
+    ports: !reset []
     environment:
       MCP_HTTP_ENABLED: "1"
       MCP_HTTP_LISTEN: ":8091"
@@ -24,13 +24,15 @@ services:
       start_period: 40s
 
   engage-api:
-    ports: []
+    ports: !reset []
 
   engage-mcp:
-    ports: []
+    ports: !reset []
     environment:
       ENGAGE_MCP_HTTP_ENABLED: "1"
       ENGAGE_MCP_HTTP_LISTEN: ":8892"
+      ENGAGE_JOBS_DIR: /tmp/engage/jobs
+      ENGAGE_FILES_DIR: /tmp/engage/files
 
   veil-edge:
     build:

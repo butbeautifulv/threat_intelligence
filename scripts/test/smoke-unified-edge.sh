@@ -16,7 +16,7 @@ fi
 
 smoke_skip_no_docker
 
-export COMPOSE_FILES="-f deploy/pipeline/compose.yml -f deploy/knowledge/compose.yml -f deploy/knowledge/compose.graph-read.yml -f deploy/engage/compose.yml -f deploy/engage/compose.veil-stack.yml -f deploy/platform/compose.edge.yml"
+export COMPOSE_FILES="-f deploy/knowledge/compose.yml -f deploy/knowledge/compose.graph-read.yml -f deploy/engage/compose.yml -f deploy/platform/compose.edge.yml"
 export GRAPH_PACK_SKIP="${GRAPH_PACK_SKIP:-1}"
 export VEIL_EDGE_HTTPS_PORT="${VEIL_EDGE_HTTPS_PORT:-443}"
 export EDGE_URL="https://127.0.0.1:${VEIL_EDGE_HTTPS_PORT}"
@@ -104,7 +104,7 @@ if [[ "${1:-}" == "--up" ]]; then
   BUILD_FLAG=()
   [[ "${SMOKE_UNIFIED_EDGE_BUILD:-1}" == "1" ]] && BUILD_FLAG=(--build)
   compose_edge up -d "${BUILD_FLAG[@]}" \
-    nats neo4j graph-bootstrap api mcp engage-api engage-mcp veil-edge
+    neo4j graph-bootstrap api mcp engage-api engage-mcp veil-edge
   shift
   log "stack up; run without --up to execute curl checks"
   exit 0
@@ -119,15 +119,27 @@ compose_edge down -v --remove-orphans 2>/dev/null || true
 BUILD_FLAG=()
 [[ "${SMOKE_UNIFIED_EDGE_BUILD:-1}" == "1" ]] && BUILD_FLAG=(--build)
 compose_edge up -d "${BUILD_FLAG[@]}" \
-  nats neo4j graph-bootstrap api mcp engage-api engage-mcp veil-edge
+  neo4j graph-bootstrap api mcp engage-api engage-mcp veil-edge
 
 wait_healthy api
 wait_healthy mcp
 wait_healthy engage-api
 wait_healthy engage-mcp
 
-smoke_wait_http "${EDGE_URL}/health" 120 "veil-edge" 2 \
-  || fail "veil-edge not reachable at ${EDGE_URL}/health"
+wait_edge() {
+  log "waiting for veil-edge at ${EDGE_URL}/health (max 120s)..."
+  local deadline=$((SECONDS + 120))
+  while (( SECONDS < deadline )); do
+    if [[ "$(curl_code "${EDGE_URL}/health")" == "200" ]]; then
+      log "veil-edge reachable"
+      return 0
+    fi
+    sleep 2
+  done
+  compose_edge logs --tail=40 veil-edge 2>/dev/null || true
+  fail "veil-edge not reachable at ${EDGE_URL}/health"
+}
+wait_edge
 
 code=$(curl_code "${EDGE_URL}/health")
 [[ "$code" == "200" ]] || fail "GET ${EDGE_URL}/health => ${code}"

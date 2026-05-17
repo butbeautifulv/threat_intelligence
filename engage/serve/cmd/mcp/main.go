@@ -45,6 +45,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if cfg.MCPHTTP.Enabled {
+		<-ctx.Done()
+		return
+	}
+
 	go func() {
 		<-ctx.Done()
 		os.Exit(0)
