@@ -8,7 +8,7 @@ import (
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
-	domainjob "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domainjob "github.com/butbeautifulv/veil/pkg/engage/domain/job"
 	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
 )
 

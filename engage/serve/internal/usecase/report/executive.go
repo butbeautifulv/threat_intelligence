@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	domain "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domain "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 )
 
 // ExecutiveSummary is a structured assessment executive summary for agents.

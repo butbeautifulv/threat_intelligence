@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	domain "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domain "github.com/butbeautifulv/veil/pkg/engage/domain/job"
 	"github.com/butbeautifulv/veil/engage/serve/internal/telemetry"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"

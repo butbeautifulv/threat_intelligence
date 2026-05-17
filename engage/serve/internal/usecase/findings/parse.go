@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 )
 
 // DedupeFindings merges findings that share (target, tool, normalized signature).

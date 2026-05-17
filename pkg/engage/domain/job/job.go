@@ -20,8 +20,8 @@ type Job struct {
 	Subject    string            `json:"subject,omitempty"`
 	Parameters map[string]string `json:"parameters,omitempty"`
 	Status     Status            `json:"status"`
-	Output    string    `json:"output,omitempty"`
-	Error     string    `json:"error,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Output     string            `json:"output,omitempty"`
+	Error      string            `json:"error,omitempty"`
+	CreatedAt  time.Time         `json:"created_at"`
+	UpdatedAt  time.Time         `json:"updated_at"`
 }

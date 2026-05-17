@@ -3,7 +3,7 @@ package report
 import (
 	"time"
 
-	domain "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domain "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 )
 
 // SummaryReport is a structured assessment summary for agents and APIs.

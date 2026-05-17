@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	domainreport "github.com/butbeautifulv/veil/engage/serve/internal/domain/report"
+	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 )
 
 func TestParseGeneric_high(t *testing.T) {

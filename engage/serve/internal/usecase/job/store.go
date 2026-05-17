@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	domain "github.com/butbeautifulv/veil/engage/serve/internal/domain/job"
+	domain "github.com/butbeautifulv/veil/pkg/engage/domain/job"
 )
 
 // Store persists async tool jobs (memory or filesystem).
