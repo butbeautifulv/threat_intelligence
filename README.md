@@ -78,6 +78,7 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 | **Platform P6** | **Done** — events, auth, scrapepub, stacks, natsjet publish | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
 | **Platform P7** | **Done** — `pkg/*/domain`, `test-platform-p7` CI | [domain-contour.md](docs/domain-contour.md) |
 | **Platform v8** | **Done** — layer renames, `pkg/report`, `pkg/decision`, `pkg/exec`, `pkg/api`, `pkg/mcp`, browser → discovery | [platform-architecture.md](docs/platform-architecture.md), [v8 master plan](.cursor/plans/veil_platform_v8_layers_master.plan.md) |
+| **Platform P12** | **In progress** — single TLS edge, path routing, stateless scale **4/8/16**, Neo4j Enterprise 3-core (prod) | [platform-unified-access.md](docs/platform-unified-access.md), [P12 master plan](.cursor/plans/veil_platform_p12_unified_access.plan.md) |
 | **Security** | veil-controls + engage hardening; prod pentest 0 HIGH | [external-security-frameworks.md](docs/external-security-frameworks.md) |
 | **Agent eval** | GAIA offline harness | [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
 
@@ -109,6 +110,8 @@ docker compose up --build -d
 | MCP Streamable HTTP | http://localhost:8091/mcp (`--profile mcp`, `MCP_HTTP_ENABLED=1`) |
 
 Production secure overlay (TLS on **443** only, no published Neo4j): [docs/deploy-secure.md](docs/deploy-secure.md).
+
+**Unified access (P12):** one TLS hostname routes graph and engage by path — `/v1/*`, `/api/*`, `/mcp/graph`, `/mcp/engage`. Dev may still use direct ports (`8090`, `8091`, `8890`, `8892`). Stateless tiers scale with `VEIL_API_SCALE`, `VEIL_MCP_GRAPH_SCALE`, `VEIL_ENGAGE_API_SCALE`, `VEIL_MCP_ENGAGE_SCALE` (`4` | `8` | `16`). Prod Neo4j uses Enterprise **3-core** cluster; local/CI stays single `neo4j:5`. Operator contract: [docs/platform-unified-access.md](docs/platform-unified-access.md).
 
 `graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently **v0.4.6**) when published, unless `GRAPH_PACK_SKIP=1`.
 
@@ -165,7 +168,7 @@ CI: [platform.yml](.github/workflows/platform.yml), [engage.yml](.github/workflo
 |-------|------|------|
 | Terraform | [deploy/terraform/](deploy/terraform/README.md) | Cloud foundation + compose env |
 | Ansible | [deploy/ansible/](deploy/ansible/README.md) | Data plane VMs (Neo4j, NATS, scrape cron) |
-| Helm | [deploy/helm/veil/](deploy/helm/veil/README.md) | Control plane on K8s (api, engage, workers, HPA) |
+| Helm | [deploy/helm/veil/](deploy/helm/veil/README.md) | Control plane on K8s (api, engage, MCP HTTP, workers, HPA; scale **4/8/16**) |
 | Profiles | [deploy/profiles/](deploy/profiles/) | `secure-engage.env`, stack env overlays |
 | Controls | [deploy/security/veil-controls.yaml](deploy/security/veil-controls.yaml) | Machine-readable security catalog |
 
@@ -209,6 +212,7 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [knowledge/README.md](knowledge/README.md) | Ingest, API, MCP, Neo4j client |
 | [engage/README.md](engage/README.md) | Tool catalog, veil-engage MCP, workflows |
 | [docs/platform-architecture.md](docs/platform-architecture.md) | Current + v8 layers, runner vs factory |
+| [docs/platform-unified-access.md](docs/platform-unified-access.md) | P12: single TLS edge, path map, scale 4/8/16, Neo4j cluster |
 | [docs/domain-contour.md](docs/domain-contour.md) | pkg domain SOT map |
 | [docs/coding-style.md](docs/coding-style.md) | Architecture, four contexts, PR checklist |
 | [docs/mcp-agents.md](docs/mcp-agents.md) | veil-graph + veil-engage agent setup |
@@ -219,8 +223,10 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 
 | MCP server | Layer | Transport | Example |
 |------------|-------|-----------|---------|
-| **veil-mcp** | Graph read | stdio / HTTP :8091 | [run-veil-mcp.sh](scripts/mcp/run-veil-mcp.sh) |
-| **veil-engage** | Tool exec | stdio / HTTP :8892 | [run-veil-engage.sh](scripts/mcp/run-veil-engage.sh) |
+| **veil-mcp** | Graph read | stdio / HTTP :8091 or edge `/mcp/graph` | [run-veil-mcp.sh](scripts/mcp/run-veil-mcp.sh) |
+| **veil-engage** | Tool exec | stdio / HTTP :8892 or edge `/mcp/engage` | [run-veil-engage.sh](scripts/mcp/run-veil-engage.sh) |
+
+**Remote / prod:** one TLS host — graph MCP at `https://<veil-host>/mcp/graph`, engage MCP at `https://<veil-host>/mcp/engage` (stdio stays two processes). See [docs/platform-unified-access.md](docs/platform-unified-access.md).
 
 Setup: [docs/mcp-agents.md](docs/mcp-agents.md). Keycloak: [docs/auth-keycloak.md](docs/auth-keycloak.md). Examples: [examples/mcp/](examples/mcp/).
 

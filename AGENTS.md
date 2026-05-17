@@ -21,6 +21,7 @@
 | Platform P6 refactor | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) — **done** |
 | Platform P7 pkg/domain | [veil_platform_p7_tests_then_pkg_domain.plan.md](.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) — **done**; `make test-platform-p7` |
 | Platform v8 layers | [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md) — **done** (P8a–i) |
+| Platform P12 unified access | [veil_platform_p12_unified_access.plan.md](.cursor/plans/veil_platform_p12_unified_access.plan.md) — **in progress**; operator contract [platform-unified-access.md](docs/platform-unified-access.md) |
 | Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — **active** (158 catalog → 158 executable; **P9f** gate) |
 | Finish | This file § End-of-task checklist |
 
@@ -33,7 +34,7 @@
 1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** — CLEAN CODE, DRY, KISS, DDD; four isolated contexts (`discovery/`, `pipeline/`, `knowledge/`, `engage/`); domain packages per source; shared wire types in `pkg/`. Before merge, check the [PR checklist](docs/coding-style.md#pr-checklist).
 2. **Do not add root `go.work`** or cross-layer Go imports between `discovery/`, `pipeline/`, `knowledge/`, `engage/`. Discovery/pipeline/knowledge integrate via NATS; engage calls knowledge only via HTTP veil-api; all layers may import `pkg/*`.
 3. Use **[CONTRIBUTING.md](CONTRIBUTING.md)** for tests; when changing [pkg/harvest/](pkg/harvest/) or [pkg/commit/](pkg/commit/), update [docs/schemas/](docs/schemas/) manually in the same PR.
-4. Runtime and deploy: **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**, **[docs/ingest-contract.md](docs/ingest-contract.md)**, **[deploy/README.md](deploy/README.md)**.
+4. Runtime and deploy: **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**, **[docs/ingest-contract.md](docs/ingest-contract.md)**, **[deploy/README.md](deploy/README.md)**. Unified edge (P12): **[docs/platform-unified-access.md](docs/platform-unified-access.md)** — one TLS host, `/v1/*` + `/api/*` + `/mcp/graph` + `/mcp/engage`; stateless scale `VEIL_*_SCALE` ∈ {4,8,16}; prod Neo4j Enterprise 3-core.
 5. Versions: **[versions.env](versions.env)** is the single source of truth for `APP_VERSION` and `GRAPH_PACK_VERSION`.
 
 Reference modules: [discovery/harvest/internal/sources/ti/](discovery/harvest/internal/sources/ti/), [knowledge/ingest/internal/sources/ti/](knowledge/ingest/internal/sources/ti/), [pipeline/ned/internal/sources/ti/](pipeline/ned/internal/sources/ti/).

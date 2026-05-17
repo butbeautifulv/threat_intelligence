@@ -9,6 +9,8 @@ Veil exposes **two MCP servers** for agents — keep them separate. **Tool execu
 
 Do not merge offensive tool execution into the graph MCP process.
 
+**Unified edge (P12):** operators and remote agents may use **one TLS hostname** with path-based routing. HTTP MCP uses **`/mcp/graph`** (graph read) and **`/mcp/engage`** (tool exec); stdio remains **two processes**. Full path map, scale variables, and Neo4j cluster profile: [platform-unified-access.md](platform-unified-access.md).
+
 ---
 
 ## veil-mcp (graph read)
@@ -151,9 +153,22 @@ export MCP_HTTP_ENABLED=1
 ./scripts/mcp/run-veil-mcp.sh
 ```
 
-Endpoint: `POST http://localhost:8091/mcp`, `GET /health`.
+**Direct (dev):** `POST http://localhost:8091/mcp`, `GET /health`.
 
-Remote client: [mcp.remote.json.example](../examples/mcp/mcp.remote.json.example).
+**Unified edge (prod / remote):** `POST https://<veil-host>/mcp/graph` (nginx strips `/graph` to upstream `/mcp`). Engage: `POST https://<veil-host>/mcp/engage`. See [platform-unified-access.md](platform-unified-access.md).
+
+Remote client (direct port): [mcp.remote.json.example](../examples/mcp/mcp.remote.json.example).
+
+Example unified HTTP config (after P12b edge is up):
+
+```json
+{
+  "mcpServers": {
+    "veil-graph": { "url": "https://veil.example/mcp/graph", "timeout": 300 },
+    "veil-engage": { "url": "https://veil.example/mcp/engage", "timeout": 300 }
+  }
+}
+```
 
 ## veil-engage (tool execution)
 
@@ -214,7 +229,7 @@ Recommended launcher from repo root (sets `ENGAGE_*` defaults and `GOWORK`):
 
 **Cursor / VS-style clients:** merge the `veil-engage` stanza from [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example) into project `.cursor/mcp.json` (or Settings → MCP). Adjust `cwd` and `ENGAGE_CATALOG_PATH` paths to your checkout.
 
-Optional **Streamable HTTP** MCP on the engage MCP process (`POST` …`/mcp`): set `ENGAGE_MCP_HTTP_ENABLED=1` and tune `ENGAGE_MCP_HTTP_LISTEN` / `ENGAGE_MCP_HTTP_PATH`; default listen **`:8892`** in config (see Compose `engage-mcp`). Do not confuse this with legacy **`:8888`**.
+Optional **Streamable HTTP** MCP on the engage MCP process (`POST` …`/mcp`): set `ENGAGE_MCP_HTTP_ENABLED=1` and tune `ENGAGE_MCP_HTTP_LISTEN` / `ENGAGE_MCP_HTTP_PATH`; default listen **`:8892`** in config (see Compose `engage-mcp`). On the **unified edge**, use `https://<veil-host>/mcp/engage` instead of `:8892`. Do not confuse this with legacy **`:8888`**.
 
 Heavy lab workflows often use **`deploy/engage/compose.yml`** so `engage-api`, runner, and optional graph ingest stay aligned — details in [engage-runtime.md](engage-runtime.md).
 
@@ -243,6 +258,7 @@ Full engage API/runtime variables: [engage-runtime.md](engage-runtime.md).
 
 ## Related
 
+- [platform-unified-access.md](platform-unified-access.md) — single TLS hostname, `/v1` + `/api` + MCP paths, scale 4/8/16
 - [engage-runtime.md](engage-runtime.md) — engage API, runner modes, ports
 - [external-hexstrike.md](external-hexstrike.md) — MIT reference in `.external/` (superseded by engage layer)
 - [auth-keycloak.md](auth-keycloak.md) — Keycloak, RBAC
