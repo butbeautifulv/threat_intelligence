@@ -10,6 +10,18 @@ graph:
     enabled: true
     replicas: 2
     resources: {}
+    # Stateless HTTP — scale replicas; optional CPU HPA (wire metrics-server).
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 16
+  mcp:
+    enabled: true
+    replicas: 2
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 16
   ingress:
     enabled: false
     host: api.veil.example
@@ -18,6 +30,17 @@ engage:
   api:
     enabled: true
     replicas: 2
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 16
+  mcp:
+    enabled: true
+    replicas: 2
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 16
   eventsWorker:
     enabled: true
   runner:
