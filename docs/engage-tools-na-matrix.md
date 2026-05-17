@@ -7,7 +7,7 @@ python3 scripts/engage/generate-tools-na-matrix.py
 make test-engage-na-matrix
 ```
 
-**Catalog tools:** 158 | **Live enabled (tools.live.yaml):** 113 | **Catalog ∩ live:** 34
+**Catalog tools:** 158 | **Live enabled (tools.live.yaml):** 115 | **Catalog ∩ live:** 36
 
 | Tool | Binary | Category | Status | Reason |
 |------|--------|----------|--------|--------|
@@ -37,8 +37,8 @@ make test-engage-na-matrix
 | `bugbounty_osint_gathering` | `bugbounty` | intelligence | bridge_api | workflow placeholder binary `bugbounty` |
 | `bugbounty_reconnaissance_workflow` | `bugbounty` | intelligence | bridge_api | workflow placeholder binary `bugbounty` |
 | `bugbounty_vulnerability_hunting` | `bugbounty` | intelligence | bridge_api | workflow placeholder binary `bugbounty` |
-| `burpsuite_alternative_scan` | `burpsuite` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
-| `burpsuite_scan` | `burpsuite` | web | permanent_N/A | GUI or heavy stack — out of runner image by design |
+| `burpsuite_alternative_scan` | `burpsuite` | web | live | enabled in tools.live.yaml |
+| `burpsuite_scan` | `burpsuite` | web | live | enabled in tools.live.yaml |
 | `checkov_iac_scan` | `checkov` | web | bridge_api | workflow placeholder binary `checkov` |
 | `checksec_analyze` | `checksec` | intelligence | bridge_api | workflow placeholder binary `checksec` |
 | `clair_vulnerability_scan` | `clair` | web | bridge_api | workflow placeholder binary `clair` |

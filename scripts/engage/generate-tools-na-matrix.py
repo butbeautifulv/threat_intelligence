@@ -19,7 +19,7 @@ RUNNER_BINARIES = frozenset({
     "waybackurls", "dalfox", "amass", "ffuf", "arjun", "dirsearch",
     "paramspider", "rustscan", "trivy", "dnsenum", "fierce", "hydra",
     "wafw00f", "enum4linux", "sslscan", "testssl", "dirb",
-    "whatweb", "nbtscan", "binwalk", "jaeles", "x8", "enum4linux-ng",
+    "whatweb", "nbtscan", "binwalk", "jaeles", "x8", "enum4linux-ng", "burpsuite",
 })
 
 WORKFLOW_BINARIES = frozenset({
@@ -29,7 +29,7 @@ WORKFLOW_BINARIES = frozenset({
 })
 
 PERMANENT_NA_BINARIES = frozenset({
-    "ghidra", "burpsuite", "burp", "metasploit", "msfconsole", "angr", "gdb",
+    "ghidra", "metasploit", "msfconsole", "angr", "gdb",
     "wpscan", "wireshark", "volatility", "radare2", "r2", "cutter",
     "john", "hashcat", "aircrack", "ettercap", "bettercap",
 })
@@ -60,7 +60,7 @@ def classify(name: str, binary: str, live_enabled: bool) -> tuple[str, str]:
     if binary in WORKFLOW_BINARIES:
         return "bridge_api", f"workflow placeholder binary `{binary}`"
     if binary in PERMANENT_NA_BINARIES or any(
-        x in binary.lower() for x in ("ghidra", "burp", "metasploit", "angr", "wpscan")
+        x in binary.lower() for x in ("ghidra", "metasploit", "angr", "wpscan")
     ):
         return "permanent_N/A", "GUI or heavy stack — out of runner image by design"
     if live_enabled:

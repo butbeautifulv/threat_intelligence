@@ -1,0 +1,5 @@
+#!/bin/sh
+# Catalog headless entry for burpsuite_scan / burpsuite_alternative_scan.
+# Community Edition: CLI accepts project/config flags; full automated scan needs Pro.
+set -eu
+exec /usr/local/bin/burpsuite "$@"

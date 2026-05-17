@@ -18,7 +18,7 @@ RUNNER_BINARIES = frozenset({
     "paramspider", "rustscan", "trivy",
     "dnsenum", "fierce", "hydra", "wafw00f", "enum4linux", "enum4linux-ng",
     "sslscan", "testssl", "dirb",
-    "whatweb", "nbtscan", "binwalk", "jaeles", "x8",
+    "whatweb", "nbtscan", "binwalk", "jaeles", "x8", "burpsuite",
 })
 
 # Phase audit P0: align with apt packages in deploy/engage/docker/runner.Dockerfile.
@@ -58,6 +58,7 @@ PREFERRED = {
     "binwalk": "binwalk_analyze",
     "jaeles": "jaeles_vulnerability_scan",
     "x8": "x8_parameter_discovery",
+    "burpsuite": "burpsuite_scan",
 }
 
 

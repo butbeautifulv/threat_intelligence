@@ -1,0 +1,9 @@
+#!/bin/sh
+# Burp Suite Community launcher (headless-capable). See docs/engage-tools.md.
+set -eu
+BURP_JAR="${BURP_JAR:-/opt/burp/burpsuite_community.jar}"
+if [ ! -f "$BURP_JAR" ]; then
+	echo "burpsuite: JAR not found at $BURP_JAR" >&2
+	exit 127
+fi
+exec java -Djava.awt.headless=true -XX:+UseSerialGC -Xmx768m -jar "$BURP_JAR" "$@"

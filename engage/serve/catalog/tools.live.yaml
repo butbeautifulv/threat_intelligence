@@ -135,6 +135,78 @@ tools:
     timeout_sec: 300
     description: "binary tool: binwalk analyze"
     enabled: true
+  - name: burpsuite_scan
+    category: web
+    binary: burpsuite
+    parameters:
+      - name: project_file
+        type: string
+        default: ""
+        required: false
+      - name: config_file
+        type: string
+        default: ""
+        required: false
+      - name: target
+        type: string
+        default: ""
+        required: false
+      - name: headless
+        type: string
+        default: "False"
+        required: false
+      - name: scan_type
+        type: string
+        default: ""
+        required: false
+      - name: scan_config
+        type: string
+        default: ""
+        required: false
+      - name: output_file
+        type: string
+        default: ""
+        required: false
+      - name: additional_args
+        type: string
+        default: ""
+        required: false
+    args:
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: burpsuite scan"
+    enabled: true
+  - name: burpsuite_alternative_scan
+    category: web
+    binary: burpsuite
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: scan_type
+        type: string
+        default: "comprehensive"
+        required: false
+      - name: headless
+        type: string
+        default: "True"
+        required: false
+      - name: max_depth
+        type: string
+        default: "3"
+        required: false
+      - name: max_pages
+        type: string
+        default: "50"
+        required: false
+    args:
+      - "-u"
+      - "{target}"
+      - "{additional_args}"
+    timeout_sec: 300
+    description: "web tool: burpsuite alternative scan"
+    enabled: true
   - name: dalfox_xss_scan
     category: web
     binary: dalfox

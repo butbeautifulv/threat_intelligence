@@ -26,7 +26,7 @@ RUN set -eux; \
       apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates curl git nmap masscan sqlmap nikto gobuster dirb \
         dnsenum fierce hydra wafw00f enum4linux sslscan testssl.sh \
-        whatweb nbtscan binwalk \
+        whatweb nbtscan binwalk openjdk-21-jre-headless \
         python3 python3-pip \
       && break; \
       echo "apt retry $i" >&2; sleep 5; \
@@ -55,6 +55,21 @@ RUN curl -fsSL -o /tmp/trivy.tgz \
 # paramspider expects output dir; wrapper for non-interactive runs
 RUN printf '%s\n' '#!/bin/sh' 'exec paramspider "$@"' > /usr/local/bin/paramspider-cli \
   && chmod +x /usr/local/bin/paramspider-cli
+ARG BURP_VERSION=2024.10.4
+RUN set -eux; \
+    mkdir -p /opt/burp; \
+    for i in 1 2 3; do \
+      curl -fsSL -o /opt/burp/burpsuite_community.jar \
+        "https://portswigger-cdn.net/burp/releases/download?product=community&version=${BURP_VERSION}&type=Jar" \
+      && break; \
+      echo "burp jar download retry $i" >&2; sleep 5; \
+    done; \
+    test -s /opt/burp/burpsuite_community.jar
+COPY scripts/engage/runner-burpsuite /usr/local/bin/burpsuite
+COPY scripts/engage/runner-burpsuite_scan /usr/local/bin/burpsuite_scan
+RUN chmod +x /usr/local/bin/burpsuite /usr/local/bin/burpsuite_scan \
+  && ln -sf burpsuite_scan /usr/local/bin/burpsuite_alternative_scan \
+  && command -v hydra && java -version
 RUN useradd -r -u 10001 runner
 USER 10001
 WORKDIR /tmp/engage

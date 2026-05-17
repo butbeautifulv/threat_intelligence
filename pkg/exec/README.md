@@ -13,4 +13,8 @@ Cross-layer subprocess execution: sandboxed `docker exec`, local runs with filte
 - **Pipeline / graph / knowledge** — these layers should not spawn catalog tools; they consume NATS/harvest envelopes only.
 - **Discovery browser crawl** — Playwright sidecar under `discovery/cmd/browser-agent`; HTTP + harvest publish in `discovery/browser` (engage proxies via `DISCOVERY_BROWSER_URL`).
 
+## Engage-runner binaries (Burp)
+
+`burpsuite` in the catalog resolves to `/usr/local/bin/burpsuite` (Community JAR via `java -jar`). Headless flags are passed through; **Community Edition does not provide Pro/Enterprise automated scan APIs** — wrappers validate install and forward CLI args. See [engage-tools.md](../../docs/engage-tools.md).
+
 `pkg/exec` must not import `discovery/`, `pipeline/`, `knowledge/`, or `engage/`.

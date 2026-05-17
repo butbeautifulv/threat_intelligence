@@ -64,6 +64,7 @@ Image: [runner.Dockerfile](../deploy/engage/docker/runner.Dockerfile). List bina
 | naabu | yes | `naabu_port_scan` (live synthetic) | yes |
 | dnsx | yes | `dnsx_resolve` (live synthetic) | yes |
 | dnsenum, fierce, hydra, wafw00f, enum4linux, dirb | yes | `*_scan` | yes |
+| burpsuite | yes (Community JAR + wrappers) | `burpsuite_scan` | yes |
 
 Compose runner profile uses `tools.live.yaml` ([compose.runner.yml](../deploy/engage/compose.runner.yml)).
 
@@ -95,7 +96,9 @@ These stay **out of engage-runner** by design (GUI, multi-GB, or legacy-only sta
 | Tool / family | Reason |
 |---------------|--------|
 | wpscan | Ruby gem stack; use `nikto` / `nuclei` in runner |
-| ghidra, burpsuite, metasploit, angr | GUI or heavy frameworks |
+| ghidra, metasploit, angr | GUI or heavy frameworks |
+
+**Burp Suite Community** is in engage-runner (`BURP_VERSION` in [runner.Dockerfile](../deploy/engage/docker/runner.Dockerfile)): `burpsuite`, `burpsuite_scan`, `burpsuite_alternative_scan` on PATH. Headless JVM launch only; full unattended scan requires Burp Pro — catalog tools run the CLI with `{target}` / `{additional_args}` and may exit non-zero on Community limits.
 | `binary: api` / workflow placeholders | In-process bridge, not subprocess |
 
 Full matrix: [engage-tools-na-matrix.md](engage-tools-na-matrix.md) (`make test-engage-na-matrix`).

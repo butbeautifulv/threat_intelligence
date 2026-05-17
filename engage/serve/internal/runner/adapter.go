@@ -17,7 +17,6 @@ type (
 
 var (
 	BuildArgs         = exec.BuildArgs
-	LookupBinary      = exec.LookupBinary
 	NewSandboxFromEnv = exec.NewSandboxFromEnv
 )
 
