@@ -3,14 +3,14 @@ name: Veil Platform v8 Layers Master
 overview: "Целевая архитектура: discovery, knowledge, pipeline, engage, shared report, unified API/MCP; переименование scrape→discovery и graph→knowledge; pkg/domain; pkg/exec."
 todos:
   - id: v8a-domain-complete
-    content: "P8a: Завершить pkg/domain — engage target, graph read models, zero dup structs"
-    status: pending
+    content: "P8a: Завершить pkg/domain — engage target, knowledge read models, zero dup structs"
+    status: in_progress
   - id: v8b-pkg-report
     content: "P8b: pkg/report — HTML/PDF/executive; engage thin adapter"
-    status: pending
+    status: in_progress
   - id: v8c-pkg-decision
     content: "P8c: pkg/decision — intel engine, attack chain, tool selection (from engage)"
-    status: pending
+    status: in_progress
   - id: v8d-api-mcp-facade
     content: "P8d: pkg/api + pkg/mcp — shared transport; graph + optional engage mount"
     status: pending
@@ -25,10 +25,10 @@ todos:
     status: pending
   - id: v8h-rename-scrape-discovery
     content: "P8h: Rename module scrape/ → discovery/ (paths, deploy, Makefile, CI)"
-    status: in_progress
+    status: completed
   - id: v8i-rename-graph-knowledge
-    content: "P8i: Rename module knowledge/ → knowledge/ (paths, deploy, Makefile, CI)"
-    status: in_progress
+    content: "P8i: Rename module graph/ → knowledge/ (paths, deploy, Makefile, CI)"
+    status: completed
 isProject: false
 ---
 
@@ -230,5 +230,5 @@ make check-graph-version   # if ingest touched
 | P8e | `platform/p8e-pkg-exec` | pending |
 | P8f | `platform/p8f-engage-slim` | pending |
 | P8g | `platform/p8g-discovery-browser` | pending |
-| P8h | `platform/p8h-rename-discovery` | pending — `discovery/` → `discovery/` |
-| P8i | `platform/p8i-rename-knowledge` | pending — `knowledge/` → `knowledge/` |
+| P8h | `platform/p8h-rename-discovery` | done — merge `24af6ad` |
+| P8i | `platform/p8i-rename-knowledge` | done — merge `24af6ad` |
