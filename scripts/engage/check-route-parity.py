@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LEGACY = ROOT / ".external/hexstrike-ai-master/hexstrike_server.py"
 HTTPSERVER = ROOT / "engage/serve/internal/transport/httpserver"
+PKG_API = ROOT / "pkg/api"
 OUT_CSV = ROOT / "docs/engage-route-parity.csv"
 
 ROUTE_ALIASES: dict[str, str] = {
@@ -58,6 +59,20 @@ def parse_legacy(path: Path) -> list[tuple[str, str]]:
     return routes
 
 
+def parse_register_health_routes() -> set[str]:
+    """Detect GET /health via pkg/api.RegisterHealth (used by engage + knowledge routers)."""
+    found: set[str] = set()
+    register_go = PKG_API / "register.go"
+    if not register_go.is_file():
+        return found
+    text = register_go.read_text(encoding="utf-8")
+    if re.search(r'func\s+RegisterHealth\b', text) and re.search(
+        r'mux\.HandleFunc\("GET /health"', text
+    ):
+        found.add("GET /health")
+    return found
+
+
 def parse_engage(dir_path: Path) -> set[str]:
     text = ""
     for p in sorted(dir_path.glob("*.go")):
@@ -73,6 +88,9 @@ def parse_engage(dir_path: Path) -> set[str]:
             found.add(f"{m.group(1)} {m.group(2)}")
     for m in re.finditer(r'wf\("(/api/[^"]+)"', text):
         found.add(f"POST {m.group(1)}")
+    if re.search(r'\bapi\.RegisterHealth\s*\(', text):
+        found.add("GET /health")
+    found |= parse_register_health_routes()
     return found
 
 

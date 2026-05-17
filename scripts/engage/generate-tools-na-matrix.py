@@ -20,6 +20,8 @@ WORKFLOW_BINARIES = frozenset({
     "list", "kube", "browser", "autorecon", "comprehensive", "advanced",
     "analyze", "checkov", "clair", "cloudmapper", "checksec", "clear",
 })
+# P10b: runner subprocess wrappers — not bridge workflow placeholders.
+SUBPROCESS_BINARIES = frozenset({"engage-python-exec"})
 
 
 def parse_tools(path: Path) -> dict[str, dict[str, str]]:
@@ -42,6 +44,8 @@ def parse_tools(path: Path) -> dict[str, dict[str, str]]:
 
 
 def is_bridge_api(binary: str) -> bool:
+    if binary in SUBPROCESS_BINARIES:
+        return False
     return binary == "api" or binary in WORKFLOW_BINARIES
 
 

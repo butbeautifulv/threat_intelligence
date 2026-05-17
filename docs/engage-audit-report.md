@@ -10,7 +10,7 @@
 | **Architecture** | **Confirmed** | Go engage layer replaces Python monolith: catalog + unified `POST /api/tools/{name}`, Keycloak, events→Neo4j, veil read |
 | **MCP / catalog names** | **OK** | 151 legacy `@mcp.tool` + 8 engage bridge tools → **158** catalog entries |
 | **HTTP route parity** | **OK** | 156 legacy routes: 59 implemented, 90 N/A (unified tools), 7 N/A (out of scope); **0 unexplained missing** — see [engage-route-parity.csv](engage-route-parity.csv) |
-| **Execution breadth** | **Partial** (until **P9f** green) | **158** catalog names; callable matrix `make test-engage-executable-matrix` — [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md). Subprocess: **136** live rows (**~90 orphan** names not in catalog); **~46** catalog ∩ `enabled: true`. Target: 158/158 executable, 0 orphan live rows (**P9h**), 0 `runner_N/A` (**P9i**) |
+| **Execution breadth** | **OK** (release gates) | **158/158** catalog; **54** bridge (`make test-engage-bridge-coverage`); **104** subprocess enabled (`make test-engage-na-matrix`, 0 `runner_N/A`). Callable matrix: `make test-engage-executable-matrix` |
 | **README KPI (24×, 98.7%)** | **Not claimed** | Benchmark script regression-only |
 
 ## Automated gates
@@ -33,7 +33,7 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 
 | Metric | Value |
 |--------|-------|
-| Enabled in `tools.live.yaml` | **136** rows (**~46** catalog names; **~90** orphan synthetics — see [engage-tools.md](engage-tools.md)) |
+| Enabled in `tools.live.yaml` | **158** rows (**104** subprocess + **54** bridge; 0 orphan — see [engage-tools-na-matrix.md](engage-tools-na-matrix.md)) |
 | Runnable in runner image | Tier-1 subset when `engage-runner` image present (`list-runner-binaries.sh`); full port **P9i/j** |
 | Tool matrix strict | `ENGAGE_TOOL_MATRIX_STRICT=1` via `make test-engage-runner-profile` (≥30 tools in runner container) |
 

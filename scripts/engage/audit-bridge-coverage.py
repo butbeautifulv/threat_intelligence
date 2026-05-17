@@ -17,6 +17,7 @@ WORKFLOW_BINARIES = frozenset({
     "list", "kube", "browser", "autorecon", "comprehensive", "advanced",
     "analyze", "checkov", "clair", "cloudmapper", "checksec", "clear",
 })
+SUBPROCESS_BINARIES = frozenset({"engage-python-exec"})
 
 IS_INTEL_BRIDGE_BY_NAME = frozenset({
     "comprehensive_api_audit",
@@ -45,6 +46,8 @@ def parse_tools(path: Path) -> dict[str, dict[str, str]]:
 
 
 def is_bridge_api(name: str, binary: str, category: str) -> bool:
+    if binary in SUBPROCESS_BINARIES:
+        return False
     if binary == "api":
         return True
     if binary in WORKFLOW_BINARIES:
