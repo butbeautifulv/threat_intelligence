@@ -56,4 +56,11 @@ make test-engage-runner-full-smoke
 | `docker` / `docker-bench-security` | CIS bench script under `/opt/docker-bench` |
 | `kube-hunter`, `kube-bench`, `checkov`, `clair`, `falco`, `kube` | engage-stub placeholders (catalog / bridge until full install) |
 
+**P11c Python subprocess smoke** (same script, after cloud checks): catalog tools `install_python_package` / `execute_python_script` via `engage-python-install` and `engage-python-exec`. Creates venv `p11c-smoke` under `ENGAGE_PYTHON_BASE` (`/tmp/engage/pyenv` in the image), pip-installs `requests`, then runs an inline `print('hello …')` script.
+
+| Binary | Check |
+|--------|--------|
+| `engage-python-install` | `--env p11c-smoke --package requests` → `engage-python-install: ok` |
+| `engage-python-exec` | `--env p11c-smoke --script "print('hello …')"` → stdout contains hello line |
+
 Docs: [docs/engage-tools.md](../../docs/engage-tools.md) · [docs/engage-runtime.md](../../docs/engage-runtime.md)
