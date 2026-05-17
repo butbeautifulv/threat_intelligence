@@ -1,4 +1,4 @@
- .PHONY: test-scrape test-scrape-p7c test-pipeline test-graph test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain
+ .PHONY: test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain
 
 # Shared pkg contracts (harvest, commit, natsjet, auth, engage/events)
 test-pkg-shared:
@@ -12,8 +12,8 @@ test-pkg-domain:
 	cd pkg/engage && env -u GOWORK go test ./contract/... ./toolid/...
 	cd pkg/auth && env -u GOWORK go test ./httpmiddleware/...
 
-# P7 gate: shared pkg + domain contracts + platform bus (no Docker)
-test-platform-p7: test-pkg-shared test-pkg-domain test-platform-p0
+# P7 gate: pkg + bus + layer unit tests (wave-1 parallel branches merged)
+test-platform-p7: test-pkg-domain test-platform-p0 test-scrape-p7c test-pipeline-p7d test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g
 
 # GOWORK may point at scrape/go.work in the shell; each target uses the matching workspace.
 test-platform-p0: test-pkg-shared
@@ -93,8 +93,20 @@ test-scrape:
 
 # P7c slice: TI feeds/helpers + shared scrape feeds (see veil_platform_p7 plan)
 test-scrape-p7c:
-	cd scrape && env GOWORK=$$(pwd)/go.work go test ./harvest/internal/sources/ti/... ./harvest/internal/feeds/...
+	cd scrape && env GOWORK=$$(pwd)/go.work go test ./harvest/internal/sources/ti/... ./harvest/internal/sources/lola/... ./harvest/internal/sources/ds/... ./harvest/internal/feeds/...
 	cd scrape/pkg && env -u GOWORK go test ./proxypool/...
+
+test-pipeline-p7d:
+	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./pkg/ti/normalize/... ./pkg/nvd/map/... ./ned/internal/sources/ds/... ./ned/internal/sources/lola/...
+
+test-graph-ingest-p7e:
+	cd graph && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/... ./ingest/internal/sources/ti/... ./ingest/internal/sources/vuln/...
+
+test-graph-serve-p7f:
+	cd graph && env GOWORK=$$(pwd)/go.work go test ./serve/internal/usecase/... ./connector/query/...
+
+test-engage-p7g:
+	cd engage && env GOWORK=$$(pwd)/go.work go test ./serve/internal/usecase/tools/... ./serve/internal/security/... ./serve/internal/usecase/intelligence/...
 
 test-pipeline:
 	cd pkg && env -u GOWORK go test ./harvest/... ./commit/... ./ti/...

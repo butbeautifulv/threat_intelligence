@@ -10,19 +10,19 @@ todos:
     status: completed
   - id: p7c-scrape-tests
     content: "P7c: Scrape — domain/usecase/feeds per source + ti runner"
-    status: in_progress
+    status: completed
   - id: p7d-pipeline-tests
     content: "P7d: Pipeline NED — transforms, normalize, nvd/map, engage-events"
-    status: pending
+    status: completed
   - id: p7e-graph-ingest-tests
     content: "P7e: Graph ingest — envelope, storage ports + Neo4j fakes/table tests"
-    status: pending
+    status: completed
   - id: p7f-graph-serve-tests
     content: "P7f: Graph serve + connector/query — read usecase, TargetGraphState"
-    status: pending
+    status: completed
   - id: p7g-engage-tests
     content: "P7g: Engage gaps — tools/run guard, intelligence slices, audit ports"
-    status: pending
+    status: completed
   - id: p7h-pkg-domain-sot
     content: "P7h: pkg/domain contour — ti SOT, engage value objects, platform ids"
     status: pending
@@ -353,11 +353,11 @@ make test-engage          # после P7g
 |-------|--------|--------|
 | P7a | `platform/p7a-test-gates` | done |
 | P7b | `platform/p7b-pkg-contracts` | done |
-| P7c | `platform/p7c-scrape-tests` | in_progress — wave-1 parallel |
-| P7d | `platform/p7d-pipeline-tests` | in_progress — wave-1 parallel |
-| P7e | `platform/p7e-graph-ingest-tests` | in_progress — wave-1 parallel |
-| P7f | `platform/p7f-graph-serve-tests` | in_progress — wave-1 parallel |
-| P7g | `platform/p7g-engage-tests` | in_progress — wave-1 parallel |
+| P7c | `platform/p7c-scrape-tests` | done — merged `5573675` |
+| P7d | `platform/p7d-pipeline-tests` | done — merged |
+| P7e | `platform/p7e-graph-ingest-tests` | done — merged `3f06963` |
+| P7f | `platform/p7f-graph-serve-tests` | done — merged `9c2cec8` |
+| P7g | `platform/p7g-engage-tests` | done — merged `c723e6d` |
 | P7h | `platform/p7h-pkg-domain-sot` | pending |
 | P7i | `platform/p7i-*-migration` | pending |
 | P7j | `platform/p7j-ci-enforce` | pending |
