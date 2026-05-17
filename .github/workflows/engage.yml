@@ -98,6 +98,9 @@ jobs:
       - name: Executable matrix (158 catalog tools, dispatch gate)
         run: make test-engage-executable-matrix
 
+      - name: External HexStrike archive guard (P11d)
+        run: make test-engage-external-guard
+
       - name: MCP runner triangle CSV
         run: python3 ./scripts/engage/audit-mcp-runner-triangle.py
 
