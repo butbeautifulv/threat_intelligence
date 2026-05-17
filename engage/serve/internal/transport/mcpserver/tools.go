@@ -1,7 +1,7 @@
 package mcpserver
 
 import (
-	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
+	"github.com/butbeautifulv/veil/pkg/engage/domain/tool"
 )
 
 func listToolsPayload(specs []tool.Spec) map[string]any {

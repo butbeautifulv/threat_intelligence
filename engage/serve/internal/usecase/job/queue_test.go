@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
+	"github.com/butbeautifulv/veil/pkg/engage/domain/tool"
 	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	toolsuc "github.com/butbeautifulv/veil/engage/serve/internal/usecase/tools"

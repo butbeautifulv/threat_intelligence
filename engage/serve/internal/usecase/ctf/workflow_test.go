@@ -3,7 +3,7 @@ package ctf
 import (
 	"testing"
 
-	domaintool "github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
+	domaintool "github.com/butbeautifulv/veil/pkg/engage/domain/tool"
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 )
 
