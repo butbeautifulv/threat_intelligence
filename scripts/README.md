@@ -9,6 +9,8 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | Path | Purpose |
 |------|---------|
 | [lib/common.sh](lib/common.sh) | Compose helpers, `veil-graph-v*` pack names, profiles |
+| [test/lib/smoke.sh](test/lib/smoke.sh) | Shared smoke helpers (`smoke_skip_no_docker`, `smoke_wait_http`) |
+| [test/lib/unit.sh](test/lib/unit.sh) | Shell test helpers (`unit_skip_no_go`, JSON field asserts) |
 | [ops/compose-up-full.sh](ops/compose-up-full.sh) | Full stack up (optional worker scale / scrape partition) |
 | [ops/compose-down-ephemeral.sh](ops/compose-down-ephemeral.sh) | `down` keeping `var/veil` ledger + blobs |
 | [crawl/status.sh](crawl/status.sh) | Ledger summary + blob dir size |
@@ -35,6 +37,14 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [test/smoke-engage-mcp.sh](test/smoke-engage-mcp.sh) | Engage MCP initialize smoke |
 | [test/verify-nvd-enrichment.sh](test/verify-nvd-enrichment.sh) | Cypher QA for NVD CWE/CPE |
 | [housekeeping/graph-dedup-cleanup.sh](housekeeping/graph-dedup-cleanup.sh) | Post-ingest Neo4j dedup |
+
+Platform / engage Docker smokes source [test/lib/smoke.sh](test/lib/smoke.sh) for docker skip and HTTP health polls:
+
+```bash
+source "$(dirname "$0")/lib/smoke.sh"
+smoke_skip_no_docker
+smoke_wait_http "${API_URL}/health" 120 "veil-api" 2
+```
 
 Deploy profiles: [deploy/profiles/](../deploy/profiles/) (`smoke-minimal`, `secure-graph`). Runtime: [docs/threatintel-runtime.md](../docs/threatintel-runtime.md). Secure deploy: [docs/deploy-secure.md](../docs/deploy-secure.md). Graph pack workflow: [docs/graph-pack.md](../docs/graph-pack.md).
 

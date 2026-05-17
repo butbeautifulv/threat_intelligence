@@ -2,18 +2,13 @@
 # Platform v3 P3: closed-loop pilot for target class "web host".
 # Act (engage tool) -> learn (engage.events -> ingest.engage.*) -> remember (Neo4j) -> decide (veil-api + engage target-graph).
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(dirname "$0")/lib/smoke.sh"
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "SKIP: docker not available"
-  exit 0
-fi
-if ! docker info >/dev/null 2>&1; then
-  echo "SKIP: docker daemon not running"
-  exit 0
-fi
+smoke_skip_no_docker
 
 export COMPOSE_FILES="${VEIL_COMPOSE_FILES} -f deploy/engage/compose.yml -f deploy/engage/compose.veil-stack.yml"
 export GRAPH_PACK_SKIP="${GRAPH_PACK_SKIP:-1}"
@@ -54,16 +49,10 @@ log "starting veil stack + engage overlay (project=${PROJECT})..."
 compose up -d "${BUILD_FLAG[@]}" \
   nats neo4j ingest_worker api engage-api engage-events-worker
 
-deadline=$((SECONDS + SMOKE_VEIL_API_WAIT_SEC))
-until curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; do
-  (( SECONDS >= deadline )) && fail "timeout engage-api"
-  sleep 2
-done
-deadline=$((SECONDS + SMOKE_VEIL_VEIL_API_WAIT_SEC))
-until curl -sf "${API_URL}/health" >/dev/null 2>&1; do
-  (( SECONDS >= deadline )) && fail "timeout veil-api"
-  sleep 2
-done
+smoke_wait_http "${ENGAGE_URL}/health" "${SMOKE_VEIL_API_WAIT_SEC}" "engage-api" 2 \
+  || fail "timeout engage-api (${ENGAGE_URL}/health, ${SMOKE_VEIL_API_WAIT_SEC}s)"
+smoke_wait_http "${API_URL}/health" "${SMOKE_VEIL_VEIL_API_WAIT_SEC}" "veil-api" 2 \
+  || fail "timeout veil-api (${API_URL}/health, ${SMOKE_VEIL_VEIL_API_WAIT_SEC}s)"
 log "engage-api and veil-api healthy"
 
 log "ACT: POST httpx_probe (audit -> engage.events -> ingest)"
