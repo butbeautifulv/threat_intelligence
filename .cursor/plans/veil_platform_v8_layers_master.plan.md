@@ -19,10 +19,10 @@ todos:
     status: completed
   - id: v8f-engage-slim
     content: "P8f: Engage slim — pentest tools, workflows, guard; drop report/decision/browser"
-    status: pending
+    status: in_progress
   - id: v8g-discovery-browser
     content: "P8g: Discovery — browser crawl worker; factory stays orchestration"
-    status: pending
+    status: in_progress
   - id: v8h-rename-scrape-discovery
     content: "P8h: Rename module scrape/ → discovery/ (paths, deploy, Makefile, CI)"
     status: completed
