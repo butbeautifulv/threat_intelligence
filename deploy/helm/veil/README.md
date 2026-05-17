@@ -7,7 +7,7 @@ helm template veil . -f values.yaml -f values-stage.yaml \
   --set global.imageTag=v0.4.5
 ```
 
-Stateful services (Neo4j, NATS) default to Ansible+Compose data nodes — set `global.natsUrl` / `global.neo4jUri` accordingly.
+Stateful services (Neo4j, NATS) default to Ansible+Compose data nodes — set `global.natsUrl` / `global.neo4jUri` accordingly. Prod Neo4j: Enterprise **3-core** cluster URI (`neo4j+routing://…`) per [docs/platform-unified-access.md](../../../docs/platform-unified-access.md).
 
 ## Replicas and HPA
 
@@ -21,6 +21,56 @@ Stateful services (Neo4j, NATS) default to Ansible+Compose data nodes — set `g
 | Ingest worker | `ingest.worker.replicas` + `ingest.worker.hpa` | Shared durable ingest consumer — safe to scale out. |
 | Scrape | `scrape.cronJob` | **Do not** run duplicate CronJobs with the same `SCRAPE_SOURCES` profile; one scheduled job per source partition. |
 
-Worker HPAs use CPU today; wire NATS consumer lag metrics in a later phase. Stateless API/MCP HPAs are off by default — prefer explicit `replicas` (e.g. `4`, `8`, `16`) until unified edge ingress (P12b) and metrics are in place.
+Worker HPAs use CPU today; wire NATS consumer lag metrics in a later phase. Stateless API/MCP HPAs are off by default — prefer explicit `replicas` (e.g. `4`, `8`, `16`) until unified edge ingress and metrics are in place.
 
-Compose equivalent for local scale: [deploy/README.md](../../README.md) and `scripts/ops/compose-scale-veil.sh` (`VEIL_API_SCALE`, `VEIL_MCP_SCALE`, `ENGAGE_*_SCALE`).
+Compose equivalent: `scripts/ops/compose-scale-veil.sh` (`VEIL_API_SCALE`, `VEIL_MCP_GRAPH_SCALE`, `VEIL_ENGAGE_API_SCALE`, `VEIL_MCP_ENGAGE_SCALE`).
+
+## Stateless scale presets (4 / 8 / 16)
+
+**Stage (minimal):**
+
+```bash
+helm upgrade --install veil . \
+  -f values.yaml -f values-stage.yaml \
+  --set graph.api.replicas=1 \
+  --set engage.api.replicas=1 \
+  --set pipeline.worker.replicas=1 \
+  --set ingest.worker.replicas=1
+```
+
+**Medium (4 replicas):**
+
+```bash
+helm upgrade --install veil . \
+  -f values.yaml -f values-prod.yaml \
+  --set graph.api.replicas=4 \
+  --set engage.api.replicas=4 \
+  --set pipeline.worker.replicas=4 \
+  --set ingest.worker.replicas=4
+```
+
+**High (8 replicas):**
+
+```bash
+helm upgrade --install veil . \
+  -f values.yaml -f values-prod.yaml \
+  --set graph.api.replicas=8 \
+  --set engage.api.replicas=8 \
+  --set pipeline.worker.replicas=8 \
+  --set ingest.worker.replicas=8
+```
+
+**Peak (16 replicas):**
+
+```bash
+helm upgrade --install veil . \
+  -f values.yaml -f values-prod.yaml \
+  --set graph.api.replicas=16 \
+  --set engage.api.replicas=16 \
+  --set pipeline.worker.replicas=16 \
+  --set pipeline.worker.hpa.maxReplicas=16 \
+  --set ingest.worker.replicas=16 \
+  --set ingest.worker.hpa.maxReplicas=16
+```
+
+MCP HTTP deployments and unified Ingress path routing: [docs/platform-unified-access.md](../../../docs/platform-unified-access.md).
