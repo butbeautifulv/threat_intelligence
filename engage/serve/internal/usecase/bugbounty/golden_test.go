@@ -187,6 +187,147 @@ func TestGolden_FileUploadWorkflow(t *testing.T) {
 	assertPhaseNames(t, names, spec.PhaseNames)
 }
 
+func TestGolden_FileUploadTools(t *testing.T) {
+	m := NewManager()
+	wf := m.CreateFileUpload("https://example.com/upload")
+
+	b, err := os.ReadFile(filepath.Join(goldenDir(t), "file_upload_tools.golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var spec struct {
+		PhasesMin      int      `json:"phases_min"`
+		PhaseNames     []string `json:"phase_names"`
+		ToolsCountMin  int      `json:"tools_count_min"`
+	}
+	if err := json.Unmarshal(b, &spec); err != nil {
+		t.Fatal(err)
+	}
+	if len(wf.TestPhases) < spec.PhasesMin {
+		t.Fatalf("phases %d < %d", len(wf.TestPhases), spec.PhasesMin)
+	}
+	names := make([]string, len(wf.TestPhases))
+	tools := 0
+	for i, p := range wf.TestPhases {
+		names[i] = p.Name
+		tools += len(p.Tools)
+	}
+	assertPhaseNames(t, names, spec.PhaseNames)
+	if tools < spec.ToolsCountMin {
+		t.Fatalf("tools_count %d < %d", tools, spec.ToolsCountMin)
+	}
+}
+
+func TestGolden_VulnHuntDefaultPriority(t *testing.T) {
+	m := NewManager()
+	wf := m.CreateVulnHunt(Target{
+		Domain:        "example.com",
+		PriorityVulns: []string{"rce", "sqli", "xss", "idor", "ssrf"},
+	})
+
+	b, err := os.ReadFile(filepath.Join(goldenDir(t), "vuln_hunt_default_priority.golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var spec struct {
+		VulnerabilityTestsMin int      `json:"vulnerability_tests_min"`
+		VulnerabilityTypes    []string `json:"vulnerability_types"`
+		EstimatedTimeMin      int      `json:"estimated_time_min"`
+		PriorityScoreMin      int      `json:"priority_score_min"`
+	}
+	if err := json.Unmarshal(b, &spec); err != nil {
+		t.Fatal(err)
+	}
+	if len(wf.VulnerabilityTests) < spec.VulnerabilityTestsMin {
+		t.Fatalf("tests %d < %d", len(wf.VulnerabilityTests), spec.VulnerabilityTestsMin)
+	}
+	if wf.EstimatedTime < spec.EstimatedTimeMin {
+		t.Fatalf("estimated_time %d < %d", wf.EstimatedTime, spec.EstimatedTimeMin)
+	}
+	if wf.PriorityScore < spec.PriorityScoreMin {
+		t.Fatalf("priority_score %d < %d", wf.PriorityScore, spec.PriorityScoreMin)
+	}
+	gotTypes := make([]string, len(wf.VulnerabilityTests))
+	for i, vt := range wf.VulnerabilityTests {
+		gotTypes[i] = vt.VulnerabilityType
+	}
+	if diff := cmpSortedSlices(gotTypes, spec.VulnerabilityTypes); diff != "" {
+		t.Fatal(diff)
+	}
+}
+
+func TestGolden_VulnHuntScenarios(t *testing.T) {
+	m := NewManager()
+	wf := m.CreateVulnHunt(Target{
+		Domain:        "example.com",
+		PriorityVulns: []string{"rce", "sqli", "xss", "idor", "ssrf"},
+	})
+
+	b, err := os.ReadFile(filepath.Join(goldenDir(t), "vuln_hunt_scenarios.golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var spec struct {
+		ScenarioCounts map[string]int `json:"scenario_counts"`
+	}
+	if err := json.Unmarshal(b, &spec); err != nil {
+		t.Fatal(err)
+	}
+	got := make(map[string]int, len(wf.VulnerabilityTests))
+	for _, vt := range wf.VulnerabilityTests {
+		got[vt.VulnerabilityType] = len(vt.TestScenarios)
+	}
+	for vulnType, wantCount := range spec.ScenarioCounts {
+		if got[vulnType] != wantCount {
+			t.Fatalf("%s scenarios %d want %d", vulnType, got[vulnType], wantCount)
+		}
+	}
+}
+
+func TestGolden_ComprehensiveMinimal(t *testing.T) {
+	m := NewManager()
+	a := m.CreateComprehensive(Target{
+		Domain:          "example.com",
+		PriorityVulns:   []string{"rce", "sqli"},
+		IncludeOSINT:    false,
+		IncludeBusiness: false,
+	})
+
+	b, err := os.ReadFile(filepath.Join(goldenDir(t), "comprehensive_minimal.golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var spec struct {
+		WorkflowCount         int  `json:"workflow_count"`
+		TotalEstimatedTimeMin int  `json:"total_estimated_time_min"`
+		TotalToolsMin         int  `json:"total_tools_min"`
+		PriorityScoreMin      int  `json:"priority_score_min"`
+		IncludesOSINT         bool `json:"includes_osint"`
+		IncludesBusinessLogic bool `json:"includes_business_logic"`
+	}
+	if err := json.Unmarshal(b, &spec); err != nil {
+		t.Fatal(err)
+	}
+	if a.OSINT != nil {
+		t.Fatal("unexpected osint")
+	}
+	if a.BusinessLogic != nil {
+		t.Fatal("unexpected business logic")
+	}
+	if got := a.Summary["workflow_count"].(int); got != spec.WorkflowCount {
+		t.Fatalf("workflow_count %d want %d", got, spec.WorkflowCount)
+	}
+	if got := a.Summary["total_estimated_time"].(int); got < spec.TotalEstimatedTimeMin {
+		t.Fatalf("total_estimated_time %d < %d", got, spec.TotalEstimatedTimeMin)
+	}
+	if got := a.Summary["total_tools"].(int); got < spec.TotalToolsMin {
+		t.Fatalf("total_tools %d < %d", got, spec.TotalToolsMin)
+	}
+	if got := a.Summary["priority_score"].(int); got < spec.PriorityScoreMin {
+		t.Fatalf("priority_score %d < %d", got, spec.PriorityScoreMin)
+	}
+}
+
 func TestGolden_ComprehensiveAssessment(t *testing.T) {
 	m := NewManager()
 	target := Target{
