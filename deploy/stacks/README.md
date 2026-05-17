@@ -32,6 +32,7 @@ Prefer existing ops scripts when listed under `scripts:` in a stack file (they s
 |------|---------|
 | [minimal.yml](minimal.yml) | Scrape E2E smoke (`smoke-minimal` profile); base for closed-loop pilots |
 | [full-loop.yml](full-loop.yml) | Data plane + engage on shared NATS/Neo4j (`compose.veil-stack.yml`) |
+| [unified-edge.yml](unified-edge.yml) | Full-loop + platform `veil-edge` nginx (P12b; `/v1/`, `/api/`, `/mcp/*`) |
 | [secure-graph.yml](secure-graph.yml) | Graph nginx TLS + auth (`secure-graph.env`) |
 | [secure-engage.yml](secure-engage.yml) | Engage nginx TLS + hardening (`secure-engage.env`) |
 | [secure.yml](secure.yml) | Combined reference for both secure layers |
