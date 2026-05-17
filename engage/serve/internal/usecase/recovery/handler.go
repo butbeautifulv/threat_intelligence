@@ -6,20 +6,21 @@ import (
 	"time"
 )
 
-// ErrorType classifies tool failures.
+// ErrorType classifies tool failures (HexStrike ErrorType enum values).
 type ErrorType string
 
 const (
-	TypeTimeout            ErrorType = "timeout"
-	TypeNotFound           ErrorType = "not_found"
-	TypeRateLimit          ErrorType = "rate_limit"
-	TypePermission         ErrorType = "permission"
-	TypeNetworkUnreachable ErrorType = "network_unreachable"
-	TypeInvalidParams      ErrorType = "invalid_parameters"
-	TypeResourceExhausted  ErrorType = "resource_exhausted"
-	TypeTargetUnreachable  ErrorType = "target_unreachable"
-	TypeParsing            ErrorType = "parsing_error"
-	TypeUnknown            ErrorType = "unknown"
+	TypeTimeout              ErrorType = "timeout"
+	TypeToolNotFound         ErrorType = "tool_not_found"
+	TypeRateLimited          ErrorType = "rate_limited"
+	TypePermissionDenied     ErrorType = "permission_denied"
+	TypeNetworkUnreachable   ErrorType = "network_unreachable"
+	TypeInvalidParams        ErrorType = "invalid_parameters"
+	TypeResourceExhausted    ErrorType = "resource_exhausted"
+	TypeAuthenticationFailed ErrorType = "authentication_failed"
+	TypeTargetUnreachable    ErrorType = "target_unreachable"
+	TypeParsing              ErrorType = "parsing_error"
+	TypeUnknown              ErrorType = "unknown"
 )
 
 // Handler suggests recovery actions for failed tool runs.
@@ -31,19 +32,20 @@ type Handler struct {
 
 func Default() *Handler {
 	patterns := []string{
-		`(?i)timeout|timed out|connection timeout|read timeout|operation timed out`,
-		`(?i)command not found|no such file|executable not found|binary not found`,
-		`(?i)rate limit|too many requests|throttled|429|quota exceeded`,
-		`(?i)permission denied|access denied|forbidden|not authorized|sudo required`,
-		`(?i)network unreachable|host unreachable|no route to host|connection refused|connection reset`,
-		`(?i)invalid argument|invalid option|unknown option|bad parameter|syntax error`,
-		`(?i)out of memory|memory error|disk full|no space left|too many open files`,
-		`(?i)target unreachable|target not responding|host not found|dns resolution failed`,
-		`(?i)parse error|parsing failed|invalid format|malformed|json decode`,
+		`(?i)timeout|timed out|connection timeout|read timeout|operation timed out|command timeout`,
+		`(?i)permission denied|access denied|forbidden|not authorized|sudo required|root required|insufficient privileges`,
+		`(?i)network unreachable|host unreachable|no route to host|connection refused|connection reset|network error`,
+		`(?i)rate limit|too many requests|throttled|429|request limit exceeded|quota exceeded`,
+		`(?i)command not found|no such file or directory|no such file|executable not found|binary not found`,
+		`(?i)invalid argument|invalid option|unknown option|bad parameter|invalid parameter|syntax error`,
+		`(?i)out of memory|memory error|disk full|no space left|resource temporarily unavailable|too many open files`,
+		`(?i)authentication failed|login failed|invalid credentials|invalid token|expired token`,
+		`(?i)target unreachable|target not responding|target down|host not found|dns resolution failed`,
+		`(?i)parse error|parsing failed|invalid format|malformed|json decode error|xml parse error|invalid json`,
 	}
 	types := []ErrorType{
-		TypeTimeout, TypeNotFound, TypeRateLimit, TypePermission, TypeNetworkUnreachable,
-		TypeInvalidParams, TypeResourceExhausted, TypeTargetUnreachable, TypeParsing,
+		TypeTimeout, TypePermissionDenied, TypeNetworkUnreachable, TypeRateLimited, TypeToolNotFound,
+		TypeInvalidParams, TypeResourceExhausted, TypeAuthenticationFailed, TypeTargetUnreachable, TypeParsing,
 	}
 	var compiled []*regexp.Regexp
 	for _, p := range patterns {
@@ -97,7 +99,7 @@ func (h *Handler) Classify(msg string) ErrorType {
 
 func (h *Handler) Recoverable(t ErrorType) bool {
 	switch t {
-	case TypeTimeout, TypeNotFound, TypeRateLimit, TypeNetworkUnreachable, TypeTargetUnreachable, TypeInvalidParams:
+	case TypeTimeout, TypeToolNotFound, TypeRateLimited, TypeNetworkUnreachable, TypeTargetUnreachable, TypeInvalidParams:
 		return true
 	default:
 		return false
@@ -111,7 +113,7 @@ func (h *Handler) SuggestAlternative(tool string, t ErrorType) string {
 		return ""
 	}
 	switch t {
-	case TypeTimeout, TypeNotFound, TypeNetworkUnreachable:
+	case TypeTimeout, TypeToolNotFound, TypeNetworkUnreachable:
 		if len(alts) > 0 {
 			return alts[0]
 		}
@@ -130,25 +132,55 @@ func (h *Handler) AdjustParams(tool string, t ErrorType, params map[string]strin
 		switch bin {
 		case "nmap":
 			out["additional_args"] = strings.TrimSpace(out["additional_args"] + " -T2")
-		case "feroxbuster", "gobuster", "ffuf":
+		case "gobuster", "feroxbuster", "ffuf":
 			if out["threads"] == "" {
 				out["threads"] = "10"
+			}
+			if out["timeout"] == "" {
+				out["timeout"] = "30"
 			}
 		case "nuclei":
 			if out["additional_args"] == "" {
 				out["additional_args"] = "-c 10"
 			}
+		default:
+			if out["timeout"] == "" {
+				out["timeout"] = "60"
+			}
+			if out["threads"] == "" {
+				out["threads"] = "5"
+			}
 		}
 		out["_reduce_scope"] = "true"
-	case TypeRateLimit:
-		out["additional_args"] = strings.TrimSpace(out["additional_args"] + " --delay 1")
+	case TypeRateLimited:
+		switch bin {
+		case "nmap":
+			out["additional_args"] = strings.TrimSpace(out["additional_args"] + " -T1")
+		case "gobuster", "feroxbuster", "ffuf":
+			out["threads"] = "5"
+			out["delay"] = "1"
+		case "nuclei":
+			if out["additional_args"] == "" {
+				out["additional_args"] = "-c 5 -rl 10"
+			}
+		default:
+			out["delay"] = "2"
+			out["threads"] = "3"
+		}
 	case TypeInvalidParams:
 		if out["additional_args"] != "" {
 			out["additional_args"] = strings.TrimSpace(out["additional_args"] + " --help")
 		}
 	case TypeResourceExhausted:
-		if out["threads"] != "" {
+		switch bin {
+		case "nmap":
+			out["additional_args"] = strings.TrimSpace(out["additional_args"] + " --max-parallelism 10")
+		case "gobuster", "feroxbuster", "ffuf", "nuclei":
 			out["threads"] = "5"
+		default:
+			if out["threads"] != "" {
+				out["threads"] = "3"
+			}
 		}
 	}
 	return out
@@ -173,9 +205,9 @@ func (h *Handler) BackoffDelay(attempt int) time.Duration {
 // MaxRetries returns bounded retry count for recoverable errors.
 func (h *Handler) MaxRetries(t ErrorType) int {
 	switch t {
-	case TypeTimeout, TypeRateLimit, TypeNetworkUnreachable:
+	case TypeTimeout, TypeRateLimited, TypeNetworkUnreachable:
 		return 3
-	case TypeNotFound:
+	case TypeToolNotFound:
 		return 1
 	default:
 		return 2

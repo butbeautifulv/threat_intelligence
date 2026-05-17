@@ -11,7 +11,7 @@ func TestClassify_timeout(t *testing.T) {
 
 func TestSuggestAlternative_nuclei(t *testing.T) {
 	h := Default()
-	alt := h.SuggestAlternative("nuclei_scan", TypeNotFound)
+	alt := h.SuggestAlternative("nuclei_scan", TypeToolNotFound)
 	if alt != "jaeles" && alt != "nikto" {
 		t.Fatalf("alt: %q", alt)
 	}
@@ -22,7 +22,7 @@ func TestRecoverable(t *testing.T) {
 	if !h.Recoverable(TypeTimeout) {
 		t.Fatal("timeout should be recoverable")
 	}
-	if h.Recoverable(TypePermission) {
-		t.Fatal("permission should not be recoverable")
+	if h.Recoverable(TypePermissionDenied) {
+		t.Fatal("permission_denied should not be recoverable")
 	}
 }
