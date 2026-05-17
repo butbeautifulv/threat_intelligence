@@ -20,6 +20,7 @@ const (
 	SourceVuln      = "vuln"
 	SourceLola      = "lola"
 	SourceDS        = "ds"
+	SourceBrowser   = "browser"
 )
 
 const (
@@ -50,6 +51,7 @@ const (
 	KindDSYaraRaw             = "scrape_ds_yara_raw"
 	KindDSAtomicRaw           = "scrape_ds_atomic_raw"
 	KindDSCalderaRaw          = "scrape_ds_caldera_raw"
+	KindBrowserInspectRaw     = "scrape_browser_inspect_raw"
 )
 
 // Envelope is the on-wire JSON for scrape.> JetStream messages.
@@ -223,4 +225,16 @@ type LolaMergeTacticTechnique struct {
 type LolaMergeSubtechnique struct {
 	ParentTechniqueID string `json:"parent_technique_id"`
 	ChildTechniqueID  string `json:"child_technique_id"`
+}
+
+// BrowserInspectRaw is the harvest payload for a Playwright inspect crawl.
+type BrowserInspectRaw struct {
+	URL       string `json:"url"`
+	RawJSON   string `json:"raw_json"`
+	Timestamp string `json:"timestamp,omitempty"`
+}
+
+// BrowserContentKey builds a stable ledger/NATS key for browser inspect results.
+func BrowserContentKey(url string) string {
+	return "browser:inspect:" + strings.TrimSpace(url)
 }

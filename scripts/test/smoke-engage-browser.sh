@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 API_URL="${ENGAGE_API_URL:-http://127.0.0.1:8890}"
-BROWSER_URL="${ENGAGE_BROWSER_URL:-http://127.0.0.1:8910}"
+BROWSER_URL="${DISCOVERY_BROWSER_URL:-${ENGAGE_BROWSER_URL:-http://127.0.0.1:8920}}"
 
 if ! curl -fsS "${BROWSER_URL}/health" 2>/dev/null | grep -q '"ok":true'; then
   echo "skip browser smoke: sidecar not reachable at ${BROWSER_URL}" >&2
@@ -14,6 +14,7 @@ if ! curl -fsS "${API_URL}/health" 2>/dev/null | grep -q '"ok":true'; then
   exit 0
 fi
 
+export DISCOVERY_BROWSER_URL="${BROWSER_URL}"
 export ENGAGE_BROWSER_URL="${BROWSER_URL}"
 body='{"target":"https://example.com","parameters":{"wait_time":"3"}}'
 resp=$(curl -fsS -X POST "${API_URL}/api/tools/browser_agent_inspect" \

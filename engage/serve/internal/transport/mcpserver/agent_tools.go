@@ -60,7 +60,7 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 		if s.browser == nil || !s.browser.Enabled() {
 			res, err := toolJSONResult(map[string]any{
 				"success": false,
-				"error":   "browser sidecar not configured (ENGAGE_BROWSER_URL)",
+				"error":   "discovery browser not configured (DISCOVERY_BROWSER_URL)",
 			})
 			return res, true, err
 		}

@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// BrowserInspectOpts configures sidecar inspection.
+// BrowserInspectOpts configures discovery browser inspection via HTTP proxy.
 type BrowserInspectOpts struct {
 	Target      string
 	WaitTime    int
@@ -20,14 +20,17 @@ type BrowserInspectOpts struct {
 	ActiveTests bool
 }
 
-// BrowserProxy runs browser catalog tools via ENGAGE_BROWSER_URL sidecar.
+// BrowserProxy runs catalog browser tools via DISCOVERY_BROWSER_URL (or legacy ENGAGE_BROWSER_URL).
 type BrowserProxy struct {
 	BaseURL string
 	Client  *http.Client
 }
 
 func NewBrowserProxyFromEnv() *BrowserProxy {
-	base := strings.TrimSpace(os.Getenv("ENGAGE_BROWSER_URL"))
+	base := strings.TrimSpace(os.Getenv("DISCOVERY_BROWSER_URL"))
+	if base == "" {
+		base = strings.TrimSpace(os.Getenv("ENGAGE_BROWSER_URL"))
+	}
 	if base == "" {
 		return nil
 	}
@@ -47,13 +50,13 @@ func IsBrowserBinary(name string) bool {
 
 func (b *BrowserProxy) Inspect(ctx context.Context, opts BrowserInspectOpts) Result {
 	payload := map[string]any{
-		"url":           opts.Target,
-		"target":        opts.Target,
-		"wait_time":     opts.WaitTime,
-		"headless":      opts.Headless,
+		"url":          opts.Target,
+		"target":       opts.Target,
+		"wait_time":    opts.WaitTime,
+		"headless":     opts.Headless,
 		"screenshot":    opts.Screenshot,
-		"active_tests":  opts.ActiveTests,
-		"inspect":       true,
+		"active_tests": opts.ActiveTests,
+		"inspect":      true,
 	}
 	body, _ := json.Marshal(payload)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.BaseURL+"/inspect", bytes.NewReader(body))
@@ -68,7 +71,7 @@ func (b *BrowserProxy) Inspect(ctx context.Context, opts BrowserInspectOpts) Res
 	defer resp.Body.Close()
 	var raw map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
-		return Result{ExitCode: -1, Err: fmt.Errorf("browser sidecar: %w", err)}
+		return Result{ExitCode: -1, Err: fmt.Errorf("discovery browser: %w", err)}
 	}
 	if raw["success"] == false {
 		errMsg, _ := raw["error"].(string)

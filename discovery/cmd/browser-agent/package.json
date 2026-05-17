@@ -1,5 +1,5 @@
 {
-  "name": "engage-browser-agent",
+  "name": "discovery-browser-agent",
   "private": true,
   "type": "module",
   "dependencies": {

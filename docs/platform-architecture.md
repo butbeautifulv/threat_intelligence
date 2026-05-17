@@ -116,7 +116,7 @@ They solve **different** problems today. Unifying the **name** without splitting
 
 **Keep `factory`** as discovery orchestration (which sources, policies, NATS subjects). **Keep engage `Runner`** as security-tool orchestration. Share only **primitives** underneath.
 
-**Browser today:** `engage/cmd/browser-agent` — logically **discovery**, not pentest. v8 moves browser crawl under discovery; engage keeps a thin API if needed.
+**Browser (P8g):** `discovery/cmd/browser-agent` (Playwright) + `discovery/browser` HTTP service publishes `harvest` `source=browser` / `kind=scrape_browser_inspect_raw` on `scrape.browser.events`. Engage proxies `DISCOVERY_BROWSER_URL` for catalog/MCP tools.
 
 ---
 

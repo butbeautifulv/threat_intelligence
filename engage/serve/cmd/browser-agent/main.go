@@ -1,12 +1,9 @@
-// Package main is a local healthcheck shim; production images run index.mjs (Playwright).
+// Package main is deprecated; browser crawl lives under discovery/cmd/browser-agent.
 package main
 
 import "os"
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
-		os.Exit(0)
-	}
-	os.Stderr.WriteString("engage browser-agent: use Docker image (node index.mjs) or run: node index.mjs\n")
+	os.Stderr.WriteString("engage browser-agent moved to discovery/cmd/browser-agent; use discovery-browser service (DISCOVERY_BROWSER_URL)\n")
 	os.Exit(1)
 }

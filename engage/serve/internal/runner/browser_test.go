@@ -26,7 +26,7 @@ func TestBrowserProxy_Inspect(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	t.Setenv("ENGAGE_BROWSER_URL", srv.URL)
+	t.Setenv("DISCOVERY_BROWSER_URL", srv.URL)
 	proxy := NewBrowserProxyFromEnv()
 	res := proxy.Inspect(context.Background(), BrowserInspectOpts{Target: "https://example.com"})
 	if res.ExitCode != 0 {
@@ -48,11 +48,11 @@ func TestExecutor_browserProxy(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]any{"stdout": "navigated\n", "exit_code": 0})
 	}))
 	defer srv.Close()
-	t.Setenv("ENGAGE_BROWSER_URL", srv.URL)
+	t.Setenv("DISCOVERY_BROWSER_URL", srv.URL)
 	ex := &Executor{}
 	res := ex.Run(context.Background(), "browser", []string{"https://example.com"}, 0, nil)
 	if res.ExitCode != 0 {
 		t.Fatalf("%+v", res)
 	}
-	os.Unsetenv("ENGAGE_BROWSER_URL")
+	os.Unsetenv("DISCOVERY_BROWSER_URL")
 }

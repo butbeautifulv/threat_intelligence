@@ -12,7 +12,8 @@ services:
       ENGAGE_RUNNER_MODE: docker
       ENGAGE_RUNNER_CONTAINER: engage-runner
       ENGAGE_CATALOG_PATH: /app/catalog/tools.live.yaml
-      ENGAGE_BROWSER_URL: ${ENGAGE_BROWSER_URL:-http://engage-browser:8910}
+      DISCOVERY_BROWSER_URL: ${DISCOVERY_BROWSER_URL:-http://discovery-browser:8920}
+      ENGAGE_BROWSER_URL: ${ENGAGE_BROWSER_URL:-${DISCOVERY_BROWSER_URL:-http://discovery-browser:8920}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
@@ -26,17 +27,19 @@ services:
       ENGAGE_RUNNER_MODE: docker
       ENGAGE_RUNNER_CONTAINER: engage-runner
       ENGAGE_CATALOG_PATH: /app/catalog/tools.live.yaml
-      ENGAGE_BROWSER_URL: ${ENGAGE_BROWSER_URL:-http://engage-browser:8910}
+      DISCOVERY_BROWSER_URL: ${DISCOVERY_BROWSER_URL:-http://discovery-browser:8920}
+      ENGAGE_BROWSER_URL: ${ENGAGE_BROWSER_URL:-${DISCOVERY_BROWSER_URL:-http://discovery-browser:8920}}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       engage-runner:
         condition: service_started
 
+  # Deprecated: use deploy/discovery/compose.browser.yml (discovery-browser + sidecar).
   engage-browser:
     build:
       context: ../..
-      dockerfile: deploy/engage/docker/browser.Dockerfile
+      dockerfile: deploy/discovery/docker/browser-agent.Dockerfile
     ports:
       - "${ENGAGE_BROWSER_PORT:-8910}:8910"
     profiles:

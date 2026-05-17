@@ -11,6 +11,6 @@ Cross-layer subprocess execution: sandboxed `docker exec`, local runs with filte
 
 - **Plain HTTP / GitHub raw feeds** — use `discovery/harvest` `feeds.Client` and `discovery/pkg/githubraw` (ledger-backed GET). No subprocess, no sandbox overhead.
 - **Pipeline / graph / knowledge** — these layers should not spawn catalog tools; they consume NATS/harvest envelopes only.
-- **Engage browser tools** — stay on the browser sidecar HTTP path in `engage/serve/internal/runner` until P8g moves browser to discovery.
+- **Discovery browser crawl** — Playwright sidecar under `discovery/cmd/browser-agent`; HTTP + harvest publish in `discovery/browser` (engage proxies via `DISCOVERY_BROWSER_URL`).
 
 `pkg/exec` must not import `discovery/`, `pipeline/`, `knowledge/`, or `engage/`.

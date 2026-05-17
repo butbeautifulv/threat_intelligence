@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// InspectRequest configures browser inspection.
+// InspectRequest configures browser inspection (proxied to discovery browser service).
 type InspectRequest struct {
 	URL         string
 	WaitTime    int
@@ -20,7 +20,7 @@ type InspectRequest struct {
 	ActiveTests bool
 }
 
-// InspectResult is the normalized browser inspect response.
+// InspectResult is the normalized browser inspect response from discovery.
 type InspectResult struct {
 	Success          bool             `json:"success"`
 	Forms            []map[string]any `json:"forms,omitempty"`
@@ -32,15 +32,19 @@ type InspectResult struct {
 	Error            string           `json:"error,omitempty"`
 }
 
-// Service calls the Playwright browser sidecar.
+// Service proxies browser inspect to the discovery browser HTTP service.
+// Configure DISCOVERY_BROWSER_URL (preferred) or legacy ENGAGE_BROWSER_URL.
 type Service struct {
 	BaseURL string
 	Client  *http.Client
 }
 
-// NewServiceFromEnv returns a browser service when ENGAGE_BROWSER_URL is set.
+// NewServiceFromEnv returns a browser proxy when a discovery browser URL is set.
 func NewServiceFromEnv() *Service {
-	base := strings.TrimSpace(os.Getenv("ENGAGE_BROWSER_URL"))
+	base := strings.TrimSpace(os.Getenv("DISCOVERY_BROWSER_URL"))
+	if base == "" {
+		base = strings.TrimSpace(os.Getenv("ENGAGE_BROWSER_URL"))
+	}
 	if base == "" {
 		return nil
 	}
@@ -54,10 +58,10 @@ func (s *Service) Enabled() bool {
 	return s != nil && s.BaseURL != ""
 }
 
-// Inspect runs POST /inspect on the sidecar.
+// Inspect runs POST /inspect on the discovery browser service.
 func (s *Service) Inspect(ctx context.Context, req InspectRequest) InspectResult {
 	if s == nil || !s.Enabled() {
-		return InspectResult{Success: false, Error: "browser sidecar not configured (ENGAGE_BROWSER_URL)"}
+		return InspectResult{Success: false, Error: "discovery browser not configured (DISCOVERY_BROWSER_URL)"}
 	}
 	url := strings.TrimSpace(req.URL)
 	if url == "" {
@@ -90,7 +94,7 @@ func (s *Service) Inspect(ctx context.Context, req InspectRequest) InspectResult
 	normalizeInspectResult(&out)
 	if resp.StatusCode >= 400 && out.Error == "" {
 		out.Success = false
-		out.Error = fmt.Sprintf("browser sidecar http %d", resp.StatusCode)
+		out.Error = fmt.Sprintf("discovery browser http %d", resp.StatusCode)
 	}
 	return out
 }
