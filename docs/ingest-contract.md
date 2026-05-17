@@ -21,7 +21,7 @@ discovery/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/
 - **Go:** [pkg/commit/](../pkg/commit/) (pipeline + graph)
 - **Stream:** `INGEST`, subjects `ingest.>`
 - **Publisher:** pipeline via [pipeline/connector/](../pipeline/connector/)
-- **Consumer:** [graph/ingest/](../graph/ingest/) (`cmd/ingest_worker`)
+- **Consumer:** [knowledge/ingest/](../knowledge/ingest/) (`cmd/ingest_worker`)
 - **Dedup:** `Nats-Msg-Id` = `idempotency_key`
 
 ### TI commit payloads (NED → graph)
@@ -41,7 +41,7 @@ Engage does **not** publish directly to `ingest.>`. When `ENGAGE_EVENTS_NATS_ENA
 
 - **Source:** `engage` ([pkg/commit/envelope.go](../pkg/commit/envelope.go))
 - **Bridge:** [pipeline/connector/nats/engage_consumer.go](../pipeline/connector/nats/engage_consumer.go)
-- **Graph ingest:** [graph/ingest/internal/sources/engage/](../graph/ingest/internal/sources/engage/)
+- **Graph ingest:** [knowledge/ingest/internal/sources/engage/](../knowledge/ingest/internal/sources/engage/)
 - **Idempotency keys:** `engage:run:{tool}:{target}:{at}` and `engage:finding:{tool}:{target}:{title}`
 
 ## Vitess crawl ledger (scrape only)

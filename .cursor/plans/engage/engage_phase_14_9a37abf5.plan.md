@@ -3,7 +3,7 @@ name: Engage Phase 14
 overview: Phase 14 закрывает цикл «записали в граф → можно читать через veil-api/MCP», усиливает e2e smoke до Neo4j, и добивает agent/catalog parity без LLM-порта и 150 адаптеров.
 todos:
   - id: engage-r69-graph-read
-    content: "R69: engage category in graph/connector/query + veil-api/MCP search + veilgraph client"
+    content: "R69: engage category in knowledge/connector/query + veil-api/MCP search + veilgraph client"
     status: completed
   - id: engage-r70-neo4j-e2e
     content: "R70: Harden smoke-engage-events-pipeline with graph-ingest + Neo4j EngageToolRun assert"
@@ -27,7 +27,7 @@ isProject: false
 
 ## Контекст
 
-[Phase 13](.cursor/plans/engage_phase_13_3c4af607.plan.md) (R63–R68, в [greenfield](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md)) закрыла **write path**: engage → `engage.events.*` → [engage-events-worker](pipeline/engage-events/cmd/worker) → `ingest.engage.*` → [graph ingest engage](graph/ingest/internal/sources/engage/) → Neo4j (`EngageToolRun`, `EngageFinding`, `EngageTarget`). Graph pack **v0.4.3**.
+[Phase 13](.cursor/plans/engage_phase_13_3c4af607.plan.md) (R63–R68, в [greenfield](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md)) закрыла **write path**: engage → `engage.events.*` → [engage-events-worker](pipeline/engage-events/cmd/worker) → `ingest.engage.*` → [graph ingest engage](knowledge/ingest/internal/sources/engage/) → Neo4j (`EngageToolRun`, `EngageFinding`, `EngageTarget`). Graph pack **v0.4.3**.
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ flowchart LR
   MCP --> API
 ```
 
-**Главный разрыв:** данные engage есть в Neo4j, но [veil-api](graph/serve/internal/transport/httpserver/router.go) не знает категорию `engage` — [categories.go](graph/connector/query/categories.go) содержит только scrape-источники (`vuln`, `ti`, …). [veilgraph.Search](engage/serve/internal/client/veilgraph/client.go) и `correlate_threat_intelligence` не видят сканы/находки engage.
+**Главный разрыв:** данные engage есть в Neo4j, но [veil-api](knowledge/serve/internal/transport/httpserver/router.go) не знает категорию `engage` — [categories.go](knowledge/connector/query/categories.go) содержит только scrape-источники (`vuln`, `ti`, …). [veilgraph.Search](engage/serve/internal/client/veilgraph/client.go) и `correlate_threat_intelligence` не видят сканы/находки engage.
 
 **Не редактировать:** [engage_phase_13_3c4af607.plan.md](.cursor/plans/engage_phase_13_3c4af607.plan.md), phase 10–12 plan files.
 
@@ -59,12 +59,12 @@ flowchart LR
 
 | Deliverable | Детали |
 |-------------|--------|
-| Category | В [graph/connector/query/categories.go](graph/connector/query/categories.go): `engage` → labels `EngageToolRun`, `EngageFinding`, `EngageTarget`; добавить в `categoryOrder` |
+| Category | В [graph/connector/query/categories.go](knowledge/connector/query/categories.go): `engage` → labels `EngageToolRun`, `EngageFinding`, `EngageTarget`; добавить в `categoryOrder` |
 | Search | Использовать существующий `SearchInCategory` / `GET /v1/categories/{category}/search` — поиск по `target`, `tool`, `title`, `severity` (props уже на нодах) |
-| Neighbors (минимум) | `GET /v1/nodes/{id}/neighbors` для `EngageTarget` — отдавать `ENGAGE_RAN` / `ENGAGE_FOUND` (при необходимости — узкий Cypher в [graph/connector/query/service.go](graph/connector/query/service.go)) |
+| Neighbors (минимум) | `GET /v1/nodes/{id}/neighbors` для `EngageTarget` — отдавать `ENGAGE_RAN` / `ENGAGE_FOUND` (при необходимости — узкий Cypher в [graph/connector/query/service.go](knowledge/connector/query/service.go)) |
 | Engage client | [veilgraph/client.go](engage/serve/internal/client/veilgraph/client.go): `Search(ctx, "engage", q)`; в [graph_intel.go](engage/serve/internal/usecase/intelligence/graph_intel.go) добавить `engage` в цикл `CorrelateThreatIntelligence` / `DiscoverAttackChains` |
-| MCP | [veil-mcp](graph/serve/cmd/mcp) — категория `engage` в `list_categories` / search tools без нового бинарника |
-| Tests | `graph/serve` router tests: `/v1/categories` содержит `engage`; search smoke с mock Neo4j или testcontainers |
+| MCP | [veil-mcp](knowledge/serve/cmd/mcp) — категория `engage` в `list_categories` / search tools без нового бинарника |
+| Tests | `knowledge/serve` router tests: `/v1/categories` содержит `engage`; search smoke с mock Neo4j или testcontainers |
 | Docs | [docs/threatintel-runtime.md](docs/threatintel-runtime.md), [docs/mcp-agents.md](docs/mcp-agents.md), [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) |
 
 **Out of scope R69:** отдельный `GET /v1/engage/*` REST namespace — достаточно категории `engage` в categorical API.
@@ -92,7 +92,7 @@ flowchart LR
 
 | Deliverable | Детали |
 |-------------|--------|
-| Ingest (optional) | В [neo4j.go](graph/ingest/internal/sources/engage/storage/neo4j.go): если `title`/`description` содержит CVE-YYYY-NNNNN — `OPTIONAL MATCH` `Vulnerability` + `MERGE (f)-[:MAY_RELATE_TO]->(v)` |
+| Ingest (optional) | В [neo4j.go](knowledge/ingest/internal/sources/engage/storage/neo4j.go): если `title`/`description` содержит CVE-YYYY-NNNNN — `OPTIONAL MATCH` `Vulnerability` + `MERGE (f)-[:MAY_RELATE_TO]->(v)` |
 | Read API | `correlate-threat` / новый поле в ответе: `engage_findings` из category search по target |
 | Assessment | [assessment.go](engage/serve/internal/usecase/workflow/assessment.go) — publish findings на bus (как [smartscan.go](engage/serve/internal/usecase/workflow/smartscan.go)) |
 | Tests | Unit test CVE regex + ingest apply mock |

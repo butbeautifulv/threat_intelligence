@@ -75,28 +75,28 @@ todos:
     content: pipeline_worker/cmd/main.go
     status: pending
   - id: pkg-ingestv1-work-graph
-    content: graph/go.work + pkg/ingestv1
+    content: knowledge/go.work + pkg/ingestv1
     status: pending
   - id: pkg-ingestv1-import-ingest-worker
-    content: graph/ingest_worker/cmd/main.go
+    content: knowledge/ingest_worker/cmd/main.go
     status: pending
   - id: pkg-ingestv1-import-graph-ti
-    content: graph/sources/ti/ingest
+    content: knowledge/sources/ti/ingest
     status: pending
   - id: pkg-ingestv1-import-graph-vuln
-    content: graph/sources/vuln/ingest
+    content: knowledge/sources/vuln/ingest
     status: pending
   - id: pkg-ingestv1-import-graph-lola-ds
-    content: graph/sources/lola, ds ingest
+    content: knowledge/sources/lola, ds ingest
     status: pending
   - id: pkg-ingestv1-import-graph-storage
-    content: graph/storage sbom/coderules/nuclei
+    content: knowledge/storage sbom/coderules/nuclei
     status: pending
   - id: pkg-ingestv1-import-workeringest
-    content: graph/workeringest/*
+    content: knowledge/workeringest/*
     status: pending
   - id: pkg-ingestv1-rm-contracts
-    content: Удалить pipeline/contract и graph/contract
+    content: Удалить pipeline/contract и knowledge/contract
     status: pending
   - id: pkg-ingestv1-rm-gen-contracts
     content: Удалить gen-contracts.sh, make contracts, ссылки в CONTRIBUTING
@@ -120,7 +120,7 @@ todos:
     content: Рефактор pipeline/pub через pkg/natsjet
     status: pending
   - id: pkg-natsjet-graph-ensure
-    content: Рефактор graph/internal/natsensure
+    content: Рефактор knowledge/internal/natsensure
     status: pending
   - id: pkg-tidomain-init
     content: Создать pkg/tidomain (общие TI entity types)
@@ -153,7 +153,7 @@ todos:
     content: nuclei + coderules → pkg/githubraw
     status: pending
   - id: graph-ingestkit
-    content: graph/internal/ingestkit — общий SetupWriter для 4 доменов
+    content: knowledge/internal/ingestkit — общий SetupWriter для 4 доменов
     status: pending
   - id: graph-workeringest-fold
     content: "Опционально: убрать workeringest shims"
@@ -172,9 +172,9 @@ isProject: false
 ## Цель
 
 - **DRY:** одинаковый код → [`pkg/`](pkg/) (включая дубли, которые сейчас только в scrape).
-- **Изоляция:** `discovery/`, `pipeline/`, `graph/` не импортируют друг друга; общение только через NATS + типы из `pkg/`.
+- **Изоляция:** `discovery/`, `pipeline/`, `knowledge/` не импортируют друг друга; общение только через NATS + типы из `pkg/`.
 - **В слоях остаётся:** оркестрация (`usecase`, `handle`, `ingest_worker`, `factory`, Cypher MERGE).
-- **Убрать:** `*/contract/*`, [`scripts/gen-contracts.sh`](scripts/gen-contracts.sh), `make contracts`, копию `graph/contract/ingestv1`.
+- **Убрать:** `*/contract/*`, [`scripts/gen-contracts.sh`](scripts/gen-contracts.sh), `make contracts`, копию `knowledge/contract/ingestv1`.
 - **Схемы:** [`docs/schemas/`](docs/schemas/) остаются **документацией**; SOT для Go — ручное поддержание `pkg/scrapev1`, `pkg/ingestv1` (без codegen).
 - **Планы:** заархивировать/удалить устаревшие [`.cursor/plans/`](.cursor/plans/).
 
@@ -216,14 +216,14 @@ flowchart TB
 | [`pkg/nvdparse`](pkg/nvdparse/) | уже есть | scrape vuln, pipeline vuln |
 | `pkg/scrapev1` | `scrape/contract/scrapev1` | scrape, pipeline |
 | `pkg/ingestv1` | `pipeline/contract/ingestv1` | pipeline, graph |
-| `pkg/natsjet` | `scrape/pub`, `pipeline/pub`, `graph/internal/natsensure` | все три слоя |
-| `pkg/tidomain` | `pipeline/.../tidomain` + `graph/.../ti/domain` | pipeline TI, graph TI |
-| `pkg/tinormalize` | `pipeline/.../ti/normalize` + `graph/.../ti/normalize` | pipeline TI, graph TI |
+| `pkg/natsjet` | `scrape/pub`, `pipeline/pub`, `knowledge/internal/natsensure` | все три слоя |
+| `pkg/tidomain` | `pipeline/.../tidomain` + `knowledge/.../ti/domain` | pipeline TI, graph TI |
+| `pkg/tinormalize` | `pipeline/.../ti/normalize` + `knowledge/.../ti/normalize` | pipeline TI, graph TI |
 | `pkg/nvdmap` | `nvdToDomain` / `nvdToVulnDomain` | scrape vuln, pipeline vuln |
 | `pkg/proxypool` | 4× `scrape/sources/*/internal/proxypool` | ti, vuln, ds, lola |
 | `pkg/githubraw` | nuclei + coderules `github_fetch` | scrape nuclei, coderules |
 
-**Не в pkg (остаётся в слое — разная ответственность):** `scrape/feeds`, `scrape/ledger`, `graph/neo4jclient`, Cypher в `graph/sources/*/storage`, `pipeline/internal/handle` routing.
+**Не в pkg (остаётся в слое — разная ответственность):** `scrape/feeds`, `scrape/ledger`, `knowledge/neo4jclient`, Cypher в `knowledge/sources/*/storage`, `pipeline/internal/handle` routing.
 
 ## Правила изоляции (обновить в docs)
 
@@ -281,17 +281,17 @@ flowchart TB
 | `pkg-ingestv1-import-handle` | По одному файлу в [`pipeline/pipeline_worker/internal/handle/`](pipeline/pipeline_worker/internal/handle/): `handler.go`, `ti.go`, `vuln.go`, `lola.go`, `ds.go`, `appsec.go`, `appsec_parse.go` + `*_test.go` |
 | `pkg-ingestv1-import-normalize` | Пакеты в [`pipeline/internal/normalize/`](pipeline/internal/normalize/) ссылающиеся на ingestv1 |
 | `pkg-ingestv1-import-cmd` | [`pipeline/pipeline_worker/cmd/main.go`](pipeline/pipeline_worker/cmd/main.go) |
-| `pkg-ingestv1-work-graph` | `graph/go.work` + замена `graph/contract/ingestv1` |
-| `pkg-ingestv1-import-ingest-worker` | [`graph/ingest_worker/cmd/main.go`](graph/ingest_worker/cmd/main.go) |
-| `pkg-ingestv1-import-sources-ti` | `graph/sources/ti/ingest/*` |
+| `pkg-ingestv1-work-graph` | `knowledge/go.work` + замена `knowledge/contract/ingestv1` |
+| `pkg-ingestv1-import-ingest-worker` | [`knowledge/ingest_worker/cmd/main.go`](knowledge/ingest_worker/cmd/main.go) |
+| `pkg-ingestv1-import-sources-ti` | `knowledge/sources/ti/ingest/*` |
 | `pkg-ingestv1-import-sources-vuln` | vuln ingest |
 | `pkg-ingestv1-import-sources-lola` | lola ingest |
 | `pkg-ingestv1-import-sources-ds` | ds ingest |
-| `pkg-ingestv1-import-storage-appsec` | `graph/storage/{sbom,coderules,nuclei}` |
-| `pkg-ingestv1-import-workeringest` | `graph/workeringest/*` |
+| `pkg-ingestv1-import-storage-appsec` | `knowledge/storage/{sbom,coderules,nuclei}` |
+| `pkg-ingestv1-import-workeringest` | `knowledge/workeringest/*` |
 | `pkg-ingestv1-test` | `make test-pipeline test-graph` |
 | `pkg-ingestv1-rm-pipeline-contract` | Удалить `pipeline/contract/` |
-| `pkg-ingestv1-rm-graph-contract` | Удалить `graph/contract/` |
+| `pkg-ingestv1-rm-graph-contract` | Удалить `knowledge/contract/` |
 | `pkg-ingestv1-rm-gen-contracts` | Удалить [`scripts/gen-contracts.sh`](scripts/gen-contracts.sh); убрать `contracts` из [`Makefile`](Makefile), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`scripts/README.md`](scripts/README.md) |
 | `pkg-ingestv1-docs` | Обновить [`docs/coding-style.md`](docs/coding-style.md), [`docs/ingest-contract.md`](docs/ingest-contract.md), [`AGENTS.md`](AGENTS.md): SOT = pkg, schemas = docs only |
 
@@ -317,7 +317,7 @@ flowchart TB
 | `pkg-natsjet-test` | unit-тесты на marshal + MsgId |
 | `pkg-natsjet-scrape-pub` | [`scrape/pub/publish.go`](discovery/pub/publish.go) — thin wrapper: dedup = `ContentKey`, validate `scrapev1` |
 | `pkg-natsjet-pipeline-pub` | [`pipeline/pub/publish.go`](pipeline/pub/publish.go) — dedup = `IdempotencyKey` |
-| `pkg-natsjet-graph-ensure` | [`graph/internal/natsensure`](graph/internal/natsensure/ensure.go) → вызов `pkg/natsjet.EnsureStream("INGEST", ...)` |
+| `pkg-natsjet-graph-ensure` | [`knowledge/internal/natsensure`](knowledge/internal/natsensure/ensure.go) → вызов `pkg/natsjet.EnsureStream("INGEST", ...)` |
 | `pkg-natsjet-pipeline-ensure` | `EnsureBothStreams` в pipeline/pub |
 | `pkg-natsjet-work-all` | go.work во всех слоях |
 | `pkg-natsjet-test-all` | build scrape_worker, pipeline_worker, ingest_worker |
@@ -328,7 +328,7 @@ flowchart TB
 
 | ID | Действие |
 |----|----------|
-| `pkg-tidomain-init` | Объединить типы из [`pipeline/internal/normalize/tidomain`](pipeline/internal/normalize/tidomain/) и [`graph/sources/ti/internal/domain`](graph/sources/ti/internal/domain/) |
+| `pkg-tidomain-init` | Объединить типы из [`pipeline/internal/normalize/tidomain`](pipeline/internal/normalize/tidomain/) и [`knowledge/sources/ti/internal/domain`](knowledge/sources/ti/internal/domain/) |
 | `pkg-tinormalize-init` | Перенести `CanonicalID`, `NormalizeIOC`, `NormalizeCampaign`, … |
 | `pkg-tinormalize-test` | Скопировать/объединить table-driven тесты |
 | `pkg-tidomain-pipeline` | pipeline normalize/ti → импорт pkg |
@@ -382,12 +382,12 @@ flowchart TB
 
 | ID | Действие |
 |----|----------|
-| `graph-ingestkit-init` | `graph/internal/ingestkit`: generic `SetupWriter(cfg, storeCtor)` |
-| `graph-ingestkit-ti` | рефактор [`graph/sources/ti/ingest/setup.go`](graph/sources/ti/ingest/setup.go) |
+| `graph-ingestkit-init` | `knowledge/internal/ingestkit`: generic `SetupWriter(cfg, storeCtor)` |
+| `graph-ingestkit-ti` | рефактор [`knowledge/sources/ti/ingest/setup.go`](knowledge/sources/ti/ingest/setup.go) |
 | `graph-ingestkit-vuln` | vuln |
 | `graph-ingestkit-lola` | lola |
 | `graph-ingestkit-ds` | ds |
-| `graph-workeringest-fold` | Опционально: убрать [`graph/workeringest/*`](graph/workeringest/) — прямой импорт `sources/*/ingest` из ingest_worker (отдельный коммит) |
+| `graph-workeringest-fold` | Опционально: убрать [`knowledge/workeringest/*`](knowledge/workeringest/) — прямой импорт `sources/*/ingest` из ingest_worker (отдельный коммит) |
 
 ---
 
@@ -406,7 +406,7 @@ flowchart TB
 
 ## Что сознательно не трогаем в этом рефакторинге
 
-- **AppSec asymmetry** (`graph/storage/*` vs `graph/sources/*`) — отдельная задача, не DRY.
+- **AppSec asymmetry** (`knowledge/storage/*` vs `knowledge/sources/*`) — отдельная задача, не DRY.
 - **Neo4j Cypher** в каждом source — уникальная логика слоя graph.
 - **Deploy/compose** — менять только если пути бинарей/module cache потребуют (обычно нет).
 - **Graph pack v0.3.2** — отложен; старый план в archive.
@@ -422,7 +422,7 @@ flowchart TB
 ## Критерии готовности
 
 - Нет каталогов `*/contract/`, нет `gen-contracts.sh`, нет `make contracts`.
-- `pipeline` не импортирует ничего из `discovery/` или `graph/`.
+- `pipeline` не импортирует ничего из `discovery/` или `knowledge/`.
 - `graph` не импортирует `discovery/` или `pipeline/`.
 - Все три `go.work` ссылаются только на нужные `pkg/*`.
 - `make test-scrape test-pipeline test-graph` зелёные.

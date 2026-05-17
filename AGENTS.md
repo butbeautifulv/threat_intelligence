@@ -27,8 +27,8 @@
 
 ## Before you change code
 
-1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** — CLEAN CODE, DRY, KISS, DDD; four isolated contexts (`discovery/`, `pipeline/`, `graph/`, `engage/`); domain packages per source; shared wire types in `pkg/`. Before merge, check the [PR checklist](docs/coding-style.md#pr-checklist).
-2. **Do not add root `go.work`** or cross-layer Go imports between `discovery/`, `pipeline/`, `graph/`, `engage/`. Scrape/pipeline/graph integrate via NATS; engage calls graph only via HTTP veil-api; all layers may import `pkg/*`.
+1. **Read and follow [docs/coding-style.md](docs/coding-style.md)** — CLEAN CODE, DRY, KISS, DDD; four isolated contexts (`discovery/`, `pipeline/`, `knowledge/`, `engage/`); domain packages per source; shared wire types in `pkg/`. Before merge, check the [PR checklist](docs/coding-style.md#pr-checklist).
+2. **Do not add root `go.work`** or cross-layer Go imports between `discovery/`, `pipeline/`, `knowledge/`, `engage/`. Scrape/pipeline/graph integrate via NATS; engage calls graph only via HTTP veil-api; all layers may import `pkg/*`.
 3. Use **[CONTRIBUTING.md](CONTRIBUTING.md)** for tests; when changing [pkg/harvest/](pkg/harvest/) or [pkg/commit/](pkg/commit/), update [docs/schemas/](docs/schemas/) manually in the same PR.
 4. Runtime and deploy: **[docs/threatintel-runtime.md](docs/threatintel-runtime.md)**, **[docs/ingest-contract.md](docs/ingest-contract.md)**, **[deploy/README.md](deploy/README.md)**.
 5. Versions: **[versions.env](versions.env)** is the single source of truth for `APP_VERSION` and `GRAPH_PACK_VERSION`.

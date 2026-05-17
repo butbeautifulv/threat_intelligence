@@ -41,7 +41,7 @@ def audit_compose_privileged() -> None:
 
 
 def audit_published_neo4j_in_secure() -> None:
-    secure = ROOT / "deploy/graph/compose.secure.yml"
+    secure = ROOT / "deploy/knowledge/compose.secure.yml"
     if secure.exists():
         body = read(secure)
         if re.search(r"7474|7687", body) and "ports:" in body:

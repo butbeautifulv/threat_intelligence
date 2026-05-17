@@ -17,10 +17,10 @@ if [[ -z "${MCP_BIN}" ]]; then
   if [[ -x "${RUNNER}" ]]; then
     MCP_BIN="${RUNNER}"
   else
-    MCP_BIN="${ROOT}/graph/serve/bin/mcp"
+    MCP_BIN="${ROOT}/knowledge/serve/bin/mcp"
     if [[ ! -x "${MCP_BIN}" ]]; then
       echo "Building mcp binary..." >&2
-      (cd "${ROOT}/graph/serve" && env GOWORK="${ROOT}/graph/go.work" go build -o bin/mcp ./cmd/mcp)
+      (cd "${ROOT}/knowledge/serve" && env GOWORK="${ROOT}/knowledge/go.work" go build -o bin/mcp ./cmd/mcp)
     fi
   fi
 fi

@@ -66,7 +66,7 @@ flowchart LR
 - Stream `ENGAGE_EVENTS` / subjects `engage.events.>`
 - Bridge: [pipeline/connector/nats/engage_consumer.go](pipeline/connector/nats/engage_consumer.go) → `ingest.engage.tool_run`, `ingest.engage.finding`
 - Kinds: `engage_tool_run`, `engage_finding`; source `engage`; payloads в [pkg/commit/envelope.go](pkg/commit/envelope.go)
-- Graph: [graph/ingest/internal/sources/engage/](graph/ingest/internal/sources/engage/) → labels `EngageToolRun`, `EngageFinding`, `EngageTarget`
+- Graph: [graph/ingest/internal/sources/engage/](knowledge/ingest/internal/sources/engage/) → labels `EngageToolRun`, `EngageFinding`, `EngageTarget`
 
 Соответствует правилу AGENTS: при изменении `pkg/commit` — обновить schemas в том же PR.
 
@@ -85,7 +85,7 @@ flowchart LR
 
 **[AGENTS.md](AGENTS.md)** — в End-of-task checklist:
 
-- При правках `engage/.../events`, `pipeline/engage-events`, `graph/ingest/.../engage`: `make test-engage` + `make test-pipeline` + `make test-graph`; опционально `make test-engage-events-pipeline` (docker).
+- При правках `engage/.../events`, `pipeline/engage-events`, `knowledge/ingest/.../engage`: `make test-engage` + `make test-pipeline` + `make test-graph`; опционально `make test-engage-events-pipeline` (docker).
 - Явно: engage ingest kinds → `bump-graph-version` + `make check-graph-version` (уже есть для ingest paths).
 
 **[.cursor/rules/veil-agent-workflow.mdc](.cursor/rules/veil-agent-workflow.mdc)** — синхронно с AGENTS:
@@ -96,7 +96,7 @@ flowchart LR
 
 ## 6. Мелкие doc touch-ups (по необходимости)
 
-- [graph/README.md](graph/README.md) — одна строка про `SourceEngage` ingest module.
+- [graph/README.md](knowledge/README.md) — одна строка про `SourceEngage` ingest module.
 - [deploy/README.md](deploy/README.md) — `compose.events.yml` + profile `graph-ingest` (если ещё нет в таблице engage overlays).
 
 **Не редактировать:** [.cursor/plans/engage_phase_13_3c4af607.plan.md](.cursor/plans/engage_phase_13_3c4af607.plan.md) (по вашему требованию).

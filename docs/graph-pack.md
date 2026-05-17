@@ -44,7 +44,7 @@ mkdir -p var/veil/{blobs,ledger/mysql,graph/releases}
 
 | Profile | Script | Neo4j seed | Crawl |
 |---------|--------|------------|-------|
-| **Incremental** (recommended) | [profile-incremental-pack.sh](../scripts/graph-pack/profile-incremental-pack.sh) | Import `BASE_GRAPH_PACK_VERSION` (default `v0.4.5`) | Delta only (`SCRAPE_FORCE_REFETCH=0`) |
+| **Incremental** (recommended) | [profile-incremental-pack.sh](../scripts/graph-pack/profile-incremental-pack.sh) | Import `BASE_GRAPH_PACK_VERSION` (default `v0.4.6`) | Delta only (`SCRAPE_FORCE_REFETCH=0`) |
 | **Fast-rich** | [profile-fast-rich.sh](../scripts/graph-pack/profile-fast-rich.sh) | Empty (`GRAPH_PACK_SKIP=1`) | Uses ledger/cache; no full refetch by default |
 | **Full rebuild** | `profile-fast-rich.sh --full` | Empty | Wipes `var/veil` ledger+blobs + `SCRAPE_FORCE_REFETCH=1` |
 
@@ -62,7 +62,7 @@ Crawl observability: `./scripts/crawl/status.sh`, backup: `./scripts/crawl/ledge
 
 After ingest-affecting code changes, bump first: `./scripts/release/bump-graph-version.sh patch`.
 
-Sets `GRAPH_PACK_DEFAULT_URL` for [graph-bootstrap](../deploy/graph/docker/graph-bootstrap.sh) (`GRAPH_PACK_DEFAULT_VERSION` from `versions.env`).
+Sets `GRAPH_PACK_DEFAULT_URL` for [graph-bootstrap](../deploy/knowledge/docker/graph-bootstrap.sh) (`GRAPH_PACK_DEFAULT_VERSION` from `versions.env`).
 
 ## Import
 

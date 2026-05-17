@@ -6,7 +6,7 @@ set -euo pipefail
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
 
-COMPOSE_FILES="${COMPOSE_FILES:--f deploy/graph/compose.yml -f deploy/graph/compose.graph-read.yml}"
+COMPOSE_FILES="${COMPOSE_FILES:--f deploy/knowledge/compose.yml -f deploy/knowledge/compose.graph-read.yml}"
 API_URL="${API_URL:-http://127.0.0.1:${API_PORT:-8090}}"
 MCP_URL="${MCP_URL:-http://127.0.0.1:${MCP_HTTP_PORT:-8091}}"
 WAIT_SEC="${SMOKE_GRAPH_WAIT_SEC:-300}"

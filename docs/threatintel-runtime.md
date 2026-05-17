@@ -9,7 +9,7 @@ Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape**
 | Neo4j Browser | `${NEO4J_HTTP_PORT:-7474}` (host) | Bolt `${NEO4J_BOLT_PORT:-7687}`; map with `NEO4J_HTTP_PORT` / `NEO4J_BOLT_PORT` if defaults are busy |
 | HTTP API | 8090 | `API_PORT` to override published port (dev compose) |
 | MCP Streamable HTTP | 8091 | `MCP_HTTP_PORT`; service profile **`mcp`**, `MCP_HTTP_ENABLED=1` |
-| nginx (TLS) | 443 | **Secure overlay only** — [compose.secure.yml](../deploy/graph/compose.secure.yml); see [deploy-secure.md](deploy-secure.md) |
+| nginx (TLS) | 443 | **Secure overlay only** — [compose.secure.yml](../deploy/knowledge/compose.secure.yml); see [deploy-secure.md](deploy-secure.md) |
 | Proxybroker | 8099 | Full stack only; `PROXYBROKER_PORT` |
 | NATS client | `${NATS_CLIENT_PORT:-4222}` | Full stack (`compose-up-full`); maps container `4222` |
 | NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP on container `8222`; **`nats`** healthcheck uses **`http://127.0.0.1:8222/healthz`** |
@@ -43,7 +43,7 @@ Layer compose files: [deploy/discovery/compose.yml](../deploy/discovery/compose.
 | | |
 |--|--|
 | **Profile** | *(none)* |
-| **Build** | [deploy/graph/docker/graph-bootstrap.Dockerfile](../deploy/graph/docker/graph-bootstrap.Dockerfile) |
+| **Build** | [deploy/knowledge/docker/graph-bootstrap.Dockerfile](../deploy/knowledge/docker/graph-bootstrap.Dockerfile) |
 | **Purpose** | One-shot import of a graph pack ZIP before API starts |
 | **Depends on** | `neo4j` healthy |
 | **Restart** | `no` |
@@ -54,7 +54,7 @@ Layer compose files: [deploy/discovery/compose.yml](../deploy/discovery/compose.
 | | |
 |--|--|
 | **Profile** | *(none)* |
-| **Build** | [deploy/graph/docker/api.Dockerfile](../deploy/graph/docker/api.Dockerfile) — distroless, non-root |
+| **Build** | [deploy/knowledge/docker/api.Dockerfile](../deploy/knowledge/docker/api.Dockerfile) — distroless, non-root |
 | **Purpose** | Categorical REST API over Neo4j |
 | **Ports** | `${API_PORT:-8090}:8090` (dev); **none** on host in secure overlay |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
@@ -66,10 +66,10 @@ Layer compose files: [deploy/discovery/compose.yml](../deploy/discovery/compose.
 | | |
 |--|--|
 | **Profile** | `mcp` — opt-in (`docker compose --profile mcp up`) |
-| **Build** | [deploy/graph/docker/mcp.Dockerfile](../deploy/graph/docker/mcp.Dockerfile) — distroless |
-| **Purpose** | Stdio MCP + optional Streamable HTTP — [graph/serve/](../graph/serve/) |
+| **Build** | [deploy/knowledge/docker/mcp.Dockerfile](../deploy/knowledge/docker/mcp.Dockerfile) — distroless |
+| **Purpose** | Stdio MCP + optional Streamable HTTP — [knowledge/serve/](../knowledge/serve/) |
 | **Ports** | `${MCP_HTTP_PORT:-8091}` when `MCP_HTTP_ENABLED=1`; **none** on host in secure overlay |
-| **Run** | **Host:** `cd graph/serve && go run ./cmd/mcp`. **Docker:** profile `mcp` or `docker run -i` — [mcp-agents.md](mcp-agents.md) |
+| **Run** | **Host:** `cd knowledge/serve && go run ./cmd/mcp`. **Docker:** profile `mcp` or `docker run -i` — [mcp-agents.md](mcp-agents.md) |
 | **Depends on** | `neo4j` healthy, `graph-bootstrap` completed |
 | **Health** | `CMD ["/mcp", "healthcheck"]` |
 | **Env** | `NEO4J_*`, `MCP_HTTP_*`, `MCP_HTTP_AUTH_STRICT`, `MCP_ENV`, optional `AUTH_*` / `MCP_ACCESS_TOKEN` — [auth-keycloak.md](auth-keycloak.md) |
@@ -78,11 +78,11 @@ Layer compose files: [deploy/discovery/compose.yml](../deploy/discovery/compose.
 
 | | |
 |--|--|
-| **Compose** | [deploy/graph/compose.secure.yml](../deploy/graph/compose.secure.yml) |
-| **Build** | [deploy/graph/docker/nginx.Dockerfile](../deploy/graph/docker/nginx.Dockerfile) |
+| **Compose** | [deploy/knowledge/compose.secure.yml](../deploy/knowledge/compose.secure.yml) |
+| **Build** | [deploy/knowledge/docker/nginx.Dockerfile](../deploy/knowledge/docker/nginx.Dockerfile) |
 | **Purpose** | TLS termination; proxy `/` → API, `/mcp` → MCP; Neo4j not exposed |
 | **Ports** | `${NGINX_HTTPS_PORT:-443}:443` |
-| **TLS** | Mount `tls.crt` / `tls.key` — see [deploy/graph/nginx/certs/README.md](../deploy/graph/nginx/certs/README.md) |
+| **TLS** | Mount `tls.crt` / `tls.key` — see [deploy/knowledge/nginx/certs/README.md](../deploy/knowledge/nginx/certs/README.md) |
 | **Profile** | Use with [deploy/profiles/secure-graph.env](../deploy/profiles/secure-graph.env) — [deploy-secure.md](deploy-secure.md) |
 
 ### nats (JetStream broker)
@@ -113,10 +113,10 @@ Layer compose files: [deploy/discovery/compose.yml](../deploy/discovery/compose.
 
 | | |
 |--|--|
-| **Compose** | [deploy/graph/compose.yml](../deploy/graph/compose.yml) |
-| **Build** | [deploy/graph/docker/ingest_worker.Dockerfile](../deploy/graph/docker/ingest_worker.Dockerfile) |
-| **Module** | [graph/ingest/README.md](../graph/ingest/README.md) |
-| **Purpose** | Long-running **JetStream pull consumer**: reads `commit` from **`ingest.>`**, writes **Neo4j** (AppSec via `graph/ingest/internal/appsec/*`; ti/vuln/lola/ds via `graph/ingest/internal/sources/*`) |
+| **Compose** | [deploy/knowledge/compose.yml](../deploy/knowledge/compose.yml) |
+| **Build** | [deploy/knowledge/docker/ingest_worker.Dockerfile](../deploy/knowledge/docker/ingest_worker.Dockerfile) |
+| **Module** | [knowledge/ingest/README.md](../knowledge/ingest/README.md) |
+| **Purpose** | Long-running **JetStream pull consumer**: reads `commit` from **`ingest.>`**, writes **Neo4j** (AppSec via `knowledge/ingest/internal/appsec/*`; ti/vuln/lola/ds via `knowledge/ingest/internal/sources/*`) |
 | **Depends on** | `neo4j` healthy, **`nats` healthy** (full stack) |
 | **Restart** | `unless-stopped` |
 | **Scale** | `INGEST_WORKER_SCALE` — shared durable `ingest_worker` |
@@ -204,8 +204,8 @@ Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 | `GRAPH_PACK_SKIP` | `0` | `1` = exit 0 without importing |
 | `GRAPH_PACK_DEFAULT` | `1` | `0` = do not download the default release ZIP when no file/URL |
 | `GRAPH_PACK_URL` | empty | HTTP(S) URL of the pack ZIP |
-| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.5` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
-| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.5` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
+| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.6` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
+| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.6` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
 | `GRAPH_PACK_FILE` | empty | Path **inside** the bootstrap container (mount a volume if needed) |
 
 Compose passes these from the host for `graph-bootstrap` (see [docker-compose.yml](../docker-compose.yml) `environment`).
@@ -220,7 +220,7 @@ Checksum: `manifest.json` `sha256` must match `graph.cypher` (same rules as [scr
 
 Worker scaling and scrape partition: [deploy/README.md](../deploy/README.md#worker-scaling-parallel-nats-consumers). Graph pack export, fast-rich profile (~25 min), and releases: [docs/graph-pack.md](graph-pack.md).
 
-Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/graph/compose.yml](../deploy/graph/compose.yml)).
+Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/knowledge/compose.yml](../deploy/knowledge/compose.yml)).
 
 ### Smoke checklist
 
@@ -274,7 +274,7 @@ curl -sS 'http://localhost:8090/v1/categories/engage/search?q=example.com&limit=
 curl -sS 'http://localhost:8090/v1/kinds' | jq .
 ```
 
-Replace `vuln` / `Vulnerability` with other [categories](../graph/connector/query/categories.go) and labels as needed.
+Replace `vuln` / `Vulnerability` with other [categories](../knowledge/connector/query/categories.go) and labels as needed.
 
 ## MCP (stdio + Streamable HTTP)
 
@@ -283,7 +283,7 @@ Same categorical logic as the API. Server name **veil-mcp**. Full agent setup: [
 From source (host, against compose Neo4j on localhost:7687):
 
 ```bash
-cd graph/serve && go run ./cmd/mcp
+cd knowledge/serve && go run ./cmd/mcp
 # optional HTTP on :8091:
 MCP_HTTP_ENABLED=1 go run ./cmd/mcp
 ```
@@ -302,9 +302,9 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.5.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.6.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
-Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. Use `./scripts/ops/compose-down-ephemeral.sh` (keeps `var/veil` ledger/blobs) before a clean import. **`ingest_worker`** waits for **`graph-bootstrap`** to finish ([deploy/graph/compose.yml](../deploy/graph/compose.yml)).
+Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. Use `./scripts/ops/compose-down-ephemeral.sh` (keeps `var/veil` ledger/blobs) before a clean import. **`ingest_worker`** waits for **`graph-bootstrap`** to finish ([deploy/knowledge/compose.yml](../deploy/knowledge/compose.yml)).
 
 Create `docker-compose.override.yml` (gitignored by convention or not committed) with:
 

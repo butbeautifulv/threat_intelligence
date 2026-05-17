@@ -147,7 +147,7 @@ make test-scrape test-pipeline test-graph
 - Добавить в [`discovery/go.work`](discovery/go.work); убрать `../pkg/githubraw`, `../pkg/proxypool`.
 - Удалить [`pkg/githubraw/`](pkg/githubraw/), [`pkg/proxypool/`](pkg/proxypool/).
 
-### Не создавать `graph/pkg/` и `pipeline/pkg/` в этом PR
+### Не создавать `knowledge/pkg/` и `pipeline/pkg/` в этом PR
 
 - **graph:** кроме wire (`commit`) и TI — своих shared libs нет.
 - **pipeline:** `nvd`/`tinormalize` пока нельзя изолировать без нарушения границ или дублирования; оставить в корневом `pkg/` до опционального vuln raw-only рефактора.

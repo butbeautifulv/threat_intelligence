@@ -72,7 +72,7 @@ Responses: **401** invalid/missing token, **403** missing role when RBAC on.
 
 ## Compose example (commented)
 
-In [deploy/graph/compose.yml](../deploy/graph/compose.yml) under `api`:
+In [deploy/knowledge/compose.yml](../deploy/knowledge/compose.yml) under `api`:
 
 ```yaml
 # AUTH_ENABLED: "1"

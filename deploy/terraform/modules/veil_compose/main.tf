@@ -3,7 +3,7 @@ locals {
     [
       "-f", "${var.repo_root}/deploy/discovery/compose.yml",
       "-f", "${var.repo_root}/deploy/pipeline/compose.yml",
-      "-f", "${var.repo_root}/deploy/graph/compose.yml",
+      "-f", "${var.repo_root}/deploy/knowledge/compose.yml",
     ],
     var.enable_engage ? [
       "-f", "${var.repo_root}/deploy/engage/compose.yml",

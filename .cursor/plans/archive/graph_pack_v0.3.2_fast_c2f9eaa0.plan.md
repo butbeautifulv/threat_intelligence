@@ -118,7 +118,7 @@ docker compose ... exec -T neo4j cypher-shell -u neo4j -p neo4jpassword \
 
 Убирает параллельные `HAS_ADVISORY`; isolated IOC cleanup по умолчанию off.
 
-Pipeline/ingest уже дедуплируют по `ingestv1.idempotency_key` ([`pipeline/pub/publish.go`](pipeline/pub/publish.go), MERGE в [`graph/sources/*/ingest`](graph/sources/ti/ingest/)).
+Pipeline/ingest уже дедуплируют по `ingestv1.idempotency_key` ([`pipeline/pub/publish.go`](pipeline/pub/publish.go), MERGE в [`knowledge/sources/*/ingest`](knowledge/sources/ti/ingest/)).
 
 ---
 
@@ -137,7 +137,7 @@ du -h data/neo4j_user_export/graph.cypher data/neo4j_user_export/releases/threat
 ## Фаза 4 — Release и конфиги
 
 1. `gh release create v0.3.2-graph-pack ...`
-2. [`deploy/graph/docker/graph-bootstrap.sh`](deploy/graph/docker/graph-bootstrap.sh) → URL v0.3.2
+2. [`deploy/knowledge/docker/graph-bootstrap.sh`](deploy/knowledge/docker/graph-bootstrap.sh) → URL v0.3.2
 3. [`docker-compose.testpack.yml`](docker-compose.testpack.yml) → `threat-intel-graph-v0.3.2.zip`
 4. [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — секция «fast-rich profile» + v0.3.2
 

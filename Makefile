@@ -1,4 +1,4 @@
- .PHONY: test-discovery test-discovery-p7c test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain
+.PHONY: test-discovery test-discovery-p7c test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-route-parity test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-knowledge test-knowledge-serve
 
 # Shared pkg contracts (harvest, commit, natsjet, auth, engage/events)
 test-pkg-shared:
@@ -20,7 +20,7 @@ test-platform-p7: test-pkg-domain test-platform-p0 test-discovery-p7c test-pipel
 test-platform-p0: test-pkg-shared
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./connector/nats/...
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./ned/internal/consumer/... ./ned/internal/dedup/...
-	cd graph && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/...
+	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/...
 
 test-platform-closed-loop:
 	chmod +x ./scripts/test/smoke-platform-closed-loop.sh
@@ -110,10 +110,10 @@ test-pipeline-p7d:
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./pkg/ti/normalize/... ./pkg/nvd/map/... ./ned/internal/sources/ds/... ./ned/internal/sources/lola/...
 
 test-graph-ingest-p7e:
-	cd graph && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/... ./ingest/internal/sources/ti/... ./ingest/internal/sources/vuln/...
+	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/... ./ingest/internal/sources/ti/... ./ingest/internal/sources/vuln/...
 
 test-graph-serve-p7f:
-	cd graph && env GOWORK=$$(pwd)/go.work go test ./serve/internal/usecase/... ./connector/query/...
+	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./serve/internal/usecase/... ./connector/query/...
 
 test-engage-p7g:
 	cd engage && env GOWORK=$$(pwd)/go.work go test ./serve/internal/usecase/tools/... ./serve/internal/security/... ./serve/internal/usecase/intelligence/...
@@ -127,15 +127,20 @@ test-pipeline:
 	cd pipeline/ned && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/pipeline_worker
 	cd pipeline/engage-events && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/worker
 
-test-graph:
+test-knowledge:
 	cd pkg && env -u GOWORK go test ./commit/... ./ti/...
-	cd graph && env GOWORK=$$(pwd)/go.work go build -o /dev/null ./connector/...
-	cd graph/ingest && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/ingest_worker
-	cd graph/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./...
-	cd graph/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp
+	cd knowledge && env GOWORK=$$(pwd)/go.work go build -o /dev/null ./connector/...
+	cd knowledge/ingest && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/ingest_worker
+	cd knowledge/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./...
+	cd knowledge/serve && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/api ./cmd/mcp
 
-test-graph-serve:
-	cd graph/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./... -race -count=1
+test-knowledge-serve:
+	cd knowledge/serve && env GOWORK=$$(dirname $$(pwd))/go.work go test ./... -race -count=1
+
+# Deprecated aliases (remove after one release)
+test-graph: test-knowledge
+
+test-graph-serve: test-knowledge-serve
 
 test-graph-read-smoke:
 	./scripts/test/smoke-graph-read.sh

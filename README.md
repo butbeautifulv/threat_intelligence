@@ -59,10 +59,10 @@ flowchart LR
 |-------|------|------|-----------|
 | **Discovery** | [discovery/](discovery/) | Fetch feeds, Vitess ledger, publish `harvest` | — |
 | **Pipeline** | [pipeline/](pipeline/) | NED → `commit`; [engage-events/](pipeline/engage-events/) bridges `engage.events.>` → `ingest.engage.*` | — |
-| **Graph** | [graph/](graph/) | MERGE into Neo4j; [serve/](graph/serve/) read API + MCP | `veil-mcp` (read-only) |
+| **Knowledge** | [knowledge/](knowledge/) | MERGE into Neo4j; [serve/](knowledge/serve/) read API + MCP | `veil-mcp` (read-only) |
 | **Engage** | [engage/](engage/) | Catalog-driven tool execution, workflows, reports (hardened) | `veil-engage` (exec) |
 
-**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs). **No Go imports** across `discovery/`, `pipeline/`, `graph/`, `engage/`.
+**Shared contracts** (importable from any layer): [pkg/harvest](pkg/harvest/), [pkg/commit](pkg/commit/), [pkg/natsjet](pkg/natsjet/), [pkg/auth](pkg/auth/), [pkg/engage](pkg/engage/) (events, hostnorm, tool IDs). **No Go imports** across `discovery/`, `pipeline/`, `knowledge/`, `engage/`.
 
 Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-contract.md) · Graph: [docs/threatintel-runtime.md](docs/threatintel-runtime.md) · Engage: [docs/engage-runtime.md](docs/engage-runtime.md) · **Hybrid prod:** [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)
 
@@ -87,7 +87,7 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 |---------------|---------------------|-----------|
 | **Discovery** | `discovery/` | **P8h done**; next: `pkg/exec`, browser (P8g) |
 | **Pipeline** | `pipeline/` | `pkg/ti/*`, `pkg/commit` |
-| **Knowledge** | `graph/` → **`knowledge/`** | **P8i** rename; **pkg/decision** (P8c) |
+| **Knowledge** | `knowledge/` → **`knowledge/`** | **P8i** rename; **pkg/decision** (P8c) |
 | **Engage** | `engage/` | slim (P8f); pentest tools + runner |
 | **Report** | (in engage) → **`pkg/report`** | P8b |
 | **API + MCP** | per-layer → **`pkg/api`**, **`pkg/mcp`** | P8d |
@@ -112,7 +112,7 @@ docker compose up --build -d
 
 Production secure overlay (TLS on **443** only, no published Neo4j): [docs/deploy-secure.md](docs/deploy-secure.md).
 
-`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently **v0.4.5**) when published, unless `GRAPH_PACK_SKIP=1`.
+`graph-bootstrap` imports the default graph pack ([versions.env](versions.env) → `GRAPH_PACK_VERSION`, currently **v0.4.6**) when published, unless `GRAPH_PACK_SKIP=1`.
 
 ```bash
 curl -sS http://localhost:8090/health
@@ -208,7 +208,7 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) | GAIA eval (arXiv primary; HF optional) |
 | [discovery/README.md](discovery/README.md) | Discovery sources and env vars |
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
-| [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
+| [knowledge/README.md](knowledge/README.md) | Ingest, API, MCP, Neo4j client |
 | [engage/README.md](engage/README.md) | Tool catalog, veil-engage MCP, workflows |
 | [docs/platform-architecture.md](docs/platform-architecture.md) | Current + v8 layers, runner vs factory |
 | [docs/domain-contour.md](docs/domain-contour.md) | pkg domain SOT map |
@@ -236,8 +236,8 @@ See [docs/graph-pack.md](docs/graph-pack.md).
 make test-pkg-shared              # pkg/harvest, commit, natsjet, auth, engage/events
 make test-discovery
 make test-pipeline
-make test-graph                   # graph modules + serve build
-make test-graph-serve             # graph/serve unit tests (-race)
+make test-knowledge                   # graph modules + serve build
+make test-knowledge-serve             # knowledge/serve unit tests (-race)
 make test-graph-read-smoke        # Docker: Neo4j + API + MCP HTTP
 make test-engage                  # engage layer unit tests + build
 make test-engage-parity           # catalog 150 tools vs legacy MCP reference

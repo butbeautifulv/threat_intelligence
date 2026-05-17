@@ -89,7 +89,7 @@ flowchart TB
 - Детальные таблицы модулей scrape/graph/pipeline (L61–157) → ссылки:
   - Scrape: [discovery/README.md](../discovery/README.md)
   - Pipeline: [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md)
-  - Graph: [graph/README.md](../graph/README.md)
+  - Graph: [graph/README.md](../knowledge/README.md)
 - Секция Wire envelopes (L160–165) → одна строка: «см. [ingest-contract.md](ingest-contract.md); Go SOT: `pkg/harvest`, `pkg/commit`»
 - Дублирующая секция Errors (L202–206) — слить с Go style Errors
 
@@ -99,7 +99,7 @@ flowchart TB
 - Graph serve: `internal/domain/`
 - Pipeline: domain там, где есть сущности (сейчас `vuln/domain/`; остальные — transform без отдельного domain-пакета)
 
-Формулировка: «domain-пакет у источника, без I/O; точный путь — по эталону в `scrape/.../ti` и `graph/ingest/.../ti`».
+Формулировка: «domain-пакет у источника, без I/O; точный путь — по эталону в `scrape/.../ti` и `knowledge/ingest/.../ti`».
 
 ---
 

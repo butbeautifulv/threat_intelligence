@@ -6,7 +6,7 @@ todos:
     content: "R88: EngageTarget.name в GetNode/Neighbors + veilgraph GetNode/Neighbors + smoke-graph-engage-category + docs"
     status: completed
   - id: r89-may-relate-read
-    content: "R89: graph/connector EngageTargetContext + GET /v1/categories/engage/context + veilgraph EngageContext + enrich correlate/timeline"
+    content: "R89: knowledge/connector EngageTargetContext + GET /v1/categories/engage/context + veilgraph EngageContext + enrich correlate/timeline"
     status: completed
   - id: r87-target-timeline
     content: "R87: target_timeline.go + AuditReader on Service + HTTP/MCP + tests + engage-legacy-parity"
@@ -22,8 +22,8 @@ isProject: false
 
 **Предпосылки (уже в main):**
 - Write path: `engage.events.*` → ingest → `EngageToolRun` / `EngageFinding` / `EngageTarget` ([ingest-contract.md](docs/ingest-contract.md))
-- Read path: veil-api category `engage` ([categories.go](graph/connector/query/categories.go))
-- Ingest CVE link: `(EngageFinding)-[:MAY_RELATE_TO]->(Vulnerability)` ([neo4j.go](graph/ingest/internal/sources/engage/storage/neo4j.go) L80–84)
+- Read path: veil-api category `engage` ([categories.go](knowledge/connector/query/categories.go))
+- Ingest CVE link: `(EngageFinding)-[:MAY_RELATE_TO]->(Vulnerability)` ([neo4j.go](knowledge/ingest/internal/sources/engage/storage/neo4j.go) L80–84)
 - Veil stack smoke: [smoke-veil-engage-stack.sh](scripts/test/smoke-veil-engage-stack.sh) (Phase 15 v2 R75)
 - `correlate_threat_intelligence` в [graph_intel.go](engage/serve/internal/usecase/intelligence/graph_intel.go)
 
@@ -54,7 +54,7 @@ sequenceDiagram
 | Gap | Сейчас |
 |-----|--------|
 | Единый timeline API | Нет |
-| `GetNode("example.com")` | [service.go](graph/connector/query/service.go) L171 — только `elementId`, `id`, `cve`, `uri`, `link`; **нет `EngageTarget.name`** |
+| `GetNode("example.com")` | [service.go](knowledge/connector/query/service.go) L171 — только `elementId`, `id`, `cve`, `uri`, `link`; **нет `EngageTarget.name`** |
 | CVE на read | Ingest пишет `MAY_RELATE_TO`; read search **не** отдаёт связанные `Vulnerability` |
 | MCP | Нет `target_timeline` в [intel_bridge.go](engage/serve/internal/transport/mcpserver/intel_bridge.go) |
 
@@ -92,8 +92,8 @@ sequenceDiagram
 
 | Deliverable | Детали |
 |-------------|--------|
-| Cypher | В [`GetNode`](graph/connector/query/service.go) и [`Neighbors`](graph/connector/query/service.go) seed clause добавить: `OR (n:EngageTarget AND n.name = $id)` |
-| Tests | `graph/connector/query/service_test.go` или `graph/serve` integration: node by name после ingest fixture |
+| Cypher | В [`GetNode`](knowledge/connector/query/service.go) и [`Neighbors`](knowledge/connector/query/service.go) seed clause добавить: `OR (n:EngageTarget AND n.name = $id)` |
+| Tests | `knowledge/connector/query/service_test.go` или `knowledge/serve` integration: node by name после ingest fixture |
 | Smoke | Новый [`scripts/test/smoke-graph-engage-category.sh`](scripts/test/smoke-graph-engage-category.sh): categories list contains `engage`; search `q=example.com` 200; optional GetNode by hostname |
 | Makefile | `test-graph-engage-category` → smoke script |
 | Docs | [docs/mcp-agents.md](docs/mcp-agents.md): пример `ti_search_in_category` + `GET /v1/nodes/example.com` для EngageTarget; [engage-legacy-parity.md](docs/engage-legacy-parity.md) строка target-timeline |
@@ -110,7 +110,7 @@ sequenceDiagram
 
 | Layer | Deliverable |
 |-------|-------------|
-| Connector | [`graph/connector/query/engage_context.go`](graph/connector/query/engage_context.go): `EngageTargetContext(ctx, host)` — один read Cypher |
+| Connector | [`knowledge/connector/query/engage_context.go`](knowledge/connector/query/engage_context.go): `EngageTargetContext(ctx, host)` — один read Cypher |
 
 ```cypher
 MATCH (t:EngageTarget {name: $host})
@@ -120,13 +120,13 @@ OPTIONAL MATCH (f)-[:MAY_RELATE_TO]->(v:Vulnerability)
 RETURN t, collect(DISTINCT r), collect(DISTINCT f), collect(DISTINCT v)
 ```
 
-| veil-api | `GET /v1/categories/engage/context?q={host}` в [graph/serve router](graph/serve/internal/transport/httpserver/router.go) |
+| veil-api | `GET /v1/categories/engage/context?q={host}` в [graph/serve router](knowledge/serve/internal/transport/httpserver/router.go) |
 | veilgraph | `EngageContext(ctx, host)` |
 | engage | `TargetTimeline` включает `engage_context` / `related_vulnerabilities[]` из ответа |
 | correlate | Опционально: `CorrelateThreatIntelligence` добавляет `related_cves` из `EngageContext` когда `ENGAGE_VEIL_API_URL` set |
 
 | Tests | Connector unit test с mock driver или testcontainers; engage test с mock JSON fixture |
-| Ingest | **Без** изменения Cypher ingest; [cve_test.go](graph/ingest/internal/sources/engage/storage/cve_test.go) — только doc comment что read идёт через R89 |
+| Ingest | **Без** изменения Cypher ingest; [cve_test.go](knowledge/ingest/internal/sources/engage/storage/cve_test.go) — только doc comment что read идёт через R89 |
 | Graph pack | **Не bump** версии pack (read-only feature) |
 
 **Fallback:** если `EngageContext` 404/empty — timeline всё равно отдаёт search + audit (degrade gracefully).
@@ -154,7 +154,7 @@ flowchart LR
 
 | Rule | Применение |
 |------|------------|
-| [coding-style.md](docs/coding-style.md) | engage: usecase в `intelligence/`; graph: Cypher только в `graph/connector/query` |
+| [coding-style.md](docs/coding-style.md) | engage: usecase в `intelligence/`; graph: Cypher только в `knowledge/connector/query` |
 | No Neo4j in engage | Только `veilgraph.Client` HTTP |
 | Auth | Timeline routes под тем же JWT/RBAC что `correlate-threat` |
 | Limits | `limit` default 50, cap 200; veil search limit согласовать с connector |

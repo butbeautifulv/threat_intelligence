@@ -9,8 +9,8 @@ profiles:
 compose:
   - deploy/discovery/compose.yml
   - deploy/pipeline/compose.yml
-  - deploy/graph/compose.yml
-  - deploy/graph/compose.neo4j-publish.yml
+  - deploy/knowledge/compose.yml
+  - deploy/knowledge/compose.neo4j-publish.yml
   - deploy/engage/compose.yml
   - deploy/engage/compose.veil-stack.yml
 optional_compose:
@@ -27,7 +27,7 @@ notes:
     Equivalent to VEIL_COMPOSE_FILES plus engage overlays; see
     scripts/ops/compose-up-veil-engage.sh.
   - >-
-    Graph-only merge file deploy/graph/compose.full.yml mirrors the three-layer
+Graph-only merge file deploy/graph/compose.full.yml mirrors the three-layer
     discovery/pipeline/graph chain but does not include engage.
 scripts:
   - scripts/ops/compose-up-veil-engage.sh

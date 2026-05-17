@@ -53,9 +53,9 @@ logs/
 *.log
 
 # TLS keys for local nginx secure overlay (see deploy/*/nginx/certs/README.md)
-deploy/graph/nginx/certs/*.crt
-deploy/graph/nginx/certs/*.key
-!deploy/graph/nginx/certs/README.md
+deploy/knowledge/nginx/certs/*.crt
+deploy/knowledge/nginx/certs/*.key
+!deploy/knowledge/nginx/certs/README.md
 deploy/engage/nginx/certs/*.crt
 deploy/engage/nginx/certs/*.key
 !deploy/engage/nginx/certs/README.md
@@ -68,6 +68,7 @@ Thumbs.db
 .external/
 
 # Local MCP binaries (use scripts/mcp/run-veil-mcp.sh)
+knowledge/serve/bin/
 graph/serve/bin/
 
 # Terraform generated compose env

@@ -87,7 +87,7 @@ flowchart TB
 | R75 | [`compose.veil-stack.yml`](deploy/engage/compose.veil-stack.yml), [`smoke-veil-engage-stack.sh`](scripts/test/smoke-veil-engage-stack.sh), `make test-engage-veil-stack` |
 | R81–R84 | Полные effectiveness tables + `binary`, [`parameter.go`](engage/serve/internal/usecase/intelligence/parameter.go), [`profile.go`](engage/serve/internal/usecase/intelligence/profile.go), chain metrics |
 | R85 | Расширенный [`recovery`](engage/serve/internal/usecase/recovery/handler.go) + backoff в [`tools/run.go`](engage/serve/internal/usecase/tools/run.go) |
-| R86 | `make test-engage-decision-parity`, required `engage-events-e2e`, CI paths graph/pipeline |
+| R86 | `make test-engage-decision-parity`, required `engage-events-e2e`, CI paths knowledge/pipeline |
 
 Документация: секция Decision engine в [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md).
 

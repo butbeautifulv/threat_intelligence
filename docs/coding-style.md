@@ -9,7 +9,7 @@ Conventions for the three runtime layers — **Discovery**, **pipeline**, **grap
 | Principle | Rule in this repo |
 |-----------|-------------------|
 | **CLEAN CODE** | Small functions, clear names, one level of abstraction; `cmd/` is wiring only |
-| **DRY** | Shared fetch/ledger only in `discovery/`; normalize only in `pipeline/`; MERGE only in `graph/`; cross-layer types in `pkg/*` (wire envelopes, NATS helpers, TI helpers) |
+| **DRY** | Shared fetch/ledger only in `discovery/`; normalize only in `pipeline/`; MERGE only in `knowledge/`; cross-layer types in `pkg/*` (wire envelopes, NATS helpers, TI helpers) |
 | **KISS** | One long-running binary per layer at runtime; no speculative abstractions |
 | **DDD** | Domain package per source module, no I/O (no Neo4j, NATS, HTTP clients in domain types) |
 
@@ -21,13 +21,13 @@ Conventions for the three runtime layers — **Discovery**, **pipeline**, **grap
 | **Deploy** | [deploy/](../deploy/) | Compose per layer |
 | **Discovery** | [discovery/](../discovery/) | Fetch + ledger → `scrape.>` |
 | **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → NED → `ingest.>` |
-| **Graph** | [graph/](../graph/) | Consume `ingest.>` → Neo4j; API/MCP read |
+| **Graph** | [knowledge/](../knowledge/) | Consume `ingest.>` → Neo4j; API/MCP read |
 | **Engage** | [engage/](../engage/) | Tool execution, workflows, reports (HTTP API/MCP) |
 | **Wire types** | [pkg/](../pkg/) | `harvest`, `commit`, `natsjet`, `ti/*`, `auth`, `engage/*` |
 
-Layers **Discovery / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `discovery/`, `pipeline/`, `graph/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
+Layers **Discovery / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `discovery/`, `pipeline/`, `knowledge/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
 
-**Logical layers (v8 target)** — see [platform-architecture.md](platform-architecture.md): **Discovery** (`discovery/`, P8h done), **Pipeline**, **Knowledge** (`graph/` → `knowledge/`, P8i), **Engage**, shared **Report**, API/MCP façade. **Discovery `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only **`pkg/exec`**, do not rename factory to runner.
+**Logical layers (v8 target)** — see [platform-architecture.md](platform-architecture.md): **Discovery** (`discovery/`, P8h done), **Pipeline**, **Knowledge** (`knowledge/` → `knowledge/`, P8i), **Engage**, shared **Report**, API/MCP façade. **Discovery `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only **`pkg/exec`**, do not rename factory to runner.
 
 Layer-specific layout, env vars, and build commands:
 
@@ -35,7 +35,7 @@ Layer-specific layout, env vars, and build commands:
 |-------|------|
 | Discovery | [discovery/README.md](../discovery/README.md), [discovery/harvest/README.md](../discovery/harvest/README.md) |
 | Pipeline | [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md) |
-| Graph | [graph/README.md](../graph/README.md), [graph/ingest/README.md](../graph/ingest/README.md) |
+| Graph | [knowledge/README.md](../knowledge/README.md), [knowledge/ingest/README.md](../knowledge/ingest/README.md) |
 
 ## Three runtime contexts
 
@@ -43,7 +43,7 @@ Layer-specific layout, env vars, and build commands:
 |---------|------|------|----------|
 | **Discovery** | [discovery/](../discovery/) | Publish `scrape.>` | `commit`, Bolt, normalize |
 | **Pipeline (NED)** | [pipeline/](../pipeline/) | `scrape.>` → `ingest.>` | HTTP feeds, Bolt, MERGE |
-| **Graph** | [graph/](../graph/) | Consume `ingest.>` | `harvest`, feeds, Vitess |
+| **Graph** | [knowledge/](../knowledge/) | Consume `ingest.>` | `harvest`, feeds, Vitess |
 | **Engage** | [engage/](../engage/) | Optional publish `engage.events.>` (`ENGAGE_EVENTS_NATS_ENABLED`); bridge via [pipeline/engage-events](../pipeline/engage-events/) → `ingest.engage.*` | Bolt, direct `ingest.>`, `scrape.>`, cross-layer Go imports |
 
 Shared fetch policy (Discovery only): [discovery/harvest/internal/feeds](../discovery/harvest/internal/feeds/), [discovery/harvest/internal/ledger](../discovery/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
@@ -79,7 +79,7 @@ Shared entities live under **`pkg/*/domain/`** (single source of truth). Layers 
 | `pkg/engage/domain/{report,job,tool}` | Findings, jobs, tool spec | engage serve |
 | `pkg/ti/{validate,ids,normalize}` | Normalization (pipeline only for normalize) | pipeline NED |
 
-**Layer-local domain** (not in `pkg/`): engage `internal/domain/target` (guard/allowlist); graph serve read models under `graph/serve/internal/domain/`.
+**Layer-local domain** (not in `pkg/`): engage `internal/domain/target` (guard/allowlist); graph serve read models under `knowledge/serve/internal/domain/`.
 
 **Rule:** new cross-layer entity → add to `pkg/<area>/domain` with `*_test.go`; do not duplicate `type IOC struct` in scrape/pipeline/graph.
 
@@ -101,7 +101,7 @@ Before merge, verify all items that apply to your layer:
 | NVD parse only in pipeline (`pipeline/pkg/nvd`) | harvest publishes raw page only | ✓ enrich in `sources/vuln/enrich` | ingest does not re-parse NVD |
 | Graph ingest does not import `pipeline/pkg/ti/normalize` | — | NED normalizes TI | ✓ |
 | Idempotency keys via `pkg/commit` helpers only | — | ✓ | ✓ |
-| `graph/serve` does not import NATS or scrape | — | — | ✓ |
+| `knowledge/serve` does not import NATS or scrape | — | — | ✓ |
 | Shared entities in `pkg/*/domain` (no duplicate structs) | import `pkg` | import `pkg` | import `pkg` |
 | `make test-platform-p7` when changing domain contour | ✓ | ✓ | ✓ |
 

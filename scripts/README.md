@@ -63,7 +63,7 @@ Import locally:
 
 ```bash
 USE_DOCKER_COMPOSE=1 ./scripts/graph-pack/import.sh \
-  var/veil/graph/releases/veil-graph-v0.4.5.zip
+  var/veil/graph/releases/veil-graph-v0.4.6.zip
 ```
 
 ## Quick commands

@@ -31,7 +31,7 @@ Recommended launcher (builds `bin/mcp` if missing):
 2. Binary (or use the launcher above):
 
 ```bash
-cd graph/serve && env GOWORK=../go.work go build -o bin/mcp ./cmd/mcp
+cd knowledge/serve && env GOWORK=../go.work go build -o bin/mcp ./cmd/mcp
 ```
 
 Default Bolt: `neo4j://localhost:7687`, user `neo4j`, password `neo4jpassword`.
@@ -106,7 +106,7 @@ Full auth setup: [auth-keycloak.md](auth-keycloak.md).
 ## Docker (stdio)
 
 ```bash
-docker build -f deploy/graph/docker/mcp.Dockerfile -t veil-mcp .
+docker build -f deploy/knowledge/docker/mcp.Dockerfile -t veil-mcp .
 docker run -i --rm --network host \
   -e NEO4J_URI=neo4j://localhost:7687 \
   -e NEO4J_USER=neo4j -e NEO4J_PASS=neo4jpassword \

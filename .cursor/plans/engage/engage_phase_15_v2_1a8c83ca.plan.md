@@ -197,7 +197,7 @@ flowchart LR
 
 | Задача | Детали |
 |--------|--------|
-| CI | [`.github/workflows/engage.yml`](.github/workflows/engage.yml): paths `graph/connector/**`, `graph/ingest/**`, `pipeline/**`; `engage-events-e2e` **required** (убрать `continue-on-error` где возможно) |
+| CI | [`.github/workflows/engage.yml`](.github/workflows/engage.yml): paths `knowledge/connector/**`, `knowledge/ingest/**`, `pipeline/**`; `engage-events-e2e` **required** (убрать `continue-on-error` где возможно) |
 | Parity gate | [`scripts/engage/check-catalog-parity.sh`](scripts/engage/check-catalog-parity.sh) + новый `check-decision-parity.sh` (сравнение effectiveness JSON) |
 | Runner | Документировать 15 live tools; matrix smoke для tools, участвующих в top effectiveness |
 | Deferred из Phase 15 v1 | R77 target-timeline, R78 graph name lookup, R80 MAY_RELATE_TO traverse → **Phase 16** (read UX, не блокирует engine port) |

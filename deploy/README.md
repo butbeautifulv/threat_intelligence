@@ -6,7 +6,7 @@
 |-------|---------|----------|
 | Discovery | [discovery/compose.yml](discovery/compose.yml) | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
 | Pipeline | [pipeline/compose.yml](pipeline/compose.yml) | `pipeline_worker` |
-| Graph | [graph/compose.yml](graph/compose.yml) | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api` |
+| Knowledge | [knowledge/compose.yml](knowledge/compose.yml) | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api` |
 | Engage | [engage/compose.yml](engage/compose.yml) | `engage-api`, `engage-mcp`, `engage-worker`, `engage-runner` (profile `runner`; opt-in offensive tools) |
 
 ## Full stack
@@ -21,7 +21,7 @@ Equivalent:
 docker compose -f deploy/discovery/compose.yml -f deploy/pipeline/compose.yml -f deploy/graph/compose.yml up --build
 ```
 
-Docker build context is the repository root; each Dockerfile copies only its layer tree (`discovery/`, `pipeline/`, or `graph/`).
+Docker build context is the repository root; each Dockerfile copies only its layer tree (`discovery/`, `pipeline/`, or `knowledge/`).
 
 ## Worker scaling (parallel NATS consumers)
 
@@ -106,7 +106,7 @@ Images use layer `go.work` (`GOWORK=/build/<layer>/go.work`), not root `go.work`
 
 ```bash
 docker compose up --build -d
-# or: docker compose -f deploy/graph/compose.yml up --build -d
+# or: docker compose -f deploy/knowledge/compose.yml up --build -d
 ```
 
 Root [docker-compose.yml](../docker-compose.yml) includes only the graph layer.
@@ -121,7 +121,7 @@ make test-graph-read-smoke
 **Production secure overlay** — only nginx `443` on the host; see [docs/deploy-secure.md](../docs/deploy-secure.md):
 
 ```bash
-docker compose -f deploy/graph/compose.yml -f deploy/graph/compose.secure.yml \
+docker compose -f deploy/knowledge/compose.yml -f deploy/knowledge/compose.secure.yml \
   --profile mcp --env-file deploy/profiles/secure-graph.env up -d --build
 ```
 
@@ -131,7 +131,7 @@ Naming: ZIP **`veil-graph-vX.Y.Z.zip`**, GitHub tag **`veil-graph-vX.Y.Z`**. See
 
 | Release | Notes |
 |---------|--------|
-| [veil-graph-v0.4.5](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.5) | Target format on `main` (publish when built) |
+| [veil-graph-v0.4.6](https://github.com/butbeautifulv/veil/releases/tag/veil-graph-v0.4.6) | Target format on `main` (publish when built) |
 | [v0.3.2-graph-pack](https://github.com/butbeautifulv/veil/releases/tag/v0.3.2-graph-pack) | Legacy `threat-intel-graph-v0.3.2.zip` (redirects) |
 
 Build (incremental crawl state in `var/veil/`):
@@ -140,8 +140,8 @@ Build (incremental crawl state in `var/veil/`):
 ./scripts/graph-pack/profile-incremental-pack.sh   # or profile-fast-rich.sh / --full
 ./scripts/housekeeping/graph-dedup-cleanup.sh
 ./scripts/graph-pack/export-cypher.sh
-GRAPH_PACK_VERSION=v0.4.5 ./scripts/graph-pack/build.sh
-GRAPH_PACK_VERSION=v0.4.5 ./scripts/release/publish-graph-pack.sh --skip-build
+GRAPH_PACK_VERSION=v0.4.6 ./scripts/graph-pack/build.sh
+GRAPH_PACK_VERSION=v0.4.6 ./scripts/release/publish-graph-pack.sh --skip-build
 ```
 
 Script index: [scripts/README.md](../scripts/README.md).

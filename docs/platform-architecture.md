@@ -1,8 +1,8 @@
 # Veil platform architecture (current + target)
 
-**Current runtime (2026-05):** four isolated Go modules — `discovery/`, `pipeline/`, `graph/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
+**Current runtime (2026-05):** four isolated Go modules — `discovery/`, `pipeline/`, `knowledge/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
 
-**Target (v8):** five logical layer names (**Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**) with **top-level rename** `graph/` → **`knowledge/`** (phase P8i; **P8h** `discovery/` done); more code in `pkg/`; shared API/MCP and `pkg/exec`.
+**Target (v8):** five logical layer names (**Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**) with **top-level rename** `knowledge/` → **`knowledge/`** (phase P8i; **P8h** `discovery/` done); more code in `pkg/`; shared API/MCP and `pkg/exec`.
 
 ---
 
@@ -72,7 +72,7 @@ flowchart TB
 |-------|----------------|------------|-------------|
 | **Discovery** | Fetch raw intel; ledger; optional browser | `discovery/` | `discovery/` (**P8h done**) |
 | **Pipeline** | Normalize, enrich, dedup | `pipeline/` | `pipeline/` |
-| **Knowledge** | Neo4j ingest + read API + reasoning | `graph/` | **`knowledge/`** (P8i) |
+| **Knowledge** | Neo4j ingest + read API + reasoning | `knowledge/` | **`knowledge/`** (P8i) |
 | **Engage** | Pentest catalog, runner, guard | `engage/` | `engage/` |
 | **Report** | HTML/PDF/executive | engage `report/` | **`pkg/report`** (P8b) |
 | **API + MCP** | Agent HTTP/MCP façade | per-layer servers | **`pkg/api`**, **`pkg/mcp`** (P8d) |
@@ -86,7 +86,7 @@ flowchart TB
 | Rename | Scope | Keep stable (compat) |
 |--------|--------|----------------------|
 | ~~`scrape/`~~ → **`discovery/`** (P8h **done**) | Go module path, `deploy/discovery/`, Makefile `test-discovery`, docs | NATS `scrape.>`; `pkg/harvest`; envelope `source` values; binary `scrape_worker` one release |
-| `graph/` → **`knowledge/`** | Go module, `deploy/graph/`, Makefile `test-graph*` | NATS `ingest.>`; `GRAPH_PACK_VERSION`; Neo4j labels; URLs `/v1/*`; product names **veil-api**, **veil-mcp** |
+| `knowledge/` → **`knowledge/`** | Go module, `deploy/graph/`, Makefile `test-graph*` | NATS `ingest.>`; `GRAPH_PACK_VERSION`; Neo4j labels; URLs `/v1/*`; product names **veil-api**, **veil-mcp** |
 
 **Order:** merge **P8h + P8i** to `main` before large P8b–g refactors (or rebase feature branches once). Details: [veil_platform_v8_layers_master.plan.md](../.cursor/plans/veil_platform_v8_layers_master.plan.md) § P8h, P8i.
 

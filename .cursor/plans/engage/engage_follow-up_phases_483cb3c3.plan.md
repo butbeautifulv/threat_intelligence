@@ -30,7 +30,7 @@ isProject: false
 | Область | Статус | Пути |
 |---------|--------|------|
 | Слой + module | Done | [`engage/go.work`](engage/go.work), [`engage/serve/`](engage/serve/) |
-| `pkg/auth` | Done | [`pkg/auth/`](pkg/auth/), graph/serve переведён |
+| `pkg/auth` | Done | [`pkg/auth/`](pkg/auth/), knowledge/serve переведён |
 | HTTP API | Done | [`cmd/api`](engage/serve/cmd/api/main.go), [`httpserver/router.go`](engage/serve/internal/transport/httpserver/router.go) |
 | Catalog 150 имён | Done | [`catalog/tools.yaml`](engage/serve/catalog/tools.yaml) (имена из legacy MCP, **без** префикса HexStrike в `name`) |
 | 5 live tools | Done | [`catalog/tools.live.yaml`](engage/serve/catalog/tools.live.yaml) |
@@ -96,7 +96,7 @@ flowchart LR
 
 ### PR-2 — MCP stdio `veil-engage` (~2–3 дня)
 
-- Скопировать/адаптировать паттерн из [`graph/serve/internal/transport/mcpserver`](graph/serve/internal/transport/mcpserver/): LSP framing, `initialize` negotiation, `tools/list`, `tools/call` → [`usecase/tools`](engage/serve/internal/usecase/tools/run.go).
+- Скопировать/адаптировать паттерн из [`knowledge/serve/internal/transport/mcpserver`](knowledge/serve/internal/transport/mcpserver/): LSP framing, `initialize` negotiation, `tools/list`, `tools/call` → [`usecase/tools`](engage/serve/internal/usecase/tools/run.go).
 - `cmd/mcp`: полноценный stdio + optional HTTP (`ENGAGE_MCP_HTTP_*`).
 - [`examples/mcp/engage.stdio.json.example`](examples/mcp/) + обновить docs.
 - Тесты: `server_test.go`, smoke script.

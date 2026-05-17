@@ -32,7 +32,7 @@ isProject: false
 
 | Область | Сейчас |
 |---------|--------|
-| Версии | [`VERSION`](VERSION) = `0.3.1`, graph pack = `v0.4.0`, дефолт захардкожен в ~10 файлах ([`scripts/lib/common.sh`](scripts/lib/common.sh), [`graph-bootstrap.sh`](deploy/graph/docker/graph-bootstrap.sh), [`docker-compose.testpack.yml`](docker-compose.testpack.yml), docs) |
+| Версии | [`VERSION`](VERSION) = `0.3.1`, graph pack = `v0.4.0`, дефолт захардкожен в ~10 файлах ([`scripts/lib/common.sh`](scripts/lib/common.sh), [`graph-bootstrap.sh`](deploy/knowledge/docker/graph-bootstrap.sh), [`docker-compose.testpack.yml`](docker-compose.testpack.yml), docs) |
 | Агент | [`AGENTS.md`](AGENTS.md) — 4 пункта, нет commit/push, нет bump graph pack |
 | Релизы | [`publish-graph-pack.sh`](scripts/release/publish-graph-pack.sh) — однострочные notes |
 | GitHub repo | нет `.github/`, description не зафиксирован в репо |
@@ -41,7 +41,7 @@ isProject: false
 Политика bump (выбрано): **только ingest-пути** — patch +1 при изменениях в:
 - `discovery/harvest/internal/sources/**`
 - `pipeline/ned/internal/sources/**`
-- `graph/ingest/internal/sources/**`
+- `knowledge/ingest/internal/sources/**`
 - `pkg/harvest/**`, `pkg/commit/**`
 - `docs/schemas/**` (envelope)
 
@@ -58,7 +58,7 @@ GRAPH_PACK_VERSION=v0.4.0
 
 - Синхронизировать [`VERSION`](VERSION) с `APP_VERSION` (поднять до `0.4.0`).
 - [`scripts/lib/common.sh`](scripts/lib/common.sh): `source "${VEIL_ROOT}/versions.env"`; `GRAPH_PACK_DEFAULT_VERSION` берётся из файла, без хардкода `v0.4.0`.
-- [`deploy/graph/docker/graph-bootstrap.sh`](deploy/graph/docker/graph-bootstrap.sh): fallback только через `GRAPH_PACK_DEFAULT_VERSION` (уже есть), дефолт URL строится из него.
+- [`deploy/knowledge/docker/graph-bootstrap.sh`](deploy/knowledge/docker/graph-bootstrap.sh): fallback только через `GRAPH_PACK_DEFAULT_VERSION` (уже есть), дефолт URL строится из него.
 - [`docker-compose.testpack.yml`](docker-compose.testpack.yml): путь к ZIP — `veil-graph-${GRAPH_PACK_VERSION}.zip` через env в compose или обновление скриптом bump (compose не читает `.env` из корня автоматически — bump-скрипт переписывает имя файла в yml).
 - Документация: в [`docs/graph-pack.md`](docs/graph-pack.md) и [`README.md`](README.md) — «текущий дефолт: см. `versions.env`», конкретные `v0.4.0` в примерах обновляет bump-скрипт.
 
