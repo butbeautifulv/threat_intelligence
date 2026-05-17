@@ -31,7 +31,10 @@ These are **roles**, not necessarily one repo folder each. Go modules stay isola
 ```mermaid
 flowchart TB
   subgraph clients [External clients]
-    MCP[API + MCP façade]
+    AG[Agents / operators]
+  end
+  subgraph edge [Unified edge - P12]
+    NGX[nginx or platform/gateway TLS :443]
   end
   subgraph discovery [Discovery]
     SC[discovery / harvest]
@@ -39,13 +42,16 @@ flowchart TB
   end
   subgraph knowledge [Knowledge]
     GR[knowledge ingest + Neo4j]
-    GS[veil-api read + veil-mcp]
+    GS[veil-api /v1]
+    GM[veil-mcp /mcp/graph]
     DE[decision / intel engine]
   end
   subgraph pipeline [Pipeline NED]
     NED[normalize enrich dedup]
   end
   subgraph engage [Engage]
+    EA[engage-api /api]
+    EM[engage-mcp /mcp/engage]
     TOOLS[pentest tool catalog + runner]
   end
   subgraph report [Report - shared]
@@ -54,20 +60,28 @@ flowchart TB
   subgraph exec [Execution plane - optional shared]
     RUN[runner + sandbox]
   end
-  MCP --> GS
-  MCP --> TOOLS
-  MCP -.-> REP
+  AG --> NGX
+  NGX -->|/v1/*| GS
+  NGX -->|/mcp/graph| GM
+  NGX -->|/api/*| EA
+  NGX -->|/mcp/engage| EM
+  AG -.->|stdio MCP local| GM
+  AG -.->|stdio MCP local| EM
+  EA --> TOOLS
+  EM --> TOOLS
+  TOOLS --> RUN
   SC -->|harvest| NED
   BR -.->|future harvest| NED
   NED -->|commit| GR
-  TOOLS --> RUN
   SC -.->|optional| RUN
-  TOOLS -->|HTTP| GS
+  TOOLS -->|HTTP veil-api| GS
   TOOLS --> DE
   TOOLS --> REP
   GR --> GS
   DE --> GS
 ```
+
+**Unified path contract (P12):** [platform-unified-access.md](platform-unified-access.md). Today dev may still hit `:8090` / `:8890` directly; production targets a single TLS host with prefix routing.
 
 | Layer | Responsibility | Path today | Path target |
 |-------|----------------|------------|-------------|
