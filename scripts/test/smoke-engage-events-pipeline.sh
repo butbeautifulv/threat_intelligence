@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
 # Smoke: engage tool run -> engage.events -> bridge -> ingest.engage.* -> Neo4j (graph-ingest profile)
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(dirname "$0")/lib/smoke.sh"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "SKIP: docker not available"
-  exit 0
-fi
-if ! docker info >/dev/null 2>&1; then
-  echo "SKIP: docker daemon not running"
-  exit 0
-fi
+smoke_skip_no_docker
 
 COMPOSE=(docker compose
   -f deploy/engage/compose.yml
@@ -34,20 +29,6 @@ fail() {
     "${COMPOSE[@]}" "${PROFILES[@]}" logs --tail=40 "${svc}" 2>/dev/null || true
   done
   exit 1
-}
-
-wait_http() {
-  local url=$1 max=$2 label=$3
-  local i=0
-  while (( i < max )); do
-    if curl -sf "${url}" >/dev/null 2>&1; then
-      log "${label} ready"
-      return 0
-    fi
-    sleep 2
-    i=$((i + 2))
-  done
-  fail "timeout waiting for ${label} (${url}, ${max}s)"
 }
 
 wait_neo4j() {
@@ -81,7 +62,8 @@ log "starting events pipeline stack..."
 
 trap compose_down EXIT
 
-wait_http "${ENGAGE_URL}/health" "${WAIT_API_SEC}" "engage-api"
+smoke_wait_http "${ENGAGE_URL}/health" "${WAIT_API_SEC}" "engage-api" 2 && log "engage-api ready" \
+  || fail "timeout waiting for engage-api (${ENGAGE_URL}/health, ${WAIT_API_SEC}s)"
 wait_neo4j
 
 # Distroless API has no scanner binaries; runner emits audit even when binary is missing.

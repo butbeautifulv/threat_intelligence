@@ -2,18 +2,13 @@
 # Platform v4 P4b: discover → enrich → remember → act → decide (minimal scrape + engage pilot).
 # Heavy Docker smoke; default SKIP-friendly timeouts. Not for every PR.
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(dirname "$0")/lib/smoke.sh"
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "SKIP: docker not available"
-  exit 0
-fi
-if ! docker info >/dev/null 2>&1; then
-  echo "SKIP: docker daemon not running"
-  exit 0
-fi
+smoke_skip_no_docker
 
 export COMPOSE_FILES="${VEIL_COMPOSE_FILES} -f deploy/engage/compose.yml -f deploy/engage/compose.veil-stack.yml"
 export GRAPH_PACK_SKIP="${GRAPH_PACK_SKIP:-1}"
@@ -55,15 +50,10 @@ PIPELINE_WORKER_SCALE="${PIPELINE_WORKER_SCALE}" \
   "${VEIL_ROOT}/scripts/ops/compose-up-full.sh"
 compose up -d "${BUILD_FLAG[@]}" engage-api engage-events-worker
 
-deadline=$((SECONDS + 300))
-until curl -sf "${API_URL}/health" >/dev/null 2>&1; do
-  (( SECONDS >= deadline )) && fail "timeout veil-api"
-  sleep 2
-done
-until curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; do
-  (( SECONDS >= deadline )) && fail "timeout engage-api"
-  sleep 2
-done
+smoke_wait_http "${API_URL}/health" 300 "veil-api" 2 \
+  || fail "timeout veil-api (${API_URL}/health, 300s)"
+smoke_wait_http "${ENGAGE_URL}/health" 300 "engage-api" 2 \
+  || fail "timeout engage-api (${ENGAGE_URL}/health, 300s)"
 log "stack healthy"
 
 log "waiting for scrape_worker exit (max ${SMOKE_SCRAPE_WAIT_SEC}s)..."

@@ -1,18 +1,13 @@
 #!/usr/bin/env bash
 # CI smoke: minimal Veil stack + engage veil-stack overlay — tool run -> ingest -> veil-api engage search.
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(dirname "$0")/lib/smoke.sh"
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "SKIP: docker not available"
-  exit 0
-fi
-if ! docker info >/dev/null 2>&1; then
-  echo "SKIP: docker daemon not running"
-  exit 0
-fi
+smoke_skip_no_docker
 
 export COMPOSE_FILES="${VEIL_COMPOSE_FILES} -f deploy/engage/compose.yml -f deploy/engage/compose.veil-stack.yml"
 export GRAPH_PACK_SKIP="${GRAPH_PACK_SKIP:-1}"
@@ -56,21 +51,10 @@ log "starting minimal veil+engage stack (project=${PROJECT}, GRAPH_PACK_SKIP=${G
 compose up -d "${BUILD_FLAG[@]}" \
   nats neo4j ingest_worker api engage-api engage-events-worker
 
-api_wait_deadline=$((SECONDS + SMOKE_VEIL_API_WAIT_SEC))
-until curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; do
-  if (( SECONDS >= api_wait_deadline )); then
-    fail "timeout waiting for engage-api (${SMOKE_VEIL_API_WAIT_SEC}s)"
-  fi
-  sleep 2
-done
-
-veil_deadline=$((SECONDS + SMOKE_VEIL_VEIL_API_WAIT_SEC))
-until curl -sf "${API_URL}/health" >/dev/null 2>&1; do
-  if (( SECONDS >= veil_deadline )); then
-    fail "timeout waiting for veil-api (${SMOKE_VEIL_VEIL_API_WAIT_SEC}s)"
-  fi
-  sleep 2
-done
+smoke_wait_http "${ENGAGE_URL}/health" "${SMOKE_VEIL_API_WAIT_SEC}" "engage-api" 2 \
+  || fail "timeout waiting for engage-api (${ENGAGE_URL}/health, ${SMOKE_VEIL_API_WAIT_SEC}s)"
+smoke_wait_http "${API_URL}/health" "${SMOKE_VEIL_VEIL_API_WAIT_SEC}" "veil-api" 2 \
+  || fail "timeout waiting for veil-api (${API_URL}/health, ${SMOKE_VEIL_VEIL_API_WAIT_SEC}s)"
 log "engage-api and veil-api healthy"
 
 log "POST engage tool run (httpx_probe -> ${SMOKE_ENGAGE_HOST}; audit event even if binary missing)"
