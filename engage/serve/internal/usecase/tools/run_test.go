@@ -1,10 +1,19 @@
 package tools
 
 import (
+	"context"
+	"log/slog"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/butbeautifulv/veil/engage/serve/internal/audit"
 	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
+	"github.com/butbeautifulv/veil/engage/serve/internal/runner"
+	"github.com/butbeautifulv/veil/engage/serve/internal/security"
+	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
+	"github.com/butbeautifulv/veil/pkg/engage/toolid"
 )
 
 func TestMergeParameters_targetAliasesURL(t *testing.T) {
@@ -62,5 +71,74 @@ func TestMergeParameters_explicitURLNotOverwritten(t *testing.T) {
 	})
 	if out["url"] != "http://explicit.com" {
 		t.Fatalf("url = %q, want explicit", out["url"])
+	}
+}
+
+func TestRunOnce_targetGuardBlocksMetadata_beforeCatalogLookup(t *testing.T) {
+	const metadataTarget = "http://169.254.169.254/latest/meta-data/"
+	cases := []struct {
+		name     string
+		toolName string
+		specs    []tool.Spec
+	}{
+		{
+			name:     "unknown_tool",
+			toolName: "not_in_catalog_scan",
+			specs:    nil,
+		},
+		{
+			name:     "disabled_tool",
+			toolName: "disabled_scan",
+			specs: []tool.Spec{{
+				Name: "disabled_scan", Category: toolid.CategoryWeb, Binary: "echo",
+				Enabled: false, TimeoutSec: 30,
+			}},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := tools.NewRegistry(tc.specs)
+			spy := &auditSpy{}
+			r := &Runner{
+				Registry:    reg,
+				Exec:        &runner.Executor{WorkDir: t.TempDir()},
+				Audit:       audit.NewWithStore(slog.New(slog.NewTextHandler(os.Stderr, nil)), spy),
+				TargetGuard: security.TargetGuardBlock,
+			}
+			out := r.runOnce(context.Background(), "subj", tc.toolName, contract.ToolRunRequest{Target: metadataTarget})
+			if out.Success {
+				t.Fatal("expected blocked run")
+			}
+			if !strings.Contains(out.Error, "target blocked by ENGAGE_TARGET_GUARD") {
+				t.Fatalf("error = %q, want target guard block before catalog", out.Error)
+			}
+			if strings.Contains(out.Error, "unknown tool") || strings.Contains(out.Error, "tool disabled") {
+				t.Fatalf("catalog lookup ran before guard: %q", out.Error)
+			}
+			if spy.calls != 1 {
+				t.Fatalf("audit calls = %d, want 1 for guard block", spy.calls)
+			}
+		})
+	}
+}
+
+func TestRunOnce_targetGuardOff_reachesCatalogError(t *testing.T) {
+	reg := tools.NewRegistry(nil)
+	r := &Runner{
+		Registry:    reg,
+		Exec:        &runner.Executor{WorkDir: t.TempDir()},
+		TargetGuard: security.TargetGuardOff,
+	}
+	out := r.runOnce(context.Background(), "", "missing_scan", contract.ToolRunRequest{
+		Target: "http://169.254.169.254/latest/meta-data/",
+	})
+	if out.Success {
+		t.Fatal("expected failure")
+	}
+	if strings.Contains(out.Error, "target blocked") {
+		t.Fatalf("guard off should not block: %q", out.Error)
+	}
+	if !strings.Contains(out.Error, "unknown tool") {
+		t.Fatalf("expected catalog error, got %q", out.Error)
 	}
 }
