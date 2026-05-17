@@ -95,6 +95,9 @@ jobs:
       - name: N/A execution matrix (158 tools, 100+ live)
         run: make test-engage-na-matrix
 
+      - name: Executable matrix (158 catalog tools, dispatch gate)
+        run: make test-engage-executable-matrix
+
       - name: MCP runner triangle CSV
         run: python3 ./scripts/engage/audit-mcp-runner-triangle.py
 
