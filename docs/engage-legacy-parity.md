@@ -6,7 +6,7 @@ Reference: [`.external/hexstrike-ai-master/`](../.external/hexstrike-ai-master/)
 |------|------------------|-------------|
 | Behavioral parity | ad hoc Flask responses | Golden JSON tests (`go test ./internal/usecase/ctf/...` and `./internal/usecase/bugbounty/...`, `-run Golden`); `make test-engage-ctf` / `make test-engage-bugbounty` chain those packages then existing shell smokes |
 | MCP tools | ~151 `@mcp.tool` | [catalog/tools.yaml](../engage/serve/catalog/tools.yaml) (**158** names: 151 legacy + 8 engage bridge) |
-| Tool execution (lab) | 150 tools in MCP | **80 enabled** in [tools.live.yaml](../engage/serve/catalog/tools.live.yaml); tier-1 binaries in [runner image](../deploy/engage/docker/runner.Dockerfile); args CI gate `make test-engage-catalog-args` |
+| Tool execution (lab) | 150 tools in MCP | **Today:** **136** `enabled: true` rows in [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) but only **~46** are catalog names (**~90 orphan** synthetics — [engage-tools.md](engage-tools.md), fix **P9h**). **Target:** 158/158 callable (`make test-engage-executable-matrix`, **P9f**); ~103 subprocess + ~55 bridge; 0 `runner_N/A` (**P9i**). Tier-1 binaries in [runner image](../deploy/engage/docker/runner.Dockerfile); args CI gate `make test-engage-catalog-args` |
 | HTTP API | Python server :8888 | `engage-api` :8890 |
 | Auth | none | Keycloak + RBAC ([pkg/auth](../pkg/auth/)) |
 | Graph context | none | `ENGAGE_VEIL_API_URL` client |

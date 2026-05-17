@@ -2,17 +2,28 @@
 
 Tools are defined in YAML and loaded at startup (merged in order, **later overrides**): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`.
 
-## Why 158 catalog but only 113 «live»?
+## Three KPIs (do not conflate)
+
+| KPI | Today | Target | Gate |
+|-----|-------|--------|------|
+| **Catalog** | **158** names in `tools.yaml` | 158 | `make test-engage-parity` |
+| **Executable** (callable via HTTP+MCP) | Partial (~55 bridge + subset subprocess) | **158/158** | `make test-engage-executable-matrix` (**P9f**) |
+| **Subprocess-in-runner** | **~46** catalog names `enabled: true`; **136** live rows total | **~103** subprocess enabled, 0 orphan rows | **P9h** (catalog ↔ live sync) + **P9i** (binaries in runner) |
+
+**Phase 30 sign-off** ([engage-audit-report.md](engage-audit-report.md)) = decommission legacy `:8888` + catalog/route parity — **not** “every catalog tool runs in the default runner.”
+
+## Orphan live rows (P9h)
+
+`tools.live.yaml` currently has **136** `enabled: true` entries but only **~46** names exist in `tools.yaml` (**catalog ∩ live**). The other **~90** are **orphan synthetics** (e.g. `nmap_quick_scan` clones) left from older `generate-tools-live.py` policy. They inflate “live” counts in docs and matrix headers without matching MCP catalog names.
+
+**P9h fix:** one row per catalog name (158), drop non-catalog synthetics, set subprocess `enabled: true` only when the binary is in the runner profile. Regenerate: `make catalog-engage` after overlay script lands. See [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md).
 
 | Count | Meaning |
 |-------|---------|
 | **158** | Every tool **name** in `tools.yaml` (MCP parity + bridge aliases) |
-| **113** | `enabled: true` in `tools.live.yaml` — **subprocess** tools that run CLI binaries in engage-runner |
-| **~55** | **bridge_api** — in-process intel / CTF / bug bounty / workflows (not subprocess); work via MCP bridge today |
-| **~57** | **runner_N/A** — real CLI in catalog but not enabled in lab profile or missing from runner image |
+| **~55** | **bridge_api** — in-process intel / CTF / bug bounty / workflows (not subprocess) |
+| **~57** | **runner_N/A** — CLI in catalog but missing from runner image or not yet enabled (**P9i**) |
 | **~12** | P9g heavy stack (Burp, Ghidra, hashcat, …) — subprocess via `engage-runner-full` |
-
-**113 is not «broken coverage».** It is the default lab subprocess slice. **Target: 158/158 executable** (bridge + runner-full) — [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md).
 
 | File | Purpose |
 |------|---------|

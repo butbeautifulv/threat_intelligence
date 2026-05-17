@@ -10,7 +10,7 @@
 | **Architecture** | **Confirmed** | Go engage layer replaces Python monolith: catalog + unified `POST /api/tools/{name}`, Keycloak, events→Neo4j, veil read |
 | **MCP / catalog names** | **OK** | 151 legacy `@mcp.tool` + 8 engage bridge tools → **158** catalog entries |
 | **HTTP route parity** | **OK** | 156 legacy routes: 59 implemented, 90 N/A (unified tools), 7 N/A (out of scope); **0 unexplained missing** — see [engage-route-parity.csv](engage-route-parity.csv) |
-| **Execution breadth** | **Partial → P0 addressed** | **80** `enabled: true` in [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) (was 52); target 80+ met |
+| **Execution breadth** | **Partial** (until **P9f** green) | **158** catalog names; callable matrix `make test-engage-executable-matrix` — [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md). Subprocess: **136** live rows (**~90 orphan** names not in catalog); **~46** catalog ∩ `enabled: true`. Target: 158/158 executable, 0 orphan live rows (**P9h**), 0 `runner_N/A` (**P9i**) |
 | **README KPI (24×, 98.7%)** | **Not claimed** | Benchmark script regression-only |
 
 ## Automated gates
@@ -33,8 +33,8 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 
 | Metric | Value |
 |--------|-------|
-| Enabled in `tools.live.yaml` | **80** |
-| Runnable in runner image | **80** when `engage-runner` image present (`list-runner-binaries.sh`); **5/80** on bare host without Docker (expected) |
+| Enabled in `tools.live.yaml` | **136** rows (**~46** catalog names; **~90** orphan synthetics — see [engage-tools.md](engage-tools.md)) |
+| Runnable in runner image | Tier-1 subset when `engage-runner` image present (`list-runner-binaries.sh`); full port **P9i/j** |
 | Tool matrix strict | `ENGAGE_TOOL_MATRIX_STRICT=1` via `make test-engage-runner-profile` (≥30 tools in runner container) |
 
 ## P2 HTTP backlog (closed in audit)
@@ -52,7 +52,7 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 - [x] `make test-engage-route-parity` — 0 unexplained missing
 - [x] [engage-legacy-parity.md](engage-legacy-parity.md) route matrix + [engage-route-parity.csv](engage-route-parity.csv)
 - [x] Master plan + greenfield synced (Phase 16–23; gap matrix updated)
-- [x] P0: 80 live tools; `make test-engage-tool-matrix-strict` in compose smoke
+- [x] P0: tier-1 live tools + `make test-engage-tool-matrix-strict` in compose smoke (superseded by **P9f/h/i** full-port KPIs — do not read as 158/158 execution done)
 - [x] P2: vuln-intel aliases + `/api/error-handling/*` diagnostics
 
 ## Remaining backlog (post-audit)
@@ -74,7 +74,7 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 | R149 — When `.external/` optional vs extract-only parity use ([external-hexstrike.md](external-hexstrike.md#when-external-is-optional)) | **Documented** |
 | R150 — Formal sign-off in this section | **[x]** — 2026-05-16 |
 
-**Signed-off criterion:** Teams can operate **without** Flask **`:8888`** per runbook; tool execution MCP is **`veil-engage`** only.
+**Signed-off criterion:** Teams can operate **without** Flask **`:8888`** per runbook; tool execution MCP is **`veil-engage`** only. This sign-off is **architecture + catalog/route parity**, not claim that every catalog tool subprocess-runs in the default runner image. Execution completeness is tracked separately: `make test-engage-executable-matrix` (**P9f**) per [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md).
 
 ## Related docs
 

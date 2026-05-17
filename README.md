@@ -14,7 +14,7 @@
 |------------|-------------|
 | **Threat graph** | Neo4j knowledge graph with versioned [graph packs](docs/graph-pack.md), HTTP API, and read-only MCP |
 | **Ingestion bus** | Scrape → normalize (NED) → ingest over NATS with idempotent envelopes (`pkg/harvest`, `pkg/commit`) |
-| **Engage toolkit** | 158 catalog / **136 live** runner tools (+ bridge), workflows (CTF, BB, CVE), Docker sandbox |
+| **Engage toolkit** | **158** catalog names · **executable** (HTTP+MCP dispatch) tracked by `make test-engage-executable-matrix` (**P9f**, in progress) · **subprocess-in-runner** via `tools.live.yaml` (~46 catalog names enabled today; **136** live rows incl. ~90 orphan synthetics — **P9h** sync). Workflows (CTF, BB, CVE), Docker sandbox |
 | **Closed loop** | Tool runs and findings → `engage.events` → graph (`EngageToolRun`, `EngageFinding`) for “act → learn → decide” |
 | **Agent-ready** | Separate MCP: **veil-mcp** (read) vs **veil-engage** (exec), Keycloak RBAC, GAIA-style eval harness |
 | **Prod path** | Hybrid deploy: Terraform + Ansible + Helm; secure overlays; control catalog (JCSF/DAF/OWASP-aligned) |
@@ -72,7 +72,7 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 
 | Track | Status | Entry |
 |-------|--------|--------|
-| **Engage / HexStrike** | **Done** — 158 catalog / 150 parity / **136 live** (+ full port P9) | [engage-audit-report.md](docs/engage-audit-report.md) |
+| **Engage / HexStrike** | **Phase 30 sign-off** (decommission `:8888`, name/route parity) — **not** “158/158 execution done”. KPIs: **158** catalog · executable gate **P9f** · subprocess-in-runner **P9h/i**. Full port: [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) | [engage-audit-report.md](docs/engage-audit-report.md) |
 | **Platform v3–v4** | P0–P4b **done** — bus tests, closed/full loop, Terraform | [platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) |
 | **Platform P5** | Hybrid deploy skeleton (TF + Ansible + Helm) | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
 | **Platform P6** | **Done** — events, auth, scrapepub, stacks, natsjet publish | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
