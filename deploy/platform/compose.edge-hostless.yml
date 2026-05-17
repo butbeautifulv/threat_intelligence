@@ -1,0 +1,17 @@
+# Smoke/CI overlay: unpublish layer API/MCP ports when compose.edge.yml `ports: []` is merged as append.
+services:
+  api:
+    ports: !reset []
+  mcp:
+    ports: !reset []
+    stdin_open: true
+  engage-api:
+    ports: !reset []
+    environment:
+      ENGAGE_FILES_DIR: /tmp/engage/files
+  engage-mcp:
+    ports: !reset []
+    stdin_open: true
+    environment:
+      ENGAGE_FILES_DIR: /tmp/engage/files
+      ENGAGE_AUDIT_DIR: /tmp/engage/audit
