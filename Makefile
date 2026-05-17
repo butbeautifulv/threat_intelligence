@@ -265,7 +265,7 @@ test-engage-bridge-coverage:
 
 catalog-engage:
 	python3 ./scripts/engage/extract-legacy-catalog.py
-	python3 ./scripts/engage/generate-tools-live.py
+	python3 ./scripts/engage/generate-tools-catalog-live.py
 	python3 ./scripts/engage/generate-tools-na-matrix.py
 	./scripts/engage/check-catalog-parity.sh
 	$(MAKE) test-engage-catalog-args
