@@ -233,6 +233,8 @@ make test-platform-closed-loop    # Platform closed-loop pilot (Docker)
 make test-platform-full-loop      # Platform full loop with scrape (Docker, heavy)
 make deploy-helm-template         # Helm chart render check
 make sync-github-metadata         # Update GitHub description from .github/repo-description.txt
+make pentest-veil-dual            # Docker target + safe self-pentest report
+make pentest-veil-mcp             # Pentest only (stack must be up); report in eval/results/
 ```
 
 ## Smoke Cypher
