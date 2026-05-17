@@ -10,40 +10,30 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'pkg/harvest/**'
-      - 'pkg/commit/**'
-      - 'pkg/natsjet/**'
-      - 'pkg/engage/**'
-      - 'pipeline/connector/**'
-      - 'pipeline/ned/**'
-      - 'pipeline/engage-events/**'
-      - 'graph/ingest/**'
-      - 'graph/connector/**'
-      - 'engage/serve/internal/client/veilgraph/**'
-      - 'engage/serve/internal/usecase/intelligence/**'
+      - 'pkg/**'
+      - 'scrape/**'
+      - 'pipeline/**'
+      - 'graph/**'
+      - 'engage/**'
       - 'scripts/test/smoke-platform*.sh'
       - 'docs/platform-closed-loop-pilot.md'
       - 'docs/platform-full-loop-smoke.md'
+      - 'docs/domain-contour.md'
       - 'deploy/terraform/**'
       - 'Makefile'
       - 'versions.env'
       - '.github/workflows/platform.yml'
   pull_request:
     paths:
-      - 'pkg/harvest/**'
-      - 'pkg/commit/**'
-      - 'pkg/natsjet/**'
-      - 'pkg/engage/**'
-      - 'pipeline/connector/**'
-      - 'pipeline/ned/**'
-      - 'pipeline/engage-events/**'
-      - 'graph/ingest/**'
-      - 'graph/connector/**'
-      - 'engage/serve/internal/client/veilgraph/**'
-      - 'engage/serve/internal/usecase/intelligence/**'
+      - 'pkg/**'
+      - 'scrape/**'
+      - 'pipeline/**'
+      - 'graph/**'
+      - 'engage/**'
       - 'scripts/test/smoke-platform*.sh'
       - 'docs/platform-closed-loop-pilot.md'
       - 'docs/platform-full-loop-smoke.md'
+      - 'docs/domain-contour.md'
       - 'deploy/terraform/**'
       - 'Makefile'
       - 'versions.env'
@@ -59,8 +49,8 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Platform bus unit tests (P0)
-        run: make test-platform-p0
+      - name: Platform P7 unit tests (pkg domain + layer slices)
+        run: make test-platform-p7
 
   closed-loop:
     runs-on: ubuntu-latest
@@ -92,8 +82,8 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Platform P0 unit tests
-        run: make test-platform-p0
+      - name: Platform P7 unit tests
+        run: make test-platform-p7
 
       - name: Full loop smoke (P4b)
         env:
