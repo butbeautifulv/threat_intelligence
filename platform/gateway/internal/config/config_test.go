@@ -7,6 +7,8 @@ import (
 func TestLoad_defaults(t *testing.T) {
 	t.Setenv("VEIL_GRAPH_API_URL", "")
 	t.Setenv("VEIL_ENGAGE_API_URL", "")
+	t.Setenv("VEIL_GRAPH_MCP_URL", "")
+	t.Setenv("VEIL_ENGAGE_MCP_URL", "")
 	cfg, err := Load()
 	if err != nil {
 		t.Fatal(err)

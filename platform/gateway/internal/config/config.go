@@ -10,11 +10,11 @@ const serviceName = "veil-gateway"
 
 // Config holds upstream targets and listen address for the HTTP edge proxy.
 type Config struct {
-	ListenAddr    string
-	GraphAPIURL   *url.URL
-	EngageAPIURL  *url.URL
-	GraphMCPURL   *url.URL
-	EngageMCPURL  *url.URL
+	ListenAddr   string
+	GraphAPIURL  *url.URL
+	EngageAPIURL *url.URL
+	GraphMCPURL  *url.URL
+	EngageMCPURL *url.URL
 }
 
 // Load reads gateway settings from the environment.
