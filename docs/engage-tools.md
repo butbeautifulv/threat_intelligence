@@ -30,6 +30,7 @@ Tools are defined in YAML and loaded at startup (merged in order, **later overri
 | [tools.yaml](../engage/serve/catalog/tools.yaml) | Full catalog (158 names); regenerate with `make catalog-engage` |
 | [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) | Lab profile: subprocess tools `enabled: true`; regen via `generate-tools-live.py` |
 | [engage-tools-na-matrix.md](engage-tools-na-matrix.md) | Execution status per name (`live` / `runner_N/A` / `bridge_api`) |
+| [engage-llm-stubs.md](engage-llm-stubs.md) | `ai_*` catalog tools: deterministic stub vs future LLM; `tryAgentTool` / intel bridge dispatch |
 | [tools.enabled.yaml](../engage/serve/catalog/tools.enabled.yaml) | Auto-generated enables when binaries exist on PATH |
 
 ## Schema
