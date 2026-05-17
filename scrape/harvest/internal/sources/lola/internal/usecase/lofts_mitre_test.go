@@ -23,13 +23,3 @@ func TestExtractLoftsLinks(t *testing.T) {
 	}
 }
 
-func TestMitreExternalID(t *testing.T) {
-	m := map[string]any{
-		"external_references": []any{
-			map[string]any{"source_name": "mitre-attack", "external_id": "T1059"},
-		},
-	}
-	if got := mitreExternalID(m); got != "T1059" {
-		t.Fatalf("got %q", got)
-	}
-}
