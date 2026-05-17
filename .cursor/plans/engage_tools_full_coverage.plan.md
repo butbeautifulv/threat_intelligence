@@ -7,13 +7,13 @@ todos:
     status: pending
   - id: p9b-unified-dispatch
     content: "P9b: Единый ToolExecutor — bridge/playbook/agent до Runner; HTTP + MCP"
-    status: pending
+    status: in_progress
   - id: p9c-bridge-coverage
     content: "P9c: 55 bridge_api — handlers/playbooks; tools.bridge.yaml; test bridge coverage"
-    status: pending
+    status: in_progress
   - id: p9d-runner-expand
-    content: "P9d: runner image + tools.live — закрыть runner_N/A (цель +40 CLI)"
-    status: pending
+    content: "P9d: runner image + tools.live — hydra, burpsuite, +40 CLI; снять permanent_N/A для них"
+    status: in_progress
   - id: p9e-permanent-na
     content: "P9e: 12 permanent_N/A — structured error + альтернативы в catalog"
     status: pending
@@ -55,6 +55,8 @@ isProject: false
 | **B — Executable** | **146** | 158 − 12 permanent_N/A; любой вызов (MCP **и** HTTP) возвращает success или осмысленный structured result |
 | **C — Subprocess live** | **~130+** | Реальный CLI в runner image + `tools.live.yaml` |
 | **D — Full subprocess** | 158 | **Недостижимо** без GUI/MSFramework в контейнере |
+
+**Operator requirement:** **hydra** (already in runner apt) and **Burp Suite** must be in engage-runner — use Burp Suite Community JAR + headless/`burpsuite` CLI wrapper or documented `java -jar` path; remove `burpsuite` from permanent_N/A in `generate-tools-na-matrix.py` once packaged.
 
 ## Архитектура (target)
 
