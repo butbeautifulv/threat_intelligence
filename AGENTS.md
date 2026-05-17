@@ -18,11 +18,12 @@
 | Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) — includes **README.md**, **CONTRIBUTING.md**, **`.github/repo-description.txt`** |
 | Security frameworks | [veil-agent-security-frameworks.mdc](.cursor/rules/veil-agent-security-frameworks.mdc), [docs/external-security-frameworks.md](docs/external-security-frameworks.md) |
 | Agent evaluation | [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) — [arXiv:2311.12983](https://arxiv.org/abs/2311.12983); `make test-agent-eval-pilot` / `test-agent-eval-paper`; HF optional |
-| Platform refactor P6 | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) — `make test-pkg-shared` after pkg contract changes |
-| Platform P7 tests → pkg/domain | [veil_platform_p7_tests_then_pkg_domain.plan.md](.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) — `make test-pkg-domain`, `make test-platform-p7` |
+| Platform P6 refactor | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) — **done** |
+| Platform P7 pkg/domain | [veil_platform_p7_tests_then_pkg_domain.plan.md](.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) — **done**; `make test-platform-p7` |
+| Platform v8 layers (active) | [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md), [platform-architecture.md](docs/platform-architecture.md) |
 | Finish | This file § End-of-task checklist |
 
-**Completed program tracks (reference for few-shot plans):** Platform v3 P0–P3 ([veil_platform_v3_test_then_dedup.plan.md](.cursor/plans/veil_platform_v3_test_then_dedup.plan.md), [docs/platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md)); Platform v4 P4a CI + P4b full loop / IaC ([veil_platform_v4_ci_and_full_loop.plan.md](.cursor/plans/veil_platform_v4_ci_and_full_loop.plan.md), [docs/platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md), [deploy/terraform/README.md](deploy/terraform/README.md)); Engage phases 24–30 / HexStrike sign-off ([engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md), [docs/engage-audit-report.md](docs/engage-audit-report.md)); Platform P5 hybrid deploy ([veil_deploy_platform_p5_hybrid.plan.md](.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md), [docs/deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md)).
+**Completed program tracks (reference for few-shot plans):** Platform v3–v4 P0–P4b; Engage 24–30 / HexStrike ([engage-audit-report.md](docs/engage-audit-report.md)); P5 hybrid deploy; **P6** infra DRY; **P7** pkg domain + CI. **Active:** v8 layers ([veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md)). **Critical fix on main:** catalog merge order `tools.yaml` → `tools.live.yaml` (`634e067`) — without it live tools appear disabled at runtime.
 
 ## Before you change code
 

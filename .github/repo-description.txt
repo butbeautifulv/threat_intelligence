@@ -1,1 +1,1 @@
-Neo4j threat-intel + Go engage toolkit. Four layers (scrape→pipeline→graph→engage) on NATS; dual MCP for agents; hybrid TF/Ansible/Helm; JCSF/DAF controls; GAIA eval harness. MIT.
+Neo4j TI platform + Go engage (113 live tools). scrape→pipeline→graph→engage on NATS; pkg domain SOT; dual MCP; v8 roadmap: discovery/knowledge/report/pkg/exec. MIT.

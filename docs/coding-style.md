@@ -27,6 +27,8 @@ Conventions for the three runtime layers — **scrape**, **pipeline**, **graph**
 
 Layers **scrape / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `scrape/`, `pipeline/`, `graph/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
 
+**Logical layers (v8 target)** — see [platform-architecture.md](platform-architecture.md): discovery → pipeline → knowledge; engage (tools); shared report; API/MCP façade. **Scrape `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only future **`pkg/exec`** (sandbox), do not rename factory to runner.
+
 Layer-specific layout, env vars, and build commands:
 
 | Layer | Docs |

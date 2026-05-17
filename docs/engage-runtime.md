@@ -23,8 +23,12 @@
 | Variable | Default | Role |
 |----------|---------|------|
 | `ENGAGE_API_LISTEN` | `:8890` | API bind |
-| `ENGAGE_CATALOG_PATH` | `catalog/tools.yaml` | Tool registry |
+| `ENGAGE_CATALOG_PATH` | `catalog/tools.yaml` | Base catalog path (see merge below) |
 | `ENGAGE_RUNNER_WORKDIR` | `/tmp/engage` | Subprocess cwd |
+
+### Catalog merge (live tools)
+
+At startup, **InitAPI** merges YAML in order (later overrides): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`. Runner profile may set `ENGAGE_CATALOG_PATH=tools.live.yaml` directly ([compose.runner.yml](../deploy/engage/compose.runner.yml)). Regenerate live set: `python3 scripts/engage/generate-tools-live.py` (**113** enabled). Details: [engage-tools.md](engage-tools.md).
 | `ENGAGE_RUNNER_MODE` | `local` | `local` or `docker` (exec in `engage-runner` container) |
 | `ENGAGE_RUNNER_CONTAINER` | — | Container name when `ENGAGE_RUNNER_MODE=docker` |
 | `ENGAGE_VEIL_API_URL` | `http://localhost:8090` | Graph read API |

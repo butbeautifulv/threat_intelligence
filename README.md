@@ -14,7 +14,7 @@
 |------------|-------------|
 | **Threat graph** | Neo4j knowledge graph with versioned [graph packs](docs/graph-pack.md), HTTP API, and read-only MCP |
 | **Ingestion bus** | Scrape → normalize (NED) → ingest over NATS with idempotent envelopes (`pkg/harvest`, `pkg/commit`) |
-| **Engage toolkit** | ~150 catalog tools (Go), workflows (CTF, bug bounty, CVE intel), Docker runner isolation |
+| **Engage toolkit** | 158 catalog / **113 live** runner tools, workflows (CTF, BB, CVE), Docker sandbox |
 | **Closed loop** | Tool runs and findings → `engage.events` → graph (`EngageToolRun`, `EngageFinding`) for “act → learn → decide” |
 | **Agent-ready** | Separate MCP: **veil-mcp** (read) vs **veil-engage** (exec), Keycloak RBAC, GAIA-style eval harness |
 | **Prod path** | Hybrid deploy: Terraform + Ansible + Helm; secure overlays; control catalog (JCSF/DAF/OWASP-aligned) |
@@ -72,12 +72,27 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 
 | Track | Status | Entry |
 |-------|--------|--------|
-| **Engage / HexStrike** | Phases 24–30 **done** — 150-tool catalog, route parity, Go rewrite | [engage-audit-report.md](docs/engage-audit-report.md) |
-| **Platform v3–v4** | P0–P4b **done** — NATS bus tests, closed-loop + full-loop smokes, local Terraform | [platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) |
-| **Platform P5** | Hybrid deploy **skeleton** (TF + Ansible + Helm) on `main` | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
-| **Platform P6** | Refactor **in progress** — `pkg/engage/events`, `pkg/auth/httpmiddleware` | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
-| **Security** | JCSF/DAF/OWASP → [veil-controls.yaml](deploy/security/veil-controls.yaml); engage hardening CI | [external-security-frameworks.md](docs/external-security-frameworks.md) |
-| **Agent eval** | GAIA methodology ([arXiv:2311.12983](https://arxiv.org/abs/2311.12983)); offline CI harness | [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
+| **Engage / HexStrike** | **Done** — 158 catalog / 150 parity / **113 live** runner tools | [engage-audit-report.md](docs/engage-audit-report.md) |
+| **Platform v3–v4** | P0–P4b **done** — bus tests, closed/full loop, Terraform | [platform-full-loop-smoke.md](docs/platform-full-loop-smoke.md) |
+| **Platform P5** | Hybrid deploy skeleton (TF + Ansible + Helm) | [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) |
+| **Platform P6** | **Done** — events, auth, scrapepub, stacks, natsjet publish | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) |
+| **Platform P7** | **Done** — `pkg/*/domain`, `test-platform-p7` CI | [domain-contour.md](docs/domain-contour.md) |
+| **Platform v8 (next)** | Logical layers + `pkg/report`, `pkg/decision`, `pkg/exec` | [platform-architecture.md](docs/platform-architecture.md), [v8 master plan](.cursor/plans/veil_platform_v8_layers_master.plan.md) |
+| **Security** | veil-controls + engage hardening; prod pentest 0 HIGH | [external-security-frameworks.md](docs/external-security-frameworks.md) |
+| **Agent eval** | GAIA offline harness | [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
+
+## Roadmap (v8 — high level)
+
+| Logical layer | Role | Next step |
+|---------------|------|-----------|
+| **Discovery** | scrape, feeds, ledger (+ browser later) | `pkg/exec` for isolated fetch jobs; keep **factory** as orchestration |
+| **Pipeline** | NED normalize / enrich / dedup | stay in `pipeline/`; use `pkg/ti/*`, `pkg/commit` |
+| **Knowledge** | graph + decision engine | extract **pkg/decision** from engage intelligence |
+| **Engage** | pentest catalog + runner + guard | slim after extractions |
+| **Report** | HTML/PDF/executive | **pkg/report** (shared) |
+| **API + MCP** | external agents | **pkg/api** / **pkg/mcp** façade; graph + optional engage |
+
+Details: [docs/platform-architecture.md](docs/platform-architecture.md) (includes **runner vs factory** — do not merge them; share `pkg/exec` only).
 
 ## Quick start
 
@@ -193,6 +208,8 @@ make sync-github-metadata    # push .github/repo-description.txt → GitHub
 | [pipeline/README.md](pipeline/README.md) | Pipeline worker and normalization |
 | [graph/README.md](graph/README.md) | Ingest, API, MCP, Neo4j client |
 | [engage/README.md](engage/README.md) | Tool catalog, veil-engage MCP, workflows |
+| [docs/platform-architecture.md](docs/platform-architecture.md) | Current + v8 layers, runner vs factory |
+| [docs/domain-contour.md](docs/domain-contour.md) | pkg domain SOT map |
 | [docs/coding-style.md](docs/coding-style.md) | Architecture, four contexts, PR checklist |
 | [docs/mcp-agents.md](docs/mcp-agents.md) | veil-graph + veil-engage agent setup |
 | [docs/engage-tools.md](docs/engage-tools.md) | Catalog YAML, parameters, enable-by-category |
@@ -228,6 +245,7 @@ make test-engage-compose          # Docker: async jobs + runner profile
 make test-engage-events-pipeline  # Docker: engage.events → ingest.engage.*
 make test-agent-eval-pilot        # GAIA offline harness smoke
 make test-agent-eval-paper        # GAIA arXiv Fig. 1 format checks
+make test-platform-p7             # pkg domain + bus slices (CI on PR)
 make test-platform-p0             # Platform bus unit tests
 make test-platform-closed-loop    # Platform closed-loop pilot (Docker)
 make test-platform-full-loop      # Platform full loop with scrape (Docker, heavy)
