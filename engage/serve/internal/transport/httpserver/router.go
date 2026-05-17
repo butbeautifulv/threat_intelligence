@@ -36,6 +36,9 @@ func Register(mux *http.ServeMux, c *components.APIComponents) {
 			writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid json"})
 			return
 		}
+		if rejectBlockedTarget(w, c, req.Target, name) {
+			return
+		}
 		sub := subject(r)
 		writeJSON(w, http.StatusOK, c.Tools.Run(r.Context(), sub, name, req))
 	})

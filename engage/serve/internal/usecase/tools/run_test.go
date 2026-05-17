@@ -122,7 +122,7 @@ func TestRunOnce_targetGuardBlocksMetadata_beforeCatalogLookup(t *testing.T) {
 	}
 }
 
-func TestRunOnce_targetGuardOff_reachesCatalogError(t *testing.T) {
+func TestRunOnce_targetGuardOff_stillBlocksMetadataDenylist(t *testing.T) {
 	reg := tools.NewRegistry(nil)
 	r := &Runner{
 		Registry:    reg,
@@ -135,8 +135,26 @@ func TestRunOnce_targetGuardOff_reachesCatalogError(t *testing.T) {
 	if out.Success {
 		t.Fatal("expected failure")
 	}
+	if !strings.Contains(out.Error, "target blocked by ENGAGE_TARGET_GUARD") {
+		t.Fatalf("denylist must block even when guard off: %q", out.Error)
+	}
+	if strings.Contains(out.Error, "unknown tool") {
+		t.Fatalf("catalog lookup ran before denylist guard: %q", out.Error)
+	}
+}
+
+func TestRunOnce_targetGuardOff_allowsRFC1918(t *testing.T) {
+	reg := tools.NewRegistry(nil)
+	r := &Runner{
+		Registry:    reg,
+		Exec:        &runner.Executor{WorkDir: t.TempDir()},
+		TargetGuard: security.TargetGuardOff,
+	}
+	out := r.runOnce(context.Background(), "", "missing_scan", contract.ToolRunRequest{
+		Target: "10.0.0.1",
+	})
 	if strings.Contains(out.Error, "target blocked") {
-		t.Fatalf("guard off should not block: %q", out.Error)
+		t.Fatalf("RFC1918 should be allowed when guard off: %q", out.Error)
 	}
 	if !strings.Contains(out.Error, "unknown tool") {
 		t.Fatalf("expected catalog error, got %q", out.Error)

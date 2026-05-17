@@ -33,9 +33,29 @@ func ParseTargetGuardMode(getenv func(string) string) TargetGuardMode {
 	return TargetGuardOff
 }
 
-// CheckTarget returns a reason if the target must not be scanned (cloud metadata, loopback, RFC1918).
-// Intended for agentic tool runs in secured infra — operators scanning internal lab targets set ENGAGE_TARGET_GUARD=off.
+// CheckTarget reports all blocked targets (denylist + RFC1918). Prefer EnforceTarget at runtime.
 func CheckTarget(target string) (blocked bool, reason string) {
+	return EnforceTarget(target, TargetGuardBlock)
+}
+
+// EnforceTarget applies guard mode. Metadata, loopback, and localhost are always blocked;
+// RFC1918 ranges only when mode is block. Operators scanning internal lab targets set ENGAGE_TARGET_GUARD=off.
+func EnforceTarget(target string, mode TargetGuardMode) (blocked bool, reason string) {
+	if blocked, reason := checkDenylist(target); blocked {
+		return true, reason
+	}
+	if mode != TargetGuardBlock {
+		return false, ""
+	}
+	return checkPrivate(target)
+}
+
+// TargetGuardMessage is the stable error prefix returned to clients and audits.
+func TargetGuardMessage(reason string) string {
+	return "target blocked by ENGAGE_TARGET_GUARD: " + reason
+}
+
+func checkDenylist(target string) (blocked bool, reason string) {
 	host := extractHost(target)
 	if host == "" {
 		return false, ""
@@ -45,7 +65,6 @@ func CheckTarget(target string) (blocked bool, reason string) {
 	}
 	ip := net.ParseIP(host)
 	if ip == nil {
-		// hostname — allow; DNS resolution happens in tools
 		return false, ""
 	}
 	if ip.IsLoopback() {
@@ -54,7 +73,16 @@ func CheckTarget(target string) (blocked bool, reason string) {
 	if ip.IsLinkLocalUnicast() || ip.Equal(net.IPv4(169, 254, 169, 254)) {
 		return true, "link-local / metadata targets are blocked"
 	}
-	if ip.IsPrivate() {
+	return false, ""
+}
+
+func checkPrivate(target string) (blocked bool, reason string) {
+	host := extractHost(target)
+	if host == "" {
+		return false, ""
+	}
+	ip := net.ParseIP(host)
+	if ip != nil && ip.IsPrivate() {
 		return true, "RFC1918 targets are blocked in guarded mode"
 	}
 	return false, ""

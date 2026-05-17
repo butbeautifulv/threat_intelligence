@@ -63,7 +63,7 @@ func TestPostJob_withParameters(t *testing.T) {
 
 	body, _ := json.Marshal(map[string]any{
 		"tool":   "nmap_scan",
-		"target": "127.0.0.1",
+		"target": "example.com",
 		"parameters": map[string]string{
 			"scan_type": "-sn",
 			"ports":     "",
@@ -112,7 +112,7 @@ func TestProcesses_afterToolRun(t *testing.T) {
 	Register(mux, c)
 
 	body, _ := json.Marshal(map[string]any{
-		"target": "127.0.0.1",
+		"target": "example.com",
 		"parameters": map[string]string{
 			"scan_type": "-sn",
 			"ports":     "",
@@ -383,7 +383,7 @@ func TestJobs_listAndCancel(t *testing.T) {
 	c := initTestAPI(t)
 	mux := http.NewServeMux()
 	Register(mux, c)
-	body, _ := json.Marshal(map[string]any{"tool": "nmap_scan", "target": "127.0.0.1"})
+	body, _ := json.Marshal(map[string]any{"tool": "nmap_scan", "target": "example.com"})
 	req := httptest.NewRequest(http.MethodPost, "/api/jobs", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()

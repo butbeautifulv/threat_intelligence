@@ -20,6 +20,9 @@ func registerJobs(mux *http.ServeMux, c *components.APIComponents) {
 			writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid json"})
 			return
 		}
+		if rejectBlockedTarget(w, c, body.Target, body.Tool) {
+			return
+		}
 		j, err := c.Jobs.Enqueue(body.Tool, body.Target, subject(r), body.Parameters)
 		if err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
