@@ -10,7 +10,7 @@ Tools are defined in YAML and loaded at startup (merged in order, **later overri
 | **113** | `enabled: true` in `tools.live.yaml` — **subprocess** tools that run CLI binaries in engage-runner |
 | **~55** | **bridge_api** — in-process intel / CTF / bug bounty / workflows (not subprocess); work via MCP bridge today |
 | **~57** | **runner_N/A** — real CLI in catalog but not enabled in lab profile or missing from runner image |
-| **~12** | бывший **permanent_N/A** (Burp, Ghidra, hashcat, …) — **входит в full port** via `engage-runner-full` (P9g) |
+| **~12** | P9g heavy stack (Burp, Ghidra, hashcat, …) — subprocess via `engage-runner-full` |
 
 **113 is not «broken coverage».** It is the default lab subprocess slice. **Target: 158/158 executable** (bridge + runner-full) — [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md).
 
@@ -18,7 +18,7 @@ Tools are defined in YAML and loaded at startup (merged in order, **later overri
 |------|---------|
 | [tools.yaml](../engage/serve/catalog/tools.yaml) | Full catalog (158 names); regenerate with `make catalog-engage` |
 | [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) | Lab profile: subprocess tools `enabled: true`; regen via `generate-tools-live.py` |
-| [engage-tools-na-matrix.md](engage-tools-na-matrix.md) | Execution status per name (`live` / `runner_N/A` / `bridge_api` / `permanent_N/A`) |
+| [engage-tools-na-matrix.md](engage-tools-na-matrix.md) | Execution status per name (`live` / `runner_N/A` / `bridge_api`) |
 | [tools.enabled.yaml](../engage/serve/catalog/tools.enabled.yaml) | Auto-generated enables when binaries exist on PATH |
 
 ## Schema
@@ -90,13 +90,26 @@ Gate: [check-catalog-args.sh](../scripts/engage/check-catalog-args.sh) — fails
 
 ## Heavy stack (full port — P9g)
 
-Default `runner.Dockerfile` — tier-1 CLI. **Full port** adds headless wrappers (no GUI) for:
+Default `runner.Dockerfile` target `engage-runner` — tier-1 CLI only. Target **`engage-runner-full`** adds headless wrappers (no GUI):
 
-| Binary | Tools |
-|--------|-------|
-| burpsuite, ghidra, hashcat, john, gdb, metasploit, angr, radare2, volatility, wpscan | see [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md) § P9g |
+| Binary | Catalog tools | RAM note |
+|--------|---------------|----------|
+| burpsuite | `burpsuite_scan`, `burpsuite_alternative_scan` | JRE headless |
+| ghidra | `ghidra_analysis` | +2–4 GB during analyzeHeadless |
+| hashcat, john | `hashcat_crack`, `john_crack` | GPU optional; CPU wordlists |
+| gdb | `gdb_analyze`, `gdb_peda_debug` | batch mode |
+| metasploit | `metasploit_run` | `msfconsole -q -x` |
+| angr | `angr_symbolic_execution` | pip; memory-heavy |
+| radare2 | `radare2_analyze` | wraps `r2` |
+| volatility | `volatility_analyze` | volatility3 / `vol` |
+| wpscan | `wpscan_analyze` | Ruby gem |
 
-Compose: `ENGAGE_RUNNER_PROFILE=full` or image tag `-runner-full` (when published).
+Image **~8–12 GB** on disk; allocate **4–8 GB RAM** for the full runner container. See [deploy/engage/README.md](../deploy/engage/README.md).
+
+```bash
+docker compose -f deploy/engage/compose.yml --profile runner-full up -d --build engage-runner-full
+ENGAGE_RUNNER_PROFILE=full ENGAGE_RUNNER_IMAGE=engage-runner-full ./scripts/engage/list-runner-binaries.sh
+```
 
 `binary: api` / workflow placeholders remain **bridge**, not subprocess.
 

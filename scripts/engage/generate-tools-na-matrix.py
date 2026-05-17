@@ -12,7 +12,7 @@ CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 LIVE = ROOT / "engage/serve/catalog/tools.live.yaml"
 OUT = ROOT / "docs/engage-tools-na-matrix.md"
 
-# Sync with generate-tools-live.py + runner.Dockerfile (Phase 25).
+# Sync with generate-tools-live.py + runner.Dockerfile (tier-1 + P9g runner-full).
 RUNNER_BINARIES = frozenset({
     "nmap", "masscan", "sqlmap", "nikto", "gobuster", "feroxbuster",
     "nuclei", "httpx", "subfinder", "katana", "naabu", "dnsx", "gau",
@@ -20,18 +20,14 @@ RUNNER_BINARIES = frozenset({
     "paramspider", "rustscan", "trivy", "dnsenum", "fierce", "hydra",
     "wafw00f", "enum4linux", "sslscan", "testssl", "dirb",
     "whatweb", "nbtscan", "binwalk", "jaeles", "x8", "enum4linux-ng",
+    "burpsuite", "ghidra", "hashcat", "john", "gdb", "metasploit",
+    "angr", "radare2", "volatility", "wpscan",
 })
 
 WORKFLOW_BINARIES = frozenset({
     "api", "bugbounty", "ai", "get", "http", "create", "execute", "generate",
     "list", "kube", "browser", "autorecon", "comprehensive", "advanced",
     "analyze", "checkov", "clair", "cloudmapper", "checksec", "clear",
-})
-
-PERMANENT_NA_BINARIES = frozenset({
-    "ghidra", "burpsuite", "burp", "metasploit", "msfconsole", "angr", "gdb",
-    "wpscan", "wireshark", "volatility", "radare2", "r2", "cutter",
-    "john", "hashcat", "aircrack", "ettercap", "bettercap",
 })
 
 
@@ -59,10 +55,6 @@ def classify(name: str, binary: str, live_enabled: bool) -> tuple[str, str]:
         return "bridge_api", "in-process MCP bridge handler"
     if binary in WORKFLOW_BINARIES:
         return "bridge_api", f"workflow placeholder binary `{binary}`"
-    if binary in PERMANENT_NA_BINARIES or any(
-        x in binary.lower() for x in ("ghidra", "burp", "metasploit", "angr", "wpscan")
-    ):
-        return "permanent_N/A", "GUI or heavy stack — out of runner image by design"
     if live_enabled:
         if binary in RUNNER_BINARIES or binary == "api":
             return "live", "enabled in tools.live.yaml"
@@ -120,18 +112,24 @@ def main() -> int:
         status, reason = classify(name, binary, in_live)
         rows.append((name, binary, category, status, reason))
 
-    # DoD: tools.live.yaml enabled count (includes synthetic lab variants).
     live_count = len(live_enabled)
     catalog_live = sum(1 for r in rows if r[3] == "live")
+    permanent_na = sum(1 for r in rows if r[3] == "permanent_N/A")
     body = render_md(rows, live_count, catalog_live)
     OUT.write_text(body, encoding="utf-8")
-    print(f"wrote {OUT} ({len(rows)} catalog, {live_count} live enabled, {catalog_live} catalog live)")
+    print(
+        f"wrote {OUT} ({len(rows)} catalog, {live_count} live enabled, "
+        f"{catalog_live} catalog live, permanent_N/A={permanent_na})"
+    )
 
     if len(rows) != 158:
         print(f"FAIL: expected 158 catalog tools, got {len(rows)}", file=sys.stderr)
         return 1
     if live_count < args.min_live:
         print(f"FAIL: live count {live_count} < {args.min_live}", file=sys.stderr)
+        return 1
+    if args.check and permanent_na > 0:
+        print(f"FAIL: permanent_N/A count {permanent_na} (full port requires 0)", file=sys.stderr)
         return 1
     return 0
 
