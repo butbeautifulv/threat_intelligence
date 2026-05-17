@@ -22,6 +22,7 @@ RUNNER_BINARIES = frozenset({
     "whatweb", "nbtscan", "binwalk", "jaeles", "x8", "enum4linux-ng",
     "burpsuite", "ghidra", "hashcat", "john", "gdb", "metasploit",
     "angr", "radare2", "volatility", "wpscan",
+    "engage-python-install", "engage-python-exec",
 })
 
 WORKFLOW_BINARIES = frozenset({

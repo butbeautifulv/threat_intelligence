@@ -22,6 +22,8 @@ RUNNER_BINARIES = frozenset({
     # P9g: engage-runner-full (headless wrappers)
     "burpsuite", "ghidra", "hashcat", "john", "gdb", "metasploit",
     "angr", "radare2", "volatility", "wpscan",
+    # P10b: PythonEnvironmentManager
+    "engage-python-install", "engage-python-exec",
 })
 
 # Phase audit P0: align with apt packages in deploy/engage/docker/runner.Dockerfile.
@@ -71,6 +73,8 @@ PREFERRED = {
     "radare2": "radare2_analyze",
     "volatility": "volatility_analyze",
     "wpscan": "wpscan_analyze",
+    "engage-python-install": "install_python_package",
+    "engage-python-exec": "execute_python_script",
 }
 
 

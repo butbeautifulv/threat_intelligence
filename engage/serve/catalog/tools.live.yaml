@@ -379,6 +379,60 @@ tools:
     timeout_sec: 300
     description: "web tool: dnsenum scan"
     enabled: true
+  - name: execute_python_script
+    category: web
+    binary: engage-python-exec
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: script
+        type: string
+        required: true
+      - name: env_name
+        type: string
+        default: "default"
+        required: false
+      - name: filename
+        type: string
+        default: ""
+        required: false
+    args:
+      - "--env"
+      - "{env_name}"
+      - "--script"
+      - "{script}"
+      - "--filename"
+      - "{filename}"
+      - "--target"
+      - "{target}"
+    timeout_sec: 300
+    description: "web tool: execute python script"
+    enabled: true
+  - name: install_python_package
+    category: web
+    binary: engage-python-install
+    parameters:
+      - name: target
+        type: string
+        required: true
+      - name: package
+        type: string
+        required: true
+      - name: env_name
+        type: string
+        default: "default"
+        required: false
+    args:
+      - "--env"
+      - "{env_name}"
+      - "--package"
+      - "{package}"
+      - "--target"
+      - "{target}"
+    timeout_sec: 300
+    description: "web tool: install python package"
+    enabled: true
   - name: enum4linux_ng_advanced
     category: web
     binary: enum4linux

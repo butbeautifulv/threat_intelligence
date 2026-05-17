@@ -57,7 +57,6 @@ var bridgeWorkflowHandlers = map[string]bridgeWorkflowHandler{
 	"create_scan_summary":           bridgeWorkflowNote("create_scan_summary", "use create_vulnerability_report after findings aggregation"),
 	"create_vulnerability_report":   bridgeWorkflowNote("create_vulnerability_report", "use format_tool_output_visual or HTTP /api/reports"),
 	"execute_command":               bridgeWorkflowNote("execute_command", "use POST /api/command or catalog subprocess tools"),
-	"execute_python_script":         bridgeWorkflowNote("execute_python_script", "use execute_command with python3 or dedicated runner tool"),
 	"generate_payload":              bridgePayloadGenerate,
 	"get_cache_stats": func(ctx context.Context, d *Dispatcher, name string, args map[string]any) (any, error) {
 		_ = ctx

@@ -11,6 +11,7 @@ bins=(
   arjun dirsearch paramspider rustscan trivy
   dnsenum fierce hydra wafw00f enum4linux enum4linux-ng sslscan testssl dirb
   whatweb nbtscan binwalk jaeles x8
+  engage-python-install engage-python-exec
 )
 
 # P9g: 10 headless wrappers + hydra (tier-1) = 12 catalog tools on runner-full

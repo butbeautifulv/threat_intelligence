@@ -28,7 +28,7 @@ RUN set -eux; \
         ca-certificates curl git nmap masscan sqlmap nikto gobuster dirb \
         dnsenum fierce hydra wafw00f enum4linux sslscan testssl.sh \
         whatweb nbtscan binwalk \
-        python3 python3-pip \
+        python3 python3-pip python3-venv \
       && break; \
       echo "apt retry $i" >&2; sleep 5; \
     done; \
@@ -55,6 +55,9 @@ RUN curl -fsSL -o /tmp/trivy.tgz \
   && rm /tmp/trivy.tgz && chmod +x /usr/local/bin/trivy
 RUN printf '%s\n' '#!/bin/sh' 'exec paramspider "$@"' > /usr/local/bin/paramspider-cli \
   && chmod +x /usr/local/bin/paramspider-cli
+COPY deploy/engage/docker/wrappers/engage-python-install deploy/engage/docker/wrappers/engage-python-exec /usr/local/bin/
+RUN chmod +x /usr/local/bin/engage-python-install /usr/local/bin/engage-python-exec
+ENV ENGAGE_PYTHON_BASE=/tmp/engage/pyenv
 RUN useradd -r -u 10001 runner
 
 FROM runner-os AS engage-runner

@@ -7,7 +7,7 @@ python3 scripts/engage/generate-tools-na-matrix.py
 make test-engage-na-matrix
 ```
 
-**Catalog tools:** 158 | **Live enabled (tools.live.yaml):** 136 | **Catalog ∩ live:** 46
+**Catalog tools:** 158 | **Live enabled (tools.live.yaml):** 138 | **Catalog ∩ live:** 48
 
 | Tool | Binary | Category | Status | Reason |
 |------|--------|----------|--------|--------|
@@ -71,7 +71,7 @@ make test-engage-na-matrix
 | `enum4linux_scan` | `enum4linux` | web | live | enabled in tools.live.yaml |
 | `error_handling_statistics` | `error` | web | runner_N/A | binary not in engage-runner image |
 | `execute_command` | `execute` | web | bridge_api | workflow placeholder binary `execute` |
-| `execute_python_script` | `execute` | web | bridge_api | workflow placeholder binary `execute` |
+| `execute_python_script` | `engage-python-exec` | web | live | enabled in tools.live.yaml |
 | `exiftool_extract` | `exiftool` | web | runner_N/A | binary not in engage-runner image |
 | `falco_runtime_monitoring` | `falco` | web | runner_N/A | binary not in engage-runner image |
 | `feroxbuster_scan` | `feroxbuster` | web | live | enabled in tools.live.yaml |
@@ -102,7 +102,7 @@ make test-engage-na-matrix
 | `http_set_scope` | `http` | web | bridge_api | workflow placeholder binary `http` |
 | `httpx_probe` | `httpx` | web | live | enabled in tools.live.yaml |
 | `hydra_attack` | `hydra` | auth | live | enabled in tools.live.yaml |
-| `install_python_package` | `install` | web | runner_N/A | binary not in engage-runner image |
+| `install_python_package` | `engage-python-install` | web | live | enabled in tools.live.yaml |
 | `intelligent_smart_scan` | `intelligent` | web | runner_N/A | binary not in engage-runner image |
 | `jaeles_vulnerability_scan` | `jaeles` | web | live | enabled in tools.live.yaml |
 | `john_crack` | `john` | auth | live | enabled in tools.live.yaml |
