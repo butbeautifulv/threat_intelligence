@@ -3,17 +3,13 @@ package mcpserver
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/butbeautifulv/veil/pkg/auth"
+	"github.com/butbeautifulv/veil/pkg/mcp"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/usecase"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/version"
 )
-
-// Latest protocol advertised when no client version is negotiated (HTTP default).
-const protocolVersionHTTP = protocol20250326
 
 type Server struct {
 	uc     *usecase.ReadUsecase
@@ -26,93 +22,19 @@ func NewServer(uc *usecase.ReadUsecase, stack *auth.Stack, logger *slog.Logger) 
 }
 
 func (s *Server) Run(ctx context.Context, inReader any, outWriter any) error {
-	in, ok := inReader.(interface{ Read([]byte) (int, error) })
-	if !ok {
-		return fmt.Errorf("invalid stdin reader")
-	}
-	out, ok := outWriter.(interface{ Write([]byte) (int, error) })
-	if !ok {
-		return fmt.Errorf("invalid stdout writer")
-	}
-
-	rw := newFramedRW(in, out)
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-		}
-
-		payload, err := rw.read(ctx)
-		if err != nil {
-			return err
-		}
-		var msg rpcMessage
-		if err := json.Unmarshal(payload, &msg); err != nil {
-			_ = rw.writeJSON(ctx, rpcMessage{
-				JSONRPC: "2.0",
-				ID:      nil,
-				Error:   &rpcError{Code: codeParseError, Message: "Parse error"},
-			})
-			continue
-		}
-
-		if msg.Method == "" {
-			continue
-		}
-
-		resp, isNotification, perr := s.ProcessMessage(ctx, msg, false)
-		if perr != nil {
-			return perr
-		}
-		if isNotification || resp == nil {
-			continue
-		}
-		if err := rw.writeJSON(ctx, *resp); err != nil {
-			return err
-		}
-	}
+	return mcp.RunStdio(ctx, s, inReader, outWriter)
 }
 
 // ProcessMessage handles one JSON-RPC message. httpTransport selects protocol version and transport quirks.
 func (s *Server) ProcessMessage(ctx context.Context, msg rpcMessage, httpTransport bool) (resp *rpcMessage, isNotification bool, err error) {
-	if msg.Method == "" {
-		return nil, true, nil
-	}
-
 	result, rerr := s.handle(ctx, msg.Method, msg.Params, httpTransport)
-
-	if msg.ID == nil {
-		return nil, true, nil
-	}
-
-	out := &rpcMessage{JSONRPC: "2.0", ID: msg.ID}
-	if rerr != nil {
-		out.Error = toRPCError(rerr)
-	} else {
-		out.Result = result
-	}
-	return out, false, nil
+	return mcp.BuildResponse(msg, result, rerr)
 }
 
 func (s *Server) handle(ctx context.Context, method string, params json.RawMessage, httpTransport bool) (any, error) {
 	switch method {
 	case "initialize":
-		pv := negotiateProtocol(params)
-		if httpTransport && pv == defaultProtocol {
-			// HTTP transport may use newer streamable profile when client omits version.
-			pv = protocolVersionHTTP
-		}
-		return map[string]any{
-			"protocolVersion": pv,
-			"serverInfo": map[string]any{
-				"name":    version.ServerName,
-				"version": version.MCP(),
-			},
-			"capabilities": map[string]any{
-				"tools": map[string]any{},
-			},
-		}, nil
+		return mcp.InitializeResult(version.ServerName, version.MCP(), httpTransport, params), nil
 
 	case "ping":
 		return map[string]any{}, nil
@@ -121,17 +43,11 @@ func (s *Server) handle(ctx context.Context, method string, params json.RawMessa
 		return listToolsPayload(), nil
 
 	case "tools/call":
-		var p struct {
-			Name      string         `json:"name"`
-			Arguments map[string]any `json:"arguments"`
+		p, err := mcp.ParseToolCallParams(params)
+		if err != nil {
+			return nil, err
 		}
-		if err := json.Unmarshal(params, &p); err != nil {
-			return nil, rpcErrf(codeInvalidParams, "bad params: %v", err)
-		}
-		if p.Name == "" {
-			return nil, rpcErr(codeInvalidParams, "tool name required")
-		}
-		ctx, err := s.authorizeToolCall(ctx)
+		ctx, err = mcp.AuthorizeToolCall(ctx, s.auth, auth.PermGraphRead, auth.AuthorizeMCP)
 		if err != nil {
 			return nil, err
 		}
@@ -142,41 +58,4 @@ func (s *Server) handle(ctx context.Context, method string, params json.RawMessa
 	}
 
 	return nil, rpcErrf(codeMethodNotFound, "unknown method: %s", method)
-}
-
-func (s *Server) authorizeToolCall(ctx context.Context) (context.Context, error) {
-	if s.auth == nil || !s.auth.Config.Enabled {
-		return ctx, nil
-	}
-	if sub, ok := auth.SubjectFromContext(ctx); ok {
-		if err := s.auth.Enforcer.Enforce(sub, auth.PermGraphRead); err != nil {
-			if errors.Is(err, auth.ErrForbidden) {
-				return ctx, rpcErr(codeAuthError, "forbidden")
-			}
-			return ctx, rpcErr(codeAuthError, "unauthorized")
-		}
-		return ctx, nil
-	}
-	ctx, err := auth.AuthorizeMCP(ctx, s.auth, "")
-	if err != nil {
-		if errors.Is(err, auth.ErrForbidden) {
-			return ctx, rpcErr(codeAuthError, "forbidden")
-		}
-		return ctx, rpcErr(codeAuthError, "unauthorized")
-	}
-	return ctx, nil
-}
-
-func toRPCError(err error) *rpcError {
-	var re *rpcError
-	if errors.As(err, &re) {
-		return re
-	}
-	if errors.Is(err, auth.ErrForbidden) {
-		return &rpcError{Code: codeAuthError, Message: "forbidden"}
-	}
-	if errors.Is(err, auth.ErrUnauthorized) {
-		return &rpcError{Code: codeAuthError, Message: "unauthorized"}
-	}
-	return &rpcError{Code: codeInternal, Message: err.Error()}
 }

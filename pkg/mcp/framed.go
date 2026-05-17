@@ -1,4 +1,4 @@
-package mcpserver
+package mcp
 
 import (
 	"bufio"
@@ -12,30 +12,19 @@ import (
 	"sync"
 )
 
-// MCP uses JSON-RPC 2.0 messages framed like LSP:
-// Headers (Content-Length) + \r\n\r\n + JSON payload.
-
-type rpcMessage struct {
-	JSONRPC string          `json:"jsonrpc"`
-	ID      any             `json:"id,omitempty"`
-	Method  string          `json:"method,omitempty"`
-	Params  json.RawMessage `json:"params,omitempty"`
-	Result  any             `json:"result,omitempty"`
-	Error   *rpcError       `json:"error,omitempty"`
-}
-
-type framedRW struct {
+// FramedRW reads/writes LSP-style Content-Length framed JSON-RPC messages.
+type FramedRW struct {
 	r *bufio.Reader
 	w io.Writer
 	m sync.Mutex
 }
 
-func newFramedRW(r io.Reader, w io.Writer) *framedRW {
-	return &framedRW{r: bufio.NewReader(r), w: w}
+// NewFramedRW constructs a framed reader/writer over in/out.
+func NewFramedRW(r io.Reader, w io.Writer) *FramedRW {
+	return &FramedRW{r: bufio.NewReader(r), w: w}
 }
 
-func (rw *framedRW) read(ctx context.Context) ([]byte, error) {
-	// Read headers until blank line.
+func (rw *FramedRW) Read(ctx context.Context) ([]byte, error) {
 	var contentLen int
 	for {
 		line, err := rw.r.ReadString('\n')
@@ -67,7 +56,7 @@ func (rw *framedRW) read(ctx context.Context) ([]byte, error) {
 	return buf, nil
 }
 
-func (rw *framedRW) writeJSON(ctx context.Context, v any) error {
+func (rw *FramedRW) WriteJSON(ctx context.Context, v any) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -80,4 +69,3 @@ func (rw *framedRW) writeJSON(ctx context.Context, v any) error {
 	_, err = rw.w.Write(out.Bytes())
 	return err
 }
-

@@ -5,18 +5,13 @@ import (
 	"net/http"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
+	"github.com/butbeautifulv/veil/pkg/api"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
 // Register attaches Veil Engage HTTP routes to mux.
 func Register(mux *http.ServeMux, c *components.APIComponents) {
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]any{
-			"ok":         true,
-			"service":    "veil-engage",
-			"tool_count": c.Registry.Count(),
-		})
-	})
+	api.RegisterHealth(mux, "veil-engage", map[string]any{"tool_count": c.Registry.Count()})
 
 	mux.HandleFunc("GET /api/tools", func(w http.ResponseWriter, r *http.Request) {
 		list := c.Tools.List()

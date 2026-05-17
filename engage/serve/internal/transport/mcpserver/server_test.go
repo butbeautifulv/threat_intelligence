@@ -46,7 +46,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 			rawParams = b
 		}
 		rw := newFramedRW(strings.NewReader(""), stdinW)
-		if err := rw.writeJSON(ctx, rpcMessage{
+		if err := rw.WriteJSON(ctx, rpcMessage{
 			JSONRPC: "2.0",
 			ID:      id,
 			Method:  method,
@@ -59,7 +59,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 	readResp := func() rpcMessage {
 		t.Helper()
 		rw := newFramedRW(stdoutR, io.Discard)
-		payload, err := rw.read(ctx)
+		payload, err := rw.Read(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}

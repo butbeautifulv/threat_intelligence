@@ -14,12 +14,12 @@ func TestFramedRW_roundtrip(t *testing.T) {
 	rw := newFramedRW(strings.NewReader(""), &buf)
 
 	msg := rpcMessage{JSONRPC: "2.0", ID: 1, Result: map[string]any{"ok": true}}
-	if err := rw.writeJSON(context.Background(), msg); err != nil {
+	if err := rw.WriteJSON(context.Background(), msg); err != nil {
 		t.Fatal(err)
 	}
 
 	rw2 := newFramedRW(bytes.NewReader(buf.Bytes()), io.Discard)
-	payload, err := rw2.read(context.Background())
+	payload, err := rw2.Read(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

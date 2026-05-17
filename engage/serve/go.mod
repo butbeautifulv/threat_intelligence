@@ -5,7 +5,9 @@ go 1.25.0
 require (
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/butbeautifulv/veil/pkg v0.0.0
+	github.com/butbeautifulv/veil/pkg/api v0.0.0
 	github.com/butbeautifulv/veil/pkg/auth v0.0.0
+	github.com/butbeautifulv/veil/pkg/mcp v0.0.0
 	github.com/butbeautifulv/veil/pkg/engage v0.0.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/nats-io/nats-server/v2 v2.10.29
@@ -47,6 +49,8 @@ require (
 
 replace (
 	github.com/butbeautifulv/veil/pkg => ../../pkg
+	github.com/butbeautifulv/veil/pkg/api => ../../pkg/api
 	github.com/butbeautifulv/veil/pkg/auth => ../../pkg/auth
 	github.com/butbeautifulv/veil/pkg/engage => ../../pkg/engage
+	github.com/butbeautifulv/veil/pkg/mcp => ../../pkg/mcp
 )

@@ -132,6 +132,19 @@ They solve **different** problems today. Unifying the **name** without splitting
 
 ---
 
+## Shared transports (`pkg/api` vs `pkg/mcp`) — P8d
+
+Layer `serve` binaries keep **route tables and tool handlers**; shared wire plumbing lives under `pkg/*` only (no cross-import between discovery, pipeline, knowledge, engage).
+
+| Package | Responsibility | Used by |
+|---------|----------------|---------|
+| **`pkg/api`** | JSON responses, prod-safe `WriteError`, `RegisterHealth`, `PostJSON`, JWT middleware wrapper (delegates to `pkg/auth/httpmiddleware`) | `knowledge/serve`, `engage/serve` HTTP routers |
+| **`pkg/mcp`** | JSON-RPC message types, stdio framing, streamable HTTP POST/SSE, `tools/list` payload helper, `tools/call` param parse, tool-call RBAC helper | `knowledge/serve` veil-mcp, `engage/serve` MCP |
+
+Each layer passes its RBAC permission (`PermGraphRead` vs `PermEngageToolRun`) and registers domain routes on `http.ServeMux`; MCP `Server` types implement `mcp.Processor` for layer-specific tool catalogs.
+
+---
+
 ## Verification commands (handoff)
 
 ```bash

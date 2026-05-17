@@ -8,6 +8,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/components"
 	"github.com/butbeautifulv/veil/engage/serve/internal/security"
 	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
+	"github.com/butbeautifulv/veil/pkg/api"
 	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
@@ -28,17 +29,7 @@ func parseFindings(raw any) []domainreport.Finding {
 }
 
 func postJSON(mux *http.ServeMux, pattern string, fn func(*http.Request, map[string]any) (any, int)) {
-	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		var body map[string]any
-		if r.Body != nil {
-			_ = json.NewDecoder(r.Body).Decode(&body)
-		}
-		if body == nil {
-			body = map[string]any{}
-		}
-		res, code := fn(r, body)
-		writeJSON(w, code, res)
-	})
+	api.PostJSON(mux, pattern, fn)
 }
 
 func subject(r *http.Request) string {
@@ -92,9 +83,7 @@ func toString(v any) string {
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+	api.WriteJSON(w, status, v)
 }
 
 func targetGuardMode(c *components.APIComponents) security.TargetGuardMode {
