@@ -131,7 +131,7 @@ curl -sS http://localhost:8890/api/tools | jq .
 | veil-engage MCP | stdio or :8892 | [engage.stdio.json.example](examples/mcp/engage.stdio.json.example) |
 | engage-runner | — | `docker compose --profile runner` + `ENGAGE_RUNNER_MODE=docker` |
 
-Docs: [engage/README.md](engage/README.md) · [engage-hardening.md](docs/engage-hardening.md) · [engage-legacy-parity.md](docs/engage-legacy-parity.md)
+Docs: [engage/README.md](engage/README.md) · [engage-hardening.md](docs/engage-hardening.md) · [engage-legacy-parity.md](docs/engage-legacy-parity.md). Catalog tools prefixed `ai_*` are **not** backed by an LLM today — see [engage-llm-stubs.md](docs/engage-llm-stubs.md) for stub vs intel-bridge dispatch and planned future provider scope.
 
 **Events bus (optional):** tool runs and findings publish to NATS when `ENGAGE_EVENTS_NATS_ENABLED=1`; pipeline bridges to `ingest.engage.*` and graph ingest persists `EngageToolRun` / `EngageFinding` nodes.
 

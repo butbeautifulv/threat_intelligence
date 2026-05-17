@@ -10,7 +10,7 @@ todos:
     status: pending
   - id: p11-llm-stub-policy
     content: "P11b: документировать ai_* stubs vs real LLM (out of scope)"
-    status: pending
+    status: completed
   - id: p11-python-golden-e2e
     content: "P11c: optional e2e install_python + execute_python в runner-full smoke"
     status: pending
