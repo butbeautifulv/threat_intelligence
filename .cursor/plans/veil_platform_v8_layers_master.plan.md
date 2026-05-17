@@ -25,10 +25,10 @@ todos:
     status: pending
   - id: v8h-rename-scrape-discovery
     content: "P8h: Rename module scrape/ → discovery/ (paths, deploy, Makefile, CI)"
-    status: pending
+    status: in_progress
   - id: v8i-rename-graph-knowledge
     content: "P8i: Rename module graph/ → knowledge/ (paths, deploy, Makefile, CI)"
-    status: pending
+    status: in_progress
 isProject: false
 ---
 
