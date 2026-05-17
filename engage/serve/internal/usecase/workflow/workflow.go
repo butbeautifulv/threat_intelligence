@@ -2,7 +2,6 @@ package workflow
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/bugbounty"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
@@ -72,14 +71,4 @@ func (s *Service) Comprehensive(ctx context.Context, subject, target string) map
 		MaxTools:  8,
 		Async:     false,
 	})
-}
-
-// SummaryReport builds a minimal JSON report.
-func SummaryReport(target string, data map[string]any) json.RawMessage {
-	b, _ := json.Marshal(map[string]any{
-		"report_type": "summary",
-		"target":      target,
-		"sections":    data,
-	})
-	return b
 }

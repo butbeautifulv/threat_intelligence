@@ -240,19 +240,3 @@ func resolveTargetIPs(ctx context.Context, target string) []string {
 	}
 	return mergeUnique(out, nil...)
 }
-
-func riskFromProfile(targetType string, techCount int) string {
-	switch targetType {
-	case "api", "web":
-		if techCount > 3 {
-			return "high"
-		}
-		return "medium"
-	case "cloud":
-		return "high"
-	case "ip":
-		return "medium"
-	default:
-		return "medium"
-	}
-}

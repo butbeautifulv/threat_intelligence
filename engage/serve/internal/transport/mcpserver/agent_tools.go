@@ -7,6 +7,7 @@ import (
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/browser"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/findings"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/payloads"
+	pkgreport "github.com/butbeautifulv/veil/pkg/report"
 )
 
 func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]any) (any, bool, error) {
@@ -88,10 +89,7 @@ func (s *Server) tryAgentTool(ctx context.Context, name string, args map[string]
 		output := argString(args, "output", "")
 		target := argTarget(args)
 		parsed := findings.ParseToolOutput(toolName, target, output)
-		severity := map[string]int{}
-		for _, f := range parsed {
-			severity[string(f.Severity)]++
-		}
+		severity := pkgreport.SeverityBreakdown(parsed)
 		res, err := toolJSONResult(map[string]any{
 			"tool":               toolName,
 			"target":             target,

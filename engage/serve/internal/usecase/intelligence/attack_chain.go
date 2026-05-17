@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
+	"github.com/butbeautifulv/veil/pkg/decision"
 	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
@@ -68,9 +69,9 @@ func (s *Service) CreateAttackChain(ctx context.Context, target string, objectiv
 			continue
 		}
 		score := eng.Score(analysis.TargetType, ps.Tool)
-		stepProb := stepSuccessProbability(score, confidence)
+		stepProb := decision.StepSuccessProbability(score, confidence)
 		probSum += stepProb
-		timeSum += executionTimeEstimate(ps.Tool)
+		timeSum += decision.ExecutionTimeEstimate(ps.Tool)
 		stepNum++
 		params := map[string]string{"target": target}
 		for k, v := range ps.Params {
@@ -83,8 +84,8 @@ func (s *Service) CreateAttackChain(ctx context.Context, target string, objectiv
 			"priority":                ps.Priority,
 			"effectiveness_score":     score,
 			"success_probability":     stepProb,
-			"execution_time_estimate": executionTimeEstimate(ps.Tool),
-			"expected_outcome":        expectedOutcome(ps.Tool),
+			"execution_time_estimate": decision.ExecutionTimeEstimate(ps.Tool),
+			"expected_outcome":        decision.ExpectedOutcome(ps.Tool),
 			"parameters":              params,
 		}
 		steps = append(steps, step)
@@ -97,17 +98,17 @@ func (s *Service) CreateAttackChain(ctx context.Context, target string, objectiv
 				toolID = spec.Binary
 			}
 			score := eng.Score(analysis.TargetType, toolID)
-			stepProb := stepSuccessProbability(score, confidence)
+			stepProb := decision.StepSuccessProbability(score, confidence)
 			probSum += stepProb
-			timeSum += executionTimeEstimate(toolID)
+			timeSum += decision.ExecutionTimeEstimate(toolID)
 			params := s.OptimizeParametersWithContext(ctx, analysis.TargetType, name, map[string]string{"target": target}, octx)
 			steps = append(steps, map[string]any{
 				"step":                      i + 1,
 				"tool":                      name,
 				"effectiveness_score":       score,
 				"success_probability":       stepProb,
-				"execution_time_estimate": executionTimeEstimate(toolID),
-				"expected_outcome":          expectedOutcome(toolID),
+				"execution_time_estimate": decision.ExecutionTimeEstimate(toolID),
+				"expected_outcome":          decision.ExpectedOutcome(toolID),
 				"parameters":                params,
 			})
 		}

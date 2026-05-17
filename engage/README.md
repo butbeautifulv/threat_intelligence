@@ -18,7 +18,9 @@ Greenfield **Go** implementation of the tool-orchestration model from the MIT re
 |--------|------|
 | **serve** | [serve/](serve/) — `engage-api`, `veil-engage` MCP, `engage-worker` |
 | **catalog** | [serve/catalog/](serve/catalog/) — `tools.yaml`, `tools.live.yaml`, `tools.enabled.yaml` |
-| **pkg** | [pkg/engage/](../pkg/engage/) — contracts, tool categories |
+| **intelligence** | [serve/internal/usecase/intelligence/](serve/internal/usecase/intelligence/) — target probe, graph/CVE wiring, tool selection (engine in [pkg/decision](../pkg/decision/)) |
+| **report adapter** | [serve/internal/usecase/report/](serve/internal/usecase/report/) — smart-scan → [pkg/report](../pkg/report/) |
+| **pkg** | [pkg/engage/](../pkg/engage/) — contracts, tool categories; shared [pkg/report](../pkg/report/), [pkg/decision](../pkg/decision/), [pkg/exec](../pkg/exec/) |
 
 ## Services (dev compose)
 
@@ -134,9 +136,9 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Boundaries
 
-- **Does not** import `discovery/`, `pipeline/`, or `graph/ingest`
+- **Does not** import `discovery/`, `pipeline/`, or `knowledge/` (ingest/serve)
 - **Does not** connect to Neo4j directly — use `ENGAGE_VEIL_API_URL` → veil-api
-- **May** import `pkg/auth`, `pkg/engage/*`
+- **May** import `pkg/auth`, `pkg/engage/*`, `pkg/report`, `pkg/decision`, `pkg/exec`
 
 ## Docs
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/butbeautifulv/veil/engage/serve/internal/tools"
+	"github.com/butbeautifulv/veil/pkg/decision"
 )
 
 func (s *Service) candidateIDs(targetType string) []string {
@@ -51,12 +52,12 @@ func (s *Service) SelectToolsForTarget(ctx context.Context, targetType, objectiv
 	obj := strings.ToLower(strings.TrimSpace(objective))
 	if obj == "stealth" {
 		ids := ranked
-		names = tools.ResolveCatalogNames(filterStealthTools(ids), s.Registry)
+		names = tools.ResolveCatalogNames(decision.FilterStealthTools(ids), s.Registry)
 		names = filterEnabled(names, s.Registry)
-		return capTools(names, objective)
+		return decision.CapTools(names, objective)
 	}
 	if obj == "comprehensive" {
-		filtered := filterComprehensiveTools(s.engine(), targetType, ranked)
+		filtered := decision.FilterComprehensiveTools(s.engine(), targetType, ranked)
 		if len(filtered) > 0 {
 			names = tools.ResolveCatalogNames(filtered, s.Registry)
 			names = filterEnabled(names, s.Registry)
@@ -68,7 +69,7 @@ func (s *Service) SelectToolsForTarget(ctx context.Context, targetType, objectiv
 		}
 		return names
 	}
-	return capToolsWithEngine(names, targetType, objective, s.engine())
+	return decision.CapToolsWithEngine(names, targetType, objective, s.engine(), catalogToShortID)
 }
 
 func appendTechSpecificTools(ranked []string, stack []Technology, cms string) []string {
