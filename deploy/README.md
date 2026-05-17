@@ -1,5 +1,7 @@
 # Veil deploy (per layer)
 
+**Compose stack presets** (named overlay chains + profiles): [stacks/](stacks/README.md).
+
 | Layer | Compose | Services |
 |-------|---------|----------|
 | Scrape | [scrape/compose.yml](scrape/compose.yml) | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
