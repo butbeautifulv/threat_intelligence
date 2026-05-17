@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: p6c-scrape-scrapepub
     content: "scrape/harvest/internal/scrapepub base; migrate ti→vuln→ds"
-    status: pending
+    status: completed
   - id: p6d-makefile-smoke-lib
     content: "scripts/test/lib/smoke.sh + Makefile test-pkg-shared"
     status: in_progress
@@ -43,10 +43,16 @@ isProject: false
 | **Removed** | `engage/serve/internal/events`, `events_bridge` |
 | **Makefile** | `test-pkg-shared` phony |
 
+## Completed (P6c)
+
+| Item | Change |
+|------|--------|
+| **scrape/harvest/internal/scrapepub** | `RawPublisher`, `Base`, `NewRaw`; factory type alias |
+| **Migrated** | ti, vuln, ds, lola per-source scrapepub embed shared base |
+
 ## Next batches (priority)
 
-1. **P6c** — `scrape/harvest/internal/scrapepub` (DRY per-source publishers)
-2. **P6d** — `scripts/test/lib/smoke.sh` (wait_http, skip_no_docker)
+1. **P6d** — `scripts/test/lib/smoke.sh` (wait_http, skip_no_docker)
 3. **P6e** — `deploy/stacks/*.yml` compose preset chains
 4. **P6f** — engage large file splits (in-layer only)
 5. **P6g** — `pkg/natsjet` typed publish facade for scrape/pipeline connectors

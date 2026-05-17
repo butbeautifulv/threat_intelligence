@@ -10,6 +10,7 @@ import (
 
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/feeds"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/ledger"
+	"github.com/butbeautifulv/veil/scrape/harvest/internal/scrapepub"
 )
 
 // FetchPolicy aliases ledger policies for sources.
@@ -22,9 +23,7 @@ const (
 )
 
 // RawPublisher publishes harvest for one domain source and subject.
-type RawPublisher interface {
-	Publish(ctx context.Context, kind, contentKey string, payload any) error
-}
+type RawPublisher = scrapepub.RawPublisher
 
 // Source is one scrape feed run (vuln NVD, ds sigma, ti kev, …).
 type Source interface {

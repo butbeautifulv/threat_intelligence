@@ -9,55 +9,51 @@ import (
 	"strings"
 
 	"github.com/butbeautifulv/veil/pkg/harvest"
-	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
-
 	"github.com/butbeautifulv/veil/pkg/ti/domain"
+	sharedpub "github.com/butbeautifulv/veil/scrape/harvest/internal/scrapepub"
 	"github.com/butbeautifulv/veil/scrape/harvest/internal/sources/ti/internal/repository"
+	connats "github.com/butbeautifulv/veil/scrape/connector/nats"
 )
 
-type rawPublisher interface {
-	Publish(ctx context.Context, kind, contentKey string, payload any) error
-}
-
 type Publisher struct {
-	raw rawPublisher
+	sharedpub.Base
 }
 
 var _ repository.GraphRepository = (*Publisher)(nil)
 
 func New(pub *connats.JetStreamPublisher, subject string) *Publisher {
-	return NewFromRaw(connats.NewDomainPublisher(pub, harvest.SourceTI, subject))
+	return NewFromRaw(sharedpub.NewRaw(pub, harvest.SourceTI, subject))
 }
 
-func NewFromRaw(raw rawPublisher) *Publisher {
-	return &Publisher{raw: raw}
+func NewFromRaw(raw sharedpub.RawPublisher) *Publisher {
+	return &Publisher{Base: sharedpub.NewBase(raw)}
 }
 
 func (p *Publisher) EnsureSchema(_ context.Context) error { return nil }
 
 func (p *Publisher) UpsertIOC(ctx context.Context, i domain.IOC) error {
 	key := "ti:ioc:" + strings.TrimSpace(string(i.Type)) + ":" + strings.TrimSpace(i.Value)
-	return p.raw.Publish(ctx, harvest.KindTIIoCRaw, key, i)
+	return p.Raw.Publish(ctx, harvest.KindTIIoCRaw, key, i)
 }
 
 func (p *Publisher) UpsertCampaign(ctx context.Context, c domain.Campaign) error {
 	key := "ti:campaign:" + strings.TrimSpace(c.ID)
-	return p.raw.Publish(ctx, harvest.KindTICampaignRaw, key, c)
+	return p.Raw.Publish(ctx, harvest.KindTICampaignRaw, key, c)
 }
 
 func (p *Publisher) UpsertCluster(ctx context.Context, cl domain.Cluster) error {
 	key := "ti:cluster:" + strings.TrimSpace(cl.ID)
-	return p.raw.Publish(ctx, harvest.KindTIClusterRaw, key, cl)
+	return p.Raw.Publish(ctx, harvest.KindTIClusterRaw, key, cl)
 }
 
 func (p *Publisher) UpsertActor(ctx context.Context, a domain.Actor) error {
 	key := "ti:actor:" + strings.TrimSpace(a.Name)
-	return p.raw.Publish(ctx, harvest.KindTIActorRaw, key, a)
+	return p.Raw.Publish(ctx, harvest.KindTIActorRaw, key, a)
 }
 
 func (p *Publisher) UpsertReport(ctx context.Context, r domain.Report) error {
 	key := "ti:report:" + strings.TrimSpace(r.Link)
-	return p.raw.Publish(ctx, harvest.KindTIReportRaw, key, r)
+	return p.Raw.Publish(ctx, harvest.KindTIReportRaw, key, r)
 }
 
 func (p *Publisher) LinkCampaignIOC(ctx context.Context, campaignID string, i domain.IOC) error {
@@ -86,7 +82,7 @@ func (p *Publisher) UpsertKEVVulnerability(ctx context.Context, cve, vendor, pro
 		CVEID: cve, VendorProject: vendor, Product: product, ShortDesc: summary, DateAdded: dateAdded,
 	}
 	cveU := strings.TrimSpace(strings.ToUpper(cve))
-	return p.raw.Publish(ctx, harvest.KindTIKEVRow, "ti:kev:"+cveU, pl)
+	return p.Raw.Publish(ctx, harvest.KindTIKEVRow, "ti:kev:"+cveU, pl)
 }
 
 // PublishJSONLLine publishes one raw JSONL line.
@@ -94,5 +90,5 @@ func (p *Publisher) PublishJSONLLine(ctx context.Context, line []byte) error {
 	sum := sha256.Sum256(line)
 	key := "ti:jsonl:" + hex.EncodeToString(sum[:])
 	pl := harvest.TIJSONLLine{Line: json.RawMessage(line)}
-	return p.raw.Publish(ctx, harvest.KindTIJSONLLine, key, pl)
+	return p.Raw.Publish(ctx, harvest.KindTIJSONLLine, key, pl)
 }
