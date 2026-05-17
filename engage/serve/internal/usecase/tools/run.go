@@ -116,11 +116,6 @@ func (r *Runner) runOnce(ctx context.Context, subject string, name string, req c
 			return contract.ToolRunResponse{Success: false, Tool: name, Error: "forbidden"}
 		}
 	}
-	spec, err := r.Registry.MustGet(name)
-	if err != nil {
-		r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-err-%d", name, time.Now().UnixNano()), false, err.Error())
-		return contract.ToolRunResponse{Success: false, Tool: name, Error: err.Error()}
-	}
 	guardMode := r.TargetGuard
 	if guardMode == "" {
 		guardMode = security.TargetGuardOff
@@ -134,6 +129,11 @@ func (r *Runner) runOnce(ctx context.Context, subject string, name string, req c
 		case security.TargetGuardWarn:
 			// allow but audit note is optional — emit as failed=false with stderr prefix in output only on block
 		}
+	}
+	spec, err := r.Registry.MustGet(name)
+	if err != nil {
+		r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-err-%d", name, time.Now().UnixNano()), false, err.Error())
+		return contract.ToolRunResponse{Success: false, Tool: name, Error: err.Error()}
 	}
 	bin, err := runner.LookupBinary(spec.Binary)
 	if err != nil {
