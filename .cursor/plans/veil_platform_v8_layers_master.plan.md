@@ -1,6 +1,6 @@
 ---
 name: Veil Platform v8 Layers Master
-overview: "Целевая архитектура: discovery, knowledge, pipeline, engage, shared report, unified API/MCP; завершение pkg/domain; общий execution plane (runner/sandbox) без слияния с scrape factory."
+overview: "Целевая архитектура: discovery, knowledge, pipeline, engage, shared report, unified API/MCP; переименование scrape→discovery и graph→knowledge; pkg/domain; pkg/exec."
 todos:
   - id: v8a-domain-complete
     content: "P8a: Завершить pkg/domain — engage target, graph read models, zero dup structs"
@@ -23,6 +23,12 @@ todos:
   - id: v8g-discovery-browser
     content: "P8g: Discovery — browser crawl worker; factory stays orchestration"
     status: pending
+  - id: v8h-rename-scrape-discovery
+    content: "P8h: Rename module scrape/ → discovery/ (paths, deploy, Makefile, CI)"
+    status: pending
+  - id: v8i-rename-graph-knowledge
+    content: "P8i: Rename module graph/ → knowledge/ (paths, deploy, Makefile, CI)"
+    status: pending
 isProject: false
 ---
 
@@ -34,20 +40,22 @@ isProject: false
 
 ## Target layer map
 
-| Layer | Module(s) today | v8 outcome |
-|-------|-----------------|------------|
-| Discovery | `scrape/` | `scrape/` + optional sandboxed fetcher; browser out of engage |
-| Pipeline | `pipeline/` | unchanged role; more transforms use `pkg/*` |
-| Knowledge | `graph/` + engage intel | `graph/` + **`pkg/decision`** |
-| Engage | `engage/` | catalog, runner, workflows, guard only |
-| Report | engage `report/` | **`pkg/report`** |
-| API/MCP | graph + engage servers | **`pkg/api`**, **`pkg/mcp`** |
+| Layer | Path today | Path target (v8) | Notes |
+|-------|------------|------------------|--------|
+| **Discovery** | `scrape/` | **`discovery/`** | P8h rename; `harvest` wire unchanged |
+| **Pipeline** | `pipeline/` | `pipeline/` | name kept (NED role is clear) |
+| **Knowledge** | `graph/` | **`knowledge/`** | P8i rename; veil-api / veil-mcp brands may stay |
+| **Engage** | `engage/` | `engage/` | offensive tools layer name kept |
+| **Report** | engage `report/` | **`pkg/report`** | P8b |
+| **API/MCP** | layer transports | **`pkg/api`**, **`pkg/mcp`** | P8d |
+
+**Naming rule:** documentation and repo top-level dirs use **Discovery** / **Knowledge**; until P8h/P8i merge, legacy paths `scrape/` and `graph/` remain valid in code.
 
 ## Constraints
 
-- No cross-import `scrape` / `pipeline` / `graph` / `engage`.
-- NATS + `pkg/harvest`, `pkg/commit`, `pkg/engage/events` unchanged unless versioned.
-- Engage → graph: HTTP veil-api only.
+- No cross-import between runtime modules (today: `scrape`, `pipeline`, `graph`, `engage`; after rename: `discovery`, `pipeline`, `knowledge`, `engage`).
+- **Wire-stable (P8h/P8i):** NATS subjects (`scrape.>`, `ingest.>`), `pkg/harvest` / `pkg/commit` JSON field names (`source: ti|vuln|…`), graph pack IDs — rename dirs only unless a dedicated schema version bump.
+- Engage → knowledge read API: HTTP veil-api only (URL/env may keep `VEIL_API` / `ENGAGE_VEIL_API_URL` during transition).
 - **Do not** rename scrape `factory` to `runner`; share **`pkg/exec`** primitives only.
 
 ---
@@ -133,6 +141,60 @@ isProject: false
 
 ---
 
+## P8h — Rename `scrape/` → `discovery/`
+
+**Branch:** `platform/p8h-rename-discovery`  
+**Depends on:** P8a recommended (fewer import churn); may run parallel to P8i if touch-disjoint.
+
+| Area | Action |
+|------|--------|
+| Repo | `git mv scrape discovery`; update `discovery/go.work`, module paths `github.com/butbeautifulv/veil/discovery/...` |
+| Deploy | `deploy/scrape/` → `deploy/discovery/`; compose service names (`discovery_worker` alias or replace `scrape_worker`) |
+| Makefile | `test-scrape` → `test-discovery` (+ temporary alias `test-scrape` → prints deprecate) |
+| CI | `.github/workflows/*` paths; `platform-p7` scrape slice → `test-discovery-p7c` |
+| Docs | README, coding-style, runtime docs; **logical name Discovery everywhere** |
+| Scripts | `scripts/test/smoke-scrape-*` → `smoke-discovery-*` (symlink or mv) |
+
+**Keep unchanged in P8h:** `pkg/harvest` package name; NATS subject `scrape.>`; harvest envelope `source` enum strings; binary name `scrape_worker` optional alias one release.
+
+**DoD:** `make test-discovery`, `make test-platform-p7`, `discovery/harvest` build; no remaining imports of `veil/scrape` except changelog.
+
+---
+
+## P8i — Rename `graph/` → `knowledge/`
+
+**Branch:** `platform/p8i-rename-knowledge`  
+**Depends on:** ingest tests green; **serialize merge with P8h** on `main` (both touch Makefile/root docs) or one combined `platform/p8hi-layer-rename` branch.
+
+| Area | Action |
+|------|--------|
+| Repo | `git mv graph knowledge`; module `github.com/butbeautifulv/veil/knowledge/...` |
+| Deploy | `deploy/graph/` → `deploy/knowledge/`; Neo4j compose paths |
+| Binaries / brands | `veil-api`, `veil-mcp`, `ingest_worker` — **keep user-facing names**; only repo path `knowledge/` |
+| Makefile | `test-graph` → `test-knowledge`; `test-graph-serve` → `test-knowledge-serve`; aliases one release |
+| CI | engage.yml path filters `graph/` → `knowledge/` |
+| Docs | `docs/threatintel-runtime.md` → split or rename `knowledge-runtime.md`; graph-pack.md may keep “graph pack” as artifact name |
+| Versions | `GRAPH_PACK_VERSION` env key unchanged in P8i (rename env is P8i-follow-up optional) |
+
+**Keep unchanged in P8i:** NATS `ingest.>`; `pkg/commit`; Neo4j labels; HTTP routes `/v1/*`; MCP server name `veil-mcp` in agent configs.
+
+**DoD:** `make test-knowledge`, `make test-knowledge-serve`, `make check-graph-version` (script name alias OK); engage veilgraph client still reaches veil-api.
+
+---
+
+## Rename merge order (orchestrator)
+
+```text
+main ─┬─ P8h (discovery/) ──┐
+      └─ P8i (knowledge/) ─┴─► merge rename wave ─► P8b–g on renamed paths
+```
+
+1. Finish **P8h + P8i** (or single branch) before wide P8b–g refactors to avoid double rebase.
+2. One commit per rename layer; run full platform tests after each.
+3. Update [platform-architecture.md](../../docs/platform-architecture.md) “Path today” column to only target names.
+
+---
+
 ## Parallelism
 
 | Parallel safe | Serial after |
@@ -140,6 +202,8 @@ isProject: false
 | P8a + P8b + P8c (different pkg dirs) | P8f after b,c |
 | P8e after P8a | P8g after P8e spike |
 | P8d after P8a | |
+| **P8h ∥ P8i** (disjoint trees) | **merge both before P8b–g** or rebase P8b–g onto renamed `main` |
+| P8b–g | prefer **after P8h+P8i** on `main` |
 
 ## Verification (each merge)
 
@@ -147,9 +211,9 @@ isProject: false
 make test-platform-p7
 make test-pkg-shared
 make test-engage
-make test-scrape
+make test-discovery    # after P8h (alias: test-scrape)
 make test-pipeline
-make test-graph
+make test-knowledge    # after P8i (alias: test-graph)
 make check-graph-version   # if ingest touched
 ```
 
@@ -166,3 +230,5 @@ make check-graph-version   # if ingest touched
 | P8e | `platform/p8e-pkg-exec` | pending |
 | P8f | `platform/p8f-engage-slim` | pending |
 | P8g | `platform/p8g-discovery-browser` | pending |
+| P8h | `platform/p8h-rename-discovery` | pending — `scrape/` → `discovery/` |
+| P8i | `platform/p8i-rename-knowledge` | pending — `graph/` → `knowledge/` |

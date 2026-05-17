@@ -2,7 +2,7 @@
 
 **Current runtime (2026-05):** four isolated Go modules — `scrape/`, `pipeline/`, `graph/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
 
-**Target (v8):** same deployment boundaries, clearer **logical layers** and more code in `pkg/` (domain, report, decision, API/MCP façade, optional execution plane).
+**Target (v8):** five logical layer names (**Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**) with **top-level renames** `scrape/` → **`discovery/`**, `graph/` → **`knowledge/`** (phases P8h, P8i); more code in `pkg/`; shared API/MCP and `pkg/exec`.
 
 ---
 
@@ -33,12 +33,12 @@ flowchart TB
     MCP[API + MCP façade]
   end
   subgraph discovery [Discovery]
-    SC[scrape / harvest]
+    SC[discovery / harvest]
     BR[browser crawl - today in engage]
   end
   subgraph knowledge [Knowledge]
-    GR[graph ingest + Neo4j]
-    GS[graph serve read API]
+    GR[knowledge ingest + Neo4j]
+    GS[veil-api read + veil-mcp]
     DE[decision / intel engine]
   end
   subgraph pipeline [Pipeline NED]
@@ -68,16 +68,29 @@ flowchart TB
   DE --> GS
 ```
 
-| Layer | Responsibility | Today | Target `pkg/` / module |
-|-------|----------------|-------|-------------------------|
-| **Discovery** | Fetch raw intel from networks/repos; ledger; optional browser | `scrape/harvest`, `factory`, `feeds` | `scrape/` + optional `pkg/exec` for isolated fetch jobs |
-| **Pipeline** | Normalize, enrich, dedup; wire envelopes | `pipeline/ned`, `engage-events` | `pipeline/` + `pkg/ti/normalize`, `pkg/commit` |
-| **Knowledge** | Persist + query graph; TI reasoning | `graph/ingest`, `graph/serve`, engage `intelligence/` | `graph/` + `pkg/decision` (extract from engage) |
-| **Engage** | Offensive tool catalog, workflows, target guard | `engage/serve` | Slim `engage/` — tools + MCP bridge only |
-| **Report** | Findings → HTML/PDF/executive (any consumer) | `engage/.../report/` | **`pkg/report`** |
-| **API + MCP** | HTTP + MCP for agents; compose graph + optional engage | `graph/serve`, `engage/serve` transports | **`pkg/api`**, **`pkg/mcp`** thin wiring in `cmd/` |
+| Layer | Responsibility | Path today | Path target |
+|-------|----------------|------------|-------------|
+| **Discovery** | Fetch raw intel; ledger; optional browser | `scrape/` | **`discovery/`** (P8h) |
+| **Pipeline** | Normalize, enrich, dedup | `pipeline/` | `pipeline/` |
+| **Knowledge** | Neo4j ingest + read API + reasoning | `graph/` | **`knowledge/`** (P8i) |
+| **Engage** | Pentest catalog, runner, guard | `engage/` | `engage/` |
+| **Report** | HTML/PDF/executive | engage `report/` | **`pkg/report`** (P8b) |
+| **API + MCP** | Agent HTTP/MCP façade | per-layer servers | **`pkg/api`**, **`pkg/mcp`** (P8d) |
 
-**Hard rules (unchanged):** no Go imports between `scrape`, `pipeline`, `graph`, `engage`. Cross-layer data via NATS + documented JSON; engage → graph via HTTP only.
+**Hard rules:** no cross-import between runtime modules (`discovery`, `pipeline`, `knowledge`, `engage` after rename). NATS wire and `pkg/harvest` / `pkg/commit` **schemas unchanged** in P8h/P8i (subjects may still say `scrape.>` / `ingest.>`). Engage → knowledge read path: HTTP **veil-api** only.
+
+---
+
+## Layer renames (P8h / P8i)
+
+| Rename | Scope | Keep stable (compat) |
+|--------|--------|----------------------|
+| `scrape/` → **`discovery/`** | Go module path, `deploy/scrape/`, Makefile `test-scrape`, docs | NATS `scrape.>`; `pkg/harvest`; envelope `source` values; optional binary alias `scrape_worker` one release |
+| `graph/` → **`knowledge/`** | Go module, `deploy/graph/`, Makefile `test-graph*` | NATS `ingest.>`; `GRAPH_PACK_VERSION`; Neo4j labels; URLs `/v1/*`; product names **veil-api**, **veil-mcp** |
+
+**Order:** merge **P8h + P8i** to `main` before large P8b–g refactors (or rebase feature branches once). Details: [veil_platform_v8_layers_master.plan.md](../.cursor/plans/veil_platform_v8_layers_master.plan.md) § P8h, P8i.
+
+**Docs:** use **Discovery** / **Knowledge** in prose immediately; link to legacy paths until rename lands.
 
 ---
 
@@ -85,7 +98,7 @@ flowchart TB
 
 They solve **different** problems today. Unifying the **name** without splitting concerns would blur security boundaries.
 
-| | **Scrape `factory`** | **Engage `runner`** |
+| | **Discovery `factory`** (today `scrape/harvest/internal/factory`) | **Engage `runner`** |
 |--|----------------------|---------------------|
 | **Purpose** | Register scheduled **sources**; inject `ScrapeDeps` (ledger, feeds, NATS publishers) | Execute **catalog tools** (subprocess) with audit, cache, target guard |
 | **Unit of work** | `Source.Run(ctx, deps)` per feed (ti, vuln, ds, …) | `Runner.Run(ctx, toolName, args)` per tool invocation |

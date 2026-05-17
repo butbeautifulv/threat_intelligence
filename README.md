@@ -83,16 +83,18 @@ Deploy: [deploy/](deploy/) · Contracts: [docs/ingest-contract.md](docs/ingest-c
 
 ## Roadmap (v8 — high level)
 
-| Logical layer | Role | Next step |
-|---------------|------|-----------|
-| **Discovery** | scrape, feeds, ledger (+ browser later) | `pkg/exec` for isolated fetch jobs; keep **factory** as orchestration |
-| **Pipeline** | NED normalize / enrich / dedup | stay in `pipeline/`; use `pkg/ti/*`, `pkg/commit` |
-| **Knowledge** | graph + decision engine | extract **pkg/decision** from engage intelligence |
-| **Engage** | pentest catalog + runner + guard | slim after extractions |
-| **Report** | HTML/PDF/executive | **pkg/report** (shared) |
-| **API + MCP** | external agents | **pkg/api** / **pkg/mcp** façade; graph + optional engage |
+| Logical layer | Path today → target | Next step |
+|---------------|---------------------|-----------|
+| **Discovery** | `scrape/` → **`discovery/`** | **P8h** rename; then `pkg/exec`, browser (P8g) |
+| **Pipeline** | `pipeline/` | `pkg/ti/*`, `pkg/commit` |
+| **Knowledge** | `graph/` → **`knowledge/`** | **P8i** rename; **pkg/decision** (P8c) |
+| **Engage** | `engage/` | slim (P8f); pentest tools + runner |
+| **Report** | (in engage) → **`pkg/report`** | P8b |
+| **API + MCP** | per-layer → **`pkg/api`**, **`pkg/mcp`** | P8d |
 
-Details: [docs/platform-architecture.md](docs/platform-architecture.md) (includes **runner vs factory** — do not merge them; share `pkg/exec` only).
+**Rename wave first on `main` (recommended):** P8h + P8i, then P8a–g on new paths. Wire (`scrape.>`, `ingest.>`, veil-api) stays stable — see [platform-architecture.md](docs/platform-architecture.md).
+
+Master plan: [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md).
 
 ## Quick start
 
