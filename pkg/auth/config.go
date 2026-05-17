@@ -16,7 +16,8 @@ type Config struct {
 	RoleAdmin        string
 	RoleEngageRunner string
 	RoleEngageAdmin  string
-	MCPAccessToken   string
+	MCPAccessToken      string
+	StaticBearerToken   string // local pentest only; do not use in real prod
 }
 
 func LoadConfigFromEnv() Config {
@@ -30,7 +31,8 @@ func LoadConfigFromEnv() Config {
 		RoleAdmin:        envOr("RBAC_ROLE_ADMIN", "veil-admin"),
 		RoleEngageRunner: envOr("RBAC_ROLE_ENGAGE_RUNNER", "veil-engage-runner"),
 		RoleEngageAdmin:  envOr("RBAC_ROLE_ENGAGE_ADMIN", "veil-engage-admin"),
-		MCPAccessToken:   strings.TrimSpace(os.Getenv("MCP_ACCESS_TOKEN")),
+		MCPAccessToken:    strings.TrimSpace(os.Getenv("MCP_ACCESS_TOKEN")),
+		StaticBearerToken: strings.TrimSpace(os.Getenv("AUTH_STATIC_BEARER_TOKEN")),
 	}
 }
 
@@ -38,7 +40,7 @@ func (c Config) Validate() error {
 	if !c.Enabled {
 		return nil
 	}
-	if c.Issuer == "" {
+	if c.Issuer == "" && c.StaticBearerToken == "" {
 		return ErrUnauthorized // wrapped at call site with better message
 	}
 	return nil

@@ -2,9 +2,7 @@
 services:
   neo4j:
     image: neo4j:5
-    ports:
-      - "${NEO4J_HTTP_PORT:-7474}:7474"
-      - "${NEO4J_BOLT_PORT:-7687}:7687"
+    # Host publish: add -f deploy/graph/compose.neo4j-publish.yml (dev browser / local Bolt)
     environment:
       NEO4J_AUTH: neo4j/neo4jpassword
       NEO4J_PLUGINS: '["apoc"]'
