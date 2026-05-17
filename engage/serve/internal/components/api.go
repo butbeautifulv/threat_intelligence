@@ -85,7 +85,8 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 	catalogDir := filepath.Dir(catalogPath)
 	livePath := filepath.Join(catalogDir, "tools.live.yaml")
 	enabledPath := filepath.Join(catalogDir, "tools.enabled.yaml")
-	specs, err := tools.LoadCatalog(livePath, enabledPath, catalogPath)
+	// Base catalog first; tools.live.yaml and tools.enabled.yaml override (enable runner tools).
+	specs, err := tools.LoadCatalog(catalogPath, livePath, enabledPath)
 	if err != nil {
 		return nil, fmt.Errorf("catalog: %w", err)
 	}
