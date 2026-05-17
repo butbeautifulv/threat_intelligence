@@ -2,11 +2,23 @@
 
 Tools are defined in YAML and loaded at startup (merged in order, **later overrides**): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`.
 
+## Why 158 catalog but only 113 «live»?
+
+| Count | Meaning |
+|-------|---------|
+| **158** | Every tool **name** in `tools.yaml` (MCP parity + bridge aliases) |
+| **113** | `enabled: true` in `tools.live.yaml` — **subprocess** tools that run CLI binaries in engage-runner |
+| **~55** | **bridge_api** — in-process intel / CTF / bug bounty / workflows (not subprocess); work via MCP bridge today |
+| **~57** | **runner_N/A** — real CLI in catalog but not enabled in lab profile or missing from runner image |
+| **~12** | **permanent_N/A** — GUI/heavy stacks (Burp, Ghidra, hashcat) — documented alternatives only |
+
+**113 is not «broken coverage».** It is the lab subprocess slice. Full executable coverage (HTTP + MCP) is tracked in [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md) (target **146** executable + **12** permanent N/A).
+
 | File | Purpose |
 |------|---------|
-| [tools.yaml](../engage/serve/catalog/tools.yaml) | Full catalog (~150 legacy MCP names); regenerate with `make catalog-engage` |
-| [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) | Lab profile: **100+** tier-1 tools enabled; regen via `generate-tools-live.py` |
-| [engage-tools-na-matrix.md](engage-tools-na-matrix.md) | Execution status for all 158 catalog names (`live` / `runner_N/A` / `bridge_api` / `permanent_N/A`) |
+| [tools.yaml](../engage/serve/catalog/tools.yaml) | Full catalog (158 names); regenerate with `make catalog-engage` |
+| [tools.live.yaml](../engage/serve/catalog/tools.live.yaml) | Lab profile: subprocess tools `enabled: true`; regen via `generate-tools-live.py` |
+| [engage-tools-na-matrix.md](engage-tools-na-matrix.md) | Execution status per name (`live` / `runner_N/A` / `bridge_api` / `permanent_N/A`) |
 | [tools.enabled.yaml](../engage/serve/catalog/tools.enabled.yaml) | Auto-generated enables when binaries exist on PATH |
 
 ## Schema
