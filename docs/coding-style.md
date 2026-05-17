@@ -65,14 +65,21 @@ storage/                → adapters at module root (Neo4j in graph; pub in laye
 
 `internal/*` is private to the Go module. Code another binary must import lives outside `internal/` (e.g. `storage/`, `scrapesource/`).
 
-### Domain package paths (by layer)
+### Domain package paths (pkg SOT)
 
-| Layer | Typical path | Reference |
-|-------|--------------|-----------|
-| Scrape source | `internal/sources/<name>/internal/domain/` | [scrape/.../ti/internal/domain](../scrape/harvest/internal/sources/ti/internal/domain/) |
-| Graph ingest source | `internal/sources/<name>/domain/` | [graph/ingest/.../ti/domain](../graph/ingest/internal/sources/ti/domain/) |
-| Graph serve | `internal/domain/` | [graph/serve/internal/domain/](../graph/serve/internal/domain/) |
-| Pipeline | `internal/sources/<name>/domain/` when entities exist | [pipeline/ned/.../vuln/domain](../pipeline/ned/internal/sources/vuln/domain/) |
+Shared entities live under **`pkg/*/domain/`** (single source of truth). Layers import `pkg` and keep only source-specific adapters (transform, storage, I/O). Full map: [domain-contour.md](domain-contour.md).
+
+| Package | Types | Layers |
+|---------|-------|--------|
+| `pkg/ti/domain` | IOC, Actor, Campaign, … | scrape TI, pipeline NED, graph ingest TI |
+| `pkg/vuln/domain`, `pkg/lola/domain` | CVE, STIX artifacts | scrape, pipeline, graph |
+| `pkg/{ds,sbom,nuclei,coderules}/domain` | AppSec entities | scrape, pipeline, graph |
+| `pkg/engage/domain/{report,job,tool}` | Findings, jobs, tool spec | engage serve |
+| `pkg/ti/{validate,ids,normalize}` | Normalization (pipeline only for normalize) | pipeline NED |
+
+**Layer-local domain** (not in `pkg/`): engage `internal/domain/target` (guard/allowlist); graph serve read models under `graph/serve/internal/domain/`.
+
+**Rule:** new cross-layer entity → add to `pkg/<area>/domain` with `*_test.go`; do not duplicate `type IOC struct` in scrape/pipeline/graph.
 
 Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (`ops/`, `graph-pack/`, `test/`, `housekeeping/` — Neo4j housekeeping is not NED wire dedup). Graph packs: [docs/graph-pack.md](graph-pack.md).
 
@@ -93,6 +100,8 @@ Before merge, verify all items that apply to your layer:
 | Graph ingest does not import `pipeline/pkg/ti/normalize` | — | NED normalizes TI | ✓ |
 | Idempotency keys via `pkg/commit` helpers only | — | ✓ | ✓ |
 | `graph/serve` does not import NATS or scrape | — | — | ✓ |
+| Shared entities in `pkg/*/domain` (no duplicate structs) | import `pkg` | import `pkg` | import `pkg` |
+| `make test-platform-p7` when changing domain contour | ✓ | ✓ | ✓ |
 
 ### Agent / CI closure
 
@@ -100,6 +109,7 @@ For automated agents and maintainers, before marking work done:
 
 | Step | Command / doc |
 |------|----------------|
+| Platform P7 (pkg domain + bus slices, no Docker) | `make test-platform-p7` — required when touching `pkg/*/domain`, `pkg/ti/*`, layer `domain/` or `usecase/` on the Veil contour |
 | Tests (touched layers) | `make test-scrape`, `make test-pipeline`, `make test-graph`; graph read/auth/MCP: `make test-graph-serve` |
 | Graph read smoke (Docker) | `make test-graph-read-smoke` — no scrape/NATS |
 | Graph version (ingest paths) | `./scripts/release/bump-graph-version.sh patch` → updates [versions.env](../versions.env) |

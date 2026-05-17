@@ -75,3 +75,6 @@ deploy/terraform/**/generated/
 deploy/terraform/**/.terraform/
 *.tfstate
 *.tfstate.*
+
+# Parallel agent worktrees (local only)
+.worktrees/

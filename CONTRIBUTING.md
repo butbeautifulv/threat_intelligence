@@ -16,6 +16,7 @@ Thank you for improving this project. Small, focused changes are easier to revie
    | Graph | `make test-graph`, `make test-graph-serve` |
    | Engage | `make test-engage`, `make test-engage-parity` (catalog changes), `make test-engage-hardening` (security guards) |
    | Agent eval (GAIA) | `make test-agent-eval-pilot`, `make test-agent-eval-paper` (offline, [arXiv:2311.12983](https://arxiv.org/abs/2311.12983)); HF download optional — [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) |
+   | Platform P7 (pkg domain + bus, no Docker) | `make test-platform-p7`, `make test-pkg-domain` — see [docs/domain-contour.md](docs/domain-contour.md) |
    | Platform bus / loop | `make test-platform-p0`, optional `make test-platform-closed-loop` |
    | Deploy (Helm/Ansible) | `make deploy-helm-template`, `make deploy-ansible-check` |
 
