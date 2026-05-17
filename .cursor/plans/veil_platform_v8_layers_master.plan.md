@@ -19,10 +19,10 @@ todos:
     status: completed
   - id: v8f-engage-slim
     content: "P8f: Engage slim — pentest tools, workflows, guard; drop report/decision/browser"
-    status: in_progress
+    status: completed
   - id: v8g-discovery-browser
     content: "P8g: Discovery — browser crawl worker; factory stays orchestration"
-    status: in_progress
+    status: completed
   - id: v8h-rename-scrape-discovery
     content: "P8h: Rename module scrape/ → discovery/ (paths, deploy, Makefile, CI)"
     status: completed
@@ -228,7 +228,7 @@ make check-graph-version   # if ingest touched
 | P8c | `platform/p8c-pkg-decision` | done — `5d7bc03` |
 | P8d | `platform/p8d-api-mcp-facade` | done — `7fb348e` |
 | P8e | `platform/p8e-pkg-exec` | done — `b40f266` |
-| P8f | `platform/p8f-engage-slim` | pending |
-| P8g | `platform/p8g-discovery-browser` | pending |
+| P8f | `platform/p8f-engage-slim` | done — `2650549` |
+| P8g | `platform/p8g-discovery-browser` | done — `a7bf1cd` |
 | P8h | `platform/p8h-rename-discovery` | done — merge `24af6ad` |
 | P8i | `platform/p8i-rename-knowledge` | done — merge `24af6ad` |
