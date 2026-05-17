@@ -9,6 +9,10 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`s
 | `pkg/ti/domain` | IOC, Actor, Campaign, Cluster, Report | scrape TI, pipeline NED, graph ingest TI |
 | `pkg/vuln/domain` | Vulnerability, CVSS, CPE, ExploitRef | scrape vuln, pipeline NED, graph ingest vuln |
 | `pkg/lola/domain` | Artifact, Command, Detection, … | scrape lola, graph ingest lola |
+| `pkg/ds/domain` | Resource (Caldera, Sigma, …) | scrape ds, pipeline NED, graph ingest ds |
+| `pkg/sbom/domain` | AdvisoryRef (OSV/GHSA) | scrape sbom, pipeline NED, graph ingest sbom |
+| `pkg/nuclei/domain` | Template | scrape nuclei, pipeline NED, graph ingest nuclei |
+| `pkg/coderules/domain` | RuleFile (Semgrep, CodeQL) | scrape coderules, pipeline NED, graph ingest coderules |
 | `pkg/ti/validate` | Pure validation (type, empty fields) | `pkg/ti/normalize` |
 | `pkg/ti/normalize` | NED normalization (IOC canonical form) | **pipeline only** — not graph ingest |
 | `pkg/ti/ids` | Stable actor/report/IOC ids for dedup | pipeline NED (`normalize` re-exports) |

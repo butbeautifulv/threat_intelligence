@@ -1,3 +1,4 @@
+// Package domain holds shared detections/signals entities for scrape, NED, and graph ingest.
 package domain
 
 // Resource identifies a detections/signals artifact (Caldera, Sigma, etc.).
