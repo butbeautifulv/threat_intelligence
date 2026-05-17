@@ -1,4 +1,4 @@
-.PHONY: test-discovery test-discovery-p7c test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-benchmark-regression test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-runner-full-smoke test-engage-executable-matrix-runner test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-bridge-coverage test-engage-route-parity test-engage-executable-matrix test-engage-external-guard test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-knowledge test-knowledge-serve
+.PHONY: test-discovery test-discovery-p7c test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-benchmark-regression test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-runner-full-smoke test-engage-executable-matrix-runner test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-bridge-coverage test-engage-route-parity test-engage-executable-matrix test-engage-external-guard test-engage-hardening test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 test-platform-mcp-gateway catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-knowledge test-knowledge-serve
 
 # Shared pkg contracts (harvest, commit, natsjet, auth, engage/events)
 test-pkg-shared:
@@ -36,6 +36,10 @@ test-platform-full-loop:
 test-platform-p3: test-platform-p0 test-platform-closed-loop
 
 test-platform-p4: test-platform-p0 test-platform-full-loop
+
+# P12f: unified MCP HTTP aggregator (graph + engage backends)
+test-platform-mcp-gateway:
+	cd platform/mcp-gateway && env -u GOWORK go test ./...
 
 agents-list:
 	chmod +x ./scripts/agents/list-manifest.sh
