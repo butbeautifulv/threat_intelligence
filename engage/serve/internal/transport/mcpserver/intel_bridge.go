@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/butbeautifulv/veil/engage/serve/internal/domain/tool"
+	"github.com/butbeautifulv/veil/pkg/engage/domain/tool"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/ctf"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/intelligence"
 	"github.com/butbeautifulv/veil/engage/serve/internal/usecase/workflow"
