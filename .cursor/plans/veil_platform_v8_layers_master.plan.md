@@ -223,9 +223,9 @@ make check-graph-version   # if ingest touched
 
 | Phase | Branch | Status |
 |-------|--------|--------|
-| P8a | `platform/p8a-domain-complete` | pending |
-| P8b | `platform/p8b-pkg-report` | pending |
-| P8c | `platform/p8c-pkg-decision` | pending |
+| P8a | `platform/p8a-domain-complete` | done — `7ac8da4` |
+| P8b | `platform/p8b-pkg-report` | done — `9f3513f` |
+| P8c | `platform/p8c-pkg-decision` | done — `5d7bc03` |
 | P8d | `platform/p8d-api-mcp-facade` | pending |
 | P8e | `platform/p8e-pkg-exec` | pending |
 | P8f | `platform/p8f-engage-slim` | pending |
