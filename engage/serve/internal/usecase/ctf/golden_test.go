@@ -17,38 +17,33 @@ func ctfGoldenDir(t *testing.T) string {
 	return filepath.Join("testdata", "golden")
 }
 
-func TestGolden_CreateChallengeWeb(t *testing.T) {
-	mgr := NewManager()
-	ch := Challenge{Name: "Login Portal", Category: "web", Description: "A basic login page", Difficulty: "medium", Points: 100}
-	if err := ch.Validate(false); err != nil {
-		t.Fatal(err)
-	}
-	suggested := mgr.Tools.SuggestTools(ch.Description, ch.Category)
-	wf := mgr.CreateChallengeWorkflow(ch, suggested)
+type challengeWorkflowGoldenSpec struct {
+	Challenge           string   `json:"challenge"`
+	Category            string   `json:"category"`
+	Difficulty          string   `json:"difficulty"`
+	Points              int      `json:"points"`
+	ToolsMin            int      `json:"tools_min"`
+	EstimatedTime       int      `json:"estimated_time"`
+	SuccessProbability  float64  `json:"success_probability"`
+	AutomationLevel     string   `json:"automation_level"`
+	StrategyNamesSorted []string `json:"strategy_names_sorted"`
+	WorkflowSteps       []struct {
+		Step        int      `json:"step"`
+		Action      string   `json:"action"`
+		Parallel    bool     `json:"parallel"`
+		ToolsSorted []string `json:"tools_sorted"`
+	} `json:"workflow_steps"`
+	ParallelTasksSorted   []string `json:"parallel_tasks_sorted"`
+	ValidationStepsSorted []string `json:"validation_steps_sorted"`
+}
 
-	b, err := os.ReadFile(filepath.Join(ctfGoldenDir(t), "create_challenge_web.golden.json"))
+func assertChallengeWorkflowGolden(t *testing.T, wf ChallengeWorkflow, goldenFile string) {
+	t.Helper()
+	b, err := os.ReadFile(filepath.Join(ctfGoldenDir(t), goldenFile))
 	if err != nil {
 		t.Fatal(err)
 	}
-	var spec struct {
-		Challenge           string   `json:"challenge"`
-		Category            string   `json:"category"`
-		Difficulty          string   `json:"difficulty"`
-		Points              int      `json:"points"`
-		ToolsMin            int      `json:"tools_min"`
-		EstimatedTime       int      `json:"estimated_time"`
-		SuccessProbability  float64  `json:"success_probability"`
-		AutomationLevel     string   `json:"automation_level"`
-		StrategyNamesSorted []string `json:"strategy_names_sorted"`
-		WorkflowSteps       []struct {
-			Step        int      `json:"step"`
-			Action      string   `json:"action"`
-			Parallel    bool     `json:"parallel"`
-			ToolsSorted []string `json:"tools_sorted"`
-		} `json:"workflow_steps"`
-		ParallelTasksSorted   []string `json:"parallel_tasks_sorted"`
-		ValidationStepsSorted []string `json:"validation_steps_sorted"`
-	}
+	var spec challengeWorkflowGoldenSpec
 	if err := json.Unmarshal(b, &spec); err != nil {
 		t.Fatal(err)
 	}
@@ -102,6 +97,76 @@ func TestGolden_CreateChallengeWeb(t *testing.T) {
 	wantVal := sortedCopy(spec.ValidationStepsSorted)
 	if diff := cmpSortedSlicesExact(gotVal, wantVal); diff != "" {
 		t.Fatal(diff)
+	}
+}
+
+func challengeWorkflowFromGolden(t *testing.T, ch Challenge) ChallengeWorkflow {
+	t.Helper()
+	mgr := NewManager()
+	if err := ch.Validate(false); err != nil {
+		t.Fatal(err)
+	}
+	suggested := mgr.Tools.SuggestTools(ch.Description, ch.Category)
+	return mgr.CreateChallengeWorkflow(ch, suggested)
+}
+
+func TestGolden_CreateChallengeWeb(t *testing.T) {
+	ch := Challenge{Name: "Login Portal", Category: "web", Description: "A basic login page", Difficulty: "medium", Points: 100}
+	assertChallengeWorkflowGolden(t, challengeWorkflowFromGolden(t, ch), "create_challenge_web.golden.json")
+}
+
+func TestGolden_CreateChallengePwn(t *testing.T) {
+	ch := Challenge{Name: "Stack Smash", Category: "pwn", Description: "buffer overflow binary", Difficulty: "hard", Points: 400}
+	assertChallengeWorkflowGolden(t, challengeWorkflowFromGolden(t, ch), "create_challenge_pwn.golden.json")
+}
+
+func TestGolden_CreateChallengeCrypto(t *testing.T) {
+	ch := Challenge{Name: "RSA Vault", Category: "crypto", Description: "RSA public key ciphertext", Difficulty: "medium", Points: 150}
+	assertChallengeWorkflowGolden(t, challengeWorkflowFromGolden(t, ch), "create_challenge_crypto.golden.json")
+}
+
+func TestGolden_CreateChallengeForensics(t *testing.T) {
+	ch := Challenge{Name: "Hidden Image", Category: "forensics", Description: "stego image with hidden flag", Difficulty: "medium", Points: 200}
+	assertChallengeWorkflowGolden(t, challengeWorkflowFromGolden(t, ch), "create_challenge_forensics.golden.json")
+}
+
+func TestGolden_TeamStrategy(t *testing.T) {
+	c := NewCoordinator()
+	ts := c.TeamStrategy([]Challenge{
+		{Name: "web1", Category: "web", Points: 200, Difficulty: "medium"},
+		{Name: "pwn1", Category: "pwn", Points: 300, Difficulty: "medium"},
+	}, map[string][]string{"alice": {"web"}, "bob": {"pwn"}})
+
+	b, err := os.ReadFile(filepath.Join(ctfGoldenDir(t), "team_strategy.golden.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var spec struct {
+		AssignmentsMin     int               `json:"assignments_min"`
+		EstimatedTotal     int               `json:"estimated_total"`
+		RecommendedOrder   []string          `json:"recommended_order"`
+		ChallengeAssignees map[string]string `json:"challenge_assignees"`
+	}
+	if err := json.Unmarshal(b, &spec); err != nil {
+		t.Fatal(err)
+	}
+	if len(ts.Assignments) < spec.AssignmentsMin {
+		t.Fatalf("assignments %d < %d", len(ts.Assignments), spec.AssignmentsMin)
+	}
+	if ts.EstimatedTotal != spec.EstimatedTotal {
+		t.Fatalf("estimated_total %d want %d", ts.EstimatedTotal, spec.EstimatedTotal)
+	}
+	if diff := cmpSortedSlicesExact(ts.RecommendedOrder, spec.RecommendedOrder); diff != "" {
+		t.Fatalf("recommended_order: %s", diff)
+	}
+	got := make(map[string]string, len(ts.Assignments))
+	for _, a := range ts.Assignments {
+		got[a.Challenge] = a.Assignee
+	}
+	for challenge, wantAssignee := range spec.ChallengeAssignees {
+		if got[challenge] != wantAssignee {
+			t.Fatalf("assignee for %q got %q want %q", challenge, got[challenge], wantAssignee)
+		}
 	}
 }
 
