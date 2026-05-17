@@ -29,13 +29,3 @@ func TestFromSmartScan_includesFindings(t *testing.T) {
 		t.Fatalf("breakdown: %v", br)
 	}
 }
-
-func TestSeverityBreakdown(t *testing.T) {
-	br := SeverityBreakdown([]domain.Finding{
-		{Severity: domain.SeverityCritical},
-		{Severity: domain.SeverityLow},
-	})
-	if br["critical"] != 1 || br["low"] != 1 {
-		t.Fatalf("%v", br)
-	}
-}
