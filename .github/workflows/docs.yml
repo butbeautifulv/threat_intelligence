@@ -13,8 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  administration: write
+  contents: write
 
 jobs:
   sync-github-description:

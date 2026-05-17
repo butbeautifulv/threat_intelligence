@@ -6,6 +6,7 @@ require github.com/butbeautifulv/veil/pipeline/connector v0.0.0
 
 require (
 	github.com/butbeautifulv/veil/pkg v0.0.0 // indirect
+	github.com/butbeautifulv/veil/pkg/engage v0.0.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/nats-io/nats.go v1.48.0 // indirect
 	github.com/nats-io/nkeys v0.4.11 // indirect
@@ -17,4 +18,5 @@ require (
 replace (
 	github.com/butbeautifulv/veil/pipeline/connector => ../connector
 	github.com/butbeautifulv/veil/pkg => ../../pkg
+	github.com/butbeautifulv/veil/pkg/engage => ../../pkg/engage
 )

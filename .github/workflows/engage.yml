@@ -70,6 +70,7 @@ jobs:
       - name: Hardening self-test (in-process + static audit)
         run: |
           cd engage/serve && go test ./internal/security/... -count=1
+          cd "${GITHUB_WORKSPACE}"
           python3 scripts/engage/hardening-compose-audit.py
           python3 scripts/engage/hardening-framework-audit.py
 
