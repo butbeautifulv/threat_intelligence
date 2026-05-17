@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Smoke: bug bounty recon with execute=true (phased tool runs).
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/smoke.sh"
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
@@ -11,12 +13,7 @@ MAX_SEC="${BB_RECON_MAX_SEC:-900}"
 log() { printf '[bb-recon-exec] %s\n' "$*"; }
 fail() { log "FAIL: $*"; exit 1; }
 
-if ! command -v curl >/dev/null 2>&1; then
-  log "SKIP: curl not available"
-  exit 0
-fi
-
-if ! curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; then
+if ! smoke_wait_http "${ENGAGE_URL}/health" 5 "engage-api" 1 2>/dev/null; then
   log "SKIP: engage-api not reachable at ${ENGAGE_URL}"
   exit 0
 fi

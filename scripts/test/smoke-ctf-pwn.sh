@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Smoke: CTF pwn/binary workflow via engage-api.
 set -euo pipefail
+# shellcheck source=lib/smoke.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/smoke.sh"
 # shellcheck source=../lib/common.sh
 source "$(cd "$(dirname "$0")/.." && pwd)/lib/common.sh"
 cd "${VEIL_ROOT}"
@@ -10,12 +12,7 @@ ENGAGE_URL="${ENGAGE_URL:-http://127.0.0.1:${ENGAGE_API_PORT:-8890}}"
 log() { printf '[ctf-pwn-smoke] %s\n' "$*"; }
 fail() { log "FAIL: $*"; exit 1; }
 
-if ! command -v curl >/dev/null 2>&1; then
-  log "SKIP: curl not available"
-  exit 0
-fi
-
-if ! curl -sf "${ENGAGE_URL}/health" >/dev/null 2>&1; then
+if ! smoke_wait_http "${ENGAGE_URL}/health" 5 "engage-api" 1 2>/dev/null; then
   log "SKIP: engage-api not reachable at ${ENGAGE_URL}"
   exit 0
 fi
