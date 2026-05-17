@@ -3,8 +3,6 @@ package nats
 import (
 	"context"
 	"strings"
-
-	"github.com/butbeautifulv/veil/pkg/harvest"
 )
 
 // DomainPublisher publishes harvest envelopes for one domain source and subject.
@@ -25,9 +23,5 @@ func NewDomainPublisher(pub *JetStreamPublisher, source string, subject string) 
 
 // Publish builds a harvest envelope and publishes to JetStream.
 func (p *DomainPublisher) Publish(ctx context.Context, kind, contentKey string, payload any) error {
-	env, err := harvest.NewEnvelope(p.Source, kind, contentKey, payload)
-	if err != nil {
-		return err
-	}
-	return p.Pub.PublishJSON(ctx, p.Subject, env)
+	return p.Pub.PublishHarvest(ctx, p.Subject, p.Source, kind, contentKey, payload)
 }

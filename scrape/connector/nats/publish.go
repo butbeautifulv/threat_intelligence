@@ -25,10 +25,12 @@ func ConnectJetStream(url string) (*JetStreamPublisher, error) {
 func (p *JetStreamPublisher) Close() { p.conn.Close() }
 
 func (p *JetStreamPublisher) PublishJSON(ctx context.Context, subject string, env *harvest.Envelope) error {
-	if err := env.Validate(); err != nil {
-		return err
-	}
-	return p.conn.PublishJSON(ctx, subject, env, env.ContentKey)
+	return natsjet.PublishHarvestEnvelope(ctx, p.conn, subject, env)
+}
+
+// PublishHarvest builds and publishes a harvest envelope on subject.
+func (p *JetStreamPublisher) PublishHarvest(ctx context.Context, subject, source, kind, contentKey string, payload any) error {
+	return natsjet.PublishHarvest(ctx, p.conn, subject, source, kind, contentKey, payload)
 }
 
 // EnsureScrapeStream creates or updates the SCRAPE stream (scrape.>).

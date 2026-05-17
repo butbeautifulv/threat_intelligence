@@ -26,10 +26,12 @@ func (p *JetStreamPublisher) Close() { p.conn.Close() }
 
 // PublishJSON marshals the envelope and publishes to subject with Nats-Msg-Id.
 func (p *JetStreamPublisher) PublishJSON(ctx context.Context, subject string, env *commit.Envelope) error {
-	if err := env.Validate(); err != nil {
-		return err
-	}
-	return p.conn.PublishJSON(ctx, subject, env, env.IdempotencyKey)
+	return natsjet.PublishCommitEnvelope(ctx, p.conn, subject, env)
+}
+
+// PublishCommit builds and publishes a commit envelope on subject.
+func (p *JetStreamPublisher) PublishCommit(ctx context.Context, subject, source, kind, idempotencyKey string, payload any) error {
+	return natsjet.PublishCommit(ctx, p.conn, subject, source, kind, idempotencyKey, payload)
 }
 
 // EnsureIngestStream creates or updates the INGEST stream to accept all ingest.* subjects.
