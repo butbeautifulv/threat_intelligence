@@ -37,7 +37,7 @@ func loadBase(listen, env string) *Config {
 		ListenAddr: listen,
 		Env:        env,
 		Neo4j: Neo4jConfig{
-			URI:      getenv("NEO4J_URI", "neo4j://localhost:7687"),
+			URI:      loadNeo4jURI(),
 			Username: getenv("NEO4J_USER", "neo4j"),
 			Password: getenv("NEO4J_PASS", "neo4jpassword"),
 			Database: getenv("NEO4J_DB", "neo4j"),
@@ -53,4 +53,21 @@ func getenv(k, def string) string {
 		return v
 	}
 	return def
+}
+
+func clusterEnabled() bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("NEO4J_CLUSTER"))) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
+}
+
+// loadNeo4jURI picks neo4j+routing:// when NEO4J_CLUSTER=1 unless NEO4J_URI is set explicitly.
+func loadNeo4jURI() string {
+	if clusterEnabled() {
+		return getenv("NEO4J_URI", getenv("NEO4J_ROUTING_URI", "neo4j+routing://neo4j-core1:7687"))
+	}
+	return getenv("NEO4J_URI", "neo4j://localhost:7687")
 }
