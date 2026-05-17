@@ -4,9 +4,13 @@ global:
 engage:
   api:
     replicas: 1
+  mcp:
+    replicas: 1
 
 graph:
   api:
+    replicas: 1
+  mcp:
     replicas: 1
 
 pipeline:

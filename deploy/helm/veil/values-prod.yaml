@@ -4,12 +4,16 @@ global:
 graph:
   api:
     replicas: 3
+  mcp:
+    replicas: 3
   ingress:
     enabled: true
     host: api.veil.example
 
 engage:
   api:
+    replicas: 2
+  mcp:
     replicas: 2
   runner:
     enabled: false
