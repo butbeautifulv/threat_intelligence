@@ -1,4 +1,4 @@
-package intelligence
+package decision
 
 import (
 	"encoding/json"

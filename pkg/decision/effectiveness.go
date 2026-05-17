@@ -1,6 +1,6 @@
-package intelligence
+package decision
 
-// defaultEffectivenessTables mirrors HexStrike IntelligentDecisionEngine._initialize_tool_effectiveness.
+// defaultEffectivenessTables mirrors HexStrike IntelligentDecisionEngine tool effectiveness.
 // Regenerate JSON snapshot: scripts/engage/extract-decision-tables.py
 func defaultEffectivenessTables() map[string]map[string]float64 {
 	return map[string]map[string]float64{

@@ -5,7 +5,7 @@ cd "$ROOT"
 
 python3 "${ROOT}/scripts/engage/extract-decision-tables.py"
 
-cd "${ROOT}/engage/serve"
-env GOWORK="$(dirname "$(pwd)")/go.work" go test ./internal/usecase/intelligence/... -run TestEffectivenessParityWithLegacy -count=1
+cd "${ROOT}/pkg"
+env -u GOWORK go test ./decision/... -run TestEffectivenessParityWithLegacy -count=1
 
 echo "OK decision engine parity"
