@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: v8d-api-mcp-facade
     content: "P8d: pkg/api + pkg/mcp — shared transport; graph + optional engage mount"
-    status: pending
+    status: in_progress
   - id: v8e-pkg-exec
     content: "P8e: pkg/exec — Sandbox/Executor/audit; engage migrate; scrape fetcher profile optional"
-    status: pending
+    status: in_progress
   - id: v8f-engage-slim
     content: "P8f: Engage slim — pentest tools, workflows, guard; drop report/decision/browser"
     status: pending
