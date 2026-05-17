@@ -10,9 +10,9 @@ Tools are defined in YAML and loaded at startup (merged in order, **later overri
 | **113** | `enabled: true` in `tools.live.yaml` — **subprocess** tools that run CLI binaries in engage-runner |
 | **~55** | **bridge_api** — in-process intel / CTF / bug bounty / workflows (not subprocess); work via MCP bridge today |
 | **~57** | **runner_N/A** — real CLI in catalog but not enabled in lab profile or missing from runner image |
-| **~12** | **permanent_N/A** — GUI/heavy stacks (Burp, Ghidra, hashcat) — documented alternatives only |
+| **~12** | бывший **permanent_N/A** (Burp, Ghidra, hashcat, …) — **входит в full port** via `engage-runner-full` (P9g) |
 
-**113 is not «broken coverage».** It is the lab subprocess slice. Full executable coverage (HTTP + MCP) is tracked in [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md) (target **146** executable + **12** permanent N/A).
+**113 is not «broken coverage».** It is the default lab subprocess slice. **Target: 158/158 executable** (bridge + runner-full) — [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md).
 
 | File | Purpose |
 |------|---------|
@@ -88,15 +88,17 @@ CLI `args` are generated when you run `make catalog-engage`:
 
 Gate: [check-catalog-args.sh](../scripts/engage/check-catalog-args.sh) — fails CI if any tool has undocumented generic args.
 
-## Permanent N/A (Phase 25)
+## Heavy stack (full port — P9g)
 
-These stay **out of engage-runner** by design (GUI, multi-GB, or legacy-only stacks):
+Default `runner.Dockerfile` — tier-1 CLI. **Full port** adds headless wrappers (no GUI) for:
 
-| Tool / family | Reason |
-|---------------|--------|
-| wpscan | Ruby gem stack; use `nikto` / `nuclei` in runner |
-| ghidra, burpsuite, metasploit, angr | GUI or heavy frameworks |
-| `binary: api` / workflow placeholders | In-process bridge, not subprocess |
+| Binary | Tools |
+|--------|-------|
+| burpsuite, ghidra, hashcat, john, gdb, metasploit, angr, radare2, volatility, wpscan | see [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md) § P9g |
+
+Compose: `ENGAGE_RUNNER_PROFILE=full` or image tag `-runner-full` (when published).
+
+`binary: api` / workflow placeholders remain **bridge**, not subprocess.
 
 Full matrix: [engage-tools-na-matrix.md](engage-tools-na-matrix.md) (`make test-engage-na-matrix`).
 
