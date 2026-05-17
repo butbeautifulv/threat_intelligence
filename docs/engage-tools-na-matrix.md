@@ -19,13 +19,13 @@ make test-engage-na-matrix
 | `ai_vulnerability_assessment` | `ai` | web | bridge_api | workflow placeholder binary `ai` |
 | `amass_scan` | `amass` | osint | live | enabled in tools.live.yaml |
 | `analyze_target_intelligence` | `analyze` | intelligence | bridge_api | workflow placeholder binary `analyze` |
-| `anew_data_processing` | `anew` | web | runner_N/A | binary not in engage-runner image |
+| `anew_data_processing` | `anew` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `angr_symbolic_execution` | `angr` | web | live | enabled in tools.live.yaml |
 | `api_fuzzer` | `api` | web | bridge_api | in-process MCP bridge handler |
 | `api_schema_analyzer` | `api` | intelligence | bridge_api | in-process MCP bridge handler |
 | `arjun_parameter_discovery` | `arjun` | web | live | enabled in tools.live.yaml |
 | `arjun_scan` | `arjun` | web | live | enabled in tools.live.yaml |
-| `arp_scan_discovery` | `arp` | web | runner_N/A | binary not in engage-runner image |
+| `arp_scan_discovery` | `arp` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `autorecon_comprehensive` | `autorecon` | web | bridge_api | workflow placeholder binary `autorecon` |
 | `autorecon_scan` | `autorecon` | web | bridge_api | workflow placeholder binary `autorecon` |
 | `binwalk_analyze` | `binwalk` | binary | live | enabled in tools.live.yaml |
@@ -45,7 +45,7 @@ make test-engage-na-matrix
 | `clear_cache` | `clear` | web | bridge_api | workflow placeholder binary `clear` |
 | `cloudmapper_analysis` | `cloudmapper` | cloud | bridge_api | workflow placeholder binary `cloudmapper` |
 | `comprehensive_api_audit` | `comprehensive` | web | bridge_api | workflow placeholder binary `comprehensive` |
-| `correlate_threat_intelligence` | `correlate` | intelligence | runner_N/A | binary not in engage-runner image |
+| `correlate_threat_intelligence` | `correlate` | intelligence | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `create_attack_chain_ai` | `create` | web | bridge_api | workflow placeholder binary `create` |
 | `create_file` | `create` | web | bridge_api | workflow placeholder binary `create` |
 | `create_scan_summary` | `create` | web | bridge_api | workflow placeholder binary `create` |
@@ -58,27 +58,27 @@ make test-engage-na-matrix
 | `ctf_suggest_tools` | `api` | ctf | bridge_api | in-process MCP bridge handler |
 | `ctf_team_strategy` | `api` | ctf | bridge_api | in-process MCP bridge handler |
 | `dalfox_xss_scan` | `dalfox` | web | live | enabled in tools.live.yaml |
-| `delete_file` | `delete` | web | runner_N/A | binary not in engage-runner image |
-| `detect_technologies_ai` | `detect` | web | runner_N/A | binary not in engage-runner image |
+| `delete_file` | `delete` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `detect_technologies_ai` | `detect` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `dirb_scan` | `dirb` | web | live | enabled in tools.live.yaml |
 | `dirsearch_scan` | `dirsearch` | web | live | enabled in tools.live.yaml |
-| `discover_attack_chains` | `discover` | web | runner_N/A | binary not in engage-runner image |
-| `display_system_metrics` | `display` | web | runner_N/A | binary not in engage-runner image |
+| `discover_attack_chains` | `discover` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `display_system_metrics` | `display` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `dnsenum_scan` | `dnsenum` | web | live | enabled in tools.live.yaml |
-| `docker_bench_security_scan` | `docker` | web | runner_N/A | binary not in engage-runner image |
-| `dotdotpwn_scan` | `dotdotpwn` | web | runner_N/A | binary not in engage-runner image |
+| `docker_bench_security_scan` | `docker` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `dotdotpwn_scan` | `dotdotpwn` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `enum4linux_ng_advanced` | `enum4linux` | web | live | enabled in tools.live.yaml |
 | `enum4linux_scan` | `enum4linux` | web | live | enabled in tools.live.yaml |
-| `error_handling_statistics` | `error` | web | runner_N/A | binary not in engage-runner image |
+| `error_handling_statistics` | `error` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `execute_command` | `execute` | web | bridge_api | workflow placeholder binary `execute` |
 | `execute_python_script` | `execute` | web | bridge_api | workflow placeholder binary `execute` |
-| `exiftool_extract` | `exiftool` | web | runner_N/A | binary not in engage-runner image |
-| `falco_runtime_monitoring` | `falco` | web | runner_N/A | binary not in engage-runner image |
+| `exiftool_extract` | `exiftool` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `falco_runtime_monitoring` | `falco` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `feroxbuster_scan` | `feroxbuster` | web | live | enabled in tools.live.yaml |
 | `ffuf_scan` | `ffuf` | web | live | enabled in tools.live.yaml |
 | `fierce_scan` | `fierce` | web | live | enabled in tools.live.yaml |
-| `foremost_carving` | `foremost` | web | runner_N/A | binary not in engage-runner image |
-| `format_tool_output_visual` | `format` | web | runner_N/A | binary not in engage-runner image |
+| `foremost_carving` | `foremost` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `format_tool_output_visual` | `format` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `gau_discovery` | `gau` | web | live | enabled in tools.live.yaml |
 | `gdb_analyze` | `gdb` | binary | live | enabled in tools.live.yaml |
 | `gdb_peda_debug` | `gdb` | binary | live | enabled in tools.live.yaml |
@@ -91,10 +91,10 @@ make test-engage-na-matrix
 | `get_telemetry` | `get` | web | bridge_api | workflow placeholder binary `get` |
 | `ghidra_analysis` | `ghidra` | binary | live | enabled in tools.live.yaml |
 | `gobuster_scan` | `gobuster` | web | live | enabled in tools.live.yaml |
-| `graphql_scanner` | `graphql` | web | runner_N/A | binary not in engage-runner image |
-| `hakrawler_crawl` | `hakrawler` | web | runner_N/A | binary not in engage-runner image |
+| `graphql_scanner` | `graphql` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `hakrawler_crawl` | `hakrawler` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `hashcat_crack` | `hashcat` | auth | live | enabled in tools.live.yaml |
-| `hashpump_attack` | `hashpump` | web | runner_N/A | binary not in engage-runner image |
+| `hashpump_attack` | `hashpump` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `http_framework_test` | `http` | web | bridge_api | workflow placeholder binary `http` |
 | `http_intruder` | `http` | web | bridge_api | workflow placeholder binary `http` |
 | `http_repeater` | `http` | web | bridge_api | workflow placeholder binary `http` |
@@ -102,70 +102,70 @@ make test-engage-na-matrix
 | `http_set_scope` | `http` | web | bridge_api | workflow placeholder binary `http` |
 | `httpx_probe` | `httpx` | web | live | enabled in tools.live.yaml |
 | `hydra_attack` | `hydra` | auth | live | enabled in tools.live.yaml |
-| `install_python_package` | `install` | web | runner_N/A | binary not in engage-runner image |
-| `intelligent_smart_scan` | `intelligent` | web | runner_N/A | binary not in engage-runner image |
+| `install_python_package` | `install` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `intelligent_smart_scan` | `intelligent` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `jaeles_vulnerability_scan` | `jaeles` | web | live | enabled in tools.live.yaml |
 | `john_crack` | `john` | auth | live | enabled in tools.live.yaml |
-| `jwt_analyzer` | `jwt` | intelligence | runner_N/A | binary not in engage-runner image |
+| `jwt_analyzer` | `jwt` | intelligence | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `katana_crawl` | `katana` | web | live | enabled in tools.live.yaml |
 | `kube_bench_cis` | `kube` | cloud | bridge_api | workflow placeholder binary `kube` |
 | `kube_hunter_scan` | `kube` | cloud | bridge_api | workflow placeholder binary `kube` |
-| `libc_database_lookup` | `libc` | web | runner_N/A | binary not in engage-runner image |
+| `libc_database_lookup` | `libc` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `list_active_processes` | `list` | web | bridge_api | workflow placeholder binary `list` |
 | `list_files` | `list` | web | bridge_api | workflow placeholder binary `list` |
 | `masscan_high_speed` | `masscan` | network | live | enabled in tools.live.yaml |
 | `metasploit_run` | `metasploit` | web | live | enabled in tools.live.yaml |
-| `modify_file` | `modify` | web | runner_N/A | binary not in engage-runner image |
-| `monitor_cve_feeds` | `monitor` | web | runner_N/A | binary not in engage-runner image |
-| `msfvenom_generate` | `msfvenom` | web | runner_N/A | binary not in engage-runner image |
+| `modify_file` | `modify` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `monitor_cve_feeds` | `monitor` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `msfvenom_generate` | `msfvenom` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `nbtscan_netbios` | `nbtscan` | web | live | enabled in tools.live.yaml |
-| `netexec_scan` | `netexec` | web | runner_N/A | binary not in engage-runner image |
+| `netexec_scan` | `netexec` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `nikto_scan` | `nikto` | web | live | enabled in tools.live.yaml |
 | `nmap_advanced_scan` | `nmap` | network | live | enabled in tools.live.yaml |
 | `nmap_scan` | `nmap` | network | live | enabled in tools.live.yaml |
 | `nuclei_scan` | `nuclei` | web | live | enabled in tools.live.yaml |
-| `objdump_analyze` | `objdump` | intelligence | runner_N/A | binary not in engage-runner image |
-| `one_gadget_search` | `one` | web | runner_N/A | binary not in engage-runner image |
-| `optimize_tool_parameters_ai` | `optimize` | web | runner_N/A | binary not in engage-runner image |
-| `pacu_exploitation` | `pacu` | web | runner_N/A | binary not in engage-runner image |
+| `objdump_analyze` | `objdump` | intelligence | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `one_gadget_search` | `one` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `optimize_tool_parameters_ai` | `optimize` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `pacu_exploitation` | `pacu` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `paramspider_discovery` | `paramspider` | web | live | enabled in tools.live.yaml |
 | `paramspider_mining` | `paramspider` | web | live | enabled in tools.live.yaml |
-| `pause_process` | `pause` | web | runner_N/A | binary not in engage-runner image |
-| `prowler_scan` | `prowler` | cloud | runner_N/A | binary not in engage-runner image |
-| `pwninit_setup` | `pwninit` | web | runner_N/A | binary not in engage-runner image |
-| `pwntools_exploit` | `pwntools` | web | runner_N/A | binary not in engage-runner image |
-| `qsreplace_parameter_replacement` | `qsreplace` | web | runner_N/A | binary not in engage-runner image |
+| `pause_process` | `pause` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `prowler_scan` | `prowler` | cloud | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `pwninit_setup` | `pwninit` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `pwntools_exploit` | `pwntools` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `qsreplace_parameter_replacement` | `qsreplace` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `radare2_analyze` | `radare2` | binary | live | enabled in tools.live.yaml |
-| `research_zero_day_opportunities` | `research` | web | runner_N/A | binary not in engage-runner image |
-| `responder_credential_harvest` | `responder` | web | runner_N/A | binary not in engage-runner image |
-| `resume_process` | `resume` | web | runner_N/A | binary not in engage-runner image |
-| `ropgadget_search` | `ropgadget` | web | runner_N/A | binary not in engage-runner image |
-| `ropper_gadget_search` | `ropper` | web | runner_N/A | binary not in engage-runner image |
-| `rpcclient_enumeration` | `rpcclient` | web | runner_N/A | binary not in engage-runner image |
+| `research_zero_day_opportunities` | `research` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `responder_credential_harvest` | `responder` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `resume_process` | `resume` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `ropgadget_search` | `ropgadget` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `ropper_gadget_search` | `ropper` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `rpcclient_enumeration` | `rpcclient` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `rustscan_fast_scan` | `rustscan` | network | live | enabled in tools.live.yaml |
-| `scout_suite_assessment` | `scout` | cloud | runner_N/A | binary not in engage-runner image |
-| `select_optimal_tools_ai` | `select` | web | runner_N/A | binary not in engage-runner image |
-| `server_health` | `server` | web | runner_N/A | binary not in engage-runner image |
-| `smbmap_scan` | `smbmap` | web | runner_N/A | binary not in engage-runner image |
+| `scout_suite_assessment` | `scout` | cloud | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `select_optimal_tools_ai` | `select` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `server_health` | `server` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `smbmap_scan` | `smbmap` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `sqlmap_scan` | `sqlmap` | web | live | enabled in tools.live.yaml |
-| `steghide_analysis` | `steghide` | web | runner_N/A | binary not in engage-runner image |
-| `strings_extract` | `strings` | web | runner_N/A | binary not in engage-runner image |
+| `steghide_analysis` | `steghide` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `strings_extract` | `strings` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `subfinder_scan` | `subfinder` | osint | live | enabled in tools.live.yaml |
 | `target_timeline_intelligence` | `api` | intelligence | bridge_api | in-process MCP bridge handler |
-| `terminate_process` | `terminate` | web | runner_N/A | binary not in engage-runner image |
-| `terrascan_iac_scan` | `terrascan` | web | runner_N/A | binary not in engage-runner image |
-| `test_error_recovery` | `test` | web | runner_N/A | binary not in engage-runner image |
-| `threat_hunting_assistant` | `threat` | web | runner_N/A | binary not in engage-runner image |
+| `terminate_process` | `terminate` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `terrascan_iac_scan` | `terrascan` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `test_error_recovery` | `test` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `threat_hunting_assistant` | `threat` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `trivy_scan` | `trivy` | cloud | live | enabled in tools.live.yaml |
-| `uro_url_filtering` | `uro` | web | runner_N/A | binary not in engage-runner image |
-| `volatility3_analyze` | `volatility3` | intelligence | runner_N/A | binary not in engage-runner image |
+| `uro_url_filtering` | `uro` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `volatility3_analyze` | `volatility3` | intelligence | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `volatility_analyze` | `volatility` | intelligence | live | enabled in tools.live.yaml |
-| `vulnerability_intelligence_dashboard` | `vulnerability` | intelligence | runner_N/A | binary not in engage-runner image |
+| `vulnerability_intelligence_dashboard` | `vulnerability` | intelligence | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `wafw00f_scan` | `wafw00f` | web | live | enabled in tools.live.yaml |
 | `waybackurls_discovery` | `waybackurls` | web | live | enabled in tools.live.yaml |
-| `wfuzz_scan` | `wfuzz` | web | runner_N/A | binary not in engage-runner image |
+| `wfuzz_scan` | `wfuzz` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
 | `wpscan_analyze` | `wpscan` | web | live | enabled in tools.live.yaml |
 | `x8_parameter_discovery` | `x8` | web | live | enabled in tools.live.yaml |
-| `xsser_scan` | `xsser` | web | runner_N/A | binary not in engage-runner image |
-| `xxd_hexdump` | `xxd` | web | runner_N/A | binary not in engage-runner image |
-| `zap_scan` | `zap` | web | runner_N/A | binary not in engage-runner image |
+| `xsser_scan` | `xsser` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `xxd_hexdump` | `xxd` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |
+| `zap_scan` | `zap` | web | runner | binary in engage-runner image (enable via tools.live.yaml) |

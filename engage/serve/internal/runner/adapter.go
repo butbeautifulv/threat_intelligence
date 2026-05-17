@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/butbeautifulv/veil/pkg/exec"
@@ -20,6 +21,14 @@ var (
 	LookupBinary      = exec.LookupBinary
 	NewSandboxFromEnv = exec.NewSandboxFromEnv
 )
+
+// LookupCatalogBinary resolves a catalog binary on PATH when it is in CatalogBinaries.
+func LookupCatalogBinary(name string) (string, error) {
+	if !IsCatalogBinary(name) {
+		return "", fmt.Errorf("binary %q not in engage-runner catalog allowlist", name)
+	}
+	return LookupBinary(name)
+}
 
 // Executor runs allowlisted binaries; browser catalog tools use the sidecar when configured.
 type Executor struct {

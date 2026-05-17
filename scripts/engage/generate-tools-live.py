@@ -10,19 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 OUT = ROOT / "engage/serve/catalog/tools.live.yaml"
 
-# Tier-1 catalog entries whose binary is installed in engage-runner (Phase 19).
-RUNNER_BINARIES = frozenset({
-    "nmap", "masscan", "sqlmap", "nikto", "gobuster", "feroxbuster",
-    "nuclei", "httpx", "subfinder", "katana", "naabu", "dnsx", "gau",
-    "waybackurls", "dalfox", "amass", "ffuf", "arjun", "dirsearch",
-    "paramspider", "rustscan", "trivy",
-    "dnsenum", "fierce", "hydra", "wafw00f", "enum4linux", "enum4linux-ng",
-    "sslscan", "testssl", "dirb",
-    "whatweb", "nbtscan", "binwalk", "jaeles", "x8",
-    # P9g: engage-runner-full (headless wrappers)
-    "burpsuite", "ghidra", "hashcat", "john", "gdb", "metasploit",
-    "angr", "radare2", "volatility", "wpscan",
-})
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from runner_binaries import RUNNER_BINARIES  # noqa: E402
 
 # Phase audit P0: align with apt packages in deploy/engage/docker/runner.Dockerfile.
 

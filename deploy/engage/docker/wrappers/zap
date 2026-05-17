@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+ZAP_SH="/opt/zap/zap.sh"
+if [ -x "$ZAP_SH" ]; then
+  exec "$ZAP_SH" "$@"
+fi
+exec engage-stub "$@"
