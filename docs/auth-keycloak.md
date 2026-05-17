@@ -87,8 +87,21 @@ When `MCP_HTTP_ENABLED=1`, the MCP binary listens on `MCP_HTTP_LISTEN` (default 
 
 See [mcp-agents.md](mcp-agents.md) for curl examples and client configuration.
 
+## Unified edge (secure-unified stack)
+
+When graph and engage share [deploy/platform/nginx](../deploy/platform/nginx/) (stack [secure-unified](../deploy/stacks/secure-unified.yml)), route clients by **path prefix** and issue roles accordingly:
+
+| Path | Roles (`RBAC_ENABLED=1`) |
+|------|--------------------------|
+| `/v1/*`, `/kinds`, `/mcp` | `veil-reader`, `veil-admin` |
+| `/api/*`, `/engage-mcp/*` | `veil-engage-runner`, `veil-engage-admin` |
+| `/health`, `/engage/health` | Unauthenticated liveness at the app layer |
+
+Nginx passes `Authorization` through to all upstreams; validation stays in `api`, `mcp`, `engage-api`, and `engage-mcp`. Full matrix and bring-up: [platform-unified-access.md](platform-unified-access.md).
+
 ## Related
 
+- [platform-unified-access.md](platform-unified-access.md) — path prefixes and unified TLS edge
 - [mcp-agents.md](mcp-agents.md) — MCP client configuration
 - [threatintel-runtime.md](threatintel-runtime.md) — ports and services
 - [SECURITY.md](../SECURITY.md) — reporting vulnerabilities
