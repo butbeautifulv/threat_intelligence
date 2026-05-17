@@ -61,6 +61,31 @@ func TestCheckTarget_table(t *testing.T) {
 	}
 }
 
+func TestEnforceTarget_denylistAlwaysBlocksMetadata(t *testing.T) {
+	for _, mode := range []TargetGuardMode{TargetGuardOff, TargetGuardWarn, TargetGuardBlock} {
+		t.Run(string(mode), func(t *testing.T) {
+			blocked, reason := EnforceTarget("http://169.254.169.254/latest/meta-data/", mode)
+			if !blocked {
+				t.Fatalf("mode %q: expected metadata blocked", mode)
+			}
+			if !strings.Contains(strings.ToLower(reason), "metadata") {
+				t.Fatalf("reason %q", reason)
+			}
+		})
+	}
+}
+
+func TestEnforceTarget_privateOnlyWhenBlock(t *testing.T) {
+	blocked, _ := EnforceTarget("10.0.0.1", TargetGuardOff)
+	if blocked {
+		t.Fatal("RFC1918 should be allowed when guard is off")
+	}
+	blocked, _ = EnforceTarget("10.0.0.1", TargetGuardBlock)
+	if !blocked {
+		t.Fatal("RFC1918 should be blocked when guard is block")
+	}
+}
+
 func TestParseTargetGuardMode_prodDefault(t *testing.T) {
 	m := ParseTargetGuardMode(func(k string) string {
 		if k == "ENGAGE_ENV" {

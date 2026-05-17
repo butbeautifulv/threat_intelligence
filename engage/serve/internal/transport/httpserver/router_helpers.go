@@ -5,8 +5,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/butbeautifulv/veil/engage/serve/internal/components"
+	"github.com/butbeautifulv/veil/engage/serve/internal/security"
 	domainreport "github.com/butbeautifulv/veil/pkg/engage/domain/report"
 	"github.com/butbeautifulv/veil/pkg/auth"
+	"github.com/butbeautifulv/veil/pkg/engage/contract"
 )
 
 func parseFindings(raw any) []domainreport.Finding {
@@ -92,4 +95,27 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
+}
+
+func targetGuardMode(c *components.APIComponents) security.TargetGuardMode {
+	if c == nil || c.Tools == nil {
+		return security.TargetGuardOff
+	}
+	mode := c.Tools.TargetGuard
+	if mode == "" {
+		return security.TargetGuardOff
+	}
+	return mode
+}
+
+func rejectBlockedTarget(w http.ResponseWriter, c *components.APIComponents, target, toolName string) bool {
+	if blocked, reason := security.EnforceTarget(target, targetGuardMode(c)); blocked {
+		writeJSON(w, http.StatusForbidden, contract.ToolRunResponse{
+			Success: false,
+			Tool:    toolName,
+			Error:   security.TargetGuardMessage(reason),
+		})
+		return true
+	}
+	return false
 }

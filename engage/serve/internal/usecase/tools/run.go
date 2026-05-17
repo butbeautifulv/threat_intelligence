@@ -120,15 +120,10 @@ func (r *Runner) runOnce(ctx context.Context, subject string, name string, req c
 	if guardMode == "" {
 		guardMode = security.TargetGuardOff
 	}
-	if blocked, reason := security.CheckTarget(req.Target); blocked {
-		switch guardMode {
-		case security.TargetGuardBlock:
-			msg := "target blocked by ENGAGE_TARGET_GUARD: " + reason
-			r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-block-%d", name, time.Now().UnixNano()), false, msg)
-			return contract.ToolRunResponse{Success: false, Tool: name, Error: msg}
-		case security.TargetGuardWarn:
-			// allow but audit note is optional — emit as failed=false with stderr prefix in output only on block
-		}
+	if blocked, reason := security.EnforceTarget(req.Target, guardMode); blocked {
+		msg := security.TargetGuardMessage(reason)
+		r.emitAudit(subject, name, req.Target, fmt.Sprintf("%s-block-%d", name, time.Now().UnixNano()), false, msg)
+		return contract.ToolRunResponse{Success: false, Tool: name, Error: msg}
 	}
 	spec, err := r.Registry.MustGet(name)
 	if err != nil {
