@@ -169,7 +169,7 @@ Verify host binding: only `443` (or `UNIFIED_NGINX_HTTPS_PORT`). Call graph and 
 ## Verification (full P12 program)
 
 ```bash
-make test-platform-unified-edge   # after P12i
+make test-platform-unified-edge   # P12i Docker smoke (unified nginx edge)
 make test-platform-p7
 make test-knowledge test-engage
 ```

@@ -156,6 +156,7 @@ E2E smoke: `./scripts/test/smoke-scrape-e2e.sh --up` then `./scripts/test/smoke-
 
 ```bash
 make test-platform-p0              # pkg + NATS bus (no Docker)
+make test-platform-unified-edge    # P12: TLS nginx /v1, /api, /mcp/graph, /mcp/engage (Docker)
 make test-platform-closed-loop     # engage → ingest → Neo4j → target-graph
 make test-platform-full-loop         # scrape + closed loop (heavy Docker)
 ```
@@ -253,6 +254,7 @@ make test-agent-eval-pilot        # GAIA offline harness smoke
 make test-agent-eval-paper        # GAIA arXiv Fig. 1 format checks
 make test-platform-p7             # pkg domain + bus slices (CI on PR)
 make test-platform-p0             # Platform bus unit tests
+make test-platform-unified-edge   # P12 unified TLS edge smoke (Docker)
 make test-platform-closed-loop    # Platform closed-loop pilot (Docker)
 make test-platform-full-loop      # Platform full loop with scrape (Docker, heavy)
 make deploy-helm-template         # Helm chart render check

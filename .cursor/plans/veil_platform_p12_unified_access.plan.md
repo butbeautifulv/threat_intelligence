@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: p12i-smoke
     content: "P12i: smoke-unified-edge + CI"
-    status: pending
+    status: completed
   - id: p12j-docs
     content: "P12j: README, mcp-agents, AGENTS"
     status: completed
@@ -56,7 +56,7 @@ isProject: false
 | P12f | `platform/p12f-unified-mcp-http` | done |
 | P12g | `platform/p12g-unified-api-facade` | done |
 | P12h | `platform/p12h-unified-auth-edge` | done |
-| P12i | `platform/p12i-unified-edge-smoke` | pending (branch stale; implement smoke locally) |
+| P12i | `platform/p12i-unified-edge-smoke` | done — `scripts/test/smoke-unified-edge.sh`, CI `platform.yml` |
 | P12j | `platform/p12j-unified-access-docs` | done |
 
 ## Verification

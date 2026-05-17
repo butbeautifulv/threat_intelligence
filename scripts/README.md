@@ -27,6 +27,7 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [housekeeping/lint-markdown-dir-links.sh](housekeeping/lint-markdown-dir-links.sh) | Lint directory links (trailing `/`) in `*.md` |
 | [test/smoke-scrape-e2e.sh](test/smoke-scrape-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
 | [test/smoke-graph-read.sh](test/smoke-graph-read.sh) | Graph read smoke: Neo4j + API + MCP HTTP (no scrape/NATS) |
+| [test/smoke-unified-edge.sh](test/smoke-unified-edge.sh) | P12 unified TLS nginx edge: `/v1`, `/api`, `/mcp/graph`, `/mcp/engage` |
 | [mcp/run-veil-mcp.sh](mcp/run-veil-mcp.sh) | MCP stdio launcher for agents (logs on stderr) |
 | [smoke/mcp-smoke.sh](smoke/mcp-smoke.sh) | MCP stdio smoke against local Neo4j |
 | [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`) |

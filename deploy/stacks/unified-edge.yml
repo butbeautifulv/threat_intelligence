@@ -33,3 +33,4 @@ notes:
     ingress; use one edge model per deployment.
 scripts:
   - scripts/ops/compose-up-veil-engage.sh
+  - scripts/test/smoke-unified-edge.sh

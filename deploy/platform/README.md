@@ -48,6 +48,15 @@ docker compose \
   up -d --build
 ```
 
+## Automated smoke (P12i)
+
+```bash
+make test-platform-unified-edge
+# or: ./scripts/test/smoke-unified-edge.sh [--up] [--down]
+```
+
+Skip in CI locally: `SMOKE_SKIP_UNIFIED_EDGE=1`.
+
 ## Curl smoke (through veil-edge)
 
 Assume `VEIL_EDGE_HTTPS_PORT=443` and dev cert from above (`-k` skips verify).
