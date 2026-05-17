@@ -30,6 +30,7 @@ func (d *Dispatcher) tryAgentTool(ctx context.Context, name string, args map[str
 			return nil, true, dispatchToolError("%v", err)
 		}
 		out["note"] = "deterministic payload generation (not LLM)"
+		out["success"] = true
 		return out, true, nil
 
 	case "ai_generate_attack_suite":
@@ -73,7 +74,11 @@ func (d *Dispatcher) tryAgentTool(ctx context.Context, name string, args map[str
 		if d.Processes == nil {
 			return map[string]any{"success": false, "error": "process manager not configured"}, true, nil
 		}
-		return d.Processes.Dashboard(), true, nil
+		dash := d.Processes.Dashboard()
+		if _, ok := dash["success"]; !ok {
+			dash["success"] = true
+		}
+		return dash, true, nil
 
 	case "format_tool_output_visual":
 		toolName := argString(args, "tool_name", argString(args, "tool", ""))

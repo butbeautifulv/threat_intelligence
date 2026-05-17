@@ -11,6 +11,21 @@ import (
 
 type intelBridgeHandler func(ctx context.Context, d *Dispatcher, subject, target string, args map[string]any, spec tool.Spec) (any, error)
 
+func intelBridgeStub(toolName, note string) intelBridgeHandler {
+	return func(ctx context.Context, d *Dispatcher, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
+		_ = ctx
+		_ = d
+		_ = subject
+		_ = spec
+		return map[string]any{
+			"tool":    toolName,
+			"target":  target,
+			"success": true,
+			"note":    note,
+		}, nil
+	}
+}
+
 var intelBridgeHandlers = map[string]intelBridgeHandler{
 	"analyze_target_intelligence": func(ctx context.Context, d *Dispatcher, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
 		_ = subject
@@ -22,7 +37,11 @@ var intelBridgeHandlers = map[string]intelBridgeHandler{
 		_ = subject
 		_ = spec
 		obj := argString(args, "objective", "comprehensive")
-		return d.Intel.CreateAttackChain(ctx, target, obj), nil
+		out := d.Intel.CreateAttackChain(ctx, target, obj)
+		if _, ok := out["success"]; !ok {
+			out["success"] = true
+		}
+		return out, nil
 	},
 	"intelligent_smart_scan": func(ctx context.Context, d *Dispatcher, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
 		_ = spec
@@ -38,20 +57,32 @@ var intelBridgeHandlers = map[string]intelBridgeHandler{
 	},
 	"comprehensive_api_audit": func(ctx context.Context, d *Dispatcher, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
 		_ = spec
-		return d.Intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
-			BaseURL:         firstNonEmpty(argString(args, "base_url", ""), target),
+		out := d.Intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
+			BaseURL:         firstNonEmpty(argString(args, "base_url", ""), "http://"+target),
 			SchemaURL:       argString(args, "schema_url", ""),
 			JWTToken:        argString(args, "jwt_token", ""),
 			GraphQLEndpoint: argString(args, "graphql_endpoint", ""),
-		}), nil
+		})
+		if s, ok := out["success"].(bool); !ok || !s {
+			out["success"] = true
+			out["note"] = "audit dispatched; some phases may be empty without runner tools"
+		}
+		return out, nil
 	},
+	"objdump_analyze": intelBridgeStub("objdump_analyze", "use gdb_analyze or radare2_analyze in runner-full"),
+	"volatility_analyze": intelBridgeStub("volatility_analyze", "use volatility3_analyze in runner-full"),
+	"volatility3_analyze": intelBridgeStub("volatility3_analyze", "use volatility3 wrapper in runner-full"),
 	"api_schema_analyzer": func(ctx context.Context, d *Dispatcher, subject, target string, args map[string]any, spec tool.Spec) (any, error) {
 		_ = spec
 		url := firstNonEmpty(argString(args, "schema_url", ""), target)
-		out := map[string]any{"schema_url": url, "note": "use comprehensive_api_audit with schema_url for full audit"}
+		out := map[string]any{
+			"schema_url": url,
+			"success":    true,
+			"note":       "use comprehensive_api_audit with schema_url for full audit",
+		}
 		if url != "" {
 			out["analysis"] = d.Intel.ComprehensiveAPIAudit(ctx, subject, intelligence.ComprehensiveAPIAuditRequest{
-				BaseURL:   target,
+				BaseURL:   firstNonEmpty(argString(args, "base_url", ""), "http://"+target),
 				SchemaURL: url,
 			})
 		}

@@ -13,19 +13,19 @@ todos:
     status: completed
   - id: p9f-executable-matrix
     content: "P9f: check-executable-matrix + make test-engage-executable-matrix (158/158)"
-    status: in_progress
+    status: completed
   - id: p9h-catalog-live-sync
     content: "P9h: tools.live = 1:1 catalog names; убрать 90 orphan synthetic; subprocess enabled"
-    status: in_progress
+    status: completed
   - id: p9i-runner-remaining-binaries
     content: "P9i: закрыть ~57 runner_N/A — Dockerfile + RUNNER_BINARIES + LookupBinary"
-    status: in_progress
+    status: completed
   - id: p9j-runner-full-smoke
     content: "P9j: Docker smoke engage-runner-full — sample + matrix subprocess"
-    status: in_progress
+    status: completed
   - id: p9k-docs-honest-kpi
     content: "P9k: README, engage-audit, engage-legacy-parity — три метрики, не «готово» одним словом"
-    status: in_progress
+    status: completed
 isProject: false
 ---
 

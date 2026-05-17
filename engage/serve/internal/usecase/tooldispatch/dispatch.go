@@ -57,13 +57,13 @@ func (d *Dispatcher) Dispatch(ctx context.Context, subject, name string, args ma
 	if !ok {
 		return nil, dispatchNotFound("unknown tool: %s", name)
 	}
-	if IsIntelBridgeTool(name, spec) {
-		return d.callIntelBridge(ctx, name, spec, args)
-	}
 	if IsBridgeWorkflowBinary(spec.Binary) {
 		if out, ok, err := d.tryBridgeWorkflowTool(ctx, name, args); ok {
 			return out, err
 		}
+	}
+	if IsIntelBridgeTool(name, spec) {
+		return d.callIntelBridge(ctx, name, spec, args)
 	}
 	res := d.Runner.Run(ctx, subject, name, RequestFromArgs(args))
 	if !res.Success && res.Error != "" {
@@ -78,6 +78,9 @@ func IsIntelBridgeTool(name string, spec tool.Spec) bool {
 		return true
 	}
 	if name == "monitor_cve_feeds" || name == "generate_exploit_from_cve" {
+		return true
+	}
+	if _, ok := intelBridgeHandlers[name]; ok {
 		return true
 	}
 	if spec.Category == toolid.CategoryCTF {

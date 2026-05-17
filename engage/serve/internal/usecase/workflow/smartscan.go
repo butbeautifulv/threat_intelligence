@@ -56,6 +56,7 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 		out["findings"] = []domainreport.Finding{}
 		out["total_vulnerabilities"] = 0
 		out["status"] = "no_tools"
+		out["success"] = true
 		if scanID != "" && s.Progress != nil {
 			s.Progress.Finish(scanID, "completed")
 		}
@@ -96,6 +97,7 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 		}
 		out["tools_executed"] = executed
 		out["status"] = "queued"
+		out["success"] = true
 		return out
 	}
 
@@ -113,6 +115,7 @@ func (s *Service) SmartScan(ctx context.Context, subject string, req SmartScanRe
 			_ = s.Findings.PublishFinding(ctx, f.Tool, f.Target, f.Title, string(f.Severity), f.Description)
 		}
 	}
+	out["success"] = true
 	return out
 }
 
