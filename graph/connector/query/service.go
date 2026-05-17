@@ -46,7 +46,7 @@ const seedMatchByID = `elementId(seed) = $id OR seed.id = $id OR seed.cve = $id 
 // ListKinds returns all distinct labels sorted (legacy / discovery).
 func (s *Service) ListKinds(ctx context.Context) ([]string, error) {
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
-		r, err := tx.Run(ctx, `MATCH (n) UNWIND labels(n) AS l RETURN DISTINCT l AS label ORDER BY label`, nil)
+		r, err := tx.Run(ctx, listKindsCypher, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -69,13 +69,7 @@ func (s *Service) ListKindsInCategory(ctx context.Context, category string) ([]K
 		return nil, fmt.Errorf("unknown category: %s", category)
 	}
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
-		r, err := tx.Run(ctx, `
-MATCH (n)
-UNWIND labels(n) AS l
-WHERE l IN $allowed
-RETURN l AS kind, count(DISTINCT n) AS c
-ORDER BY c DESC
-`, map[string]any{"allowed": allowed})
+		r, err := tx.Run(ctx, listKindsInCategoryCypher, map[string]any{"allowed": allowed})
 		if err != nil {
 			return nil, err
 		}
@@ -100,17 +94,9 @@ func (s *Service) NodesByKind(ctx context.Context, kind string, limit, offset in
 	if kind == "" {
 		return nil, fmt.Errorf("kind is empty")
 	}
-	if limit <= 0 || limit > 5000 {
-		limit = 200
-	}
-	if offset < 0 {
-		offset = 0
-	}
-	q := fmt.Sprintf(`
-MATCH (n:%s)
-WITH n SKIP $offset LIMIT $limit
-RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
-`, safeLabel(kind))
+	limit = clampLimit(limit, 200, 5000)
+	offset = clampOffset(offset)
+	q := buildNodesByKindCypher(kind)
 	return s.runNodesQuery(ctx, q, map[string]any{"limit": limit, "offset": offset})
 }
 
@@ -171,11 +157,7 @@ func (s *Service) GetNode(ctx context.Context, id string) (*Node, error) {
 	if id == "" {
 		return nil, fmt.Errorf("id is empty")
 	}
-	q := `
-MATCH (n)
-WHERE ` + nodeMatchByID + `
-RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
-LIMIT 1`
+	q := buildGetNodeCypher()
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
 		r, err := tx.Run(ctx, q, map[string]any{"id": id})
 		if err != nil {
@@ -207,24 +189,10 @@ func (s *Service) Neighbors(ctx context.Context, id string, depth, limit int) (*
 	if id == "" {
 		return nil, fmt.Errorf("id is empty")
 	}
-	if depth <= 0 || depth > 3 {
-		depth = 1
-	}
-	if limit <= 0 || limit > 5000 {
-		limit = 500
-	}
+	depth = clampDepth(depth)
+	limit = clampLimit(limit, 500, 5000)
 	res, err := s.exec.ExecRead(ctx, func(tx driver.ManagedTransaction) (any, error) {
-		r, err := tx.Run(ctx, fmt.Sprintf(`
-MATCH (seed)
-WHERE %s
-WITH seed
-MATCH p=(seed)-[r*1..%d]-(n)
-WITH collect(DISTINCT seed) + collect(DISTINCT n) AS ns, relationships(p) AS rs
-UNWIND ns AS node
-WITH DISTINCT node, rs
-RETURN elementId(node) AS id, labels(node) AS labels, properties(node) AS props, rs AS rels
-LIMIT $limit
-`, seedMatchByID, depth), map[string]any{"id": id, "limit": limit})
+		r, err := tx.Run(ctx, buildNeighborsNodesCypher(depth), map[string]any{"id": id, "limit": limit})
 		if err != nil {
 			return nil, err
 		}
@@ -252,14 +220,7 @@ LIMIT $limit
 			nodes = append(nodes, n)
 		}
 
-		edgesRes, err := tx.Run(ctx, fmt.Sprintf(`
-MATCH (seed)
-WHERE %s
-MATCH p=(seed)-[r*1..%d]-(n)
-UNWIND relationships(p) AS rel
-RETURN DISTINCT elementId(rel) AS id, type(rel) AS type, elementId(startNode(rel)) AS source, elementId(endNode(rel)) AS target
-LIMIT $limit
-`, seedMatchByID, depth), map[string]any{"id": id, "limit": limit})
+		edgesRes, err := tx.Run(ctx, buildNeighborsEdgesCypher(depth), map[string]any{"id": id, "limit": limit})
 		if err != nil {
 			return nil, err
 		}
@@ -290,28 +251,10 @@ func (s *Service) Search(ctx context.Context, query, kind string, limit int) ([]
 	if query == "" {
 		return nil, fmt.Errorf("query is empty")
 	}
-	if limit <= 0 || limit > 2000 {
-		limit = 50
-	}
+	limit = clampLimit(limit, 50, 2000)
 	kind = strings.TrimSpace(kind)
 	params := map[string]any{"q": strings.ToLower(query), "limit": limit}
-	var q string
-	if kind != "" {
-		q = fmt.Sprintf(`
-MATCH (n:%s)
-WHERE (`+nodeTextSearchPredicate+`)
-RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
-LIMIT $limit
-`, safeLabel(kind))
-	} else {
-		q = `
-MATCH (n)
-WHERE (` + nodeTextSearchPredicate + `)
-RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
-LIMIT $limit
-`
-	}
-	return s.runNodesQuery(ctx, q, params)
+	return s.runNodesQuery(ctx, buildSearchCypher(kind), params)
 }
 
 // SearchInCategory restricts search to nodes that have at least one label from the category.
@@ -324,33 +267,13 @@ func (s *Service) SearchInCategory(ctx context.Context, category, queryText, kin
 	if queryText == "" {
 		return nil, fmt.Errorf("query is empty")
 	}
-	if limit <= 0 || limit > 2000 {
-		limit = 50
-	}
+	limit = clampLimit(limit, 50, 2000)
 	kind = strings.TrimSpace(kind)
 	if kind != "" && !labelInList(kind, allowed) {
 		return nil, fmt.Errorf("kind %q is not in category %q", kind, category)
 	}
 	params := map[string]any{"q": strings.ToLower(queryText), "limit": limit, "allowed": allowed}
-	var cy string
-	if kind != "" {
-		cy = fmt.Sprintf(`
-MATCH (n:%s)
-WHERE any(l IN labels(n) WHERE l IN $allowed)
-AND (`+nodeTextSearchPredicate+`)
-RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
-LIMIT $limit
-`, safeLabel(kind))
-	} else {
-		cy = `
-MATCH (n)
-WHERE any(l IN labels(n) WHERE l IN $allowed)
-AND (` + nodeTextSearchPredicate + `)
-RETURN elementId(n) AS id, labels(n) AS labels, properties(n) AS props
-LIMIT $limit
-`
-	}
-	return s.runNodesQuery(ctx, cy, params)
+	return s.runNodesQuery(ctx, buildSearchInCategoryCypher(kind), params)
 }
 
 func safeLabel(label string) string {
