@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVER = ROOT / ".external/hexstrike-ai-master/hexstrike_server.py"
-OUT_JSON = ROOT / "engage/serve/internal/usecase/intelligence/testdata/effectiveness_legacy.json"
+OUT_JSON = ROOT / "pkg/decision/testdata/effectiveness_legacy.json"
 
 # HexStrike TargetType enum values -> engage target types
 TYPE_MAP = {

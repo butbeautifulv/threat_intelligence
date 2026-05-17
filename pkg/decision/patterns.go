@@ -1,4 +1,4 @@
-package intelligence
+package decision
 
 import "strings"
 
@@ -220,7 +220,8 @@ func SelectPatternKey(targetType, objective string) string {
 	}
 }
 
-func filterStealthTools(toolIDs []string) []string {
+// FilterStealthTools keeps only low-noise tool ids (max 4).
+func FilterStealthTools(toolIDs []string) []string {
 	out := make([]string, 0, 4)
 	for _, id := range toolIDs {
 		if _, ok := stealthToolIDs[id]; ok {
@@ -233,7 +234,8 @@ func filterStealthTools(toolIDs []string) []string {
 	return out
 }
 
-func filterComprehensiveTools(eng *DecisionEngine, targetType string, toolIDs []string) []string {
+// FilterComprehensiveTools keeps tools with effectiveness above 0.7.
+func FilterComprehensiveTools(eng *DecisionEngine, targetType string, toolIDs []string) []string {
 	out := make([]string, 0, len(toolIDs))
 	for _, id := range toolIDs {
 		if eng.Score(targetType, id) > 0.7 {

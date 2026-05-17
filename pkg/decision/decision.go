@@ -1,4 +1,4 @@
-package intelligence
+package decision
 
 // DecisionEngine scores tools per target type (port of HexStrike IntelligentDecisionEngine tables).
 type DecisionEngine struct {

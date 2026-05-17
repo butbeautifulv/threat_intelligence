@@ -1,4 +1,4 @@
-package intelligence
+package decision
 
 // executionTimeEstimates mirrors HexStrike create_attack_chain time_estimates (seconds).
 var executionTimeEstimates = map[string]int{
@@ -15,17 +15,20 @@ var executionTimeEstimates = map[string]int{
 	"dalfox": 240, "jaeles": 180, "wpscan": 300, "arjun": 120,
 }
 
-func executionTimeEstimate(toolID string) int {
+// ExecutionTimeEstimate returns estimated seconds for a tool step.
+func ExecutionTimeEstimate(toolID string) int {
 	if sec, ok := executionTimeEstimates[toolID]; ok {
 		return sec
 	}
 	return 180
 }
 
-func expectedOutcome(toolID string) string {
+// ExpectedOutcome returns a default outcome label for a tool step.
+func ExpectedOutcome(toolID string) string {
 	return "Discover vulnerabilities using " + toolID
 }
 
-func stepSuccessProbability(effectiveness, confidence float64) float64 {
+// StepSuccessProbability combines effectiveness and confidence into step probability.
+func StepSuccessProbability(effectiveness, confidence float64) float64 {
 	return effectiveness * confidence
 }
