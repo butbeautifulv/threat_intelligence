@@ -3,6 +3,9 @@ package tooldispatch
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/butbeautifulv/veil/pkg/engage/domain/tool"
@@ -85,6 +88,35 @@ func TestDispatch_getProcessDashboard(t *testing.T) {
 	}
 }
 
+func engageRepoRoot(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller failed")
+	}
+	root := filepath.Join(filepath.Dir(file), "..", "..", "..", "..", "..")
+	abs, err := filepath.Abs(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(abs, "deploy", "engage", "docker", "wrappers")); err != nil {
+		t.Fatalf("repo root: %v", err)
+	}
+	return abs
+}
+
+func prependEngagePythonWrappers(t *testing.T) {
+	t.Helper()
+	wrap := filepath.Join(engageRepoRoot(t), "deploy", "engage", "docker", "wrappers")
+	for _, name := range []string{"engage-python-install", "engage-python-exec"} {
+		if _, err := os.Stat(filepath.Join(wrap, name)); err != nil {
+			t.Fatalf("missing wrapper %s: %v", name, err)
+		}
+	}
+	t.Setenv("PATH", wrap+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("ENGAGE_PYTHON_BASE", filepath.Join(t.TempDir(), "pyenv"))
+}
+
 func TestIsBridgeWorkflowBinary_pythonRunnerBinaries(t *testing.T) {
 	for _, bin := range []string{"engage-python-install", "engage-python-exec"} {
 		if IsBridgeWorkflowBinary(bin) {
@@ -94,6 +126,7 @@ func TestIsBridgeWorkflowBinary_pythonRunnerBinaries(t *testing.T) {
 }
 
 func TestDispatch_pythonTools_useRunnerNotBridge(t *testing.T) {
+	prependEngagePythonWrappers(t)
 	reg := tools.NewRegistry([]tool.Spec{
 		{
 			Name:       "install_python_package",
