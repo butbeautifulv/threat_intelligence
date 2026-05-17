@@ -4,13 +4,13 @@ overview: "Целевая архитектура: discovery, knowledge, pipeline
 todos:
   - id: v8a-domain-complete
     content: "P8a: Завершить pkg/domain — engage target, knowledge read models, zero dup structs"
-    status: in_progress
+    status: completed
   - id: v8b-pkg-report
     content: "P8b: pkg/report — HTML/PDF/executive; engage thin adapter"
-    status: in_progress
+    status: completed
   - id: v8c-pkg-decision
     content: "P8c: pkg/decision — intel engine, attack chain, tool selection (from engage)"
-    status: in_progress
+    status: completed
   - id: v8d-api-mcp-facade
     content: "P8d: pkg/api + pkg/mcp — shared transport; graph + optional engage mount"
     status: pending
