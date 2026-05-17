@@ -11,6 +11,13 @@ bins=(
   arjun dirsearch paramspider rustscan trivy
   dnsenum fierce hydra wafw00f enum4linux enum4linux-ng sslscan testssl dirb
   whatweb nbtscan binwalk jaeles x8
+  # P9i: remaining catalog subprocess binaries
+  anew arp correlate delete detect discover display docker dotdotpwn error exiftool
+  falco foremost format graphql hakrawler hashpump install intelligent jwt libc modify
+  monitor msfvenom netexec objdump one optimize pacu pause prowler pwninit pwntools
+  qsreplace research responder resume ropgadget ropper rpcclient scout select server
+  smbmap steghide strings terminate terrascan test threat uro volatility3 vulnerability
+  wfuzz xsser xxd zap
 )
 
 # P9g: 10 headless wrappers + hydra (tier-1) = 12 catalog tools on runner-full

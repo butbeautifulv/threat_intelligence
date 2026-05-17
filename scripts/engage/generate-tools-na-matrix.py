@@ -12,17 +12,8 @@ CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 LIVE = ROOT / "engage/serve/catalog/tools.live.yaml"
 OUT = ROOT / "docs/engage-tools-na-matrix.md"
 
-# Sync with generate-tools-live.py + runner.Dockerfile (tier-1 + P9g runner-full).
-RUNNER_BINARIES = frozenset({
-    "nmap", "masscan", "sqlmap", "nikto", "gobuster", "feroxbuster",
-    "nuclei", "httpx", "subfinder", "katana", "naabu", "dnsx", "gau",
-    "waybackurls", "dalfox", "amass", "ffuf", "arjun", "dirsearch",
-    "paramspider", "rustscan", "trivy", "dnsenum", "fierce", "hydra",
-    "wafw00f", "enum4linux", "sslscan", "testssl", "dirb",
-    "whatweb", "nbtscan", "binwalk", "jaeles", "x8", "enum4linux-ng",
-    "burpsuite", "ghidra", "hashcat", "john", "gdb", "metasploit",
-    "angr", "radare2", "volatility", "wpscan",
-})
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from runner_binaries import RUNNER_BINARIES  # noqa: E402
 
 WORKFLOW_BINARIES = frozenset({
     "api", "bugbounty", "ai", "get", "http", "create", "execute", "generate",
@@ -60,7 +51,7 @@ def classify(name: str, binary: str, live_enabled: bool) -> tuple[str, str]:
             return "live", "enabled in tools.live.yaml"
         return "live", "enabled in tools.live.yaml (synthetic variant)"
     if binary in RUNNER_BINARIES:
-        return "runner_N/A", "binary in runner image but not selected for lab profile"
+        return "runner", "binary in engage-runner image (enable via tools.live.yaml)"
     return "runner_N/A", "binary not in engage-runner image"
 
 
@@ -115,11 +106,14 @@ def main() -> int:
     live_count = len(live_enabled)
     catalog_live = sum(1 for r in rows if r[3] == "live")
     permanent_na = sum(1 for r in rows if r[3] == "permanent_N/A")
+    runner_na = sum(1 for r in rows if r[3] == "runner_N/A")
+    runner_ready = sum(1 for r in rows if r[3] == "runner")
     body = render_md(rows, live_count, catalog_live)
     OUT.write_text(body, encoding="utf-8")
     print(
         f"wrote {OUT} ({len(rows)} catalog, {live_count} live enabled, "
-        f"{catalog_live} catalog live, permanent_N/A={permanent_na})"
+        f"{catalog_live} catalog live, runner={runner_ready}, runner_N/A={runner_na}, "
+        f"permanent_N/A={permanent_na})"
     )
 
     if len(rows) != 158:
@@ -130,6 +124,9 @@ def main() -> int:
         return 1
     if args.check and permanent_na > 0:
         print(f"FAIL: permanent_N/A count {permanent_na} (full port requires 0)", file=sys.stderr)
+        return 1
+    if args.check and runner_na > 0:
+        print(f"FAIL: runner_N/A count {runner_na} (P9i requires 0)", file=sys.stderr)
         return 1
     return 0
 
