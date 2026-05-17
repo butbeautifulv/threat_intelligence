@@ -106,7 +106,7 @@ They solve **different** problems today. Unifying the **name** without splitting
 | **Isolation** | Trust boundary = egress + rate limits; **no** subprocess sandbox | **Sandbox** (`runner.Sandbox`): allowlisted binaries, timeouts, `ProcessTracker` |
 | **Analogue** | Cron + plugin registry | CI job runner + container isolation |
 
-**Recommendation:** add a **cross-cutting execution plane** in `pkg/exec` (name TBD), not rename factory to runner.
+**Recommendation:** use **`pkg/exec`** (P8e) as the cross-cutting execution plane, not rename factory to runner. Plain HTTP feeds stay on `feeds.Client`; optional subprocess spike: `discovery/pkg/execfetch` with `-tags discoveryexec` (see `pkg/exec/README.md`).
 
 | `pkg/exec` capability | Engage (now) | Scrape (future) |
 |----------------------|--------------|-----------------|

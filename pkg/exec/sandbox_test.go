@@ -1,4 +1,4 @@
-package runner
+package exec
 
 import (
 	"os"

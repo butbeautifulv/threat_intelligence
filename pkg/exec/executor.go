@@ -1,4 +1,4 @@
-package runner
+package exec
 
 import (
 	"bytes"
@@ -26,18 +26,6 @@ type Executor struct {
 }
 
 func (e *Executor) Run(ctx context.Context, binary string, args []string, timeout time.Duration, track *TrackInfo) Result {
-	if proxy := NewBrowserProxyFromEnv(); proxy != nil && proxy.Enabled() && IsBrowserBinary(binary) {
-		if timeout <= 0 {
-			timeout = 5 * time.Minute
-		}
-		ctx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
-		target := ""
-		if len(args) > 0 {
-			target = args[0]
-		}
-		return proxy.Exec(ctx, target, args)
-	}
 	if e.Sandbox != nil && e.Sandbox.Enabled() {
 		return e.Sandbox.Exec(ctx, binary, args, timeout, e.Processes, track)
 	}
