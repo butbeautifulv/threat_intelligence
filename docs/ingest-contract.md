@@ -26,7 +26,7 @@ scrape/ → scrape.> (harvest) → pipeline/ → ingest.> (commit) → graph/ �
 
 ### TI commit payloads (NED → graph)
 
-- Upsert kinds (`ti_ioc`, `ti_campaign`, …): payload is **already normalized by NED** (`pipeline/pkg/ti/normalize`).
+- Upsert kinds (`ti_ioc`, `ti_campaign`, …): payload is **already normalized by NED** (`pkg/ti/normalize`).
 - Graph ingest **does not re-normalize**; Neo4j node `id` for IOC/Actor/Report comes from `idempotency_key` (`ti:ioc:…`, `ti:actor:…`, `ti:report:…`) via [pkg/commit/ti_node.go](../pkg/commit/ti_node.go).
 - NVD CWE/CPE parsing runs only in pipeline ([pipeline/pkg/nvd/](../pipeline/pkg/nvd/)); harvest publishes raw `scrape_nvd_page` only.
 

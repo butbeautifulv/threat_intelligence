@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: p7h-pkg-domain-sot
     content: "P7h: pkg/domain contour — ti SOT, engage value objects, platform ids"
-    status: pending
+    status: completed
   - id: p7i-layer-migration
     content: "P7i: Миграция слоёв на pkg/domain — thin adapters, delete dup entity.go"
     status: pending
@@ -358,6 +358,6 @@ make test-engage          # после P7g
 | P7e | `platform/p7e-graph-ingest-tests` | done — merged `3f06963` |
 | P7f | `platform/p7f-graph-serve-tests` | done — merged `9c2cec8` |
 | P7g | `platform/p7g-engage-tests` | done — merged `c723e6d` |
-| P7h | `platform/p7h-pkg-domain-sot` | pending |
+| P7h | `platform/p7h-pkg-domain-sot` | done — `pkg/ti/{validate,ids,normalize}`, docs/domain-contour.md |
 | P7i | `platform/p7i-*-migration` | pending |
 | P7j | `platform/p7j-ci-enforce` | pending |

@@ -8,7 +8,7 @@ import (
 	"github.com/butbeautifulv/veil/pkg/commit"
 	"github.com/butbeautifulv/veil/pkg/harvest"
 	tidomain "github.com/butbeautifulv/veil/pkg/ti/domain"
-	tinormalize "github.com/butbeautifulv/veil/pipeline/pkg/ti/normalize"
+	tinormalize "github.com/butbeautifulv/veil/pkg/ti/normalize"
 )
 
 func TestTransform_IoCRaw_normalizesInPipeline(t *testing.T) {
