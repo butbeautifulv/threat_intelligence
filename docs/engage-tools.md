@@ -157,3 +157,14 @@ GitHub Actions [engage.yml](../.github/workflows/engage.yml):
 | Tool matrix | `smoke-engage-tool-matrix.sh` |
 
 Bug bounty execute smoke: `scripts/test/smoke-bugbounty-recon-execute.sh` (included in `make test-engage-bugbounty`).
+
+## Benchmark regression (not KPI)
+
+Benchmark targets record **timing artifacts for regression** when engage-api (and usually docker runner) are up locally or in nightly jobs. They are **not** product KPIs, SLA gates, or marketing claims (no “24× faster” interpretation).
+
+| Target | Script | Endpoints / tools |
+|--------|--------|-------------------|
+| `make test-engage-benchmark` | [engage-hexstrike-parity.sh](../scripts/benchmark/engage-hexstrike-parity.sh) | Workflow: recon, smart-scan, assessment-report |
+| `make test-engage-benchmark-regression` | [engage-benchmark-baseline.sh](../scripts/test/engage-benchmark-baseline.sh) | Tool runs: `nmap_scan`, `nuclei_scan` |
+
+Both write JSON under `scripts/benchmark/results/` (`latest.json`, `baseline-tools.json`) — gitignored. SKIP or stub JSON is OK when API, curl, or docker is unavailable. Neither target is required in PR CI; use them to compare runs over time, not to pass/fail releases on seconds alone.
