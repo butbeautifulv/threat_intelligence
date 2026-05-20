@@ -1,5 +1,7 @@
 # Engage tool catalog
 
+**Navigation:** [engage-runtime.md](engage-runtime.md) · [engage-install-linux.md](engage-install-linux.md) · [engage-lab-pentest.md](engage-lab-pentest.md) · [engage-legacy-parity.md](engage-legacy-parity.md) · generated [engage-tools-na-matrix.md](engage-tools-na-matrix.md) · [engage-executable-gaps.md](engage-executable-gaps.md) · [engage-tool-install-coverage.md](engage-tool-install-coverage.md)
+
 Tools are defined in YAML and loaded at startup (merged in order, **later overrides**): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`.
 
 ## Three KPIs (do not conflate)
@@ -180,3 +182,30 @@ Benchmark targets record **timing artifacts for regression** when engage-api (an
 | `make test-engage-benchmark-regression` | [engage-benchmark-baseline.sh](../scripts/test/engage-benchmark-baseline.sh) | Tool runs: `nmap_scan`, `nuclei_scan` |
 
 Both write JSON under `scripts/benchmark/results/` (`latest.json`, `baseline-tools.json`) — gitignored. SKIP or stub JSON is OK when API, curl, or docker is unavailable. Neither target is required in PR CI; use them to compare runs over time, not to pass/fail releases on seconds alone.
+
+## Assessment reports
+
+Export branded deliverables via `POST /api/visual/export-report`.
+
+```json
+{
+  "target": "https://example.com",
+  "format": "html",
+  "findings": [{"title": "Open port 443", "severity": "medium"}],
+  "branding": {
+    "organization": "Acme Security",
+    "classification": "CONFIDENTIAL",
+    "footer": "Authorized assessment only"
+  }
+}
+```
+
+| Field | Values |
+|-------|--------|
+| `format` | `pdf` (default) or `html` |
+| `branding` | Optional org name, classification banner, footer |
+| `summary_report` | Alternative to inline `target` + `findings` |
+
+**Response:** PDF → `pdf_base64`, `size_bytes`; HTML → `html` body. Set `save_file: true` to persist under `ENGAGE_FILES_DIR`.
+
+**Structured findings** (assessment / smart-scan): nuclei JSONL, nmap open ports, ffuf/sqlmap shapes — see parsers in [engage-llm-stubs.md](engage-llm-stubs.md) for `ai_*` vs subprocess tools.

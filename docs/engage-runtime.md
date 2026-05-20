@@ -2,6 +2,8 @@
 
 **Engage** is the fourth Veil layer: authorized offensive security tooling, workflows, and reports. It is separate from the graph read path.
 
+**Ports (dev):** engage-api **8890**, engage-mcp HTTP **8892**, secure nginx **8443**. Graph stack ports (8090/8091/7474/7687) are in [threatintel-runtime.md](threatintel-runtime.md). Quick start: [README.md](../README.md#quick-start) · compose: [deploy/engage/README.md](../deploy/engage/README.md).
+
 ## Threat model
 
 | Risk | Mitigation |
@@ -9,14 +11,6 @@
 | Unauthenticated tool execution | Keycloak JWT, `VEIL_REQUIRE_AUTH`, nginx TLS |
 | Collateral damage / illegal use | Lab/VPN only; RBAC roles `veil-engage-runner`, `veil-engage-admin` |
 | Graph exfiltration via engage | Engage uses veil-api with service account (`veil-reader`), not direct Neo4j |
-
-## Ports (dev)
-
-| Service | Port |
-|---------|------|
-| engage-api | 8890 |
-| engage-mcp HTTP (optional) | 8892 |
-| nginx (secure overlay) | 8443 |
 
 ## Environment
 
@@ -94,23 +88,7 @@ Secure overlay: `deploy/engage/compose.secure.yml` + `deploy/profiles/secure-eng
 
 ### Runner profile (docker exec, legacy lab/CI only)
 
-Default production/developer path is `ENGAGE_EXECUTION_PROFILE=client-native` (no runner container). This overlay sets `ENGAGE_EXECUTION_PROFILE=docker-exec` before `ENGAGE_RUNNER_MODE=docker`. Isolated toolbox runs in `engage-runner`; API uses `docker exec` when `ENGAGE_RUNNER_MODE=docker`. The API image must include the Docker CLI and mount the host socket — **root-equivalent on the host**; use only in lab/VPN, not in the distroless secure profile.
-
-```bash
-docker compose -f deploy/engage/compose.yml \
-  -f deploy/engage/compose.runner.yml \
-  --profile runner up -d --build engage-runner engage-api
-
-curl -sS -X POST http://localhost:8890/api/tools/nmap_scan \
-  -H 'Content-Type: application/json' \
-  -d '{"target":"127.0.0.1","parameters":{"scan_type":"-sn","ports":"","additional_args":"-T4"}}'
-```
-
-| File | Role |
-|------|------|
-| `deploy/engage/compose.runner.yml` | Overlay: `api-runner.Dockerfile`, socket mount, `ENGAGE_RUNNER_MODE=docker` |
-| `deploy/engage/docker/api-runner.Dockerfile` | API + Docker CLI (dev/lab) |
-| `engage-runner` | `container_name: engage-runner`, profile `runner` |
+Default path is `ENGAGE_EXECUTION_PROFILE=client-native` (host `PATH`, no runner container). Docker-exec overlay, compose commands, and image tiers: [deploy/engage/README.md](../deploy/engage/README.md). **Root-equivalent** when mounting the Docker socket — lab/VPN only.
 
 Tool execution smoke (opt-in): `make test-engage-smoke-tool` or `ENGAGE_SKIP_TOOL_SMOKE=1` in CI without Docker.
 

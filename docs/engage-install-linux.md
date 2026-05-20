@@ -107,3 +107,4 @@ Details and legal scope: [engage-red-blue-lab.md](engage-red-blue-lab.md).
 
 - [engage-client-dependencies.md](engage-client-dependencies.md) — what must exist on `PATH`
 - [../engage/README.md](../engage/README.md) — dev compose vs client-native
+- [../AGENTS.md](../AGENTS.md) — agent quick paths (recommended + core47)

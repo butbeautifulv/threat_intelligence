@@ -118,7 +118,7 @@ Details: [docs/engage-runtime.md](../docs/engage-runtime.md#events-bus-e2e-nats-
 
 | File | Purpose |
 |------|---------|
-| [tools.yaml](serve/catalog/tools.yaml) | Generated list (150 tools); `make catalog-engage` — 100+ tools with structured `args` templates |
+| [tools.yaml](serve/catalog/tools.yaml) | Generated catalog (**158** names); `make catalog-engage` |
 | [tools.live.yaml](serve/catalog/tools.live.yaml) | Fifteen default enabled tools for smoke / CI matrix |
 | [tools.enabled.yaml](serve/catalog/tools.enabled.yaml) | Overrides from [enable-catalog-by-category.sh](../scripts/engage/enable-catalog-by-category.sh) |
 
@@ -159,13 +159,4 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Docs
 
-- [docs/engage-lab-pentest.md](../docs/engage-lab-pentest.md) — core47 install, Veil harness + HexStrike lab pentest, open findings
-- [docs/engage-red-blue-bugs.md](../docs/engage-red-blue-bugs.md) — field bug log (install / pentest rows)
-- [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) — same-host victim + attacker lab topology
-- [docs/engage-install-linux.md](../docs/engage-install-linux.md) — multi-distro host install for client-native tools (preflight + package map)
-- [docs/engage-mcp-topology.md](../docs/engage-mcp-topology.md) — where MCP runs vs where binaries execute
-- [docs/engage-client-dependencies.md](../docs/engage-client-dependencies.md) — execution-host CLI checklist
-- [docs/engage-runtime.md](../docs/engage-runtime.md) — env, ports, threat model, runner modes
-- [docs/engage-tools.md](../docs/engage-tools.md) — catalog schema
-- [docs/engage-legacy-parity.md](../docs/engage-legacy-parity.md) — route and MCP parity matrix
-- [docs/external-hexstrike.md](../docs/external-hexstrike.md) — reference-only `.external/` tree
+Hub: [docs/engage-tools.md](../docs/engage-tools.md) (catalog, matrices, assessment API). Lab: [engage-lab-pentest.md](../docs/engage-lab-pentest.md) · [engage-red-blue-bugs.md](../docs/engage-red-blue-bugs.md) · [engage-install-linux.md](../docs/engage-install-linux.md). Runtime: [engage-runtime.md](../docs/engage-runtime.md) · [engage-mcp-topology.md](../docs/engage-mcp-topology.md) · [engage-legacy-parity.md](../docs/engage-legacy-parity.md).

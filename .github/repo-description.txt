@@ -1,1 +1,1 @@
-Neo4j TI platform + Go engage (113 live tools). discovery→pipeline→knowledge→engage on NATS; pkg domain/report/decision/exec/api/mcp; dual MCP; v8 layers done. MIT.
+Neo4j TI + Go engage (158-tool catalog, client-native PATH). discovery→pipeline→knowledge→engage on NATS; P12 unified TLS edge; dual MCP. Active: P9f executable matrix. MIT.

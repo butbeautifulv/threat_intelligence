@@ -1,8 +1,10 @@
 # Veil platform architecture (current + target)
 
+**Entry:** layer summary and quick start in [README.md](../README.md). **Ports:** [threatintel-runtime.md](threatintel-runtime.md).
+
 **Current runtime (2026-05):** four isolated Go modules — `discovery/`, `pipeline/`, `knowledge/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
 
-**v8 (done, merge `1f40c77`):** logical layers **Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**; top-level paths `discovery/`, `knowledge/`; shared `pkg/report`, `pkg/decision`, `pkg/exec`, `pkg/api`, `pkg/mcp`; browser in `discovery/pkg/browser`.
+**v8 (done):** logical layers **Discovery**, **Pipeline**, **Knowledge**, **Engage**, **Report**; shared `pkg/report`, `pkg/decision`, `pkg/exec`, `pkg/api`, `pkg/mcp`; browser in `discovery/pkg/browser`.
 
 ---
 
@@ -11,8 +13,8 @@
 | Track | Status | Proof |
 |-------|--------|--------|
 | HexStrike → Engage | **Done** (Phases 16–30) | [engage-audit-report.md](engage-audit-report.md) |
-| Tool catalog | **158** names, **150** legacy parity | `make test-engage-parity` |
-| Live runner tools | **113** enabled in `tools.live.yaml` | `make test-engage-na-matrix` |
+| Tool catalog | **158** names (151 legacy MCP + 8 bridge) | `make test-engage-parity` |
+| Executable matrix | Partial → **158/158** target | `make test-engage-executable-matrix` (**P9f**) |
 | Catalog merge bug | **Fixed** (`634e067`) — load order `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml` | `TestLoadCatalog_productionMergeOrder` |
 | Platform P0–P4b | Bus tests, closed/full loop, Terraform skeleton | [platform-full-loop-smoke.md](platform-full-loop-smoke.md) |
 | Platform P5 | Hybrid deploy skeleton | [deploy-platform-hybrid.md](deploy-platform-hybrid.md) |

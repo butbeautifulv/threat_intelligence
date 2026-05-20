@@ -43,7 +43,7 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [engage/generate-tool-install-coverage.py](engage/generate-tool-install-coverage.py) | Build `docs/engage-tool-install-coverage.md` coverage matrix |
 | [engage/extract-legacy-catalog.py](engage/extract-legacy-catalog.py) | Regenerate `engage/serve/catalog/tools.yaml` |
 | [engage/enable-catalog-by-category.sh](engage/enable-catalog-by-category.sh) | Write `tools.enabled.yaml` when binaries on PATH |
-| [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 150 tools vs legacy MCP reference |
+| [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 158 catalog names vs legacy MCP reference |
 | [test/smoke-engage.sh](test/smoke-engage.sh) | Engage API health + tools list |
 | [test/smoke-engage-red-vs-blue.sh](test/smoke-engage-red-vs-blue.sh) | Aggressive HTTP harness vs local victim (`ENGAGE_VICTIM_URL`) |
 | [test/smoke-engage-mcp.sh](test/smoke-engage-mcp.sh) | Engage MCP initialize smoke |

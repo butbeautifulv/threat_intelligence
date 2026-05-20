@@ -7,7 +7,7 @@
 | Discovery | [discovery/compose.yml](discovery/compose.yml) | `crawl-db`, `nats`, `scrape_worker`, `proxybroker` |
 | Pipeline | [pipeline/compose.yml](pipeline/compose.yml) | `pipeline_worker` |
 | Knowledge | [knowledge/compose.yml](knowledge/compose.yml) | `neo4j`, `graph-bootstrap`, `ingest_worker`, `api` |
-| Engage | [engage/compose.yml](engage/compose.yml) | `engage-api`, `engage-mcp`, `engage-worker`, `engage-runner` (profile `runner`; opt-in offensive tools) |
+| Engage | [engage/compose.yml](engage/compose.yml) | `engage-api`, `engage-mcp`, `engage-worker` — **host PATH** (`client-native`); `engage-runner` only with profile `runner` (lab docker-exec) |
 
 ## Full stack
 

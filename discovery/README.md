@@ -1,6 +1,6 @@
 # Discovery layer (harvest)
 
-Architecture rules: [docs/coding-style.md](../docs/coding-style.md).
+Part of the four-layer Veil stack — [README.md](../README.md#architecture). Architecture rules: [docs/coding-style.md](../docs/coding-style.md).
 
 Fetches third-party feeds, records fetches in the Vitess/MySQL **ledger**, and publishes **`harvest`** envelopes to NATS **`scrape.>`**.
 

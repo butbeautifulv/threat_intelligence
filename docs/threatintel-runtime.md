@@ -13,6 +13,7 @@ Veil runs as **three isolated layers** under [`deploy/`](../deploy/): **scrape**
 | Proxybroker | 8099 | Full stack only; `PROXYBROKER_PORT` |
 | NATS client | `${NATS_CLIENT_PORT:-4222}` | Full stack (`compose-up-full`); maps container `4222` |
 | NATS monitoring | `${NATS_MONITOR_PORT:-8222}` | HTTP on container `8222`; **`nats`** healthcheck uses **`http://127.0.0.1:8222/healthz`** |
+| Engage API / MCP | 8890 / 8892 | Fourth layer — details in [engage-runtime.md](engage-runtime.md) |
 
 ## Build and environment checklist (repeatable builds)
 
