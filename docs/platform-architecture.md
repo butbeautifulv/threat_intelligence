@@ -16,9 +16,9 @@
 | Catalog merge bug | **Fixed** (`634e067`) — load order `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml` | `TestLoadCatalog_productionMergeOrder` |
 | Platform P0–P4b | Bus tests, closed/full loop, Terraform skeleton | [platform-full-loop-smoke.md](platform-full-loop-smoke.md) |
 | Platform P5 | Hybrid deploy skeleton | [deploy-platform-hybrid.md](deploy-platform-hybrid.md) |
-| Platform P6 | Infra DRY (events, auth, scrapepub, stacks, natsjet publish) | [veil_platform_refactor_p6.plan.md](../.cursor/plans/veil_platform_refactor_p6.plan.md) |
-| Platform P7 | Tests + `pkg/*/domain` SOT + `make test-platform-p7` CI | [domain-contour.md](domain-contour.md), [veil_platform_p7_tests_then_pkg_domain.plan.md](../.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) |
-| Platform v8 | Layer renames + shared pkg extractions + discovery browser | [veil_platform_v8_layers_master.plan.md](../.cursor/plans/veil_platform_v8_layers_master.plan.md) |
+| Platform P6 | Infra DRY (events, auth, scrapepub, stacks, natsjet publish) | [archive/veil_platform_refactor_p6.plan.md](../.cursor/plans/archive/veil_platform_refactor_p6.plan.md) |
+| Platform P7 | Tests + `pkg/*/domain` SOT + `make test-platform-p7` CI | [domain-contour.md](domain-contour.md), [archive/veil_platform_p7_tests_then_pkg_domain.plan.md](../.cursor/plans/archive/veil_platform_p7_tests_then_pkg_domain.plan.md) |
+| Platform v8 | Layer renames + shared pkg extractions + discovery browser | [archive/veil_platform_v8_layers_master.plan.md](../.cursor/plans/archive/veil_platform_v8_layers_master.plan.md) |
 
 **Engage compose (default):** `ENGAGE_CATALOG_PATH=/app/catalog/tools.yaml` but **InitAPI merges live on top** — runner profile may set `tools.live.yaml` directly ([compose.runner.yml](../deploy/engage/compose.runner.yml)).
 
@@ -103,7 +103,7 @@ flowchart TB
 | ~~`scrape/`~~ → **`discovery/`** (P8h **done**) | Go module path, `deploy/discovery/`, Makefile `test-discovery`, docs | NATS `scrape.>`; `pkg/harvest`; envelope `source` values; binary `scrape_worker` one release |
 | `knowledge/` → **`knowledge/`** | Go module, `deploy/graph/`, Makefile `test-graph*` | NATS `ingest.>`; `GRAPH_PACK_VERSION`; Neo4j labels; URLs `/v1/*`; product names **veil-api**, **veil-mcp** |
 
-**Order:** merge **P8h + P8i** to `main` before large P8b–g refactors (or rebase feature branches once). Details: [veil_platform_v8_layers_master.plan.md](../.cursor/plans/veil_platform_v8_layers_master.plan.md) § P8h, P8i.
+**Order:** merge **P8h + P8i** to `main` before large P8b–g refactors (or rebase feature branches once). Details: [archive/veil_platform_v8_layers_master.plan.md](../.cursor/plans/archive/veil_platform_v8_layers_master.plan.md) § P8h, P8i.
 
 **Docs:** use **Discovery** / **Knowledge** in prose immediately; link to legacy paths until rename lands.
 

@@ -159,7 +159,9 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Docs
 
-- [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) — same-host victim + attacker lab, harness scope, merge order for install track
+- [docs/engage-lab-pentest.md](../docs/engage-lab-pentest.md) — core47 install, Veil harness + HexStrike lab pentest, open findings
+- [docs/engage-red-blue-bugs.md](../docs/engage-red-blue-bugs.md) — field bug log (install / pentest rows)
+- [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) — same-host victim + attacker lab topology
 - [docs/engage-install-linux.md](../docs/engage-install-linux.md) — multi-distro host install for client-native tools (preflight + package map)
 - [docs/engage-mcp-topology.md](../docs/engage-mcp-topology.md) — where MCP runs vs where binaries execute
 - [docs/engage-client-dependencies.md](../docs/engage-client-dependencies.md) — execution-host CLI checklist

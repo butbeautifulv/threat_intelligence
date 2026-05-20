@@ -18,15 +18,13 @@
 | Document | [veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc) — includes **README.md**, **CONTRIBUTING.md**, **`.github/repo-description.txt`** |
 | Security frameworks | [veil-agent-security-frameworks.mdc](.cursor/rules/veil-agent-security-frameworks.mdc), [docs/external-security-frameworks.md](docs/external-security-frameworks.md) |
 | Agent evaluation | [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) — [arXiv:2311.12983](https://arxiv.org/abs/2311.12983); `make test-agent-eval-pilot` / `test-agent-eval-paper`; HF optional |
-| Platform P6 refactor | [veil_platform_refactor_p6.plan.md](.cursor/plans/veil_platform_refactor_p6.plan.md) — **done** |
-| Platform P7 pkg/domain | [veil_platform_p7_tests_then_pkg_domain.plan.md](.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) — **done**; `make test-platform-p7` |
-| Platform v8 layers | [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md) — **done** (P8a–i) |
-| Platform P12 unified access | [veil_platform_p12_unified_access.plan.md](.cursor/plans/veil_platform_p12_unified_access.plan.md) — **done**; operator contract [platform-unified-access.md](docs/platform-unified-access.md) |
-| Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — legacy parity track (158 catalog → 158 executable; **P9f** gate) |
-| Engage client-native v3 | [engage_mcp_client_native_execution_master.plan.md](.cursor/plans/engage_mcp_client_native_execution_master.plan.md) — **active** (MCP host-path execution, runner removed from happy-path) |
+| Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — legacy parity (**P9f**, 158/158) |
+| Engage client-native v3 | [engage_mcp_client_native_execution_master.plan.md](.cursor/plans/engage_mcp_client_native_execution_master.plan.md) — **active** |
+| Lab pentest & install | [engage-lab-pentest.md](docs/engage-lab-pentest.md), [engage-red-blue-bugs.md](docs/engage-red-blue-bugs.md) |
+| Archived plans | [.cursor/plans/archive/README.md](.cursor/plans/archive/README.md) — platform P6–P12, Engage phases, lab tracks |
 | Finish | This file § End-of-task checklist |
 
-**Completed program tracks (reference for few-shot plans):** Platform v3–v4 P0–P4b; Engage 24–30 / HexStrike **Phase 30 sign-off** ([engage-audit-report.md](docs/engage-audit-report.md)) — decommission `:8888` + catalog/route parity only; P5 hybrid deploy; **P6** infra DRY; **P7** pkg domain + CI; **v8** logical layers ([veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md)). **Critical fix on main:** catalog merge order `tools.yaml` → `tools.live.yaml` (`634e067`) — without it live tools appear disabled at runtime.
+**Completed program tracks:** indexed under [archive/README.md](.cursor/plans/archive/README.md). Sign-off KPIs: [engage-audit-report.md](docs/engage-audit-report.md). Operator contract (P12): [platform-unified-access.md](docs/platform-unified-access.md). **Critical fix on main:** catalog merge order `tools.yaml` → `tools.live.yaml` (`634e067`).
 
 **Do not claim “HexStrike execution done” or “full port complete”** until `make test-engage-executable-matrix` is green (**158/158**, branch **P9f**) and docs KPIs match [engage-tools.md](docs/engage-tools.md). Phase 30 sign-off alone is insufficient.
 
@@ -44,7 +42,7 @@ Reference modules: [discovery/harvest/internal/sources/ti/](discovery/harvest/in
 
 Keep diffs reviewable: **one git commit per completed phase or slice**, not one giant commit at the end.
 
-1. **Master plan** — before coding, write or update a master plan (status table with **phase / branch / status / owner**, dependencies). For Engage work, keep plans under `.cursor/plans/` (e.g. `engage_hexstrike_master_*.plan.md`, `engage/engage_phase_*.plan.md`).
+1. **Master plan** — before coding, write or update a master plan (status table with **phase / branch / status / owner**, dependencies). Active plans live in `.cursor/plans/`; completed phases go to `.cursor/plans/archive/` (see [archive/README.md](.cursor/plans/archive/README.md)).
 2. **Phase plan** — for the active phase only, add or open a slice plan derived from the master plan (scope, files, acceptance).
 3. **Branch per stream** — implementers work on `engage/phase-<NN>-<slug>` (or `feat/<layer>-phase-<NN>-<slug>`), not directly on `main` when multiple agents run in parallel. See [.cursor/rules/veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc).
 4. **Execute one phase** — implement only what that phase plan covers; run tests for touched layers.

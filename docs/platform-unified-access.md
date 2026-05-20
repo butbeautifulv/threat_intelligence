@@ -2,7 +2,7 @@
 
 **Status:** Implemented (P12 complete — merged on `main`)  
 **Supersedes:** per-layer nginx on `:443` with path `/mcp` only (graph) and separate engage host ports (`:8890`, `:8892`) as the **operator-facing** contract.  
-**Implementation:** P12a–j ([veil_platform_p12_unified_access.plan.md](../.cursor/plans/veil_platform_p12_unified_access.plan.md)); CI smoke: `make test-platform-unified-edge`.
+**Implementation:** P12a–j ([veil_platform_p12_unified_access.plan.md](../.cursor/plans/archive/veil_platform_p12_unified_access.plan.md)); CI smoke: `make test-platform-unified-edge`.
 
 **Context:** After v8, graph read (`veil-api`, `veil-mcp`) and engage exec (`veil-engage` HTTP/MCP) share `pkg/api` and `pkg/mcp` but still expose **different URL prefixes and processes**. Agents and operators need one TLS edge, stable path names, and horizontal scale for stateless tiers without merging offensive execution into the graph MCP process.
 
@@ -182,4 +182,4 @@ make test-knowledge test-engage
 - [mcp-agents.md](mcp-agents.md) — stdio setup (updated in P12j)
 - [deploy/README.md](../deploy/README.md) — compose stacks
 - [deploy/stacks/secure-unified.yml](../deploy/stacks/secure-unified.yml) — secure stack SSOT
-- [veil_platform_p12_unified_access.plan.md](../.cursor/plans/veil_platform_p12_unified_access.plan.md) — phase branches
+- [veil_platform_p12_unified_access.plan.md](../.cursor/plans/archive/veil_platform_p12_unified_access.plan.md) — phase branches (archived)

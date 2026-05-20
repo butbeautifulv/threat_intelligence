@@ -1,24 +1,7 @@
 # Engage client-native — viability (Go / No-Go)
 
-This document captures the **product decision** after the user-friendly install + red-vs-blue lab track.
+**Canonical install and lab evidence:** [engage-install-linux.md](engage-install-linux.md), [engage-lab-pentest.md](engage-lab-pentest.md), [engage-red-blue-bugs.md](engage-red-blue-bugs.md).
 
-**Status:** TBD — complete after field testing and fix slices.
+**CLI checklist (categories → binaries):** [engage-client-dependencies.md](engage-client-dependencies.md).
 
-## Criteria (from plan)
-
-- **Go:** install + preflight succeed on at least two package-manager families; red harness completes without killing the victim process; critical issues have documented mitigations.
-- **No-Go:** core tools cannot be installed on non-Kali without excessive manual steps; victim crashes on baseline harness; package matrix cost outweighs benefit.
-
-## Evidence checklist
-
-- [ ] Distro matrix tried (record in [engage-red-blue-bugs.md](engage-red-blue-bugs.md))
-- [ ] `make engage-install-plan` reviewed
-- [ ] `make engage-install-host-tools` (or minimal profile) outcome
-- [ ] `./scripts/engage/preflight-client-tools.sh --json` result archived
-- [ ] `make test-engage-red-blue` against local victim
-
-## Decision
-
-| Verdict | Owner | Date | Notes |
-|---------|-------|------|-------|
-| Go / No-Go |       |      |       |
+**Status (2026-05-20):** **Go** for Ubuntu lab — core47 **46/47** on PATH, red-vs-blue **pass**; prod-profile self-pentest **No-Go** until auth gaps fixed (see lab pentest doc).

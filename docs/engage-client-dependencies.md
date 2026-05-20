@@ -58,3 +58,5 @@ Representative binaries are **paraphrased** from the upstream README; treat the 
 | Google Chrome (optional path) | `google-chrome-stable` when installed from vendor repo | `command -v google-chrome-stable` or `google-chrome-stable --version` |
 
 Use the upstream README for exact `apt` / vendor install lines; this document only records **what must exist on the MCP host** for parity with that contract.
+
+**Generated coverage matrix (158 tools):** `make engage-tool-install-coverage` → [engage-tool-install-coverage.md](engage-tool-install-coverage.md). **Profiles and installer:** [engage-install-linux.md](engage-install-linux.md).

@@ -1,7 +1,7 @@
 # Engage migration audit report (HexStrike → Veil)
 
 **Date:** 2026-05-16  
-**Scope:** R0–R120 / Phase 16–23 closure verification per [hexstrike migration audit plan](../.cursor/plans/hexstrike_migration_audit_12c9842f.plan.md).
+**Scope:** R0–R120 / Phase 16–23 closure verification per [hexstrike migration audit plan](../.cursor/plans/archive/hexstrike_migration_audit_12c9842f.plan.md).
 
 ## Verdict
 

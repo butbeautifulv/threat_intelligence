@@ -1,6 +1,6 @@
 # Engage red-vs-blue lab (same host, two instances)
 
-This document defines a **controlled lab** topology: a **victim** `engage-api` instance (target) and an **attacker** side that runs an **automated abuse harness** against the victim’s HTTP API. It also records **multi-agent** roles, branch naming, and **merge order** for the user-friendly install + lab track ([`.cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md`](../.cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md)).
+This document defines a **controlled lab** topology: a **victim** `engage-api` instance (target) and an **attacker** side that runs an **automated abuse harness** against the victim’s HTTP API. Install + pentest field results: [engage-lab-pentest.md](engage-lab-pentest.md). Historical plan: [`.cursor/plans/archive/engage_userfriendly_install_73f6d9c0.plan.md`](../.cursor/plans/archive/engage_userfriendly_install_73f6d9c0.plan.md).
 
 ## Authorization and scope (non-negotiable)
 

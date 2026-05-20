@@ -83,5 +83,5 @@ Direct backend ports are not published when `compose.edge.yml` is applied; use t
 
 ## Related
 
-- P12 master plan: [.cursor/plans/veil_platform_p12_unified_access.plan.md](../../.cursor/plans/veil_platform_p12_unified_access.plan.md)
+- P12 master plan: [.cursor/plans/archive/veil_platform_p12_unified_access.plan.md](../../.cursor/plans/archive/veil_platform_p12_unified_access.plan.md)
 - Layer-specific nginx (legacy): `deploy/knowledge/compose.secure.yml`, `deploy/engage/compose.secure.yml`

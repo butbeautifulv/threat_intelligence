@@ -1,6 +1,6 @@
 # Engage `ai_*` tools — stub policy (P11b)
 
-Legacy HexStrike MCP names several tools with an `ai_` prefix. **Veil engage does not call an external LLM for any of them today.** Behavior is deterministic: pattern-based payloads, ranked catalog tools, graph-backed assessment, or minimal JSON stubs. A future LLM provider hook is **out of scope** for the Go sign-off (see [engage_hexstrike_post_p10_signoff.plan.md](../.cursor/plans/engage_hexstrike_post_p10_signoff.plan.md)).
+Legacy HexStrike MCP names several tools with an `ai_` prefix. **Veil engage does not call an external LLM for any of them today.** Behavior is deterministic: pattern-based payloads, ranked catalog tools, graph-backed assessment, or minimal JSON stubs. A future LLM provider hook is **out of scope** for the Go sign-off (see [engage_hexstrike_post_p10_signoff.plan.md](../.cursor/plans/archive/engage_hexstrike_post_p10_signoff.plan.md)).
 
 ## Dispatch order (HTTP + MCP)
 
