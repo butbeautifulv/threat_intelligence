@@ -10,30 +10,32 @@ import (
 )
 
 type Config struct {
-	ListenAddr  string
-	Env         string
-	Auth        auth.Config
-	Security    SecurityConfig
-	CatalogPath      string
-	RunnerWork       string
-	FilesDir         string
-	AuditDir         string
-	JobsMode         string
-	JobsDir          string
-	RedisURL         string
-	NATSURL          string
-	JobsPollInterval    time.Duration
-	WorkerConcurrency   int
-	MaxParallel         int
-	VeilAPI             VeilAPIConfig
-	MCPHTTP          MCPHTTPConfig
-	MetricsEnabled       bool
-	AuditWebhookURL      string
-	AuditWebhookSecret   string
-	AuditPostgresURL     string
-	AuditRetentionDays   int
-	EventsNATSEnabled    bool
-	EventsNATSSubject    string
+	ListenAddr string
+	Env        string
+	Auth       auth.Config
+	Security   SecurityConfig
+	// ExecutionProfile is ENGAGE_EXECUTION_PROFILE (client-native vs docker-exec for runner/CI).
+	ExecutionProfile   string
+	CatalogPath        string
+	RunnerWork         string
+	FilesDir           string
+	AuditDir           string
+	JobsMode           string
+	JobsDir            string
+	RedisURL           string
+	NATSURL            string
+	JobsPollInterval   time.Duration
+	WorkerConcurrency  int
+	MaxParallel        int
+	VeilAPI            VeilAPIConfig
+	MCPHTTP            MCPHTTPConfig
+	MetricsEnabled     bool
+	AuditWebhookURL    string
+	AuditWebhookSecret string
+	AuditPostgresURL   string
+	AuditRetentionDays int
+	EventsNATSEnabled  bool
+	EventsNATSSubject  string
 }
 
 type VeilAPIConfig struct {
@@ -60,18 +62,19 @@ func LoadMCP() *Config {
 
 func loadBase(listen, env string) *Config {
 	return &Config{
-		ListenAddr:  listen,
-		Env:         env,
-		Auth:        loadAuthFromEnv(),
-		Security:    LoadSecurityForEnv(env),
-		CatalogPath:      getenv("ENGAGE_CATALOG_PATH", "catalog/tools.yaml"),
-		RunnerWork:       getenv("ENGAGE_RUNNER_WORKDIR", "/tmp/engage"),
-		FilesDir:         getenv("ENGAGE_FILES_DIR", "/var/veil/engage/files"),
-		AuditDir:         getenv("ENGAGE_AUDIT_DIR", "/var/veil/engage/audit"),
-		JobsMode:         getenv("ENGAGE_JOBS_MODE", "memory"),
-		JobsDir:          getenv("ENGAGE_JOBS_DIR", "/tmp/engage/jobs"),
-		RedisURL:         getenv("ENGAGE_REDIS_URL", "redis://127.0.0.1:6379/0"),
-		NATSURL:          getenv("ENGAGE_NATS_URL", "nats://127.0.0.1:4222"),
+		ListenAddr:        listen,
+		Env:               env,
+		Auth:              loadAuthFromEnv(),
+		Security:          LoadSecurityForEnv(env),
+		ExecutionProfile:  loadExecutionProfile(),
+		CatalogPath:       getenv("ENGAGE_CATALOG_PATH", "catalog/tools.yaml"),
+		RunnerWork:        getenv("ENGAGE_RUNNER_WORKDIR", "/tmp/engage"),
+		FilesDir:          getenv("ENGAGE_FILES_DIR", "/var/veil/engage/files"),
+		AuditDir:          getenv("ENGAGE_AUDIT_DIR", "/var/veil/engage/audit"),
+		JobsMode:          getenv("ENGAGE_JOBS_MODE", "memory"),
+		JobsDir:           getenv("ENGAGE_JOBS_DIR", "/tmp/engage/jobs"),
+		RedisURL:          getenv("ENGAGE_REDIS_URL", "redis://127.0.0.1:6379/0"),
+		NATSURL:           getenv("ENGAGE_NATS_URL", "nats://127.0.0.1:4222"),
 		JobsPollInterval:  jobsPollInterval(),
 		WorkerConcurrency: workerConcurrency(),
 		MaxParallel:       maxParallel(),

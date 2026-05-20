@@ -28,7 +28,7 @@ func TestSelfTest_detectsRawInProd(t *testing.T) {
 	}
 }
 
-func TestAuditProcessEnv_localRunnerProd(t *testing.T) {
+func TestAuditProcessEnv_prodLocalRunner_noLocalRunnerFinding(t *testing.T) {
 	findings := auditProcessEnv(func(k string) string {
 		switch k {
 		case "ENGAGE_ENV":
@@ -39,8 +39,10 @@ func TestAuditProcessEnv_localRunnerProd(t *testing.T) {
 			return ""
 		}
 	})
-	if err := FailOn(findings, SeverityHigh); err == nil {
-		t.Fatal("expected local runner finding in prod")
+	for _, f := range findings {
+		if f.ID == "local-runner-in-prod" {
+			t.Fatalf("unexpected finding %s (local runner in prod is allowed under client-native execution profile)", f.ID)
+		}
 	}
 }
 

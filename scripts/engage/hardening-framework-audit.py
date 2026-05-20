@@ -32,6 +32,8 @@ def check_engage_runner_mode_docker_in_secure_profile() -> tuple[bool, str]:
     body = read(ROOT / "deploy/profiles/secure-engage.env")
     if "ENGAGE_RUNNER_MODE=docker" not in body:
         return False, "secure-engage.env should set ENGAGE_RUNNER_MODE=docker"
+    if "ENGAGE_EXECUTION_PROFILE=docker-exec" not in body:
+        return False, "secure-engage.env should set ENGAGE_EXECUTION_PROFILE=docker-exec with docker runner"
     return True, "ok"
 
 

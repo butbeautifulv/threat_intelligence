@@ -10,7 +10,7 @@ Veil **engage** runs offensive tooling inside a **protected perimeter** for acti
 |--------|--------|---------------------|
 | Unauthenticated tool execution | Full compromise of runner/network | `AUTH_ENABLED`, `VEIL_REQUIRE_AUTH`, Keycloak RBAC |
 | Raw shell via `/api/command` | RCE on API or runner host | Catalog allowlist; `ENGAGE_DENY_RAW_COMMAND=1`; shell metachar block |
-| Local runner in prod | Tools execute on API host | `ENGAGE_RUNNER_MODE=docker` + isolated `engage-runner` container |
+| Local runner in prod | Tools execute on API host | Prefer isolated runner: `ENGAGE_EXECUTION_PROFILE=docker-exec` with `ENGAGE_RUNNER_MODE=docker` + `engage-runner`; default `client-native` forbids docker runner in-process |
 | Path traversal on file APIs | Read/write host files | Chrooted `files.Manager` under `ENGAGE_FILES_DIR` |
 | MCP/HTTP abuse | DoS, header injection | `securityhttp` limits, timeouts, CSP, no `Server` leak |
 | Weak credentials | Graph/tool data exfil | Rotate `NEO4J_PASS`; secrets manager in prod |
@@ -27,7 +27,8 @@ Use [deploy/profiles/secure-engage.env](../deploy/profiles/secure-engage.env) wi
 | `ENGAGE_ENV` | `prod` | Strict errors, HSTS, strict child env |
 | `ENGAGE_DENY_RAW_COMMAND` | `1` | Disable raw `/api/command` |
 | `ENGAGE_STRICT_ENV` | `1` | Minimal env passed to subprocesses |
-| `ENGAGE_RUNNER_MODE` | `docker` | Never `local` in prod |
+| `ENGAGE_EXECUTION_PROFILE` | `docker-exec` | Required with docker runner (`client-native` forbids `ENGAGE_RUNNER_MODE=docker` in API) |
+| `ENGAGE_RUNNER_MODE` | `docker` | Never `local` when using docker runner in prod |
 | `ENGAGE_RUNNER_CONTAINER` | `engage-runner` | Toolbox isolation |
 | `VEIL_REQUIRE_AUTH` | `1` | Fail closed without auth |
 | `ENGAGE_MCP_HTTP_AUTH_STRICT` | `1` | Bearer on MCP HTTP |

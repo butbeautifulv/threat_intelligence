@@ -9,6 +9,7 @@ services:
     build:
       dockerfile: deploy/engage/docker/api-runner.Dockerfile
     environment:
+      ENGAGE_EXECUTION_PROFILE: docker-exec
       ENGAGE_RUNNER_MODE: docker
       ENGAGE_RUNNER_CONTAINER: engage-runner
       ENGAGE_CATALOG_PATH: /app/catalog/tools.live.yaml
@@ -24,6 +25,7 @@ services:
     build:
       dockerfile: deploy/engage/docker/worker-runner.Dockerfile
     environment:
+      ENGAGE_EXECUTION_PROFILE: docker-exec
       ENGAGE_RUNNER_MODE: docker
       ENGAGE_RUNNER_CONTAINER: engage-runner
       ENGAGE_CATALOG_PATH: /app/catalog/tools.live.yaml
