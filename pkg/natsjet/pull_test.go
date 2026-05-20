@@ -78,3 +78,57 @@ func TestRunPullLoop_processesAndAcks(t *testing.T) {
 		t.Fatalf("got %d messages", got.Load())
 	}
 }
+
+func TestRunPullLoop_cancelWithoutReturnErr(t *testing.T) {
+	_, url := startTestNATSPull(t)
+	nc, err := nats.Connect(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer nc.Drain()
+	js, err := nc.JetStream()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureStream(js, "PULL_NR", []string{"pull.nr.>"}); err != nil {
+		t.Fatal(err)
+	}
+	sub, err := js.PullSubscribe("pull.nr.>", "pull-nr", nats.BindStream("PULL_NR"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := RunPullLoop(ctx, slog.Default(), sub, PullLoopOpts{
+		Batch: 1, MaxWait: 20 * time.Millisecond,
+	}, func(context.Context, *nats.Msg) error { return nil }); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRunPullLoop_fetchTimeoutAndNilLog(t *testing.T) {
+	_, url := startTestNATSPull(t)
+	nc, err := nats.Connect(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer nc.Drain()
+	js, err := nc.JetStream()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureStream(js, "PULL_TO", []string{"pull.to.>"}); err != nil {
+		t.Fatal(err)
+	}
+	sub, err := js.PullSubscribe("pull.to.>", "pull-to", nats.BindStream("PULL_TO"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
+	defer cancel()
+	if err := RunPullLoop(ctx, nil, sub, PullLoopOpts{Batch: 1, MaxWait: 30 * time.Millisecond}, func(context.Context, *nats.Msg) error {
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+}

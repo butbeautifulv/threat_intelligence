@@ -9,6 +9,8 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
+var pullFetchBackoff = time.Second
+
 // PullLoopOpts configures a JetStream pull consumer loop.
 type PullLoopOpts struct {
 	Batch    int
@@ -53,7 +55,7 @@ func RunPullLoop(ctx context.Context, log *slog.Logger, sub *nats.Subscription, 
 					return ctx.Err()
 				}
 				return nil
-			case <-time.After(time.Second):
+			case <-time.After(pullFetchBackoff):
 			}
 			continue
 		}

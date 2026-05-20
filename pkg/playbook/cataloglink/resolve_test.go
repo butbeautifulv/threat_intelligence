@@ -52,6 +52,11 @@ func TestResolveMentions_table(t *testing.T) {
 			want:     nil,
 		},
 		{
+			name:     "prefix match",
+			mentions: []string{"httpx"},
+			want:     []string{"httpx_probe"},
+		},
+		{
 			name:     "empty and whitespace",
 			mentions: []string{"", "  ", "nmap"},
 			want:     []string{"nmap_scan"},

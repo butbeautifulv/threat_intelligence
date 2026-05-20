@@ -57,13 +57,14 @@ func (v *Verifier) Validate(ctx context.Context, rawJWT string) (*auth.Subject, 
 	if err != nil {
 		return nil, auth.ErrUnauthorized
 	}
-	if !token.Valid {
-		return nil, auth.ErrUnauthorized
-	}
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := tokenMapClaims(token)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}
+	return v.validateMapClaims(claims)
+}
+
+func (v *Verifier) validateMapClaims(claims jwt.MapClaims) (*auth.Subject, error) {
 	if exp, err := claims.GetExpirationTime(); err != nil || exp.Before(time.Now()) {
 		return nil, auth.ErrUnauthorized
 	}

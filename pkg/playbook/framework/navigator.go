@@ -26,9 +26,11 @@ type NavigatorTechnique struct {
 	Comment     string  `json:"comment"`
 }
 
+var frameworkMappingsDir = pbindex.MappingsDir
+
 // LoadNavigatorLayer reads attack-navigator-layer.json from the committed mappings dir.
 func LoadNavigatorLayer() (*NavigatorLayer, error) {
-	dir, err := pbindex.MappingsDir()
+	dir, err := frameworkMappingsDir()
 	if err != nil {
 		return nil, err
 	}

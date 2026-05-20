@@ -35,6 +35,10 @@ func NormalizeIOC(i domain.IOC) (domain.IOC, bool) {
 	if err := validate.CheckIOCShape(i); err != nil {
 		return domain.IOC{}, false
 	}
+	return normalizeValidatedIOC(i)
+}
+
+func normalizeValidatedIOC(i domain.IOC) (domain.IOC, bool) {
 	i.Value = strings.TrimSpace(i.Value)
 	i.Source = strings.TrimSpace(i.Source)
 	var srcs []string

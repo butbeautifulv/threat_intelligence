@@ -3,9 +3,12 @@ package report
 import (
 	"bytes"
 	"fmt"
+	"io"
 
 	"github.com/jung-kurt/gofpdf"
 )
+
+var pdfWriteOutput = func(pdf *gofpdf.Fpdf, w io.Writer) error { return pdf.Output(w) }
 
 // ToPDF renders a summary report as a PDF document with optional branding.
 func ToPDF(summary SummaryReport, branding ...Branding) ([]byte, error) {
@@ -63,7 +66,7 @@ func ToPDF(summary SummaryReport, branding ...Branding) ([]byte, error) {
 		pdf.MultiCell(0, 4, b.Footer, "", "", false)
 	}
 	var buf bytes.Buffer
-	if err := pdf.Output(&buf); err != nil {
+	if err := pdfWriteOutput(pdf, &buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

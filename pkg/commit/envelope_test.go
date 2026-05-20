@@ -183,6 +183,14 @@ func TestNewEnvelope_roundtrip(t *testing.T) {
 	}
 }
 
+func TestNewEnvelope_marshalError(t *testing.T) {
+	ch := make(chan int)
+	_, err := NewEnvelope(SourceTI, KindTIIoC, "ti:ioc:1", ch)
+	if err == nil {
+		t.Fatal("expected json marshal error")
+	}
+}
+
 func TestNewEnvelope_doesNotValidate(t *testing.T) {
 	// NewEnvelope does not call Validate; callers must validate before publish.
 	e, err := NewEnvelope(SourceSBOM, KindSBOMOSVRecord, "  ", SBOMOSVPayload{CVE: "CVE-1", OSVID: "CVE-1"})

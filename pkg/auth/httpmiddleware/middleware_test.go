@@ -132,6 +132,41 @@ func TestAuth_strict_healthPOSTRequiresAuth(t *testing.T) {
 	}
 }
 
+func TestAuth_prodForbiddenBody(t *testing.T) {
+	v := static.New("tok", "u", []string{"veil-reader"})
+	cfg := auth.Config{Enabled: true, RBACEnabled: true, RoleReader: "veil-reader", RoleEngageRunner: "veil-engage-runner"}
+	stack := auth.NewStack(v, cfg)
+	h := Auth(stack, false, true, auth.PermEngageToolRun, okHandler(t))
+	req := httptest.NewRequest(http.MethodPost, "/api/tools/x", nil)
+	req.Header.Set("Authorization", "Bearer tok")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	var body map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatal(err)
+	}
+	if rec.Code != http.StatusForbidden || body["error"] != "forbidden" {
+		t.Fatalf("status %d body %v", rec.Code, body)
+	}
+}
+
+func TestAuth_bearerTokenVariants(t *testing.T) {
+	if bearerToken("Bearer tok") != "tok" || bearerToken("bearer") != "" {
+		t.Fatal("bearer parsing")
+	}
+}
+
+func TestAuth_invalidBearer(t *testing.T) {
+	h := Auth(testStack(t, true), false, false, auth.PermGraphRead, okHandler(t))
+	req := httptest.NewRequest(http.MethodGet, "/api/tools", nil)
+	req.Header.Set("Authorization", "Bearer wrong")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status %d", rec.Code)
+	}
+}
+
 func TestAuth_prodMasksErrorBody(t *testing.T) {
 	h := Auth(testStack(t, true), false, true, auth.PermGraphRead, okHandler(t))
 	req := httptest.NewRequest(http.MethodGet, "/api/tools", nil)

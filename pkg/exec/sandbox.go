@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+// commandContext is overridden in tests to avoid real docker exec.
+var commandContext = exec.CommandContext
+
 // Sandbox runs tools inside an isolated container via docker exec.
 type Sandbox struct {
 	Mode      string // local | docker
@@ -42,7 +45,7 @@ func (s *Sandbox) Exec(ctx context.Context, binary string, args []string, timeou
 		"sh", "-c",
 		fmt.Sprintf("cd %s && %s", shellQuote(workDir), inner),
 	}
-	cmd := exec.CommandContext(ctx, "docker", cmdArgs...)
+	cmd := commandContext(ctx, "docker", cmdArgs...)
 	cmd.Env = []string{"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"}
 
 	var trackPID int

@@ -45,10 +45,10 @@ func (v *StaticVerifier) Validate(ctx context.Context, rawJWT string) (*auth.Sub
 		}
 		return v.key, nil
 	}, opts...)
-	if err != nil || !token.Valid {
+	if err != nil {
 		return nil, auth.ErrUnauthorized
 	}
-	claims, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := tokenMapClaims(token)
 	if !ok {
 		return nil, auth.ErrUnauthorized
 	}

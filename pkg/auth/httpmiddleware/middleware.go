@@ -3,7 +3,6 @@ package httpmiddleware
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
 
@@ -36,11 +35,7 @@ func Auth(stack *auth.Stack, strict bool, prod bool, perm string, next http.Hand
 			return
 		}
 		if err := stack.Enforcer.Enforce(sub, perm); err != nil {
-			status := http.StatusForbidden
-			if errors.Is(err, auth.ErrUnauthorized) {
-				status = http.StatusUnauthorized
-			}
-			writeAuthErr(w, status, err, prod)
+			writeAuthErr(w, http.StatusForbidden, err, prod)
 			return
 		}
 		ctx := auth.WithSubject(r.Context(), sub)

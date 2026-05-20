@@ -32,3 +32,20 @@ func TestExtractRoles_empty(t *testing.T) {
 		t.Fatalf("expected no roles, got %v", sub.Roles)
 	}
 }
+
+func TestExtractRoles_skipsEmptyAndBadTypes(t *testing.T) {
+	claims := map[string]any{
+		"realm_access": map[string]any{
+			"roles": []any{"", "veil-reader", 42},
+		},
+		"resource_access": map[string]any{
+			"veil-api": map[string]any{
+				"roles": "not-a-slice",
+			},
+		},
+	}
+	sub := SubjectFromClaims("u", claims, "veil-api")
+	if len(sub.Roles) != 1 || sub.Roles[0] != "veil-reader" {
+		t.Fatalf("roles: %v", sub.Roles)
+	}
+}

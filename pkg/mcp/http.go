@@ -93,9 +93,6 @@ func serveMCPPost(w http.ResponseWriter, r *http.Request, proc Processor, cfg HT
 
 	var out []Message
 	for _, req := range requests {
-		for _, n := range notifications {
-			_, _, _ = proc.ProcessMessage(r.Context(), n, true)
-		}
 		resp, isNotification, perr := proc.ProcessMessage(r.Context(), req, true)
 		if perr != nil {
 			writeHTTPRPCError(w, http.StatusInternalServerError, CodeInternal, perr.Error())
@@ -121,11 +118,7 @@ func serveMCPPost(w http.ResponseWriter, r *http.Request, proc Processor, cfg HT
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if len(out) == 1 {
-		_ = json.NewEncoder(w).Encode(out[0])
-		return
-	}
-	_ = json.NewEncoder(w).Encode(out)
+	_ = json.NewEncoder(w).Encode(out[0])
 }
 
 // ParseInboundMessages decodes a single object or JSON array batch.

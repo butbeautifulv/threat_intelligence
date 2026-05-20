@@ -46,6 +46,18 @@ func TestNormalizeIOC(t *testing.T) {
 		{name: "hash rejects bad length", in: domain.IOC{Type: domain.IOCHash, Value: "abc123"}, wantOK: false},
 		{name: "unknown type", in: domain.IOC{Type: "email", Value: "a@b.com"}, wantOK: false},
 		{name: "empty value", in: domain.IOC{Type: domain.IOCIP, Value: "  "}, wantOK: false},
+		{
+			name:   "sources skip blanks and dedupe",
+			in:     domain.IOC{Type: domain.IOCIP, Value: "203.0.113.1", Source: "a", Sources: []string{"", "b", "a"}},
+			want:   domain.IOC{Type: domain.IOCIP, Value: "203.0.113.1", Source: "a", Sources: []string{"a", "b"}},
+			wantOK: true,
+		},
+		{
+			name:   "url strips http default port",
+			in:     domain.IOC{Type: domain.IOCURL, Value: "http://Evil.COM:80/path"},
+			want:   domain.IOC{Type: domain.IOCURL, Value: "http://evil.com/path"},
+			wantOK: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -85,6 +97,25 @@ func TestNormalizeCampaign(t *testing.T) {
 	}
 }
 
+func TestNormalizeCluster(t *testing.T) {
+	cl := NormalizeCluster(domain.Cluster{ID: " c1 ", Name: " N ", Description: " d ", Source: " s "})
+	if cl.ID != "c1" || cl.Name != "N" || cl.Description != "d" || cl.Source != "s" {
+		t.Fatalf("got %#v", cl)
+	}
+}
+
+func TestActorStableID_and_ReportStableID(t *testing.T) {
+	if ActorStableID(" APT29 ") == "" {
+		t.Fatal("actor id empty")
+	}
+	if ReportStableID(" https://r.example ") == "" {
+		t.Fatal("report id empty")
+	}
+	if ActorStableID("") != ids.ActorStableID("") {
+		t.Fatal("forward mismatch")
+	}
+}
+
 func TestCanonicalID_matchesNodeID(t *testing.T) {
 	ioc, ok := NormalizeIOC(domain.IOC{Type: domain.IOCIP, Value: "203.0.113.1"})
 	if !ok {
@@ -92,5 +123,12 @@ func TestCanonicalID_matchesNodeID(t *testing.T) {
 	}
 	if CanonicalID(ioc) != ids.CanonicalIOCID(ioc) || CanonicalID(ioc) != ioc.NodeID() {
 		t.Fatal("id mismatch")
+	}
+}
+
+func TestNormalizeValidatedIOC_unknownType(t *testing.T) {
+	_, ok := normalizeValidatedIOC(domain.IOC{Type: domain.IOCType("other"), Value: "x"})
+	if ok {
+		t.Fatal("expected false for unhandled type")
 	}
 }

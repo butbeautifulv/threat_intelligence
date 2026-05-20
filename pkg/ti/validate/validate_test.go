@@ -29,6 +29,21 @@ func TestCheckIOCShape(t *testing.T) {
 	}
 }
 
+func TestIOCShapeError_Error(t *testing.T) {
+	if ErrEmptyValue.Error() != "empty value" {
+		t.Fatalf("got %q", ErrEmptyValue.Error())
+	}
+	if ErrUnknownType.Error() != "unknown ioc type" {
+		t.Fatalf("got %q", ErrUnknownType.Error())
+	}
+	if ErrEmptyActor.Error() != "empty actor name" {
+		t.Fatalf("got %q", ErrEmptyActor.Error())
+	}
+	if ErrEmptyReport.Error() != "empty report link" {
+		t.Fatalf("got %q", ErrEmptyReport.Error())
+	}
+}
+
 func TestCheckActorName_and_ReportLink(t *testing.T) {
 	if CheckActorName("APT29") != nil {
 		t.Fatal("actor")

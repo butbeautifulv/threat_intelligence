@@ -38,9 +38,11 @@ var subdomainPriority = map[string]string{
 	"vulnerability-management": "P2", "threat-intelligence": "P2",
 }
 
+var frameworkRepoRoot = pbindex.RepoRoot
+
 // LoadSubdomains builds registry from cyber-skills.json subdomain_counts.
 func LoadSubdomains() ([]SubdomainEntry, error) {
-	root, err := pbindex.RepoRoot()
+	root, err := frameworkRepoRoot()
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +83,7 @@ func LoadSubdomains() ([]SubdomainEntry, error) {
 // SkillsForTechnique returns skill ids from index with attack_ids containing techniqueID.
 func SkillsForTechnique(techniqueID string) ([]string, error) {
 	techniqueID = strings.ToUpper(strings.TrimSpace(techniqueID))
-	root, err := pbindex.RepoRoot()
+	root, err := frameworkRepoRoot()
 	if err != nil {
 		return nil, err
 	}

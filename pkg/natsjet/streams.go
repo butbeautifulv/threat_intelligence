@@ -23,9 +23,11 @@ func EnsureEngageEventsStream(js nats.JetStreamContext) error {
 	return EnsureStream(js, StreamEngageEvents, []string{"engage.events.>"})
 }
 
+var ensureScrapeStreamFn = EnsureScrapeStream
+
 // EnsureScrapeAndIngest ensures SCRAPE and INGEST (pipeline worker).
 func EnsureScrapeAndIngest(js nats.JetStreamContext) error {
-	if err := EnsureScrapeStream(js); err != nil {
+	if err := ensureScrapeStreamFn(js); err != nil {
 		return err
 	}
 	return EnsureIngestStream(js)

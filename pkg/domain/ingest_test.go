@@ -45,6 +45,14 @@ func TestSourceRefFromRuleFile(t *testing.T) {
 	if r.Source != SourceCoderules || r.Key != "org/rules/cwe/CWE-79.yml" || !r.Valid() {
 		t.Fatalf("rule file ref: %+v", r)
 	}
+	rRepo := SourceRefFromRuleFile(coderulesdomain.RuleFile{Repo: "solo-repo"})
+	if rRepo.Key != "solo-repo" {
+		t.Fatalf("repo-only key: %+v", rRepo)
+	}
+	rPath := SourceRefFromRuleFile(coderulesdomain.RuleFile{Path: "only.yml"})
+	if rPath.Key != "only.yml" {
+		t.Fatalf("path-only key: %+v", rPath)
+	}
 }
 
 func TestSourceRefRoundTripFields(t *testing.T) {

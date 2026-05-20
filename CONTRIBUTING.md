@@ -7,7 +7,8 @@ Thank you for improving this project. Small, focused changes are easier to revie
 1. Read **[docs/agents/coding-style.md](docs/agents/coding-style.md)** (architecture, layering, [PR checklist](docs/agents/coding-style.md#pr-checklist)). **Automated agents:** follow **[AGENTS.md](AGENTS.md)** and `.cursor/rules/`.
 2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**.
 3. If you change [pkg/harvest/](pkg/harvest/) or [pkg/commit/](pkg/commit/), update [docs/schemas/](docs/schemas/) in the same PR.
-4. **Tests** — run targets for layers you touched. Full matrix: **[README.md#tests](README.md#tests)**.
+4. New or changed **`pkg/*`** — include `*_test.go` in the same PR; run `make test-pkg-cover` ([pkg-test-coverage.md](docs/development/pkg-test-coverage.md)).
+5. **Tests** — run targets for layers you touched. Full matrix: **[README.md#tests](README.md#tests)**.
 
    **PR minimum (typical):**
 
@@ -21,10 +22,10 @@ Thank you for improving this project. Small, focused changes are easier to revie
 
    Docker smokes when relevant: `make test-graph-read-smoke`, `make test-engage-events-pipeline`, `make test-platform-unified-edge`.
 
-5. **Graph read path:** `knowledge/serve` must not import NATS or scrape packages.
-6. Compose / deploy changes: update **[docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md)** and **[deploy/](deploy/)** as needed.
-7. **Graph pack version:** ingest-affecting changes → `./scripts/release/bump-graph-version.sh patch` and `make check-graph-version` ([versions.env](versions.env)).
-8. **Documentation:** update runtime docs and **[README.md](README.md)** when user-facing behavior changes; completed plans go to **[.cursor/plans/archive/](.cursor/plans/archive/)**; refresh **[.github/repo-description.txt](.github/repo-description.txt)** + `make sync-github-metadata` when the one-line summary changes.
+6. **Graph read path:** `knowledge/serve` must not import NATS or scrape packages.
+7. Compose / deploy changes: update **[docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md)** and **[deploy/](deploy/)** as needed.
+8. **Graph pack version:** ingest-affecting changes → `./scripts/release/bump-graph-version.sh patch` and `make check-graph-version` ([versions.env](versions.env)).
+9. **Documentation:** update runtime docs and **[README.md](README.md)** when user-facing behavior changes; completed plans go to **[.cursor/plans/archive/](.cursor/plans/archive/)**; refresh **[.github/repo-description.txt](.github/repo-description.txt)** + `make sync-github-metadata` when the one-line summary changes.
 
    Checklist: [.cursor/rules/veil-agent-documentation.mdc](.cursor/rules/veil-agent-documentation.mdc).
 

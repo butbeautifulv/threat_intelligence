@@ -85,10 +85,7 @@ func calculateConfidence(p TargetProfile) float64 {
 	if p.TargetType != "unknown" {
 		conf += 0.1
 	}
-	if conf > 1 {
-		return 1
-	}
-	return conf
+	return min(conf, 1.0)
 }
 
 func sliceContainsFold(ss []string, want string) bool {

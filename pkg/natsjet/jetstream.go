@@ -15,13 +15,18 @@ type Conn struct {
 	JS nats.JetStreamContext
 }
 
+var (
+	natsConnect   = nats.Connect
+	jetStreamFrom = func(nc *nats.Conn) (nats.JetStreamContext, error) { return nc.JetStream() }
+)
+
 // Connect opens NATS and JetStream.
 func Connect(url string) (*Conn, error) {
-	nc, err := nats.Connect(url)
+	nc, err := natsConnect(url)
 	if err != nil {
 		return nil, err
 	}
-	js, err := nc.JetStream()
+	js, err := jetStreamFrom(nc)
 	if err != nil {
 		_ = nc.Drain()
 		return nil, err
@@ -48,9 +53,13 @@ func (c *Conn) PublishJSON(ctx context.Context, subject string, v any, msgID str
 	return nil
 }
 
+var streamInfoFn = func(js nats.JetStreamContext, name string) (*nats.StreamInfo, error) {
+	return js.StreamInfo(name)
+}
+
 // EnsureStream creates or widens a JetStream stream to include all subjects.
 func EnsureStream(js nats.JetStreamContext, name string, subjects []string) error {
-	info, err := js.StreamInfo(name)
+	info, err := streamInfoFn(js, name)
 	if err != nil {
 		if !errors.Is(err, nats.ErrStreamNotFound) {
 			return err

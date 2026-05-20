@@ -2,6 +2,15 @@ package domain
 
 import "testing"
 
+func TestVeilCategoryString(t *testing.T) {
+	if CategoryTI.String() != "ti" {
+		t.Fatalf("got %q", CategoryTI.String())
+	}
+	if VeilCategory("custom").String() != "custom" {
+		t.Fatal("String should return underlying value")
+	}
+}
+
 func TestVeilCategoryValid(t *testing.T) {
 	for _, c := range CommonCategories() {
 		if !c.Valid() {

@@ -228,9 +228,6 @@ func FilterStealthTools(toolIDs []string) []string {
 			out = append(out, id)
 		}
 	}
-	if len(out) > 4 {
-		return out[:4]
-	}
 	return out
 }
 

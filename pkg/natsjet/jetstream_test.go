@@ -2,10 +2,26 @@ package natsjet
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/nats-io/nats.go"
 )
+
+func TestConnect_jetStreamError(t *testing.T) {
+	old := jetStreamFrom
+	defer func() { jetStreamFrom = old }()
+	c := connForTest(t)
+	jetStreamFrom = func(nc *nats.Conn) (nats.JetStreamContext, error) {
+		return nil, nats.ErrJetStreamNotEnabled
+	}
+	_, err := Connect(c.NC.ConnectedUrl())
+	if err == nil {
+		t.Fatal("expected js error")
+	}
+}
 
 func TestConnect_badURL(t *testing.T) {
 	t.Parallel()
@@ -69,6 +85,23 @@ func TestPublishJSON_errors(t *testing.T) {
 	err = c.PublishJSON(cancelled, "w6.err.events", map[string]string{"k": "v"}, "id-2")
 	if err != context.Canceled {
 		t.Fatalf("ctx err = %v", err)
+	}
+
+	err = c.PublishJSON(ctx, "w6.not.in.stream", map[string]string{"k": "v"}, "id-3")
+	if err == nil {
+		t.Fatal("expected publish error for subject without stream")
+	}
+}
+
+func TestEnsureStream_streamInfoError(t *testing.T) {
+	old := streamInfoFn
+	defer func() { streamInfoFn = old }()
+	streamInfoFn = func(nats.JetStreamContext, string) (*nats.StreamInfo, error) {
+		return nil, nats.ErrTimeout
+	}
+	err := EnsureStream(jetStreamForTest(t), "X", []string{"x.>"})
+	if !errors.Is(err, nats.ErrTimeout) {
+		t.Fatalf("got %v", err)
 	}
 }
 

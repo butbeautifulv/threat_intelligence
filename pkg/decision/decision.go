@@ -1,5 +1,10 @@
 package decision
 
+import (
+	"cmp"
+	"slices"
+)
+
 // DecisionEngine scores tools per target type (port of HexStrike IntelligentDecisionEngine tables).
 type DecisionEngine struct {
 	effectiveness map[string]map[string]float64
@@ -12,10 +17,7 @@ func DefaultDecisionEngine() *DecisionEngine {
 
 // CandidateTools returns all tool ids with effectiveness scores for a target type.
 func (d *DecisionEngine) CandidateTools(targetType string) []string {
-	table, ok := d.effectiveness[targetType]
-	if !ok {
-		table = d.effectiveness["unknown"]
-	}
+	table := d.effectivenessTable(targetType)
 	out := make([]string, 0, len(table))
 	for id := range table {
 		out = append(out, id)
@@ -28,34 +30,40 @@ func (d *DecisionEngine) RankTools(targetType string, candidates []string) []str
 	return d.RankToolsWithBoost(targetType, candidates, nil)
 }
 
+type rankedTool struct {
+	id    string
+	score float64
+}
+
+func compareRankedDesc(a, b rankedTool) int { return cmp.Compare(b.score, a.score) }
+
+func boostValue(boost map[string]float64, id string) float64 {
+	if boost == nil {
+		return 0
+	}
+	return boost[id]
+}
+
+func (d *DecisionEngine) effectivenessTable(targetType string) map[string]float64 {
+	if t, ok := d.effectiveness[targetType]; ok {
+		return t
+	}
+	return d.effectiveness["unknown"]
+}
+
 // RankToolsWithBoost applies optional score boosts (e.g. from veil graph context).
 func (d *DecisionEngine) RankToolsWithBoost(targetType string, candidates []string, boost map[string]float64) []string {
-	table, ok := d.effectiveness[targetType]
-	if !ok {
-		table = d.effectiveness["unknown"]
-	}
-	type scored struct {
-		id    string
-		score float64
-	}
-	var list []scored
+	table := d.effectivenessTable(targetType)
+	var list []rankedTool
 	for _, id := range candidates {
 		score := table[id]
 		if score == 0 {
 			score = 0.5
 		}
-		if boost != nil {
-			score += boost[id]
-		}
-		list = append(list, scored{id, score})
+		score += boostValue(boost, id)
+		list = append(list, rankedTool{id: id, score: score})
 	}
-	for i := 0; i < len(list); i++ {
-		for j := i + 1; j < len(list); j++ {
-			if list[j].score > list[i].score {
-				list[i], list[j] = list[j], list[i]
-			}
-		}
-	}
+	slices.SortFunc(list, compareRankedDesc)
 	out := make([]string, len(list))
 	for i, s := range list {
 		out[i] = s.id
@@ -65,10 +73,7 @@ func (d *DecisionEngine) RankToolsWithBoost(targetType string, candidates []stri
 
 // Score returns effectiveness for a tool against a target type.
 func (d *DecisionEngine) Score(targetType, toolID string) float64 {
-	table, ok := d.effectiveness[targetType]
-	if !ok {
-		table = d.effectiveness["unknown"]
-	}
+	table := d.effectivenessTable(targetType)
 	if s, ok := table[toolID]; ok {
 		return s
 	}

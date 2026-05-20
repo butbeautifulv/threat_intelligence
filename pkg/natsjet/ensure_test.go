@@ -41,3 +41,14 @@ func TestEnsureStream_createsAndWidens(t *testing.T) {
 		t.Fatalf("subjects %#v", info.Config.Subjects)
 	}
 }
+
+func TestEnsureStream_idempotentNoWiden(t *testing.T) {
+	js := jetStreamForTest(t)
+	subs := []string{"events.ti.>"}
+	if err := EnsureStream(js, "EVENTS2", subs); err != nil {
+		t.Fatal(err)
+	}
+	if err := EnsureStream(js, "EVENTS2", subs); err != nil {
+		t.Fatal(err)
+	}
+}

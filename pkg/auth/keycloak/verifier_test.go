@@ -11,9 +11,18 @@ import (
 )
 
 func TestNewVerifier_emptyIssuer(t *testing.T) {
-	_, err := NewVerifier(context.Background(), "", "veil-api", "veil-api")
+	for _, iss := range []string{"", "  ", "\t"} {
+		_, err := NewVerifier(context.Background(), iss, "veil-api", "veil-api")
+		if err == nil {
+			t.Fatalf("issuer %q: expected error", iss)
+		}
+	}
+}
+
+func TestNewVerifier_badJWKSURL(t *testing.T) {
+	_, err := NewVerifier(context.Background(), "http://%", "veil-api", "veil-api")
 	if err == nil {
-		t.Fatal("expected error")
+		t.Fatal("expected jwks client error")
 	}
 }
 

@@ -33,8 +33,10 @@ var (
 	toolBinaryRe   = regexp.MustCompile(`^    binary:\s+(\S+)`)
 )
 
+var catalogRepoRoot = pbindex.RepoRoot
+
 func loadCatalog() {
-	root, err := pbindex.RepoRoot()
+	root, err := catalogRepoRoot()
 	if err != nil {
 		catalogNames = map[string]struct{}{}
 		return
@@ -108,10 +110,6 @@ func resolveOne(token string) string {
 		if low == token || strings.HasSuffix(low, "_"+token) || strings.HasPrefix(low, token+"_") {
 			return name
 		}
-	}
-	candidate := token + "_scan"
-	if _, ok := catalogNames[candidate]; ok {
-		return candidate
 	}
 	return ""
 }

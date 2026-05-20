@@ -40,3 +40,19 @@ func TestPostJSON(t *testing.T) {
 		t.Fatalf("status %d body %s", rr.Code, rr.Body.String())
 	}
 }
+
+func TestPostJSON_emptyBody(t *testing.T) {
+	mux := http.NewServeMux()
+	PostJSON(mux, "POST /noop", func(r *http.Request, body map[string]any) (any, int) {
+		if body == nil || len(body) != 0 {
+			t.Fatalf("body %v", body)
+		}
+		return map[string]any{"ok": true}, http.StatusOK
+	})
+	req := httptest.NewRequest(http.MethodPost, "/noop", nil)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status %d", rr.Code)
+	}
+}

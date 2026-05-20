@@ -22,3 +22,23 @@ func TestInitializeResult_httpDefault(t *testing.T) {
 		t.Fatalf("got %q", pv)
 	}
 }
+
+func TestNegotiateProtocol_invalidJSON(t *testing.T) {
+	if got := NegotiateProtocol([]byte("{")); got != DefaultProtocol {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestNegotiateProtocol_unsupportedVersion(t *testing.T) {
+	params, _ := json.Marshal(initializeParams{ProtocolVersion: "2099-01-01"})
+	if got := NegotiateProtocol(params); got != DefaultProtocol {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestInitializeResult_stdioKeepsDefault(t *testing.T) {
+	res := InitializeResult("svc", "1.0", false, nil)
+	if res["protocolVersion"] != DefaultProtocol {
+		t.Fatalf("got %v", res["protocolVersion"])
+	}
+}

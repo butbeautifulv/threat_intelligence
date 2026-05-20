@@ -121,6 +121,29 @@ func TestPublishAudit_setsSourceAndAt(t *testing.T) {
 	}
 }
 
+func TestConnectWithSubjects_noJetStream(t *testing.T) {
+	url := startTestNATSNoJS(t)
+	_, err := ConnectWithSubjects(url, "engage.events.audit", "engage.events.finding")
+	if err == nil {
+		t.Fatal("expected stream ensure error")
+	}
+}
+
+func startTestNATSNoJS(t *testing.T) string {
+	t.Helper()
+	opts := &server.Options{JetStream: false, Port: -1}
+	srv := test.RunServer(opts)
+	t.Cleanup(srv.Shutdown)
+	return srv.ClientURL()
+}
+
+func TestConnectWithSubjects_invalidURL(t *testing.T) {
+	_, err := ConnectWithSubjects("nats://127.0.0.1:1", "a", "b")
+	if err == nil {
+		t.Fatal("expected connect error")
+	}
+}
+
 func TestConnect_defaultFindingSubject(t *testing.T) {
 	url := startTestNATS(t)
 	pub, err := Connect(url, "engage.events.audit.default")

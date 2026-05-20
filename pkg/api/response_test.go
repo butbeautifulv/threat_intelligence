@@ -49,3 +49,11 @@ func TestSanitizeError_dev(t *testing.T) {
 		t.Fatalf("got %q", got)
 	}
 }
+
+func TestSanitizeError_prod_internal(t *testing.T) {
+	SetProdMode(true)
+	defer SetProdMode(false)
+	if got := SanitizeError(http.StatusInternalServerError, "db timeout"); got != "internal error" {
+		t.Fatalf("got %q", got)
+	}
+}

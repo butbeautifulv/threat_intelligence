@@ -31,7 +31,15 @@ var (
 	defaultCat   *Catalog
 	defaultOnce  sync.Once
 	defaultErr   error
+	osGetwd = os.Getwd
 )
+
+// SetRepoGetwd overrides Getwd for RepoRoot discovery; returns restore.
+func SetRepoGetwd(fn func() (string, error)) func() {
+	old := osGetwd
+	osGetwd = fn
+	return func() { osGetwd = old }
+}
 
 // Default opens the catalog once (lazy). Safe for concurrent read after load.
 func Default() (*Catalog, error) {
@@ -75,7 +83,7 @@ func RepoRoot() (string, error) {
 	if r := strings.TrimSpace(os.Getenv(EnvRepoRoot)); r != "" {
 		return r, nil
 	}
-	wd, err := os.Getwd()
+	wd, err := osGetwd()
 	if err != nil {
 		return "", err
 	}

@@ -9,6 +9,8 @@ import (
 )
 
 var (
+	sectionLocMin = 4
+	stepLocMin    = 6
 	frontmatterRe = regexp.MustCompile(`(?s)^---\s*\n(.*?)\n---\s*\n`)
 	sectionRe     = regexp.MustCompile(`(?m)^##\s+(.+)$`)
 	stepRe        = regexp.MustCompile(`(?m)^###\s+Step\s+(\d+):\s*(.+)$`)
@@ -52,7 +54,7 @@ func splitSections(body string) map[string]string {
 	out := map[string]string{}
 	idx := sectionRe.FindAllStringSubmatchIndex(body, -1)
 	for i, loc := range idx {
-		if len(loc) < 4 {
+		if len(loc) < sectionLocMin {
 			continue
 		}
 		title := strings.ToLower(strings.TrimSpace(body[loc[2]:loc[3]]))
@@ -84,7 +86,7 @@ func extractSteps(workflow string) []domain.ProcedureStep {
 		return steps
 	}
 	for i, loc := range locs {
-		if len(loc) < 6 {
+		if len(loc) < stepLocMin {
 			continue
 		}
 		num, _ := strconv.Atoi(strings.TrimSpace(workflow[loc[2]:loc[3]]))

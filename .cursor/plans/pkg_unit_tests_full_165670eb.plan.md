@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: w7-ci
     content: "W7: test-platform-p7 + pkg-cover.sh + manifest phases"
-    status: pending
+    status: completed
 isProject: false
 ---
 
