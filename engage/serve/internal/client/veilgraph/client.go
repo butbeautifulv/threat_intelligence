@@ -111,6 +111,40 @@ func (c *Client) GetNode(ctx context.Context, id string) (json.RawMessage, error
 	return c.GetJSON(ctx, path)
 }
 
+// PlaybookProcedure returns structured procedure for a skill id.
+func (c *Client) PlaybookProcedure(ctx context.Context, skillID string) (json.RawMessage, error) {
+	skillID = strings.TrimSpace(skillID)
+	if skillID == "" {
+		return nil, fmt.Errorf("skill_id required")
+	}
+	path := fmt.Sprintf("/v1/playbooks/%s/procedure", url.PathEscape(skillID))
+	return c.GetJSON(ctx, path)
+}
+
+// PlaybookRecommendTools returns engage catalog tools linked to a skill or technique.
+func (c *Client) PlaybookRecommendTools(ctx context.Context, skillID, techniqueID string) (json.RawMessage, error) {
+	if strings.TrimSpace(techniqueID) != "" {
+		path := fmt.Sprintf("/v1/playbooks/ontology/technique/%s/skills", url.PathEscape(techniqueID))
+		return c.GetJSON(ctx, path)
+	}
+	skillID = strings.TrimSpace(skillID)
+	if skillID == "" {
+		return nil, fmt.Errorf("skill_id or technique_id required")
+	}
+	path := fmt.Sprintf("/v1/playbooks/%s/recommend-tools", url.PathEscape(skillID))
+	return c.GetJSON(ctx, path)
+}
+
+// PlaybooksByTechnique lists cybersecurity playbooks for a MITRE ATT&CK technique id.
+func (c *Client) PlaybooksByTechnique(ctx context.Context, techniqueID string) (json.RawMessage, error) {
+	techniqueID = strings.TrimSpace(techniqueID)
+	if techniqueID == "" {
+		return nil, fmt.Errorf("technique_id required")
+	}
+	path := fmt.Sprintf("/v1/playbooks/by-technique/%s", url.PathEscape(techniqueID))
+	return c.GetJSON(ctx, path)
+}
+
 // Neighbors returns a k-hop subgraph around a node id.
 func (c *Client) Neighbors(ctx context.Context, id string, depth int) (json.RawMessage, error) {
 	id = strings.TrimSpace(id)

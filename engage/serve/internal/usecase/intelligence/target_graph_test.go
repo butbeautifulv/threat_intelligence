@@ -33,6 +33,14 @@ func (m *mockGraphReader) Neighbors(context.Context, string, int) (json.RawMessa
 	return nil, nil
 }
 
+func (m *mockGraphReader) PlaybooksByTechnique(context.Context, string) (json.RawMessage, error) {
+	return nil, nil
+}
+
+func (m *mockGraphReader) PlaybookRecommendTools(context.Context, string, string) (json.RawMessage, error) {
+	return nil, nil
+}
+
 func TestLoadTargetGraph_mergesHitsAndContext(t *testing.T) {
 	ctxRaw := json.RawMessage(`{"found":true,"context":{"vulnerabilities":[{"props":{"cve":"CVE-2024-1"}}]}}`)
 	veil := &mockGraphReader{

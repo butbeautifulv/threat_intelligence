@@ -15,6 +15,7 @@
 | Area | Status | Details |
 |------|--------|---------|
 | **Platform** | P0–P12 + v8 **done** | Unified edge `veil-edge` — [platform-unified-access.md](docs/platform-unified-access.md); history in [.cursor/plans/archive/README.md](.cursor/plans/archive/README.md) |
+| **Playbook domain** | **done** (read path) | **754** Anthropic cybersecurity skills in corpus; structured `procedures-index.json`, ontology API, graph seed props — [external-cybersecurity-skills.md](docs/external-cybersecurity-skills.md) |
 | **Engage sign-off** | Phase 30 **done** | Legacy HexStrike `:8888` decommissioned (architecture + routes) — [engage-audit-report.md](docs/engage-audit-report.md). **Not** the same as 158/158 subprocess execution |
 | **Active tracks** | In progress | **P9f** `make test-engage-executable-matrix`; plans: [engage_tools_full_coverage](.cursor/plans/engage_tools_full_coverage.plan.md), [client-native master](.cursor/plans/engage_mcp_client_native_execution_master.plan.md) |
 | **Catalog** | **158** names | 151 legacy MCP + 8 engage bridge — [engage-tools.md](docs/engage-tools.md) |
@@ -28,8 +29,10 @@
 | Capability | Description |
 |------------|-------------|
 | **Threat graph** | Versioned [graph packs](docs/graph-pack.md), HTTP API (`/v1/*`), read-only MCP |
+| **Cyber playbooks** | **754** procedure skills (mirror + index + structured steps); MITRE/CSF mappings; optional `HAS_PLAYBOOK` edges |
 | **Ingestion bus** | Scrape → NED → ingest over NATS (`pkg/harvest`, `pkg/commit`) |
 | **Engage toolkit** | **158** catalog tools · bridge + subprocess matrix · **client-native host PATH** by default |
+| **Decision + playbook (DRY)** | Effectiveness in `pkg/decision`; skills add catalog **boost** and procedure hints, not a second matrix — [cyber-domain-model.md](docs/cyber-domain-model.md) |
 | **Closed loop** | Tool runs → `engage.events` → graph (`EngageToolRun`, `EngageFinding`) |
 | **Unified edge (P12)** | One TLS host: `/v1/*`, `/api/*`, `/mcp/graph`, `/mcp/engage`; scale **4 / 8 / 16** |
 | **Agent-ready** | **veil-mcp** (read) + **veil-engage** (exec), Keycloak RBAC, GAIA eval harness |
@@ -48,7 +51,9 @@ System diagram and layer roles: see mermaid in [docs/platform-architecture.md](d
 | **Knowledge** | [knowledge/](knowledge/) | Neo4j ingest + [serve](knowledge/serve/) API/MCP | `veil-mcp` (read) |
 | **Engage** | [engage/](engage/) | Catalog tools, workflows, reports | `veil-engage` (exec) |
 
-**Shared `pkg/`:** [harvest](pkg/harvest/), [commit](pkg/commit/), [natsjet](pkg/natsjet/), [auth](pkg/auth/), [engage](pkg/engage/), [report](pkg/report/), [decision](pkg/decision/), [exec](pkg/exec/), [api](pkg/api/), [mcp](pkg/mcp/). **No Go imports** across the four layer roots.
+**Shared `pkg/`:** [harvest](pkg/harvest/), [commit](pkg/commit/), [natsjet](pkg/natsjet/), [auth](pkg/auth/), [engage](pkg/engage/), [report](pkg/report/), [decision](pkg/decision/), [playbook](pkg/playbook/) (ontology, procedure, cataloglink), [exec](pkg/exec/), [api](pkg/api/), [mcp](pkg/mcp/). **No Go imports** across the four layer roots.
+
+**Playbook stack (`pkg/playbook`):** committed [corpus/](corpus/anthropic-cybersecurity-skills/skills/) + [mappings](pkg/playbook/corpus/mappings/) → generated indexes → veil-api `/v1/playbooks/*` and MCP `playbook_*`. Execution stays on engage catalog + `pkg/decision`.
 
 **Agents:** **veil-mcp** + **veil-engage** only — [mcp-agents.md](docs/mcp-agents.md). Legacy HexStrike is reference-only — [external-hexstrike.md](docs/external-hexstrike.md).
 
@@ -65,11 +70,26 @@ Compose under [deploy/](deploy/); presets in [deploy/stacks/](deploy/stacks/).
 ```bash
 docker compose -f deploy/knowledge/compose.yml up -d --build
 docker compose -f deploy/knowledge/compose.yml --profile mcp up -d --build mcp   # optional
+export VEIL_REPO_ROOT="$(pwd)"   # required for playbook paths when API runs outside repo cwd
 curl -sS http://localhost:8090/health
 make test-graph-read-smoke
 ```
 
-Pack version: [versions.env](versions.env) → `GRAPH_PACK_VERSION` (currently **v0.4.6**).
+Pack version: [versions.env](versions.env) → `GRAPH_PACK_VERSION` (currently **v0.4.7**).
+
+**Playbook smoke (no Neo4j required for index read):**
+
+```bash
+make skills-index procedures-index
+curl -sS 'http://localhost:8090/v1/playbooks/search?q=forensics&limit=3'
+curl -sS 'http://localhost:8090/v1/playbooks/acquiring-disk-image-with-dd-and-dcfldd/procedure'
+```
+
+**Graph playbook edges (Neo4j + ATT&CK ingested):**
+
+```bash
+cd knowledge/ingest && env GOWORK=../go.work go run ./cmd/playbook_seed
+```
 
 ### Unified edge (graph + engage, TLS)
 
@@ -100,6 +120,8 @@ Install CLIs: [engage-install-linux.md](docs/engage-install-linux.md) · Lab pen
 | veil-mcp | [run-veil-mcp.sh](scripts/mcp/run-veil-mcp.sh) | [cursor.mcp.json.example](examples/mcp/cursor.mcp.json.example) |
 | veil-engage | [run-veil-engage.sh](scripts/mcp/run-veil-engage.sh) | [engage.stdio.json.example](examples/mcp/engage.stdio.json.example) |
 
+**veil-mcp playbook tools:** `playbook_search`, `playbook_get`, `playbook_for_technique`, `playbook_procedure`, `playbook_recommend_tools`, `playbook_ontology_subdomains` — see [external-cybersecurity-skills.md](docs/external-cybersecurity-skills.md).
+
 ---
 
 ## Documentation
@@ -111,6 +133,9 @@ Install CLIs: [engage-install-linux.md](docs/engage-install-linux.md) · Lab pen
 | [AGENTS.md](AGENTS.md) | Agent workflow, tests, core47 quick path |
 | [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose, ports, NATS, bootstrap |
 | [docs/mcp-agents.md](docs/mcp-agents.md) | veil-mcp + veil-engage setup |
+| [docs/external-cybersecurity-skills.md](docs/external-cybersecurity-skills.md) | 754 skills, indexes, API/MCP, seed |
+| [docs/cyber-domain-model.md](docs/cyber-domain-model.md) | Knowledge vs engage vs decision (DRY) |
+| [docs/playbook-import-matrix.md](docs/playbook-import-matrix.md) | Subdomain migration tracker |
 | [deploy/README.md](deploy/README.md) | Layer compose, scaling, smokes |
 | [docs/engage-tools.md](docs/engage-tools.md) | Catalog KPIs, matrices, assessment API |
 | [docs/engage-lab-pentest.md](docs/engage-lab-pentest.md) | Install + self-pentest + HexStrike lab results |
@@ -121,7 +146,7 @@ Install CLIs: [engage-install-linux.md](docs/engage-install-linux.md) · Lab pen
 
 ### Reference
 
-[platform-architecture.md](docs/platform-architecture.md) · [platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) · [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) · [deploy-secure.md](docs/deploy-secure.md) · [ontology-appsec.md](docs/ontology-appsec.md) · [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) · [external-security-frameworks.md](docs/external-security-frameworks.md)
+[platform-architecture.md](docs/platform-architecture.md) · [platform-closed-loop-pilot.md](docs/platform-closed-loop-pilot.md) · [deploy-platform-hybrid.md](docs/deploy-platform-hybrid.md) · [deploy-secure.md](docs/deploy-secure.md) · [domain-contour.md](docs/domain-contour.md) · [ontology-appsec.md](docs/ontology-appsec.md) · [agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) · [external-security-frameworks.md](docs/external-security-frameworks.md)
 
 **Layer READMEs:** [discovery/](discovery/README.md) · [pipeline/](pipeline/README.md) · [knowledge/](knowledge/README.md) · [scripts/](scripts/README.md)
 
@@ -135,6 +160,7 @@ Full matrix: run from repo root. CI: [platform.yml](.github/workflows/platform.y
 |------|----------|
 | **Shared / platform** | `make test-pkg-shared` · `make test-platform-p7` · `make test-platform-p0` · `make test-platform-unified-edge` · `make test-platform-closed-loop` · optional `make test-platform-full-loop` |
 | **Layers** | `make test-discovery` · `make test-pipeline` · `make test-knowledge` · `make test-knowledge-serve` · `make test-graph-read-smoke` |
+| **Playbook / corpus** | `make check-corpus-mappings` · `make check-skills-index` · `make check-procedures-index` · `cd pkg && go test ./playbook/...` |
 | **Engage gates** | `make test-engage` · `make test-engage-parity` · `make test-engage-executable-matrix` (**P9f**) · `make test-engage-hardening` · `make test-engage-events-pipeline` |
 | **Eval / deploy** | `make test-agent-eval-pilot` · `make deploy-helm-template` · `make deploy-ansible-check` |
 
@@ -144,7 +170,7 @@ PR minimum: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Graph packs
 
-[docs/graph-pack.md](docs/graph-pack.md) · default **v0.4.6** in [versions.env](versions.env).
+[docs/graph-pack.md](docs/graph-pack.md) · default **v0.4.7** in [versions.env](versions.env).
 
 ```bash
 make graph-pack-export   # Neo4j must be running
@@ -158,4 +184,5 @@ make graph-pack-build
 ```cypher
 MATCH (n) RETURN labels(n)[0] AS label, count(*) AS c ORDER BY c DESC LIMIT 20;
 MATCH (v:Vulnerability)-[:HAS_CWE]->() RETURN count(*) AS has_cwe;
+MATCH (t:AttackTechnique {id:'T1059.001'})-[:HAS_PLAYBOOK]->(s:CyberSkill) RETURN count(s) AS playbooks;
 ```

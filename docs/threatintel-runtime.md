@@ -205,8 +205,8 @@ Skip import entirely: **`GRAPH_PACK_SKIP=1`**.
 | `GRAPH_PACK_SKIP` | `0` | `1` = exit 0 without importing |
 | `GRAPH_PACK_DEFAULT` | `1` | `0` = do not download the default release ZIP when no file/URL |
 | `GRAPH_PACK_URL` | empty | HTTP(S) URL of the pack ZIP |
-| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.6` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
-| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.6` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
+| `GRAPH_PACK_DEFAULT_URL` | `veil-graph-v0.4.7` asset | Overrides the default download URL when `GRAPH_PACK_DEFAULT=1` |
+| `GRAPH_PACK_DEFAULT_VERSION` | `v0.4.7` | Used to build default URL when `GRAPH_PACK_DEFAULT_URL` unset |
 | `GRAPH_PACK_FILE` | empty | Path **inside** the bootstrap container (mount a volume if needed) |
 
 Compose passes these from the host for `graph-bootstrap` (see [docker-compose.yml](../docker-compose.yml) `environment`).
@@ -303,7 +303,7 @@ Category-first tools: `ti_list_categories`, `ti_list_kinds_in_category`, `ti_nod
 docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d
 ```
 
-See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.6.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
+See [docker-compose.testpack.yml](../docker-compose.testpack.yml) (bind-mounts `var/veil/graph/releases/veil-graph-v0.4.7.zip` as `/pack/host.zip` and sets `GRAPH_PACK_DEFAULT=0`).
 
 Re-importing the same pack into **non-empty** Neo4j (existing constraints) will fail. Use `./scripts/ops/compose-down-ephemeral.sh` (keeps `var/veil` ledger/blobs) before a clean import. **`ingest_worker`** waits for **`graph-bootstrap`** to finish ([deploy/knowledge/compose.yml](../deploy/knowledge/compose.yml)).
 

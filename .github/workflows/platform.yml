@@ -22,6 +22,11 @@ on:
       - 'docs/platform-closed-loop-pilot.md'
       - 'docs/platform-full-loop-smoke.md'
       - 'docs/domain-contour.md'
+      - 'docs/skills-index/**'
+      - 'docs/cyber-domain-model.md'
+      - 'corpus/**'
+      - 'pkg/playbook/**'
+      - 'scripts/knowledge/**'
       - 'deploy/terraform/**'
       - 'Makefile'
       - 'versions.env'
@@ -40,6 +45,11 @@ on:
       - 'docs/platform-closed-loop-pilot.md'
       - 'docs/platform-full-loop-smoke.md'
       - 'docs/domain-contour.md'
+      - 'docs/skills-index/**'
+      - 'docs/cyber-domain-model.md'
+      - 'corpus/**'
+      - 'pkg/playbook/**'
+      - 'scripts/knowledge/**'
       - 'deploy/terraform/**'
       - 'Makefile'
       - 'versions.env'
@@ -54,6 +64,15 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.25'
+
+      - name: Cyber corpus mappings (committed SOT)
+        run: make check-corpus-mappings
+
+      - name: Cyber skills index (committed JSON)
+        run: make check-skills-index
+
+      - name: Procedures index (structured playbook)
+        run: make check-procedures-index
 
       - name: Platform P7 unit tests (pkg domain + layer slices)
         run: make test-platform-p7

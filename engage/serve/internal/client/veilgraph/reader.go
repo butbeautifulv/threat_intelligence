@@ -13,4 +13,6 @@ type Reader interface {
 	EngageContext(ctx context.Context, host string) (json.RawMessage, error)
 	GetNode(ctx context.Context, id string) (json.RawMessage, error)
 	Neighbors(ctx context.Context, id string, depth int) (json.RawMessage, error)
+	PlaybooksByTechnique(ctx context.Context, techniqueID string) (json.RawMessage, error)
+	PlaybookRecommendTools(ctx context.Context, skillID, techniqueID string) (json.RawMessage, error)
 }

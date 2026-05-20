@@ -13,7 +13,7 @@ import (
 )
 
 func TestHTTP_initialize_sse(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	cfg := config.MCPHTTPConfig{Path: "/mcp", PreferSSE: true}
 	h := HTTPHandler(srv, cfg)
 

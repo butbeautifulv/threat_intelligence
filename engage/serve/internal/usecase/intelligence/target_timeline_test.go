@@ -51,6 +51,14 @@ func (m *mockVeilTimeline) Neighbors(context.Context, string, int) (json.RawMess
 	return nil, nil
 }
 
+func (m *mockVeilTimeline) PlaybooksByTechnique(context.Context, string) (json.RawMessage, error) {
+	return nil, nil
+}
+
+func (m *mockVeilTimeline) PlaybookRecommendTools(context.Context, string, string) (json.RawMessage, error) {
+	return nil, nil
+}
+
 func TestTargetTimeline_mergesAuditAndGraph(t *testing.T) {
 	now := time.Now().UTC()
 	s := &Service{

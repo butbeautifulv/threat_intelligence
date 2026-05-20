@@ -30,7 +30,7 @@ func TestNegotiateProtocol(t *testing.T) {
 }
 
 func TestProcessMessage_initialize_negotiates2024(t *testing.T) {
-	srv := NewServer(nil, nil, nil)
+	srv := NewServer(nil, nil, nil, nil, nil, nil)
 	msg := rpcMessage{
 		JSONRPC: "2.0",
 		ID:      1,
@@ -48,7 +48,7 @@ func TestProcessMessage_initialize_negotiates2024(t *testing.T) {
 }
 
 func TestProcessMessage_initialize_negotiates2025(t *testing.T) {
-	srv := NewServer(nil, nil, nil)
+	srv := NewServer(nil, nil, nil, nil, nil, nil)
 	msg := rpcMessage{
 		JSONRPC: "2.0",
 		ID:      1,

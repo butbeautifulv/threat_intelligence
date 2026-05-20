@@ -24,6 +24,12 @@ Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`d
 | `pkg/engage/domain/tool` | Tool spec, catalog metadata | engage serve |
 | `pkg/engage/domain/target` | Scan subject (host, URL, CIDR) | engage serve (guard, workflows) |
 | `pkg/engage/events` | Finding events wire | engage, pipeline, graph ingest |
+| `pkg/playbook/domain` | `SkillMeta`, `IndexFile`, `SkillDetail` | Generated index + veil-api/MCP read (not ingest STIX) |
+| `pkg/playbook/index` | Load/search `docs/skills-index/cyber-skills.json` | `knowledge/serve` playbook usecase |
+| `pkg/playbook/corpus/mappings` | MITRE Navigator layer, NIST CSF, OWASP MD (committed) | `pkg/playbook/framework`, veil-api framework routes |
+| `pkg/playbook/framework` | Parse Navigator layer JSON | HTTP/MCP `playbook_framework` |
+| `pkg/playbook/procedure` | Structured ProcedureSpec; `procedures-index.json` | veil-api `/procedure`, MCP `playbook_procedure` |
+| `pkg/playbook/cataloglink` | Map skill tool mentions → engage catalog names | `playbook_recommend_tools`, engage boost |
 
 ## Knowledge serve read DTOs (layer-local, not in pkg)
 

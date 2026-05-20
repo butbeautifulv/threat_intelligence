@@ -20,6 +20,7 @@ Veil **does not ship** full JCSF/DAF spreadsheets in `.external/` — those dire
 | [.external/Cheat-Sheet-Red-Teaming-AI-Solution-Landscape-Q226.pdf](../.external/Cheat-Sheet-Red-Teaming-AI-Solution-Landscape-Q226.pdf) | **OWASP Red Team AI** | Test/evaluate phase → self-test scope (no host attacks) |
 | [.external/Карта инструментов DevSecOps.pdf](../.external/Карта%20инструментов%20DevSecOps.pdf) | Tool landscape | Informative; Veil **implements** tools via engage catalog, not every box on the map |
 | [.external/agent-store/](../.external/agent-store/) | **openJiuwen Agent Store** | Catalog/metadata patterns only — see [external-agent-store.md](external-agent-store.md) |
+| [.external/Anthropic-Cybersecurity-Skills-main/](../.external/Anthropic-Cybersecurity-Skills-main/) | **Cybersecurity Skills** (community) | Procedure playbooks for agents — see [external-cybersecurity-skills.md](external-cybersecurity-skills.md); index in [skills-index/](skills-index/) |
 | [GAIA arXiv:2311.12983](https://arxiv.org/abs/2311.12983) | **GAIA benchmark** | General-assistant agent eval (HF optional) — [agent-evaluation-gaia.md](agent-evaluation-gaia.md) |
 
 ## Adoption principles (critical)

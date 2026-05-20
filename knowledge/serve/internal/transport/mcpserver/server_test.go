@@ -16,7 +16,7 @@ import (
 
 func TestServer_initialize_tools_ping(t *testing.T) {
 	uc := usecase.NewReadUsecase(&mockExec{})
-	srv := NewServer(uc, nil, slog.Default())
+	srv := NewServer(uc, nil, nil, nil, nil, slog.Default())
 
 	stdinR, stdinW := io.Pipe()
 	stdoutR, stdoutW := io.Pipe()
@@ -127,7 +127,7 @@ func TestServer_initialize_tools_ping(t *testing.T) {
 
 func TestServer_unknownMethod(t *testing.T) {
 	uc := usecase.NewReadUsecase(&mockExec{})
-	srv := NewServer(uc, nil, slog.Default())
+	srv := NewServer(uc, nil, nil, nil, nil, slog.Default())
 
 	stdinR, stdinW := io.Pipe()
 	stdoutR, stdoutW := io.Pipe()

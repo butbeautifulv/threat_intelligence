@@ -8,17 +8,32 @@ import (
 	"github.com/butbeautifulv/veil/pkg/auth"
 	"github.com/butbeautifulv/veil/pkg/mcp"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/usecase"
+	playbookuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/playbook"
+	procedureuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/procedure"
+	frameworkuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/framework"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/version"
 )
 
 type Server struct {
-	uc     *usecase.ReadUsecase
-	auth   *auth.Stack
-	logger *slog.Logger
+	uc        *usecase.ReadUsecase
+	playbook  *playbookuc.Service
+	procedure *procedureuc.Service
+	framework *frameworkuc.Service
+	auth      *auth.Stack
+	logger    *slog.Logger
 }
 
-func NewServer(uc *usecase.ReadUsecase, stack *auth.Stack, logger *slog.Logger) *Server {
-	return &Server{uc: uc, auth: stack, logger: logger}
+func NewServer(uc *usecase.ReadUsecase, playbook *playbookuc.Service, proc *procedureuc.Service, fw *frameworkuc.Service, stack *auth.Stack, logger *slog.Logger) *Server {
+	if playbook == nil {
+		playbook, _ = playbookuc.NewService()
+	}
+	if proc == nil {
+		proc, _ = procedureuc.NewService()
+	}
+	if fw == nil {
+		fw = frameworkuc.NewService()
+	}
+	return &Server{uc: uc, playbook: playbook, procedure: proc, framework: fw, auth: stack, logger: logger}
 }
 
 func (s *Server) Run(ctx context.Context, inReader any, outWriter any) error {

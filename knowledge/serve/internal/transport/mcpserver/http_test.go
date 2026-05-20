@@ -21,7 +21,7 @@ import (
 
 func TestHTTP_initialize_json(t *testing.T) {
 	uc := usecase.NewReadUsecase(&mockExec{})
-	srv := NewServer(uc, nil, slog.Default())
+	srv := NewServer(uc, nil, nil, nil, nil, slog.Default())
 	cfg := config.MCPHTTPConfig{Path: "/mcp"}
 	h := HTTPHandler(srv, cfg)
 
@@ -49,7 +49,7 @@ func TestHTTP_initialize_json(t *testing.T) {
 }
 
 func TestHTTP_health(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	h := HTTPHandler(srv, config.MCPHTTPConfig{Path: "/mcp"})
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rr := httptest.NewRecorder()
@@ -60,7 +60,7 @@ func TestHTTP_health(t *testing.T) {
 }
 
 func TestHTTP_get_mcp_405(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	h := HTTPHandler(srv, config.MCPHTTPConfig{Path: "/mcp"})
 	req := httptest.NewRequest(http.MethodGet, "/mcp", nil)
 	rr := httptest.NewRecorder()
@@ -82,7 +82,7 @@ func TestHTTP_auth_required(t *testing.T) {
 	})
 
 	uc := usecase.NewReadUsecase(&mockExec{})
-	srv := NewServer(uc, stack, slog.Default())
+	srv := NewServer(uc, nil, nil, nil, stack, slog.Default())
 	cfg := config.MCPHTTPConfig{Path: "/mcp"}
 	h := authmw.Auth(stack, true, config.SecurityConfig{}, HTTPHandler(srv, cfg))
 
@@ -115,7 +115,7 @@ func TestHTTP_tools_call_via_bearer(t *testing.T) {
 	tok, _ := keycloak.SignTestToken(key, issuer, aud, "u1", nil, time.Hour)
 
 	uc := usecase.NewReadUsecase(&mockExec{})
-	srv := NewServer(uc, stack, slog.Default())
+	srv := NewServer(uc, nil, nil, nil, stack, slog.Default())
 	h := authmw.Auth(stack, false, config.SecurityConfig{}, HTTPHandler(srv, config.MCPHTTPConfig{Path: "/mcp"}))
 
 	body := `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"ti_health","arguments":{}}}`

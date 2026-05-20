@@ -33,7 +33,7 @@ func main() {
 	defer c.Shutdown()
 
 	mux := http.NewServeMux()
-	httpserver.Register(mux, c.Read)
+	httpserver.Register(mux, c.Read, c.Playbook, c.Procedure, c.Framework)
 	handler := securityhttp.Harden(cfg.Security, cfg.Security.APIBodyLimit,
 		authmw.Auth(c.Auth, false, cfg.Security, mux))
 

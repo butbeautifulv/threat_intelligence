@@ -10,7 +10,7 @@ import (
 )
 
 func TestProcessMessage_notification(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	msg := rpcMessage{JSONRPC: "2.0", Method: "notifications/initialized"}
 	resp, isNotification, err := srv.ProcessMessage(context.Background(), msg, false)
 	if err != nil {
@@ -22,7 +22,7 @@ func TestProcessMessage_notification(t *testing.T) {
 }
 
 func TestProcessMessage_initialize(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	msg := rpcMessage{JSONRPC: "2.0", ID: 1, Method: "initialize", Params: json.RawMessage(`{}`)}
 	resp, isNotification, err := srv.ProcessMessage(context.Background(), msg, true)
 	if err != nil || isNotification || resp == nil {

@@ -146,6 +146,92 @@ func allToolEntries() []toolEntry {
 			},
 			deprecated: true,
 		},
+		{
+			name:        "playbook_search",
+			description: "Search cybersecurity procedure playbooks (Anthropic skills index) by keywords and optional subdomain.",
+			schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"query":     map[string]any{"type": "string"},
+					"subdomain": map[string]any{"type": "string"},
+					"limit":     map[string]any{"type": "integer", "default": 15},
+				},
+			},
+		},
+		{
+			name:        "playbook_get",
+			description: "Fetch full playbook markdown for one skill id (from playbook_search).",
+			schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"id": map[string]any{"type": "string"},
+				},
+				"required": []string{"id"},
+			},
+		},
+		{
+			name:        "playbook_for_technique",
+			description: "List playbooks linked to a MITRE ATT&CK technique id (index + graph HAS_PLAYBOOK when seeded).",
+			schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"technique_id": map[string]any{"type": "string"},
+				},
+				"required": []string{"technique_id"},
+			},
+		},
+		{
+			name:        "playbook_framework",
+			description: "Read committed framework mappings (MITRE Navigator layer, coverage summary, mapping file list).",
+			schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"framework": map[string]any{
+						"type": "string",
+						"enum": []any{"mitre", "coverage", "docs"},
+						"description": "mitre=Navigator layer JSON; coverage=summary stats; docs=file list under pkg/playbook/corpus/mappings",
+					},
+				},
+			},
+		},
+		{
+			name:        "playbook_subdomains",
+			description: "List Anthropic skill subdomain counts from the generated index (26-domain taxonomy).",
+			schema: map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
+		{
+			name:        "playbook_procedure",
+			description: "Structured procedure (steps, prerequisites) for one skill id — complements playbook_get markdown body.",
+			schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"id": map[string]any{"type": "string"},
+				},
+				"required": []string{"id"},
+			},
+		},
+		{
+			name:        "playbook_recommend_tools",
+			description: "Engage catalog tool names referenced by a skill or MITRE technique (read-only resolver).",
+			schema: map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"id":           map[string]any{"type": "string"},
+					"technique_id": map[string]any{"type": "string"},
+				},
+			},
+		},
+		{
+			name:        "playbook_ontology_subdomains",
+			description: "Subdomain registry with Veil category mapping and priority tier.",
+			schema: map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
 	}
 }
 

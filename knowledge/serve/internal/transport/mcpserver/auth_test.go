@@ -29,7 +29,7 @@ func TestServer_toolsCall_requiresAuth(t *testing.T) {
 	})
 
 	uc := usecase.NewReadUsecase(&mockExec{})
-	srv := NewServer(uc, stack, slog.Default())
+	srv := NewServer(uc, nil, nil, nil, stack, slog.Default())
 
 	stdinR, stdinW := io.Pipe()
 	stdoutR, stdoutW := io.Pipe()
@@ -63,7 +63,7 @@ func TestServer_toolsCall_requiresAuth(t *testing.T) {
 
 	tok, _ := keycloak.SignTestToken(key, issuer, aud, "u1", []string{"veil-reader"}, time.Hour)
 	stack.Config.MCPAccessToken = tok
-	srv2 := NewServer(uc, stack, slog.Default())
+	srv2 := NewServer(uc, nil, nil, nil, stack, slog.Default())
 	stdinR2, stdinW2 := io.Pipe()
 	stdoutR2, stdoutW2 := io.Pipe()
 	go func() { _ = srv2.Run(context.Background(), stdinR2, stdoutW2) }()

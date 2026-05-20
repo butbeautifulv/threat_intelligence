@@ -75,6 +75,8 @@ func (s *Service) CorrelateThreatIntelligence(ctx context.Context, target, indic
 			}
 		}
 	}
+	attachPlaybookHints(ctx, s.Veil, out, target, indicators)
+	attachProcedureContext(ctx, s.Veil, out, target, indicators)
 	out["graph_host"] = state.Host
 	return out
 }
@@ -154,6 +156,7 @@ func (s *Service) DiscoverAttackChains(ctx context.Context, target, objective st
 		out["cve_attack_paths"] = paths
 		out["cve_stages"] = cveStagesFromPaths(paths)
 	}
+	attachPlaybookHints(ctx, s.Veil, out, target, objective)
 	return out
 }
 

@@ -14,7 +14,7 @@ import (
 )
 
 func TestHTTP_post_batchRejected(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	h := HTTPHandler(srv, config.MCPHTTPConfig{Path: "/mcp"})
 	body := `[{"jsonrpc":"2.0","id":1,"method":"ping"},{"jsonrpc":"2.0","id":2,"method":"ping"}]`
 	req := httptest.NewRequest(http.MethodPost, "/mcp", bytes.NewBufferString(body))
@@ -27,7 +27,7 @@ func TestHTTP_post_batchRejected(t *testing.T) {
 }
 
 func TestHTTP_post_oversizedBody(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	h := HTTPHandler(srv, config.MCPHTTPConfig{Path: "/mcp"})
 	big := strings.Repeat("x", 5<<20+1)
 	req := httptest.NewRequest(http.MethodPost, "/mcp", strings.NewReader(`{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}`+big))
@@ -44,7 +44,7 @@ func TestHTTP_post_oversizedBody(t *testing.T) {
 }
 
 func TestHTTP_post_emptyBody(t *testing.T) {
-	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, slog.Default())
+	srv := NewServer(usecase.NewReadUsecase(&mockExec{}), nil, nil, nil, nil, slog.Default())
 	h := HTTPHandler(srv, config.MCPHTTPConfig{Path: "/mcp"})
 	req := httptest.NewRequest(http.MethodPost, "/mcp", nil)
 	rr := httptest.NewRecorder()

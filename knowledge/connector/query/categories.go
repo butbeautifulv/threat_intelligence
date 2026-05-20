@@ -56,10 +56,16 @@ var Categories = map[string]CategoryMeta{
 		Description: "Tool runs and vulnerability findings from engage layer (cross-layer bus)",
 		Labels:      []string{"EngageToolRun", "EngageFinding", "EngageTarget"},
 	},
+	"playbook": {
+		ID:          "playbook",
+		Title:       "Cybersecurity playbooks",
+		Description: "Agent procedure skills (Anthropic corpus index); full text via playbook_get / GET /v1/playbooks/{id}",
+		Labels:      []string{"CyberSkill"},
+	},
 }
 
 // categoryOrder is the stable iteration order for APIs and docs.
-var categoryOrder = []string{"vuln", "ti", "detection", "lola", "mitre", "sbom", "code_rules", "dast", "engage"}
+var categoryOrder = []string{"vuln", "ti", "detection", "lola", "mitre", "sbom", "code_rules", "dast", "playbook", "engage"}
 
 // CategoryIDs returns known category keys in stable order.
 func CategoryIDs() []string {

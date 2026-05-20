@@ -2,6 +2,16 @@ package query
 
 import "testing"
 
+func TestCategories_includesPlaybook(t *testing.T) {
+	if !ValidCategory("playbook") {
+		t.Fatal("expected playbook category")
+	}
+	meta, ok := Categories["playbook"]
+	if !ok || meta.Title == "" {
+		t.Fatalf("meta: %#v", meta)
+	}
+}
+
 func TestCategories_includesEngage(t *testing.T) {
 	if !ValidCategory("engage") {
 		t.Fatal("expected engage category")

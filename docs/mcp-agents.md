@@ -127,6 +127,21 @@ docker run -i --rm --network host \
 | `ti_neighbors` | `GET /v1/nodes/{id}/neighbors` |
 | `ti_health` | connectivity + runtime |
 | `ping` | MCP keepalive (empty result) |
+| `playbook_search` | `GET /v1/playbooks/search` — Anthropic cybersecurity skills index |
+| `playbook_get` | `GET /v1/playbooks/{id}` — full SKILL.md body (64KB cap) |
+| `playbook_for_technique` | `GET /v1/playbooks/by-technique/{technique_id}` — index + optional `HAS_PLAYBOOK` graph |
+| `playbook_framework` | `GET /v1/playbooks/framework/*` — MITRE Navigator layer, coverage, mapping docs |
+| `playbook_subdomains` | `GET /v1/playbooks/subdomains` — 26-domain taxonomy counts |
+
+Example (DFIR):
+
+```json
+{"name":"playbook_search","arguments":{"query":"disk imaging","limit":5}}
+```
+
+Then `playbook_get` with `id` from results (e.g. `acquiring-disk-image-with-dd-and-dcfldd`).
+
+Regenerate: `make corpus-import` (dev, from `.external/`) then `make skills-index`. Mappings SOT: [pkg/playbook/corpus/mappings/](../pkg/playbook/corpus/mappings/). See [external-cybersecurity-skills.md](external-cybersecurity-skills.md), [cyber-domain-model.md](cyber-domain-model.md).
 
 Legacy (deprecated): `ti_list_kinds`, `ti_get_nodes_by_kind`, `ti_search`.
 

@@ -21,7 +21,7 @@ func (mockReadExec) ExecRead(ctx context.Context, fn func(tx driver.ManagedTrans
 func TestRouter_categories_and_health(t *testing.T) {
 	uc := usecase.NewReadUsecase(mockReadExec{})
 	mux := http.NewServeMux()
-	Register(mux, uc)
+	Register(mux, uc, nil, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
 	rr := httptest.NewRecorder()

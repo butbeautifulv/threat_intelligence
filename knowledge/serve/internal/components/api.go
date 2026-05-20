@@ -7,11 +7,17 @@ import (
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/config"
 	neo4jstore "github.com/butbeautifulv/veil/knowledge/serve/internal/storage/neo4j"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/usecase"
+	playbookuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/playbook"
+	frameworkuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/framework"
+	procedureuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/procedure"
 )
 
 type APIComponents struct {
 	Neo4jStore *neo4jstore.Store
 	Read       *usecase.ReadUsecase
+	Playbook   *playbookuc.Service
+	Procedure  *procedureuc.Service
+	Framework  *frameworkuc.Service
 	Auth       *auth.Stack
 }
 
@@ -33,9 +39,22 @@ func InitAPI(cfg *config.Config) (*APIComponents, error) {
 		_ = store.Close(context.Background())
 		return nil, err
 	}
+	pb, err := playbookuc.NewService()
+	if err != nil {
+		_ = store.Close(context.Background())
+		return nil, err
+	}
+	proc, err := procedureuc.NewService()
+	if err != nil {
+		_ = store.Close(context.Background())
+		return nil, err
+	}
 	return &APIComponents{
 		Neo4jStore: store,
 		Read:       usecase.NewReadUsecase(store),
+		Playbook:   pb,
+		Procedure:  proc,
+		Framework:  frameworkuc.NewService(),
 		Auth:       stack,
 	}, nil
 }

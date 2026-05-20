@@ -43,7 +43,12 @@ func (s *Service) SelectToolsForTarget(ctx context.Context, targetType, objectiv
 	cands := s.candidateIDs(targetType)
 	_, techLabels, cms, _, _, _ := probeTarget(ctx, target)
 	stack := labelsToTechnologies(techLabels, cms)
-	boost := mergeBoost(s.graphBoost(ctx, target), techStackBoost(stack), cmsToolBoost(cms, s.Registry))
+	boost := mergeBoost(
+		s.graphBoost(ctx, target),
+		s.playbookCatalogBoost(ctx, target, ""),
+		techStackBoost(stack),
+		cmsToolBoost(cms, s.Registry),
+	)
 	ranked := s.engine().RankToolsWithBoost(targetType, cands, boost)
 	ranked = appendTechSpecificTools(ranked, stack, cms)
 	ranked = s.engine().RankToolsWithBoost(targetType, ranked, boost)

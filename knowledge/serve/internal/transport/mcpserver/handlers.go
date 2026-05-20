@@ -47,6 +47,22 @@ func (s *Server) dispatchTool(ctx context.Context, name string, args map[string]
 		result, err = s.handleNodesByKind(ctx, args)
 	case "ti_search":
 		result, err = s.handleSearch(ctx, args)
+	case "playbook_search":
+		result, err = s.handlePlaybookSearch(ctx, args)
+	case "playbook_get":
+		result, err = s.handlePlaybookGet(ctx, args)
+	case "playbook_for_technique":
+		result, err = s.handlePlaybookForTechnique(ctx, args)
+	case "playbook_framework":
+		result, err = s.handlePlaybookFramework(ctx, args)
+	case "playbook_subdomains":
+		result, err = s.handlePlaybookSubdomains(ctx, args)
+	case "playbook_procedure":
+		result, err = s.handlePlaybookProcedure(ctx, args)
+	case "playbook_recommend_tools":
+		result, err = s.handlePlaybookRecommendTools(ctx, args)
+	case "playbook_ontology_subdomains":
+		result, err = s.handlePlaybookOntologySubdomains(ctx, args)
 	default:
 		return nil, rpcErrf(codeMethodNotFound, "unknown tool: %s", name)
 	}

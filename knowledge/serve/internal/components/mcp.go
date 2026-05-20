@@ -12,11 +12,15 @@ import (
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/transport/mcpserver"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/transport/securityhttp"
 	"github.com/butbeautifulv/veil/knowledge/serve/internal/usecase"
+	playbookuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/playbook"
+	procedureuc "github.com/butbeautifulv/veil/knowledge/serve/internal/usecase/procedure"
 )
 
 type MCPComponents struct {
 	Neo4j     *connector.ReadConnector
 	Read      *usecase.ReadUsecase
+	Playbook  *playbookuc.Service
+	Procedure *procedureuc.Service
 	Auth      *auth.Stack
 	MCPServer *mcpserver.Server
 }
@@ -37,11 +41,23 @@ func InitMCP(cfg *config.Config, logger *slog.Logger) (*MCPComponents, error) {
 		return nil, err
 	}
 	uc := usecase.NewReadUsecase(conn)
+	pb, err := playbookuc.NewService()
+	if err != nil {
+		_ = conn.Close(context.Background())
+		return nil, err
+	}
+	proc, err := procedureuc.NewService()
+	if err != nil {
+		_ = conn.Close(context.Background())
+		return nil, err
+	}
 	return &MCPComponents{
 		Neo4j:     conn,
 		Read:      uc,
+		Playbook:  pb,
+		Procedure: proc,
 		Auth:      stack,
-		MCPServer: mcpserver.NewServer(uc, stack, logger),
+		MCPServer: mcpserver.NewServer(uc, pb, proc, nil, stack, logger),
 	}, nil
 }
 
