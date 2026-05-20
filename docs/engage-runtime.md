@@ -26,12 +26,9 @@
 | `ENGAGE_CATALOG_PATH` | `catalog/tools.yaml` | Base catalog path (see merge below) |
 | `ENGAGE_RUNNER_WORKDIR` | `/tmp/engage` | Subprocess cwd |
 | `ENGAGE_EXECUTION_PROFILE` | `client-native` | `client-native` (default in base [compose.yml](../deploy/engage/compose.yml)) validates that `ENGAGE_RUNNER_MODE` is unset/`local` and `ENGAGE_RUNNER_CONTAINER` is empty. `docker-exec` opts into docker runner (set only in [compose.runner.yml](../deploy/engage/compose.runner.yml) / CI runner overlays). |
-
-### Catalog merge (live tools)
-
-At startup, **InitAPI** merges YAML in order (later overrides): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`. Runner profile may set `ENGAGE_CATALOG_PATH=tools.live.yaml` directly ([compose.runner.yml](../deploy/engage/compose.runner.yml)). Regenerate live set: `python3 scripts/engage/generate-tools-live.py` (**113** enabled). Details: [engage-tools.md](engage-tools.md).
-| `ENGAGE_RUNNER_MODE` | `local` | `local` or `docker` (exec in `engage-runner` container) |
+| `ENGAGE_RUNNER_MODE` | `local` | `local` or `docker` (exec in `engage-runner` container when profile is `docker-exec`) |
 | `ENGAGE_RUNNER_CONTAINER` | — | Container name when `ENGAGE_RUNNER_MODE=docker` |
+| `ENGAGE_PATH_EXTRA` | — | Optional colon-separated directories **prepended** to subprocess `PATH` for catalog tools ([pkg/exec](../pkg/exec/executor.go) `mergeEngagePathExtra`). |
 | `ENGAGE_VEIL_API_URL` | `http://localhost:8090` | Graph read API |
 | `ENGAGE_VEIL_CLIENT_ID` / `SECRET` / `TOKEN_URL` | — | OAuth2 client credentials; **omit all three** for local/dev stacks without Keycloak — `veilgraph` client calls veil-api without `Authorization` |
 | `AUTH_ENABLED` | `0` | Keycloak JWT |
@@ -54,6 +51,10 @@ At startup, **InitAPI** merges YAML in order (later overrides): `tools.yaml` →
 | `ENGAGE_PDF_ENGINE` | `gofpdf` | `wkhtml` uses `wkhtmltopdf` for PDF export |
 | Pipeline engage bridge | `pipeline/engage-events` | Consumes `engage.events.>` → `ingest.engage.tool_run` / `ingest.engage.finding` |
 | Graph ingest (engage) | `knowledge/ingest` `SourceEngage` | Persists `EngageToolRun` / `EngageFinding` in Neo4j (`GRAPH_PACK_VERSION` ≥ v0.4.3) |
+
+### Catalog merge (live tools)
+
+At startup, **InitAPI** merges YAML in order (later overrides): `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml`. Runner profile may set `ENGAGE_CATALOG_PATH=tools.live.yaml` directly ([compose.runner.yml](../deploy/engage/compose.runner.yml)). Regenerate live set: `python3 scripts/engage/generate-tools-live.py` (**113** enabled). Details: [engage-tools.md](engage-tools.md).
 
 ### Async jobs (API + worker)
 

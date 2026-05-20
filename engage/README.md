@@ -136,6 +136,18 @@ curl -sS -X POST http://localhost:8890/api/tools/nmap_scan \
 ./scripts/mcp/run-veil-engage.sh
 ```
 
+Host **engage-api** (same `client-native` defaults as the MCP script):
+
+```bash
+./scripts/engage/run-client-native-api.sh
+```
+
+Optional — verify common CLIs on `PATH` before a session:
+
+```bash
+./scripts/engage/preflight-client-tools.sh || true
+```
+
 Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example), [engage.http.json.example](../examples/mcp/engage.http.json.example).
 
 ## Boundaries

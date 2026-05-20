@@ -26,10 +26,25 @@ type Executor struct {
 }
 
 func (e *Executor) Run(ctx context.Context, binary string, args []string, timeout time.Duration, track *TrackInfo) Result {
-	if e.Sandbox != nil && e.Sandbox.Enabled() {
+	// Defense in depth: client-native execution must never use docker exec even if Sandbox is mis-wired.
+	if e.sandboxEnabled() {
 		return e.Sandbox.Exec(ctx, binary, args, timeout, e.Processes, track)
 	}
 	return runLocal(ctx, e.WorkDir, binary, args, timeout, e.Processes, track)
+}
+
+func (e *Executor) sandboxEnabled() bool {
+	if e == nil || e.Sandbox == nil || !e.Sandbox.Enabled() {
+		return false
+	}
+	if executionProfileClientNative() {
+		return false
+	}
+	return true
+}
+
+func executionProfileClientNative() bool {
+	return strings.EqualFold(strings.TrimSpace(os.Getenv("ENGAGE_EXECUTION_PROFILE")), "client-native")
 }
 
 func runLocal(ctx context.Context, workDir, binary string, args []string, timeout time.Duration, proc ProcessTracker, track *TrackInfo) Result {
@@ -167,7 +182,24 @@ func filterEnv(env []string) []string {
 		}
 	}
 	if len(out) == 0 {
-		return []string{"PATH=/usr/local/bin:/usr/bin:/bin"}
+		out = []string{"PATH=/usr/local/bin:/usr/bin:/bin"}
 	}
-	return out
+	return mergeEngagePathExtra(out)
+}
+
+// mergeEngagePathExtra prepends ENGAGE_PATH_EXTRA (colon-separated dirs) to PATH when set.
+func mergeEngagePathExtra(out []string) []string {
+	extra := strings.TrimSpace(os.Getenv("ENGAGE_PATH_EXTRA"))
+	if extra == "" {
+		return out
+	}
+	for i, e := range out {
+		k, v, ok := strings.Cut(e, "=")
+		if !ok || k != "PATH" {
+			continue
+		}
+		out[i] = "PATH=" + extra + ":" + v
+		return out
+	}
+	return append(out, "PATH="+extra+":/usr/local/bin:/usr/bin:/bin")
 }
