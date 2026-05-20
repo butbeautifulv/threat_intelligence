@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: wave-3-deploy-strip
     content: "Wave 3 (P12–P16): compose/helm/stacks — убрать runner из «рекомендованного» пути; CI без docker-exec"
-    status: pending
+    status: completed
   - id: wave-4-docs-product
     content: "Wave 4 (P17–P20): mcp-agents, engage-runtime, AGENTS, hexstrike parity doc — слой управления, не LAB"
     status: pending
@@ -166,6 +166,7 @@ export ENGAGE_EXECUTION_PROFILE=client-native
 | P2 | `engage/client-native-p02-readme-engage-one-liner` | **merged main** | `engage/README.md` |
 | P3–P6 | `engage/client-native-wave1-p03-p06` | **merged main** | `391758f` — `ENGAGE_EXECUTION_PROFILE`, `ValidateExecutionProfile`, compose; merge commit `e14fc4d` |
 | P7–P11 | `engage/client-native-wave2-p07-p11` | **merged main** | `1dabb9d` — sandbox skip + `ENGAGE_PATH_EXTRA` + scripts; merge `3da75af` |
-| P12+ | — | pending | Wave 3 |
+| P12–P16 | `main` | **merged main** | compose no longer defines runner services by default; `compose.runner.yml` owns runner services; stage helm engage disabled; `engage-compose` job gated by `ENGAGE_DOCKER_E2E` |
+| P17+ | — | pending | Wave 4 |
 
 После каждого merge: обновить таблицу + SHA; субагентам: `git pull origin main` перед следующей фазой.

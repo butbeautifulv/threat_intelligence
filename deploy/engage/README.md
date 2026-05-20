@@ -2,7 +2,9 @@
 
 Compose stacks for the Engage offensive tooling layer.
 
-## Runner images
+Default runtime is host-path `client-native` (`deploy/engage/compose.yml`): run `engage-api` / `engage-mcp` / `engage-worker` without a toolbox runner container. Use [`compose.runner.yml`](compose.runner.yml) only for legacy lab/CI docker-exec scenarios.
+
+## Runner images (legacy lab / CI)
 
 | Image | Dockerfile target | Profile | Approx. size / RAM |
 |-------|-------------------|---------|-------------------|
@@ -14,11 +16,11 @@ Tier-1 CLI: [docker/runner.Dockerfile](docker/runner.Dockerfile) target `engage-
 **P9g heavy stack** (Burp JAR, Ghidra, hashcat, john, gdb, Metasploit, angr, radare2, volatility3, wpscan): same Dockerfile, target `engage-runner-full`. Headless wrappers live in [docker/wrappers/](docker/wrappers/).
 
 ```bash
-# Slim runner (default)
-docker compose -f deploy/engage/compose.yml --profile runner up -d --build engage-runner
+# Slim runner (legacy lab profile)
+docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.runner.yml --profile runner up -d --build engage-runner
 
 # Full port heavy stack
-docker compose -f deploy/engage/compose.yml --profile runner-full up -d --build engage-runner-full
+docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.runner.yml --profile runner-full up -d --build engage-runner-full
 export ENGAGE_RUNNER_CONTAINER=engage-runner-full
 export ENGAGE_RUNNER_IMAGE=engage-runner-full
 export ENGAGE_RUNNER_PROFILE=full

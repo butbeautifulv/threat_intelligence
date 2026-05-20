@@ -74,32 +74,5 @@ services:
       timeout: 5s
       retries: 3
 
-  engage-runner:
-    container_name: engage-runner
-    build:
-      context: ../..
-      dockerfile: deploy/engage/docker/runner.Dockerfile
-      target: engage-runner
-    image: engage-runner
-    network_mode: none
-    profiles:
-      - runner
-    volumes:
-      - engage_work:/tmp/engage
-
-  engage-runner-full:
-    container_name: engage-runner-full
-    build:
-      context: ../..
-      dockerfile: deploy/engage/docker/runner.Dockerfile
-      target: engage-runner-full
-    image: engage-runner-full
-    network_mode: none
-    profiles:
-      - runner-full
-    volumes:
-      - engage_work:/tmp/engage
-
 volumes:
-  engage_work:
   engage_jobs:

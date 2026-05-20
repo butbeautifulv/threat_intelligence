@@ -5,6 +5,32 @@
 # Browser profile:
 #   ... --profile browser up -d engage-browser
 services:
+  engage-runner:
+    container_name: engage-runner
+    build:
+      context: ../..
+      dockerfile: deploy/engage/docker/runner.Dockerfile
+      target: engage-runner
+    image: engage-runner
+    network_mode: none
+    profiles:
+      - runner
+    volumes:
+      - engage_work:/tmp/engage
+
+  engage-runner-full:
+    container_name: engage-runner-full
+    build:
+      context: ../..
+      dockerfile: deploy/engage/docker/runner.Dockerfile
+      target: engage-runner-full
+    image: engage-runner-full
+    network_mode: none
+    profiles:
+      - runner-full
+    volumes:
+      - engage_work:/tmp/engage
+
   engage-api:
     build:
       dockerfile: deploy/engage/docker/api-runner.Dockerfile
@@ -46,3 +72,6 @@ services:
       - "${ENGAGE_BROWSER_PORT:-8910}:8910"
     profiles:
       - browser
+
+volumes:
+  engage_work:
