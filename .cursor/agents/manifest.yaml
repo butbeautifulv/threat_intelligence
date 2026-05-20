@@ -226,6 +226,48 @@ phases:
     plan_path: .cursor/plans/veil_deploy_platform_p5_hybrid.plan.md
     phase_slug: p5d-helm-controlplane
 
+  - id: domain-p1
+    agent: platform-implementer
+    branch: platform/domain-umbrella
+    plan_path: .cursor/plans/pkg_domain_umbrella_113018bf.plan.md
+    phase_slug: domain-p1-scaffold
+    notes: pkg/domain contour source ref taxonomy scaffold
+
+  - id: domain-p2
+    agent: platform-implementer
+    branch: platform/domain-umbrella
+    plan_path: .cursor/plans/pkg_domain_umbrella_113018bf.plan.md
+    phase_slug: domain-p2-ingest-refs
+    notes: SourceRef adapters for thin ingest domain types
+
+  - id: domain-p3
+    agent: platform-implementer
+    branch: platform/domain-umbrella
+    plan_path: .cursor/plans/pkg_domain_umbrella_113018bf.plan.md
+    phase_slug: domain-p3-source-registry
+    notes: AllSources Valid table test vs harvest commit consts
+
+  - id: domain-p4
+    agent: platform-implementer
+    branch: platform/domain-umbrella
+    plan_path: .cursor/plans/pkg_domain_umbrella_113018bf.plan.md
+    phase_slug: domain-p4-knowledge
+    notes: knowledge.go playbook aliases FrameworkContour
+
+  - id: domain-p5
+    agent: platform-implementer
+    branch: platform/domain-umbrella
+    plan_path: .cursor/plans/pkg_domain_umbrella_113018bf.plan.md
+    phase_slug: domain-p5-engage
+    notes: engage.go type aliases to pkg/engage/domain
+
+  - id: domain-p6
+    agent: platform-implementer
+    branch: platform/domain-umbrella
+    plan_path: .cursor/plans/pkg_domain_umbrella_113018bf.plan.md
+    phase_slug: domain-p6-gates
+    notes: Makefile test-pkg-domain manifest AGENTS.md
+
   # Example bindings — critic fills branch/plan when spawning.
   - id: platform-p4b
     agent: platform-implementer
