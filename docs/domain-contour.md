@@ -57,4 +57,4 @@ scrape (raw IOC in harvest payload)
 
 ## Deprecations
 
-- `pipeline/pkg/ti/normalize` — thin forwarder to `pkg/ti/normalize`; new code should import `pkg/ti/normalize` directly.
+- NED normalization imports **`pkg/ti/normalize`** only (removed `pipeline/pkg/ti/normalize` forwarder, 2026-05 cleanup).

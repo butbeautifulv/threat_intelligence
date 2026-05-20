@@ -23,5 +23,5 @@ notes:
     full-loop.yml or ./scripts/test/smoke-platform-closed-loop.sh.
 scripts:
   - scripts/ops/compose-up-full.sh
-  - scripts/test/smoke-scrape-e2e.sh --up
+  - scripts/test/smoke-discovery-e2e.sh --up
   - scripts/test/smoke-platform-closed-loop.sh

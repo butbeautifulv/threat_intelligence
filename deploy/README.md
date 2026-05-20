@@ -121,20 +121,20 @@ cd deploy/terraform/environments/local && terraform init && terraform apply
 ## E2E smoke
 
 ```bash
-./scripts/test/smoke-scrape-e2e.sh --up
-./scripts/test/smoke-scrape-e2e.sh --restart-scrape   # ledger pass 2
+./scripts/test/smoke-discovery-e2e.sh --up
+./scripts/test/smoke-discovery-e2e.sh --restart-scrape   # ledger pass 2
 ```
 
 Smoke defaults: `SCRAPE_SOURCES=ti,sbom` (minimal), `NVD_MAX_PAGES=1`, `GRAPH_PACK_SKIP=1`, `SMOKE_CLEAN_VOLUMES=1`. Full crawl: `SCRAPE_SOURCES=ds,vuln,lola,ti,sbom,coderules,nuclei`. Optional `GITHUB_TOKEN` raises GitHub API rate limits only.
 
 ```bash
-GRAPH_PACK_SKIP=0 ./scripts/test/smoke-scrape-e2e.sh --up
+GRAPH_PACK_SKIP=0 ./scripts/test/smoke-discovery-e2e.sh --up
 ```
 
 With scaled workers:
 
 ```bash
-PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/test/smoke-scrape-e2e.sh --up
+PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/test/smoke-discovery-e2e.sh --up
 ```
 
 ## Docker builds

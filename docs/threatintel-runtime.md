@@ -230,7 +230,7 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/knowledge/c
 3. **Engage closed loop (Docker):** `make test-platform-closed-loop` — veil stack + engage overlay, act→ingest→`target-graph` ([platform-closed-loop-pilot.md](platform-closed-loop-pilot.md)).
 4. **Graph read path (no scrape/NATS/ingest):** `make test-graph-read-smoke` or `./scripts/test/smoke-graph-read.sh --up` — overlay [compose.graph-read.yml](../deploy/graph/compose.graph-read.yml), `GRAPH_PACK_SKIP=1`, optional MCP HTTP.
 5. **Graph pack without GitHub download:** place **`veil-graph-v0.4.5.zip`** under `var/veil/graph/releases/` and run `docker compose -f docker-compose.yml -f docker-compose.testpack.yml up --build -d` (see [docker-compose.testpack.yml](../docker-compose.testpack.yml)).
-6. **Scrape + NATS:** `./scripts/test/smoke-scrape-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [discovery/README.md](../discovery/README.md), [graph/README.md](../graph/README.md)).
+6. **Scrape + NATS:** `./scripts/test/smoke-discovery-e2e.sh --up`; confirm JetStream drains and Neo4j gains nodes (see [discovery/README.md](../discovery/README.md), [graph/README.md](../graph/README.md)).
 7. **Release asset:** the default URL in [deploy/graph/docker/graph-bootstrap.sh](../deploy/graph/docker/graph-bootstrap.sh) must point at a ZIP that contains **`manifest.json`** + **`graph.cypher`** with matching **`sha256`**. Bump version and URLs if the dump changes.
 8. **Secure prod overlay:** TLS certs + Keycloak env → [deploy-secure.md](deploy-secure.md).
 
@@ -239,9 +239,9 @@ Neo4j export requires `NEO4J_apoc_export_file_enabled=true` ([deploy/knowledge/c
 Automated checks for the full scrape → pipeline → ingest path:
 
 ```bash
-./scripts/test/smoke-scrape-e2e.sh --up          # compose up scrape stack, wait for scrape_worker exit
-./scripts/test/smoke-scrape-e2e.sh               # NATS health, crawl_resource rows, Neo4j counts, API /health
-./scripts/test/smoke-scrape-e2e.sh --restart-scrape   # pass 2: ledger unchanged / skip publish
+./scripts/test/smoke-discovery-e2e.sh --up          # compose up scrape stack, wait for scrape_worker exit
+./scripts/test/smoke-discovery-e2e.sh               # NATS health, crawl_resource rows, Neo4j counts, API /health
+./scripts/test/smoke-discovery-e2e.sh --restart-scrape   # pass 2: ledger unchanged / skip publish
 ```
 
 Env overrides: `SCRAPE_SVC`, `PIPELINE_SVC`, `INGEST_SVC`, `PIPELINE_WORKER_SCALE`, `INGEST_WORKER_SCALE`, `SCRAPE_WORKER_PARTITION`, `NATS_MON`, `API_URL`, `CRAWL_MYSQL`, `SMOKE_WAIT_SEC`.

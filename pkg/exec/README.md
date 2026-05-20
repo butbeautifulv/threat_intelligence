@@ -2,7 +2,7 @@
 
 Shared subprocess layer for Engage (and optional discovery). Veil stack overview: [README.md](../../README.md#architecture).
 
-Cross-layer subprocess execution: sandboxed `docker exec` when `ENGAGE_EXECUTION_PROFILE=docker-exec`, local runs with filtered env, optional `ENGAGE_PATH_EXTRA` prepended to subprocess `PATH`, timeouts, and optional process tracking.
+Cross-layer subprocess execution: legacy `docker exec` sandbox ([sandbox.go](sandbox.go)) when `ENGAGE_EXECUTION_PROFILE=docker-exec`; default **client-native** uses host `runLocal` only. Optional `ENGAGE_PATH_EXTRA`, timeouts, and process tracking.
 
 When `ENGAGE_EXECUTION_PROFILE=client-native`, `Executor.Run` **never** uses the docker sandbox even if misconfigured (defense in depth); subprocesses use the host `PATH` (after `filterEnv` / `mergeEngagePathExtra`).
 

@@ -17,7 +17,7 @@
 
 | Gate | Result | Notes |
 |------|--------|-------|
-| `make test-engage` | **PASS** | Unit tests + api/mcp/worker/browser-agent build |
+| `make test-engage` | **PASS** | Unit tests + api/mcp/worker build |
 | `make test-engage-parity` | **PASS** | 151 MCP + 8 bridge tools in catalog |
 | `make test-engage-catalog-args` | **PASS** | 158 tools; 112 non-generic args; 60 documented generic |
 | `make test-engage-decision-parity` | **PASS** | Effectiveness tables vs legacy |

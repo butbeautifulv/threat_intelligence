@@ -38,8 +38,19 @@ agents:
     readonly: false
     template: |
       Layer work on branch `{branch}` per `{plan_path}`.
-      Run `make test-scrape` and/or `make test-pipeline` as applicable.
+      Run `make test-discovery` and/or `make test-pipeline` as applicable.
       No imports from knowledge/ or engage/ into scrape/pipeline.
+
+  - id: cleanup-implementer
+    description: Repo cleanup — tests, pkg shims, scripts/docs bloat (no .external/)
+    branch_prefix: feat/cleanup-
+    subagent_type: generalPurpose
+    template: |
+      Implement cleanup phase **{phase_slug}** on branch `{branch}`.
+      Master plan: `.cursor/plans/veil_cleanup_domain_pkg_master.plan.md`
+      Phase scope: `{plan_path}` if set; else master plan table row only.
+      Constraints: no cross-layer Go imports; do not edit `.external/`; do not change engage catalog/tools.yaml unless phase says so.
+      DoD: run tests listed in master plan for this phase; small diff; commit on branch — do not merge.
 
   - id: agent-eval-runner
     description: GAIA / agent evaluation harness maintainer

@@ -1,4 +1,4 @@
-.PHONY: test-discovery test-discovery-p7c test-scrape test-scrape-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-benchmark-regression test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-runner-full-smoke test-engage-executable-matrix-runner test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-bridge-coverage test-engage-route-parity test-engage-executable-matrix test-engage-external-guard test-engage-hardening test-engage-red-blue test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 test-platform-mcp-gateway test-platform-unified-edge catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-knowledge test-knowledge-serve engage-install-plan engage-install-host-tools engage-install-fallback engage-install-kali-fallback engage-tool-source-map engage-tool-install-coverage test-engage-install-matrix
+.PHONY: test-discovery test-discovery-p7c test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-benchmark-regression test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-runner-full-smoke test-engage-executable-matrix-runner test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-bridge-coverage test-engage-route-parity test-engage-executable-matrix test-engage-external-guard test-engage-hardening test-engage-red-blue test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 test-platform-mcp-gateway test-platform-unified-edge catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-knowledge test-knowledge-serve engage-install-plan engage-install-host-tools engage-install-fallback engage-install-kali-fallback engage-tool-source-map engage-tool-install-coverage test-engage-install-matrix
 
 # Shared pkg contracts (harvest, commit, natsjet, auth, engage/events)
 test-pkg-shared:
@@ -106,25 +106,16 @@ test-discovery:
 	cd discovery/browser && env GOWORK=$$(dirname $$(pwd))/go.work go build -o /dev/null ./cmd/serve
 	cd discovery/cmd/browser-agent && env GOWORK=$$(dirname $$(dirname $$(pwd)))/go.work go build -o /dev/null .
 
-# Deprecated alias (remove after one release)
-test-scrape:
-	@echo 'DEPRECATED: use make test-discovery' >&2
-	@$(MAKE) test-discovery
-
 # P7c slice: TI feeds/helpers + shared discovery feeds (see veil_platform_p7 plan)
 test-discovery-p7c:
 	cd discovery && env GOWORK=$$(pwd)/go.work go test ./harvest/internal/sources/ti/... ./harvest/internal/sources/lola/... ./harvest/internal/sources/ds/... ./harvest/internal/feeds/...
 	cd discovery/pkg && env -u GOWORK go test ./proxypool/...
 
-test-scrape-p7c:
-	@echo 'DEPRECATED: use make test-discovery-p7c' >&2
-	@$(MAKE) test-discovery-p7c
-
 test-pipeline-p7d:
-	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./pkg/ti/normalize/... ./pkg/nvd/map/... ./ned/internal/sources/ds/... ./ned/internal/sources/lola/...
+	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./pkg/nvd/map/... ./ned/internal/sources/appsec/... ./ned/internal/sources/ds/... ./ned/internal/sources/lola/...
 
 test-graph-ingest-p7e:
-	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/... ./ingest/internal/sources/ti/... ./ingest/internal/sources/vuln/...
+	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/... ./ingest/internal/sources/ti/... ./ingest/internal/sources/vuln/... ./ingest/internal/sources/ds/... ./ingest/internal/sources/lola/... ./ingest/internal/appsec/...
 
 test-graph-serve-p7f:
 	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./serve/internal/usecase/... ./connector/query/...
@@ -339,7 +330,8 @@ graph-pack-publish:
 	./scripts/release/publish-graph-pack.sh
 
 test-smoke:
-	./scripts/test/smoke-scrape-e2e.sh
+	chmod +x ./scripts/test/smoke-discovery-e2e.sh
+	./scripts/test/smoke-discovery-e2e.sh
 
 check-graph-version:
 	./scripts/release/check-graph-version-bump.sh

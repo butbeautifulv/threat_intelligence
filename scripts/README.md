@@ -25,7 +25,8 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [release/check-graph-version-bump.sh](release/check-graph-version-bump.sh) | Fail if ingest paths changed without version bump |
 | [housekeeping/sync-github-metadata.sh](housekeeping/sync-github-metadata.sh) | Push [.github/repo-description.txt](../.github/repo-description.txt) to GitHub |
 | [housekeeping/lint-markdown-dir-links.sh](housekeeping/lint-markdown-dir-links.sh) | Lint directory links (trailing `/`) in `*.md` |
-| [test/smoke-scrape-e2e.sh](test/smoke-scrape-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
+| [test/smoke-discovery-e2e.sh](test/smoke-discovery-e2e.sh) | E2E smoke (default profile [deploy/profiles/smoke-minimal.env](../deploy/profiles/smoke-minimal.env)) |
+| [housekeeping/audit-repo-refs.sh](housekeeping/audit-repo-refs.sh) | Classify scripts as MAKE/CI/KEEP/ORPHAN (heuristic) |
 | [test/smoke-graph-read.sh](test/smoke-graph-read.sh) | Graph read smoke: Neo4j + API + MCP HTTP (no scrape/NATS) |
 | [test/smoke-unified-edge.sh](test/smoke-unified-edge.sh) | P12 unified TLS nginx edge: `/v1`, `/api`, `/mcp/graph`, `/mcp/engage` |
 | [mcp/run-veil-mcp.sh](mcp/run-veil-mcp.sh) | MCP stdio launcher for agents (logs on stderr) |
@@ -82,7 +83,7 @@ USE_DOCKER_COMPOSE=1 ./scripts/graph-pack/import.sh \
 
 ```bash
 ./scripts/ops/compose-up-full.sh
-./scripts/test/smoke-scrape-e2e.sh --up
+./scripts/test/smoke-discovery-e2e.sh --up
 make test-graph-read-smoke
 PIPELINE_WORKER_SCALE=2 INGEST_WORKER_SCALE=2 ./scripts/ops/compose-up-full.sh
 ```

@@ -1,3 +1,5 @@
 *
 !.gitignore
-!veil-pentest*
+!veil-pentest-*-latest.md
+!veil-pentest-prod-latest.md
+!veil-pentest-latest.md

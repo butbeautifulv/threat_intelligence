@@ -19,6 +19,7 @@
 | Security frameworks | [veil-agent-security-frameworks.mdc](.cursor/rules/veil-agent-security-frameworks.mdc), [docs/external-security-frameworks.md](docs/external-security-frameworks.md) |
 | Agent evaluation | [docs/agent-evaluation-gaia.md](docs/agent-evaluation-gaia.md) — [arXiv:2311.12983](https://arxiv.org/abs/2311.12983); `make test-agent-eval-pilot` / `test-agent-eval-paper`; HF optional |
 | Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — legacy parity (**P9f**, 158/158) |
+| Repo cleanup (domain/pkg, bloat) | [veil_cleanup_domain_pkg_master.plan.md](.cursor/plans/veil_cleanup_domain_pkg_master.plan.md) — inventory [docs/cleanup-r0-inventory.md](docs/cleanup-r0-inventory.md) |
 | Engage client-native v3 | [engage_mcp_client_native_execution_master.plan.md](.cursor/plans/engage_mcp_client_native_execution_master.plan.md) — **active** |
 | Lab pentest & install | [engage-lab-pentest.md](docs/engage-lab-pentest.md), [engage-red-blue-bugs.md](docs/engage-red-blue-bugs.md) |
 | Archived plans | [.cursor/plans/archive/README.md](.cursor/plans/archive/README.md) — platform P6–P12, Engage phases, lab tracks |

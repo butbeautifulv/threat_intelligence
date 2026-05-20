@@ -198,6 +198,26 @@ func TestEnvelopeParse_validateAndSourceCheck(t *testing.T) {
 			t.Fatalf("%+v", p)
 		}
 	})
+
+	t.Run("sbom_osv", func(t *testing.T) {
+		env := build(t, commit.SourceSBOM, commit.KindSBOMOSVRecord,
+			commit.SBOMOSVPayload{OSVID: "OSV-1", CVE: "CVE-2024-1", Affected: nil},
+			func() string { return commit.SBOMOSVIdempotencyKey("CVE-2024-1", "osv", "OSV-1") },
+		)
+		if env.Source != commit.SourceSBOM || env.Kind != commit.KindSBOMOSVRecord {
+			t.Fatalf("%+v", env)
+		}
+	})
+
+	t.Run("coderules_cwe", func(t *testing.T) {
+		env := build(t, commit.SourceCoderules, commit.KindCoderulesCWERow,
+			commit.CoderulesCWEPayload{ID: "CWE-79", Name: "XSS"},
+			func() string { return commit.CoderulesCWEIdempotencyKey("CWE-79") },
+		)
+		if env.Source != commit.SourceCoderules {
+			t.Fatal(env.Source)
+		}
+	})
 }
 
 func TestHandleMsg_routesEngageToApplier(t *testing.T) {

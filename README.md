@@ -90,7 +90,7 @@ Install CLIs: [engage-install-linux.md](docs/engage-install-linux.md) · Lab pen
 
 ```bash
 ./scripts/ops/compose-up-full.sh
-./scripts/test/smoke-scrape-e2e.sh --up && ./scripts/test/smoke-scrape-e2e.sh
+./scripts/test/smoke-discovery-e2e.sh --up && ./scripts/test/smoke-discovery-e2e.sh
 ```
 
 ### MCP stdio (Cursor / Claude)
