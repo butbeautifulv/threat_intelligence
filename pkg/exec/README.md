@@ -1,6 +1,8 @@
 # pkg/exec
 
-Cross-layer subprocess execution: sandboxed `docker exec`, local runs with filtered env, timeouts, and optional process tracking.
+Cross-layer subprocess execution: sandboxed `docker exec` when `ENGAGE_EXECUTION_PROFILE=docker-exec`, local runs with filtered env, optional `ENGAGE_PATH_EXTRA` prepended to subprocess `PATH`, timeouts, and optional process tracking.
+
+When `ENGAGE_EXECUTION_PROFILE=client-native`, `Executor.Run` **never** uses the docker sandbox even if misconfigured (defense in depth); subprocesses use the host `PATH` (after `filterEnv` / `mergeEngagePathExtra`).
 
 ## When to use
 

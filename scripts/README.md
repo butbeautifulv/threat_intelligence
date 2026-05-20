@@ -30,7 +30,9 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [test/smoke-unified-edge.sh](test/smoke-unified-edge.sh) | P12 unified TLS nginx edge: `/v1`, `/api`, `/mcp/graph`, `/mcp/engage` |
 | [mcp/run-veil-mcp.sh](mcp/run-veil-mcp.sh) | MCP stdio launcher for agents (logs on stderr) |
 | [smoke/mcp-smoke.sh](smoke/mcp-smoke.sh) | MCP stdio smoke against local Neo4j |
-| [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`) |
+| [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`, `client-native` defaults) |
+| [engage/run-client-native-api.sh](engage/run-client-native-api.sh) | Engage HTTP API on host (`go run ./cmd/api`) |
+| [engage/preflight-client-tools.sh](engage/preflight-client-tools.sh) | Optional PATH check for core pentest CLIs |
 | [engage/extract-legacy-catalog.py](engage/extract-legacy-catalog.py) | Regenerate `engage/serve/catalog/tools.yaml` |
 | [engage/enable-catalog-by-category.sh](engage/enable-catalog-by-category.sh) | Write `tools.enabled.yaml` when binaries on PATH |
 | [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 150 tools vs legacy MCP reference |
