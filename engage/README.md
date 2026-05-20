@@ -146,6 +146,7 @@ Optional — verify common CLIs on `PATH` before a session:
 
 ```bash
 ./scripts/engage/preflight-client-tools.sh || true
+./scripts/engage/preflight-client-tools.sh --profile minimal --json
 ```
 
 Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example), [engage.http.json.example](../examples/mcp/engage.http.json.example).
@@ -158,6 +159,8 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Docs
 
+- [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) — same-host victim + attacker lab, harness scope, merge order for install track
+- [docs/engage-install-linux.md](../docs/engage-install-linux.md) — multi-distro host install for client-native tools (preflight + package map)
 - [docs/engage-mcp-topology.md](../docs/engage-mcp-topology.md) — where MCP runs vs where binaries execute
 - [docs/engage-client-dependencies.md](../docs/engage-client-dependencies.md) — execution-host CLI checklist
 - [docs/engage-runtime.md](../docs/engage-runtime.md) — env, ports, threat model, runner modes

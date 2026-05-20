@@ -1,0 +1,116 @@
+# Machine-readable package hints for Engage client-native host tools.
+# Consumed by scripts/ops/install-engage-host-tools.sh (requires PyYAML: python3-yaml / pip pyyaml).
+# Upstream naming varies; verify on your distro before relying on automation.
+schema_version: 1
+
+profiles:
+  minimal:
+    - nmap
+    - httpx
+    - nuclei
+  recommended:
+    - nmap
+    - masscan
+    - httpx
+    - nuclei
+    - subfinder
+    - amass
+    - gobuster
+    - feroxbuster
+    - ffuf
+    - sqlmap
+    - nikto
+  full:
+    - nmap
+    - masscan
+    - httpx
+    - nuclei
+    - subfinder
+    - amass
+    - gobuster
+    - feroxbuster
+    - ffuf
+    - sqlmap
+    - nikto
+    - hydra
+    - trivy
+
+tools:
+  nmap:
+    apt: [nmap]
+    dnf: [nmap]
+    pacman: [nmap]
+    zypper: [nmap]
+    apk: [nmap]
+  masscan:
+    apt: [masscan]
+    dnf: [masscan]
+    pacman: [masscan]
+    zypper: [masscan]
+    apk: [] # use edge/community or build; leave empty = manual
+  httpx:
+    apt: [httpx]
+    dnf: [httpx]
+    pacman: [httpx]
+    zypper: [httpx]
+    apk: [httpx]
+  nuclei:
+    apt: [nuclei]
+    dnf: [nuclei]
+    pacman: [nuclei]
+    zypper: [nuclei]
+    apk: [nuclei]
+  subfinder:
+    apt: [subfinder]
+    dnf: [subfinder]
+    pacman: [subfinder]
+    zypper: [subfinder]
+    apk: [subfinder]
+  amass:
+    apt: [amass]
+    dnf: [amass]
+    pacman: [amass]
+    zypper: [amass]
+    apk: [amass]
+  gobuster:
+    apt: [gobuster]
+    dnf: [gobuster]
+    pacman: [gobuster]
+    zypper: [gobuster]
+    apk: [gobuster]
+  feroxbuster:
+    apt: [feroxbuster]
+    dnf: [feroxbuster]
+    pacman: [feroxbuster]
+    zypper: [feroxbuster]
+    apk: [feroxbuster]
+  ffuf:
+    apt: [ffuf]
+    dnf: [ffuf]
+    pacman: [ffuf]
+    zypper: [ffuf]
+    apk: [ffuf]
+  sqlmap:
+    apt: [sqlmap]
+    dnf: [sqlmap]
+    pacman: [sqlmap]
+    zypper: [sqlmap]
+    apk: [sqlmap]
+  nikto:
+    apt: [nikto]
+    dnf: [nikto]
+    pacman: [nikto]
+    zypper: [nikto]
+    apk: [nikto]
+  hydra:
+    apt: [hydra]
+    dnf: [hydra]
+    pacman: [hydra]
+    zypper: [hydra]
+    apk: [hydra]
+  trivy:
+    apt: [trivy]
+    dnf: [trivy]
+    pacman: [trivy]
+    zypper: [trivy]
+    apk: [trivy]

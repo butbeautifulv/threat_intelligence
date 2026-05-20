@@ -32,11 +32,15 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [smoke/mcp-smoke.sh](smoke/mcp-smoke.sh) | MCP stdio smoke against local Neo4j |
 | [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`, `client-native` defaults) |
 | [engage/run-client-native-api.sh](engage/run-client-native-api.sh) | Engage HTTP API on host (`go run ./cmd/api`) |
+| [engage/run-client-native-api-instance.sh](engage/run-client-native-api-instance.sh) | Lab victim/attacker instance (ports + isolated dirs); see [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) |
 | [engage/preflight-client-tools.sh](engage/preflight-client-tools.sh) | Optional PATH check for core pentest CLIs |
+| [ops/install-engage-host-tools.sh](ops/install-engage-host-tools.sh) | Multi-distro package install from `engage-tools-packages.yaml` (`--plan` / `--yes`) |
+| [ops/engage-tools-packages.yaml](ops/engage-tools-packages.yaml) | Tool → distro package mapping for installer |
 | [engage/extract-legacy-catalog.py](engage/extract-legacy-catalog.py) | Regenerate `engage/serve/catalog/tools.yaml` |
 | [engage/enable-catalog-by-category.sh](engage/enable-catalog-by-category.sh) | Write `tools.enabled.yaml` when binaries on PATH |
 | [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 150 tools vs legacy MCP reference |
 | [test/smoke-engage.sh](test/smoke-engage.sh) | Engage API health + tools list |
+| [test/smoke-engage-red-vs-blue.sh](test/smoke-engage-red-vs-blue.sh) | Aggressive HTTP harness vs local victim (`ENGAGE_VICTIM_URL`) |
 | [test/smoke-engage-mcp.sh](test/smoke-engage-mcp.sh) | Engage MCP initialize smoke |
 | [test/verify-nvd-enrichment.sh](test/verify-nvd-enrichment.sh) | Cypher QA for NVD CWE/CPE |
 | [housekeeping/graph-dedup-cleanup.sh](housekeeping/graph-dedup-cleanup.sh) | Post-ingest Neo4j dedup |

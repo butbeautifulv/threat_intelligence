@@ -2,7 +2,7 @@
 
 Engage runs catalog tools as **host-native subprocesses** on the same machine as the MCP server process. For where that process lives in your setup (Cursor, HTTP MCP, etc.), see [engage-mcp-topology.md](engage-mcp-topology.md).
 
-**Veil does not auto-install** the binaries below. Install them yourself on the host that runs the Engage MCP server so they appear on `PATH` (same expectation as upstream HexStrike’s “Install Security Tools” flow).
+**Veil does not auto-install** the binaries below. Install them yourself on the host that runs the Engage MCP server so they appear on `PATH` (same expectation as upstream HexStrike’s “Install Security Tools” flow). For Linux multi-distro automation hints, see [engage-install-linux.md](engage-install-linux.md).
 
 Upstream checklist (full lists and install hints): [.external/hexstrike-ai-master/README.md](../.external/hexstrike-ai-master/README.md) — section **Install Security Tools** (Core, Cloud, Browser Agent).
 

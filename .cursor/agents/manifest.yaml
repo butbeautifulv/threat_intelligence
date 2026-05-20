@@ -98,6 +98,62 @@ phases:
     phase_slug: client-native-wave5-p21-p22
     notes: manifest + audit sign-off closure for client-native track
 
+  - id: engage-install-lab-p01
+    agent: engage-implementer
+    branch: engage/install-p01-lab-legal
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: install-p01-lab-legal
+    notes: red-blue lab legal + runbook (docs)
+
+  - id: engage-install-lab-p02
+    agent: engage-implementer
+    branch: engage/install-p02-packages-yaml
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: install-p02-packages-yaml
+    notes: engage-tools-packages.yaml data only
+
+  - id: engage-install-lab-p03
+    agent: engage-implementer
+    branch: engage/install-p03-install-skeleton
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: install-p03-install-skeleton
+    notes: install-engage-host-tools.sh PM detect + plan/yes
+
+  - id: engage-install-lab-p04
+    agent: engage-implementer
+    branch: engage/install-p04-preflight
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: install-p04-preflight
+    notes: preflight profiles + --json
+
+  - id: engage-install-lab-p05
+    agent: engage-implementer
+    branch: engage/lab-p05-victim-instance
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: lab-p05-victim-instance
+    notes: run-client-native-api-instance.sh victim
+
+  - id: engage-install-lab-p06
+    agent: engage-implementer
+    branch: engage/lab-p06-attacker-instance
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: lab-p06-attacker-instance
+    notes: run-client-native-api-instance.sh attacker
+
+  - id: engage-install-lab-p07
+    agent: engage-implementer
+    branch: engage/lab-p07-red-harness
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: lab-p07-red-harness
+    notes: smoke-engage-red-vs-blue.sh harness
+
+  - id: engage-install-lab-p08
+    agent: engage-implementer
+    branch: engage/install-p08-make-docs
+    plan_path: .cursor/plans/engage_userfriendly_install_73f6d9c0.plan.md
+    phase_slug: install-p08-make-docs
+    notes: Makefile + engage-install-linux.md + scripts index
+
   - id: platform-p5b-tf
     agent: platform-implementer
     branch: platform/p5b-tf-foundation
