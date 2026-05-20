@@ -86,6 +86,12 @@ When working on host-tool readiness for Engage, use this deterministic chain:
 4. `make engage-install-fallback` or `make engage-install-kali-fallback` (Debian/Ubuntu opt-in)
 5. `make test-engage-red-blue`
 
+Core47 parity quick path:
+
+1. `./scripts/ops/install-engage-host-tools.sh --yes --profile core47 --policy full-auto`
+2. `./scripts/engage/preflight-client-tools.sh --profile core47 --json`
+3. `make test-engage-red-blue`
+
 ## Graph pack releases
 
 - Default version: see [versions.env](versions.env).

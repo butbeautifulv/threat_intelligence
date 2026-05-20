@@ -7,6 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 YAML="${ENGAGE_TOOLS_PACKAGES_YAML:-${ROOT}/scripts/ops/engage-tools-packages.yaml}"
 SOURCES_YAML="${ENGAGE_TOOLS_SOURCES_YAML:-${ROOT}/scripts/ops/engage-tools-sources.yaml}"
+CORE_YAML="${ENGAGE_CORE_TOOLS_YAML:-${ROOT}/scripts/ops/engage-core-tools.yaml}"
 PROFILE="${ENGAGE_PREFLIGHT_PROFILE:-recommended}"
 INSTALL_POLICY="${ENGAGE_INSTALL_POLICY:-repo-first}"
 JSON_OUT=0
@@ -14,8 +15,8 @@ EMIT_MISSING=0
 EMIT_INSTALL_PLAN=0
 
 usage() {
-  echo "Usage: $0 [--profile minimal|recommended|full] [--json] [--emit-missing] [--emit-install-plan] [--policy POLICY]" >&2
-  echo "Env: ENGAGE_PREFLIGHT_PROFILE, ENGAGE_TOOLS_PACKAGES_YAML, ENGAGE_TOOLS_SOURCES_YAML" >&2
+  echo "Usage: $0 [--profile minimal|recommended|full|core47] [--json] [--emit-missing] [--emit-install-plan] [--policy POLICY]" >&2
+  echo "Env: ENGAGE_PREFLIGHT_PROFILE, ENGAGE_TOOLS_PACKAGES_YAML, ENGAGE_TOOLS_SOURCES_YAML, ENGAGE_CORE_TOOLS_YAML" >&2
   exit 1
 }
 
@@ -71,16 +72,48 @@ if ((${#TOOLS[@]} == 0)); then
       TOOLS=(nmap masscan httpx nuclei subfinder amass gobuster feroxbuster ffuf sqlmap nikto)
       [[ "$PROFILE" == "full" ]] && TOOLS+=(hydra trivy)
       ;;
+    core47)
+      TOOLS=(nmap masscan rustscan amass subfinder nuclei fierce dnsenum autorecon theharvester responder netexec enum4linux-ng gobuster feroxbuster dirsearch ffuf dirb httpx katana nikto sqlmap wpscan arjun paramspider dalfox wafw00f hydra john hashcat medusa patator crackmapexec evil-winrm hash-identifier ophcrack gdb radare2 binwalk ghidra checksec strings objdump volatility3 foremost steghide exiftool)
+      ;;
     *) echo "preflight-client-tools: unknown profile: $PROFILE" >&2; exit 1 ;;
   esac
 fi
 
+resolve_binary() {
+  local name="$1"
+  TOOL="$name" CORE_YAML="$CORE_YAML" SOURCES_YAML="$SOURCES_YAML" python3 - <<'PY'
+import os, pathlib, yaml
+name = os.environ["TOOL"]
+for key in ("CORE_YAML", "SOURCES_YAML"):
+    p = pathlib.Path(os.environ.get(key, ""))
+    if not p.is_file():
+        continue
+    with p.open("r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    tools = data.get("tools") or {}
+    meta = tools.get(name)
+    if isinstance(meta, dict):
+        b = (meta.get("binary") or "").strip()
+        if b:
+            print(b)
+            raise SystemExit(0)
+print(name)
+PY
+}
+
 check() {
   local name="$1"
-  if ! command -v "$name" >/dev/null 2>&1; then
-    MISSING+=("$name")
-  else
+  local bin
+  bin="$(resolve_binary "$name")"
+  if command -v "$bin" >/dev/null 2>&1; then
     PRESENT+=("$name")
+    return
+  fi
+  # fallback to direct name for legacy compatibility
+  if command -v "$name" >/dev/null 2>&1; then
+    PRESENT+=("$name")
+  else
+    MISSING+=("$name")
   fi
 }
 

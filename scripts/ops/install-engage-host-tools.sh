@@ -228,6 +228,8 @@ case "$PM" in
 esac
 
 KALI_MISSING_PKGS=()
+FALLBACK_INSTALLED=()
+MANUAL_REQUIRED=()
 fallback_candidates() {
   local set=()
   local t
@@ -257,7 +259,7 @@ target = ""
 for m in methods:
     if isinstance(m, str) and ":" in m:
         left, right = m.split(":", 1)
-        if left in ("go", "cargo"):
+        if left in ("go", "cargo", "pipx", "gem", "git", "manual"):
             method = left
             target = right
             break
@@ -277,36 +279,95 @@ run_fallback_install() {
     fi
     if [[ -z "$method" || -z "$target" ]]; then
       echo "fallback: no upstream method for tool=$item (repo=${repo})" >&2
+      MANUAL_REQUIRED+=("$item")
       missing_count=$((missing_count + 1))
       continue
     fi
     if [[ "$DO_PLAN" -eq 1 ]]; then
-      if [[ "$method" == "go" ]]; then
-        echo "go install ${target}    # ${repo}"
-      else
-        echo "cargo install ${target}    # ${repo}"
-      fi
+      case "$method" in
+        go) echo "go install ${target}    # ${repo}" ;;
+        cargo) echo "cargo install ${target}    # ${repo}" ;;
+        pipx) echo "pipx install ${target}    # ${repo}" ;;
+        gem) echo "gem install --user-install ${target}    # ${repo}" ;;
+        git) echo "git clone ${target} ~/.local/opt/${item}    # ${repo}" ;;
+        manual) echo "manual install required for ${item}: ${target} ${repo}" ;;
+      esac
       continue
     fi
-    if [[ "$method" == "go" ]]; then
-      if ! command -v go >/dev/null 2>&1; then
-        echo "fallback: go not found for ${item}" >&2
+    case "$method" in
+      go)
+        if ! command -v go >/dev/null 2>&1; then
+          echo "fallback: go not found for ${item}" >&2
+          MANUAL_REQUIRED+=("$item")
+          missing_count=$((missing_count + 1))
+          continue
+        fi
+        go install "${target}"
+        ;;
+      cargo)
+        if ! command -v cargo >/dev/null 2>&1; then
+          echo "fallback: cargo not found for ${item}" >&2
+          MANUAL_REQUIRED+=("$item")
+          missing_count=$((missing_count + 1))
+          continue
+        fi
+        cargo install "${target}"
+        ;;
+      pipx)
+        if ! command -v pipx >/dev/null 2>&1; then
+          echo "fallback: pipx not found for ${item}" >&2
+          MANUAL_REQUIRED+=("$item")
+          missing_count=$((missing_count + 1))
+          continue
+        fi
+        pipx install "${target}" || true
+        ;;
+      gem)
+        if ! command -v gem >/dev/null 2>&1; then
+          echo "fallback: gem not found for ${item}" >&2
+          MANUAL_REQUIRED+=("$item")
+          missing_count=$((missing_count + 1))
+          continue
+        fi
+        gem install --user-install "${target}" || true
+        ;;
+      git)
+        if ! command -v git >/dev/null 2>&1; then
+          echo "fallback: git not found for ${item}" >&2
+          MANUAL_REQUIRED+=("$item")
+          missing_count=$((missing_count + 1))
+          continue
+        fi
+        mkdir -p "${HOME}/.local/opt" "${HOME}/.local/bin"
+        repo_dir="${HOME}/.local/opt/${item}"
+        if [[ -d "${repo_dir}" ]]; then
+          git -C "${repo_dir}" pull --ff-only || true
+        else
+          git clone "${target}" "${repo_dir}" || true
+        fi
+        if [[ -f "${repo_dir}/enum4linux-ng.py" ]]; then
+          ln -sf "${repo_dir}/enum4linux-ng.py" "${HOME}/.local/bin/enum4linux-ng"
+        fi
+        ;;
+      manual)
+        echo "fallback: manual install required for ${item}: ${target} ${repo}" >&2
+        MANUAL_REQUIRED+=("$item")
         missing_count=$((missing_count + 1))
         continue
-      fi
-      go install "${target}"
-    else
-      if ! command -v cargo >/dev/null 2>&1; then
-        echo "fallback: cargo not found for ${item}" >&2
+        ;;
+      *)
+        echo "fallback: unknown method ${method} for ${item}" >&2
+        MANUAL_REQUIRED+=("$item")
         missing_count=$((missing_count + 1))
         continue
-      fi
-      cargo install "${target}"
-    fi
+        ;;
+    esac
     if command -v "$binary" >/dev/null 2>&1; then
       echo "fallback: installed ${item} via ${method} (${repo})"
+      FALLBACK_INSTALLED+=("$item")
     else
       echo "fallback: install command ran but binary still missing: ${binary}" >&2
+      MANUAL_REQUIRED+=("$item")
       missing_count=$((missing_count + 1))
     fi
   done < <(fallback_candidates)
@@ -355,3 +416,7 @@ if [[ "$INSTALL_POLICY" == "kali-fallback" || "$INSTALL_POLICY" == "full-auto" ]
 fi
 
 echo "install-engage-host-tools: done (pm=$PM profile=$PROFILE policy=$INSTALL_POLICY)"
+echo "install-engage-host-tools: report installed_repo=${#PKGS[@]} fallback_installed=${#FALLBACK_INSTALLED[@]} manual_required=${#MANUAL_REQUIRED[@]} unavailable_repo=${#UNAVAILABLE_PKGS[@]}"
+if ((${#MANUAL_REQUIRED[@]} > 0)); then
+  echo "install-engage-host-tools: manual-required tools: ${MANUAL_REQUIRED[*]}" >&2
+fi

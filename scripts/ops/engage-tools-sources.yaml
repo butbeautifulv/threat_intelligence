@@ -1917,6 +1917,157 @@ tools:
     kali_packaging_repo: https://gitlab.com/kalilinux/packages/x8
     upstream_repo: ''
     preferred_install_methods: []
+  theharvester:
+    binary: theHarvester
+    kali_tool_page: https://kali.org/tools/theharvester
+    kali_pkg_tracker: https://pkg.kali.org/pkg/theharvester
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/theharvester
+    upstream_repo: https://github.com/laramies/theHarvester
+    preferred_install_methods:
+    - apt:theharvester
+    - pipx:theHarvester
+  enum4linux-ng:
+    binary: enum4linux-ng
+    kali_tool_page: https://kali.org/tools/enum4linux-ng
+    kali_pkg_tracker: https://pkg.kali.org/pkg/enum4linux-ng
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/enum4linux-ng
+    upstream_repo: https://github.com/cddmp/enum4linux-ng
+    preferred_install_methods:
+    - apt:enum4linux-ng
+    - git:https://github.com/cddmp/enum4linux-ng.git
+  medusa:
+    binary: medusa
+    kali_tool_page: https://kali.org/tools/medusa
+    kali_pkg_tracker: https://pkg.kali.org/pkg/medusa
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/medusa
+    upstream_repo: https://github.com/jmk-foofus/medusa
+    preferred_install_methods:
+    - apt:medusa
+  patator:
+    binary: patator
+    kali_tool_page: https://kali.org/tools/patator
+    kali_pkg_tracker: https://pkg.kali.org/pkg/patator
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/patator
+    upstream_repo: https://github.com/lanjelot/patator
+    preferred_install_methods:
+    - apt:patator
+    - pipx:patator
+  crackmapexec:
+    binary: netexec
+    kali_tool_page: https://kali.org/tools/netexec
+    kali_pkg_tracker: https://pkg.kali.org/pkg/netexec
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/netexec
+    upstream_repo: https://github.com/Pennyw0rth/NetExec
+    preferred_install_methods:
+    - apt:netexec
+    - pipx:netexec
+  evil-winrm:
+    binary: evil-winrm
+    kali_tool_page: https://kali.org/tools/evil-winrm
+    kali_pkg_tracker: https://pkg.kali.org/pkg/evil-winrm
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/evil-winrm
+    upstream_repo: https://github.com/Hackplayers/evil-winrm
+    preferred_install_methods:
+    - apt:evil-winrm
+    - gem:evil-winrm
+  hash-identifier:
+    binary: hashid
+    kali_tool_page: https://kali.org/tools/hash-identifier
+    kali_pkg_tracker: https://pkg.kali.org/pkg/hash-identifier
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/hash-identifier
+    upstream_repo: https://github.com/psypanda/hashID
+    preferred_install_methods:
+    - apt:hash-identifier
+    - pipx:hashid
+  ophcrack:
+    binary: ophcrack
+    kali_tool_page: https://kali.org/tools/ophcrack
+    kali_pkg_tracker: https://pkg.kali.org/pkg/ophcrack
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/ophcrack
+    upstream_repo: https://github.com/openwall/ophcrack
+    preferred_install_methods:
+    - apt:ophcrack
+  rustscan:
+    binary: rustscan
+    kali_tool_page: https://kali.org/tools/rustscan
+    kali_pkg_tracker: https://pkg.kali.org/pkg/rustscan
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/rustscan
+    upstream_repo: https://github.com/RustScan/RustScan
+    preferred_install_methods:
+    - apt:rustscan
+    - cargo:rustscan
+  autorecon:
+    binary: autorecon
+    kali_tool_page: https://kali.org/tools/autorecon
+    kali_pkg_tracker: https://pkg.kali.org/pkg/autorecon
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/autorecon
+    upstream_repo: https://github.com/Tib3rius/AutoRecon
+    preferred_install_methods:
+    - apt:autorecon
+    - pipx:git+https://github.com/Tib3rius/AutoRecon.git
+  responder:
+    binary: responder
+    kali_tool_page: https://kali.org/tools/responder
+    kali_pkg_tracker: https://pkg.kali.org/pkg/responder
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/responder
+    upstream_repo: https://github.com/lgandx/Responder
+    preferred_install_methods:
+    - apt:responder
+    - git:https://github.com/lgandx/Responder.git
+  netexec:
+    binary: netexec
+    kali_tool_page: https://kali.org/tools/netexec
+    kali_pkg_tracker: https://pkg.kali.org/pkg/netexec
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/netexec
+    upstream_repo: https://github.com/Pennyw0rth/NetExec
+    preferred_install_methods:
+    - apt:netexec
+    - pipx:git+https://github.com/Pennyw0rth/NetExec.git
+  katana:
+    binary: katana
+    kali_tool_page: https://kali.org/tools/katana
+    kali_pkg_tracker: https://pkg.kali.org/pkg/katana
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/katana
+    upstream_repo: https://github.com/projectdiscovery/katana
+    preferred_install_methods:
+    - apt:katana
+    - go:github.com/projectdiscovery/katana/cmd/katana@latest
+  wpscan:
+    binary: wpscan
+    kali_tool_page: https://kali.org/tools/wpscan
+    kali_pkg_tracker: https://pkg.kali.org/pkg/wpscan
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/wpscan
+    upstream_repo: https://github.com/wpscanteam/wpscan
+    preferred_install_methods:
+    - apt:wpscan
+    - gem:wpscan
+  dalfox:
+    binary: dalfox
+    kali_tool_page: https://kali.org/tools/dalfox
+    kali_pkg_tracker: https://pkg.kali.org/pkg/dalfox
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/dalfox
+    upstream_repo: https://github.com/hahwul/dalfox
+    preferred_install_methods:
+    - apt:dalfox
+    - go:github.com/hahwul/dalfox/v2@latest
+  ghidra:
+    binary: ghidra
+    kali_tool_page: https://kali.org/tools/ghidra
+    kali_pkg_tracker: https://pkg.kali.org/pkg/ghidra
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/ghidra
+    upstream_repo: https://github.com/NationalSecurityAgency/ghidra
+    preferred_install_methods:
+    - apt:ghidra
+    - manual:https://github.com/NationalSecurityAgency/ghidra/releases
+  volatility3:
+    binary: vol
+    kali_tool_page: https://kali.org/tools/volatility3
+    kali_pkg_tracker: https://pkg.kali.org/pkg/volatility3
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/volatility3
+    upstream_repo: https://github.com/volatilityfoundation/volatility3
+    preferred_install_methods:
+    - apt:volatility3
+    - pipx:volatility3
   xsser_scan:
     binary: xsser
     kali_tool_page: https://kali.org/tools/xsser-scan
