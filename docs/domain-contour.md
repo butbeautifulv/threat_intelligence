@@ -2,6 +2,10 @@
 
 Shared threat-intelligence types and rules live under `pkg/`. Runtime layers (`discovery/`, `pipeline/`, `knowledge/`, `engage/`) keep source-specific adapters only.
 
+## pkg/domain meta-layer
+
+Per-source packages below remain entity SOT. A planned top-level [`pkg/domain/`](../pkg/domain/) meta-layer (contours, source registry, shared refs, Veil category taxonomy) is documented in **[pkg-domain-model.md](pkg-domain-model.md)** — three contours (Ingest, Engage, Knowledge/Playbook), corpus split, and P1+ primitive layout. No Go code in P0; existing import paths unchanged until later phases.
+
 ## Package map
 
 | Package | Role | Imported by |
