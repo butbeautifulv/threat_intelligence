@@ -79,14 +79,21 @@ func extractBullets(block string) []string {
 
 func extractSteps(workflow string) []domain.ProcedureStep {
 	var steps []domain.ProcedureStep
-	parts := stepRe.Split(workflow, -1)
-	if len(parts) <= 1 {
+	locs := stepRe.FindAllStringSubmatchIndex(workflow, -1)
+	if len(locs) == 0 {
 		return steps
 	}
-	for i := 1; i+2 <= len(parts); i += 3 {
-		num, _ := strconv.Atoi(strings.TrimSpace(parts[i]))
-		title := strings.TrimSpace(parts[i+1])
-		content := strings.TrimSpace(parts[i+2])
+	for i, loc := range locs {
+		if len(loc) < 6 {
+			continue
+		}
+		num, _ := strconv.Atoi(strings.TrimSpace(workflow[loc[2]:loc[3]]))
+		title := strings.TrimSpace(workflow[loc[4]:loc[5]])
+		end := len(workflow)
+		if i+1 < len(locs) {
+			end = locs[i+1][0]
+		}
+		content := strings.TrimSpace(workflow[loc[1]:end])
 		mentions := tokenizeTools(content)
 		kind := domain.StepManual
 		if strings.Contains(content, "```bash") || strings.Contains(content, "```sh") {
