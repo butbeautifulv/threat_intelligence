@@ -422,6 +422,91 @@ phases:
     phase_slug: pkg-cover-v-m6-exec
     notes: verify T3 100pct pkg/exec sandbox
 
+  # pipeline T3 unit tests (platform/pipeline-tests-full)
+  - id: pipeline-tests-w0
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_master.plan.md
+    phase_slug: pipeline-tests-w0-harness
+    notes: test-pipeline-all pipeline-cover docs Makefile
+
+  - id: pipeline-tests-w1
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_full_4e940824.plan.md
+    phase_slug: pipeline-tests-w1-nvd-router
+    notes: nvd parse/map edges + transform/router_test.go only
+
+  - id: pipeline-tests-w2-ti
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_full_4e940824.plan.md
+    phase_slug: pipeline-tests-w2-ti
+    notes: ti/transform_test.go all kinds — do not commit
+
+  - id: pipeline-tests-w3-vuln
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_full_4e940824.plan.md
+    phase_slug: pipeline-tests-w3-vuln
+    notes: vuln transform + enrich tests only
+
+  - id: pipeline-tests-w4-bus
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_full_4e940824.plan.md
+    phase_slug: pipeline-tests-w4-bus
+    notes: appsec/parse dedup consumer tests only
+
+  - id: pipeline-tests-w5-connector
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_full_4e940824.plan.md
+    phase_slug: pipeline-tests-w5-connector
+    notes: connector/nats handlers streams publish — do not commit
+
+  - id: pipeline-tests-w6-runtime
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_full_4e940824.plan.md
+    phase_slug: pipeline-tests-w6-runtime
+    notes: config components consumer RunPullLoop
+
+  - id: pipeline-tests-w8-ci
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_master.plan.md
+    phase_slug: pipeline-tests-w8-ci
+    notes: CONTRIBUTING coding-style P7 gate sign-off
+
+  - id: pipeline-cover-v-nvd
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_master.plan.md
+    phase_slug: pipeline-cover-v-nvd
+    notes: gap-fill pipeline/pkg/nvd to 100pct
+
+  - id: pipeline-cover-v-sources
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_master.plan.md
+    phase_slug: pipeline-cover-v-sources
+    notes: gap-fill ned/internal/sources to 100pct
+
+  - id: pipeline-cover-v-ned-core
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_master.plan.md
+    phase_slug: pipeline-cover-v-ned-core
+    notes: gap-fill transform dedup consumer config components
+
+  - id: pipeline-cover-v-connector
+    agent: scrape-pipeline-implementer
+    branch: platform/pipeline-tests-full
+    plan_path: .cursor/plans/pipeline_unit_tests_master.plan.md
+    phase_slug: pipeline-cover-v-connector
+    notes: gap-fill connector/nats to 100pct
+
   # Example bindings — critic fills branch/plan when spawning.
   - id: platform-p4b
     agent: platform-implementer

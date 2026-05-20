@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var newCommitEnvelope = commit.NewEnvelope
+
 // Transform maps harvest ds events to commit envelopes.
 func Transform(ctx context.Context, env *harvest.Envelope) ([]*commit.Envelope, error) {
 	_ = ctx
@@ -154,7 +156,7 @@ func atomicFromYAML(path, rawYAML string) ([]*commit.Envelope, error) {
 		pl := commit.DSUpsertAtomicPayload{
 			ID: tid, Name: tname, Tactic: tactic, Technique: attackID, ExecName: execName, ExecCmd: execCmd, Markdown: md, Source: "atomic-red-team",
 		}
-		env, err := commit.NewEnvelope(commit.SourceDS, commit.KindDSUpsertAtomic, commit.DSAtomicIdempotencyKey(tid), pl)
+		env, err := newCommitEnvelope(commit.SourceDS, commit.KindDSUpsertAtomic, commit.DSAtomicIdempotencyKey(tid), pl)
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +202,7 @@ func calderaRootToEnvelope(root map[string]any, path string) *commit.Envelope {
 	}
 	md := fmt.Sprintf("# %s\n\n**Tactic:** %s  \n**Technique:** %s  \n\n%s\n", name, tactic, techID, desc)
 	pl := commit.DSUpsertCalderaPayload{ID: id, Name: name, Tactic: tactic, TechniqueID: techID, Markdown: md, Source: "mitre-stockpile"}
-	env, err := commit.NewEnvelope(commit.SourceDS, commit.KindDSUpsertCaldera, commit.DSCalderaIdempotencyKey(id), pl)
+	env, err := newCommitEnvelope(commit.SourceDS, commit.KindDSUpsertCaldera, commit.DSCalderaIdempotencyKey(id), pl)
 	if err != nil {
 		return nil
 	}

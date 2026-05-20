@@ -113,6 +113,7 @@ For automated agents and maintainers, before marking work done:
 |------|----------------|
 | Platform P7 (pkg domain + bus slices, no Docker) | `make test-platform-p7` — required when touching `pkg/*/domain`, `pkg/ti/*`, layer `domain/` or `usecase/` on the Veil contour |
 | New or changed `pkg/*` logic | `make test-pkg-cover` — all pkg modules + [pkg-cover.sh](../../scripts/test/pkg-cover.sh) floors; add `*_test.go` in the same PR ([pkg-test-coverage.md](../development/pkg-test-coverage.md)) |
+| New or changed `pipeline/*` logic | `make test-pipeline-cover-strict` — T3 100% on logic packages ([pipeline-cover.sh](../../scripts/test/pipeline-cover.sh)); add `*_test.go` in the same PR ([pipeline-test-coverage.md](../development/pipeline-test-coverage.md)) |
 | Tests (touched layers) | `make test-discovery`, `make test-pipeline`, `make test-graph`; graph read/auth/MCP: `make test-graph-serve` |
 | Graph read smoke (Docker) | `make test-graph-read-smoke` — no scrape/NATS |
 | Graph version (ingest paths) | `./scripts/release/bump-graph-version.sh patch` → updates [versions.env](../versions.env) |

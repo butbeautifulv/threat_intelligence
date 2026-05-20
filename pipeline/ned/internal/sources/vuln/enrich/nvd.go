@@ -9,6 +9,8 @@ import (
 	"github.com/butbeautifulv/veil/pkg/vuln/domain"
 )
 
+var newCommitEnvelope = commit.NewEnvelope
+
 // FromNVDPage parses an NVD API page JSON and returns enriched vuln upsert envelopes.
 func FromNVDPage(raw string) ([]*commit.Envelope, error) {
 	parsed, _, err := parse.ParsePage([]byte(raw))
@@ -21,7 +23,7 @@ func FromNVDPage(raw string) ([]*commit.Envelope, error) {
 			continue
 		}
 		v := nvdToDomain(p)
-		e, err := commit.NewEnvelope(commit.SourceVuln, commit.KindVulnUpsert, commit.VulnUpsertIdempotencyKey(v.CVE), v)
+		e, err := newCommitEnvelope(commit.SourceVuln, commit.KindVulnUpsert, commit.VulnUpsertIdempotencyKey(v.CVE), v)
 		if err != nil {
 			return nil, err
 		}

@@ -1,4 +1,4 @@
-.PHONY: test-discovery test-discovery-p7c skills-index check-skills-index corpus-import check-corpus-mappings procedures-index check-procedures-index test-pipeline test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-benchmark-regression test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-runner-full-smoke test-engage-executable-matrix-runner test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-bridge-coverage test-engage-route-parity test-engage-executable-matrix test-engage-external-guard test-engage-hardening test-engage-red-blue test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 test-platform-mcp-gateway test-platform-unified-edge catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-pkg-all test-pkg-cover test-pkg-cover-strict test-knowledge test-knowledge-serve engage-install-plan engage-install-host-tools engage-install-fallback engage-install-kali-fallback engage-tool-source-map engage-tool-install-coverage test-engage-install-matrix
+.PHONY: test-discovery test-discovery-p7c skills-index check-skills-index corpus-import check-corpus-mappings procedures-index check-procedures-index test-pipeline test-pipeline-all test-pipeline-cover test-pipeline-cover-strict test-pipeline-p7d test-graph test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g test-graph-serve test-graph-read-smoke test-graph-engage-category test-engage test-engage-ctf test-engage-bugbounty test-engage-cve test-engage-benchmark test-engage-benchmark-regression test-engage-veil-stack-ci test-engage-smoke test-engage-smoke-tool test-engage-compose test-engage-runner-profile test-engage-runner-full-smoke test-engage-executable-matrix-runner test-engage-veil-stack test-engage-decision-parity test-engage-catalog-args test-engage-tool-matrix test-engage-na-matrix test-engage-bridge-coverage test-engage-route-parity test-engage-executable-matrix test-engage-external-guard test-engage-hardening test-engage-red-blue test-platform-p0 test-platform-p7 test-platform-closed-loop test-platform-full-loop test-platform-p3 test-platform-p4 test-platform-mcp-gateway test-platform-unified-edge catalog-engage graph-pack-export graph-pack-build graph-pack-publish test-smoke check-graph-version bump-graph-patch agents-list agents-render deploy-helm-template deploy-ansible-check sync-github-metadata external-clone-agent-store test-agent-eval-registry test-agent-eval-pilot test-agent-eval-paper test-pkg-shared test-pkg-domain test-pkg-all test-pkg-cover test-pkg-cover-strict test-knowledge test-knowledge-serve engage-install-plan engage-install-host-tools engage-install-fallback engage-install-kali-fallback engage-tool-source-map engage-tool-install-coverage test-engage-install-matrix
 
 # Shared pkg contracts (harvest, commit, natsjet, auth, engage/events)
 test-pkg-shared:
@@ -37,7 +37,7 @@ test-pkg-cover-strict:
 	./scripts/test/pkg-cover-strict.sh
 
 # P7 gate: pkg + bus + layer unit tests (wave-1 parallel branches merged)
-test-platform-p7: test-pkg-cover-strict test-platform-p0 test-discovery-p7c test-pipeline-p7d test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g
+test-platform-p7: test-pkg-cover-strict test-platform-p0 test-discovery-p7c test-pipeline-cover-strict test-graph-ingest-p7e test-graph-serve-p7f test-engage-p7g
 
 # GOWORK may point at discovery/go.work in the shell; each target uses the matching workspace.
 test-platform-p0: test-pkg-shared
@@ -133,6 +133,20 @@ test-discovery-p7c:
 
 test-pipeline-p7d:
 	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./pkg/nvd/map/... ./ned/internal/sources/appsec/... ./ned/internal/sources/ds/... ./ned/internal/sources/lola/...
+
+# Full pipeline unit tests (all go.work modules with logic)
+test-pipeline-all:
+	cd pipeline/pkg && env -u GOWORK go test ./...
+	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./connector/...
+	cd pipeline && env GOWORK=$$(pwd)/go.work go test ./ned/...
+
+test-pipeline-cover:
+	chmod +x ./scripts/test/pipeline-cover.sh
+	./scripts/test/pipeline-cover.sh
+
+test-pipeline-cover-strict:
+	chmod +x ./scripts/test/pipeline-cover.sh ./scripts/test/pipeline-cover-strict.sh
+	./scripts/test/pipeline-cover-strict.sh
 
 test-graph-ingest-p7e:
 	cd knowledge && env GOWORK=$$(pwd)/go.work go test ./ingest/internal/ingest/... ./ingest/internal/sources/ti/... ./ingest/internal/sources/vuln/... ./ingest/internal/sources/ds/... ./ingest/internal/sources/lola/... ./ingest/internal/appsec/...

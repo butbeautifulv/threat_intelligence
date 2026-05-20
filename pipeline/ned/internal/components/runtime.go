@@ -12,6 +12,12 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var (
+	ensureBothStreams      = nats.EnsureBothStreams
+	connectIngestPublisher = nats.ConnectJetStream
+	jetStreamContext       = func(nc *natsgo.Conn) (natsgo.JetStreamContext, error) { return nc.JetStream() }
+)
+
 // Runtime holds NATS scrape subscription and ingest publisher for the NED worker.
 type Runtime struct {
 	cfg    config.Config
@@ -28,16 +34,16 @@ func Init(ctx context.Context, cfg config.Config, log *slog.Logger) (*Runtime, e
 	if err != nil {
 		return nil, fmt.Errorf("nats connect: %w", err)
 	}
-	js, err := nc.JetStream()
+	js, err := jetStreamContext(nc)
 	if err != nil {
 		nc.Drain()
 		return nil, fmt.Errorf("jetstream: %w", err)
 	}
-	if err := nats.EnsureBothStreams(js); err != nil {
+	if err := ensureBothStreams(js); err != nil {
 		nc.Drain()
 		return nil, fmt.Errorf("streams: %w", err)
 	}
-	pub, err := nats.ConnectJetStream(cfg.NATSURL)
+	pub, err := connectIngestPublisher(cfg.NATSURL)
 	if err != nil {
 		nc.Drain()
 		return nil, err

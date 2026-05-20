@@ -8,6 +8,7 @@ Thank you for improving this project. Small, focused changes are easier to revie
 2. Follow **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**.
 3. If you change [pkg/harvest/](pkg/harvest/) or [pkg/commit/](pkg/commit/), update [docs/schemas/](docs/schemas/) in the same PR.
 4. New or changed **`pkg/*`** — include `*_test.go` in the same PR; run `make test-pkg-cover` ([pkg-test-coverage.md](docs/development/pkg-test-coverage.md)).
+4b. New or changed **`pipeline/*`** logic — include `*_test.go`; run `make test-pipeline-cover-strict` ([pipeline-test-coverage.md](docs/development/pipeline-test-coverage.md)).
 5. **Tests** — run targets for layers you touched. Full matrix: **[README.md#tests](README.md#tests)**.
 
    **PR minimum (typical):**

@@ -12,6 +12,8 @@ import (
 	tinormalize "github.com/butbeautifulv/veil/pkg/ti/normalize"
 )
 
+var newCommitEnvelope = commit.NewEnvelope
+
 // Transform maps harvest TI events to commit envelopes.
 func Transform(ctx context.Context, env *harvest.Envelope) ([]*commit.Envelope, error) {
 	_ = ctx
@@ -110,21 +112,21 @@ func jsonlToIngest(lineEnv JSONLEnvelope) ([]*commit.Envelope, error) {
 			return nil, nil
 		}
 		id := tinormalize.CanonicalID(ni)
-		e, err := commit.NewEnvelope(commit.SourceTI, commit.KindTIIoC, commit.TIIoCIdempotencyKey(id), ni)
+		e, err := newCommitEnvelope(commit.SourceTI, commit.KindTIIoC, commit.TIIoCIdempotencyKey(id), ni)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, e)
 	case lineEnv.Campaign != nil:
 		c := tinormalize.NormalizeCampaign(*lineEnv.Campaign)
-		e, err := commit.NewEnvelope(commit.SourceTI, commit.KindTICampaign, commit.TICampaignIdempotencyKey(c.ID), c)
+		e, err := newCommitEnvelope(commit.SourceTI, commit.KindTICampaign, commit.TICampaignIdempotencyKey(c.ID), c)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, e)
 	case lineEnv.Cluster != nil:
 		cl := tinormalize.NormalizeCluster(*lineEnv.Cluster)
-		e, err := commit.NewEnvelope(commit.SourceTI, commit.KindTICluster, commit.TIClusterIdempotencyKey(cl.ID), cl)
+		e, err := newCommitEnvelope(commit.SourceTI, commit.KindTICluster, commit.TIClusterIdempotencyKey(cl.ID), cl)
 		if err != nil {
 			return nil, err
 		}
@@ -135,14 +137,14 @@ func jsonlToIngest(lineEnv JSONLEnvelope) ([]*commit.Envelope, error) {
 		if id == "" {
 			id = tinormalize.ActorStableID(a.Name)
 		}
-		e, err := commit.NewEnvelope(commit.SourceTI, commit.KindTIActor, commit.TIActorIdempotencyKey(id), a)
+		e, err := newCommitEnvelope(commit.SourceTI, commit.KindTIActor, commit.TIActorIdempotencyKey(id), a)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, e)
 	case lineEnv.Report != nil:
 		sid := tinormalize.ReportStableID(lineEnv.Report.Link)
-		e, err := commit.NewEnvelope(commit.SourceTI, commit.KindTIReport, commit.TIReportIdempotencyKey(sid), *lineEnv.Report)
+		e, err := newCommitEnvelope(commit.SourceTI, commit.KindTIReport, commit.TIReportIdempotencyKey(sid), *lineEnv.Report)
 		if err != nil {
 			return nil, err
 		}

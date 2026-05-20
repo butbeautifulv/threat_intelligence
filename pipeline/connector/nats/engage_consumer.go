@@ -14,6 +14,8 @@ import (
 	natsgo "github.com/nats-io/nats.go"
 )
 
+var engageJSONMarshal = json.Marshal
+
 // EnsureEngageEventsStream creates the ENGAGE_EVENTS stream for audit/finding subjects.
 func EnsureEngageEventsStream(js natsgo.JetStreamContext) error {
 	return natsjet.EnsureEngageEventsStream(js)
@@ -81,7 +83,7 @@ func handleEngageToolRun(ctx context.Context, pub *JetStreamPublisher, ingestSub
 		at = time.Now().UTC()
 	}
 	atStr := at.Format(time.RFC3339)
-	payload, err := json.Marshal(commit.EngageToolRunPayload{
+	payload, err := engageJSONMarshal(commit.EngageToolRunPayload{
 		Tool:    wire.Tool,
 		Target:  wire.Target,
 		Subject: wire.Subject,
@@ -109,7 +111,7 @@ func handleEngageFinding(ctx context.Context, pub *JetStreamPublisher, ingestSub
 	if strings.TrimSpace(wire.Tool) == "" || strings.TrimSpace(wire.Title) == "" {
 		return fmt.Errorf("empty tool or title")
 	}
-	payload, err := json.Marshal(commit.EngageFindingPayload{
+	payload, err := engageJSONMarshal(commit.EngageFindingPayload{
 		Tool:        wire.Tool,
 		Target:      wire.Target,
 		Title:       wire.Title,
