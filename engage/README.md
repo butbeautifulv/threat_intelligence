@@ -4,6 +4,8 @@ Fourth Veil runtime context: **authorized tool execution**, intelligence workflo
 
 ## What it is
 
+**Execution model:** Catalog tools run as subprocesses on the **same machine as the MCP server**, using that host’s **`PATH`** and OS environment—like HexStrike running `hexstrike_server.py` on the host with scanners installed there, not on a separate “client-only” laptop. Install the security CLIs you need on **that** execution host. Topology and dependency expectations: [docs/engage-mcp-topology.md](../docs/engage-mcp-topology.md), [docs/engage-client-dependencies.md](../docs/engage-client-dependencies.md).
+
 Greenfield **Go** implementation of the tool-orchestration model from the MIT reference in [`.external/hexstrike-ai-master/`](../.external/hexstrike-ai-master/) (attribution: [NOTICE.hexstrike](NOTICE.hexstrike)). Veil does **not** ship or run that Python stack — engage provides:
 
 - **YAML catalog** — 150 legacy MCP tool names with per-tool `parameters` and `args` templates
@@ -24,12 +26,14 @@ Greenfield **Go** implementation of the tool-orchestration model from the MIT re
 
 ## Services (dev compose)
 
+Default dev flow: `engage-api` / `veil-engage` invoke tools via **host subprocesses** (`PATH` on the machine where those services run). The **runner profile** below is an **optional** Docker-isolation lab—not the recommended default.
+
 | Service | Port / transport | Role |
 |---------|------------------|------|
 | engage-api | :8890 | REST: tools, intelligence, bugbounty workflows, jobs, processes |
 | engage-mcp | stdio or :8892 | MCP for agents |
 | engage-worker | — | Polls `ENGAGE_JOBS_DIR` when `ENGAGE_JOBS_MODE=file` (compose default) |
-| engage-runner | none (profile `runner`) | Isolated toolbox image when `ENGAGE_RUNNER_MODE=docker` |
+| engage-runner | none (profile `runner`) | **Optional / legacy lab:** toolbox container + `docker exec` when `ENGAGE_RUNNER_MODE=docker` |
 
 ```bash
 # From repo root
@@ -40,9 +44,9 @@ make test-engage-parity
 
 CI: GitHub Actions workflow [`.github/workflows/engage.yml`](../.github/workflows/engage.yml) runs `test-engage` and `test-engage-parity` on engage-related PRs.
 
-### Runner profile (docker)
+### Runner profile (docker — optional lab)
 
-Subprocess tools run inside `engage-runner` via `docker exec` (lab only; API mounts Docker socket):
+**Not the default path:** subprocess tools can instead run inside `engage-runner` via `docker exec` (legacy/isolation lab; API mounts Docker socket):
 
 ```bash
 docker compose -f deploy/engage/compose.yml \
@@ -66,7 +70,7 @@ End-to-end check: api + worker + runner (`ENGAGE_RUNNER_MODE=docker`), `POST /ap
 make test-engage-compose   # skips if docker unavailable
 ```
 
-Uses `deploy/engage/compose.yml` + `compose.runner.yml` with profile `runner`. CI job `engage-compose` runs this on every engage workflow (required on GitHub Actions).
+Uses `deploy/engage/compose.yml` + `compose.runner.yml` with profile `runner` (optional runner overlay). CI job `engage-compose` runs this on every engage workflow (required on GitHub Actions).
 
 Redis job queue (prod lab):
 
@@ -142,6 +146,8 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Docs
 
+- [docs/engage-mcp-topology.md](../docs/engage-mcp-topology.md) — where MCP runs vs where binaries execute
+- [docs/engage-client-dependencies.md](../docs/engage-client-dependencies.md) — execution-host CLI checklist
 - [docs/engage-runtime.md](../docs/engage-runtime.md) — env, ports, threat model, runner modes
 - [docs/engage-tools.md](../docs/engage-tools.md) — catalog schema
 - [docs/engage-legacy-parity.md](../docs/engage-legacy-parity.md) — route and MCP parity matrix
