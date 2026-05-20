@@ -60,6 +60,12 @@ func loadCatalog() {
 	}
 }
 
+// ResetCatalogForTest clears the lazy catalog cache (tests only).
+func ResetCatalogForTest() {
+	catalogOnce = sync.Once{}
+	catalogNames = nil
+}
+
 // ResolveMentions maps tool tokens to engage catalog tool names (read-only).
 func ResolveMentions(mentions []string) []string {
 	catalogOnce.Do(loadCatalog)
