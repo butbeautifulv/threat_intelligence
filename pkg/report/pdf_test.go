@@ -19,7 +19,11 @@ func TestToPDF_nonEmpty(t *testing.T) {
 			{Title: "Test finding", Severity: domain.SeverityHigh, Target: "https://example.com"},
 		},
 	}
-	b, err := ToPDF(summary)
+	b, err := ToPDF(summary, Branding{
+		Organization:   "Acme Red Team",
+		Classification: "TLP:AMBER",
+		Footer:         "Acme internal use only",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
