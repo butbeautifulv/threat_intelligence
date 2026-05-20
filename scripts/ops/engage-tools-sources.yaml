@@ -1,0 +1,48 @@
+schema_version: 1
+
+tools:
+  httpx:
+    binary: httpx
+    kali_tool_page: https://kali.org/tools/httpx-toolkit
+    kali_pkg_tracker: https://pkg.kali.org/pkg/httpx-toolkit/
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/httpx-toolkit
+    upstream_repo: https://github.com/projectdiscovery/httpx
+    preferred_install_methods:
+      - apt:httpx-toolkit
+      - go:github.com/projectdiscovery/httpx/cmd/httpx@latest
+  nuclei:
+    binary: nuclei
+    kali_tool_page: https://kali.org/tools/nuclei
+    kali_pkg_tracker: https://pkg.kali.org/pkg/nuclei
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/nuclei
+    upstream_repo: https://github.com/projectdiscovery/nuclei
+    preferred_install_methods:
+      - apt:nuclei
+      - go:github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+  subfinder:
+    binary: subfinder
+    kali_tool_page: https://kali.org/tools/subfinder
+    kali_pkg_tracker: https://pkg.kali.org/pkg/subfinder
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/subfinder
+    upstream_repo: https://github.com/projectdiscovery/subfinder
+    preferred_install_methods:
+      - apt:subfinder
+      - go:github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+  amass:
+    binary: amass
+    kali_tool_page: https://kali.org/tools/amass
+    kali_pkg_tracker: https://pkg.kali.org/pkg/amass
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/amass
+    upstream_repo: https://github.com/owasp-amass/amass
+    preferred_install_methods:
+      - apt:amass
+      - go:github.com/owasp-amass/amass/v4/...@master
+  feroxbuster:
+    binary: feroxbuster
+    kali_tool_page: https://kali.org/tools/feroxbuster
+    kali_pkg_tracker: https://pkg.kali.org/pkg/feroxbuster
+    kali_packaging_repo: https://gitlab.com/kalilinux/packages/feroxbuster
+    upstream_repo: https://github.com/epi052/feroxbuster
+    preferred_install_methods:
+      - apt:feroxbuster
+      - cargo:feroxbuster

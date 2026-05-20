@@ -5,14 +5,19 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 YAML="${ENGAGE_TOOLS_PACKAGES_YAML:-${ROOT}/scripts/ops/engage-tools-packages.yaml}"
+SOURCES_YAML="${ENGAGE_TOOLS_SOURCES_YAML:-${ROOT}/scripts/ops/engage-tools-sources.yaml}"
 PROFILE="${ENGAGE_INSTALL_PROFILE:-recommended}"
 DO_PLAN=0
 DO_YES=0
+DO_FALLBACK=0
+MISSING_FILE=""
 
 usage() {
-  echo "Usage: $0 [--profile minimal|recommended|full] [--plan|--yes]" >&2
+  echo "Usage: $0 [--profile minimal|recommended|full] [--plan|--yes] [--fallback] [--missing-file FILE]" >&2
   echo "  --plan   print install commands only" >&2
   echo "  --yes    run package manager (needs root/sudo on most distros)" >&2
+  echo "  --fallback   install missing tools from upstream (go/cargo) when repo packages unavailable" >&2
+  echo "  --missing-file FILE   newline-delimited tool list to prioritize for fallback" >&2
   exit 1
 }
 
@@ -24,6 +29,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --plan) DO_PLAN=1; shift ;;
     --yes) DO_YES=1; shift ;;
+    --fallback) DO_FALLBACK=1; shift ;;
+    --missing-file)
+      MISSING_FILE="${2:-}"
+      shift 2 || usage
+      ;;
     -h|--help) usage ;;
     *) usage ;;
   esac
@@ -40,6 +50,10 @@ fi
 
 if [[ ! -f "$YAML" ]]; then
   echo "Missing YAML: $YAML" >&2
+  exit 1
+fi
+if [[ "$DO_FALLBACK" -eq 1 && ! -f "$SOURCES_YAML" ]]; then
+  echo "Missing sources YAML: $SOURCES_YAML" >&2
   exit 1
 fi
 
@@ -69,6 +83,20 @@ detect_pm() {
 }
 
 PM="$(detect_pm)"
+
+readarray -t TOOLS < <(PROFILE="$PROFILE" YAML="$YAML" python3 - <<'PY'
+import os, sys, yaml
+profile = os.environ["PROFILE"]
+path = os.environ["YAML"]
+with open(path, "r", encoding="utf-8") as f:
+    data = yaml.safe_load(f)
+if "profiles" not in data or profile not in data["profiles"]:
+    print(f"unknown profile: {profile}", file=sys.stderr)
+    sys.exit(1)
+for name in data["profiles"][profile]:
+    print(name)
+PY
+)
 
 readarray -t PKGS < <(PROFILE="$PROFILE" PM="$PM" YAML="$YAML" python3 - <<'PY'
 import os, sys, yaml
@@ -180,5 +208,94 @@ case "$PM" in
   apk) run_apk ;;
   *) echo "internal error: pm=$PM" >&2; exit 1 ;;
 esac
+
+fallback_candidates() {
+  local set=()
+  local t
+  if [[ -n "$MISSING_FILE" && -f "$MISSING_FILE" ]]; then
+    while IFS= read -r t; do
+      [[ -n "$t" ]] && set+=("$t")
+    done < "$MISSING_FILE"
+  else
+    set=("${TOOLS[@]}")
+  fi
+  printf '%s\n' "${set[@]}"
+}
+
+resolve_fallback_method() {
+  local tool="$1"
+  TOOL="$tool" SOURCES="$SOURCES_YAML" python3 - <<'PY'
+import os, yaml
+tool = os.environ["TOOL"]
+path = os.environ["SOURCES"]
+with open(path, "r", encoding="utf-8") as f:
+    data = yaml.safe_load(f) or {}
+meta = (data.get("tools") or {}).get(tool) or {}
+binary = meta.get("binary", tool)
+methods = meta.get("preferred_install_methods") or []
+method = ""
+target = ""
+for m in methods:
+    if isinstance(m, str) and ":" in m:
+        left, right = m.split(":", 1)
+        if left in ("go", "cargo"):
+            method = left
+            target = right
+            break
+repo = meta.get("upstream_repo", "")
+print(f"{binary}|{method}|{target}|{repo}")
+PY
+}
+
+run_fallback_install() {
+  local item binary method target repo
+  local missing_count=0
+  while IFS= read -r item; do
+    [[ -n "$item" ]] || continue
+    IFS="|" read -r binary method target repo < <(resolve_fallback_method "$item")
+    if command -v "$binary" >/dev/null 2>&1; then
+      continue
+    fi
+    if [[ -z "$method" || -z "$target" ]]; then
+      echo "fallback: no upstream method for tool=$item (repo=${repo})" >&2
+      missing_count=$((missing_count + 1))
+      continue
+    fi
+    if [[ "$DO_PLAN" -eq 1 ]]; then
+      if [[ "$method" == "go" ]]; then
+        echo "go install ${target}    # ${repo}"
+      else
+        echo "cargo install ${target}    # ${repo}"
+      fi
+      continue
+    fi
+    if [[ "$method" == "go" ]]; then
+      if ! command -v go >/dev/null 2>&1; then
+        echo "fallback: go not found for ${item}" >&2
+        missing_count=$((missing_count + 1))
+        continue
+      fi
+      go install "${target}"
+    else
+      if ! command -v cargo >/dev/null 2>&1; then
+        echo "fallback: cargo not found for ${item}" >&2
+        missing_count=$((missing_count + 1))
+        continue
+      fi
+      cargo install "${target}"
+    fi
+    if command -v "$binary" >/dev/null 2>&1; then
+      echo "fallback: installed ${item} via ${method} (${repo})"
+    else
+      echo "fallback: install command ran but binary still missing: ${binary}" >&2
+      missing_count=$((missing_count + 1))
+    fi
+  done < <(fallback_candidates)
+  return $missing_count
+}
+
+if [[ "$DO_FALLBACK" -eq 1 ]]; then
+  run_fallback_install || true
+fi
 
 echo "install-engage-host-tools: done (pm=$PM profile=$PROFILE)"

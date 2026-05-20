@@ -14,6 +14,7 @@ Engage runs catalog tools as **host subprocesses** (see [engage-mcp-topology.md]
 Authoritative mapping of profile → tool → distro packages:
 
 - [`../scripts/ops/engage-tools-packages.yaml`](../scripts/ops/engage-tools-packages.yaml)
+- [`../scripts/ops/engage-tools-sources.yaml`](../scripts/ops/engage-tools-sources.yaml) (Kali/pkg tracker/upstream provenance + fallback methods)
 
 Profiles: `minimal`, `recommended`, `full` (see file). Some tools have **empty** package lists on certain distros (for example `masscan` on Alpine); install those manually or skip them in that environment.
 
@@ -37,6 +38,15 @@ make engage-install-host-tools
 ENGAGE_INSTALL_PROFILE=minimal ./scripts/ops/install-engage-host-tools.sh --yes
 ```
 
+If your distro repositories miss some tools, run fallback mode (uses upstream `go install` / `cargo install` where configured):
+
+```bash
+make engage-install-fallback
+
+# Or explicitly:
+./scripts/ops/install-engage-host-tools.sh --yes --fallback --profile recommended
+```
+
 Override the YAML path with `ENGAGE_TOOLS_PACKAGES_YAML` if you maintain a forked map.
 
 ## Preflight
@@ -45,6 +55,7 @@ Override the YAML path with `ENGAGE_TOOLS_PACKAGES_YAML` if you maintain a forke
 ./scripts/engage/preflight-client-tools.sh
 ./scripts/engage/preflight-client-tools.sh --profile minimal
 ./scripts/engage/preflight-client-tools.sh --profile full --json
+./scripts/engage/preflight-client-tools.sh --profile recommended --emit-missing
 ```
 
 Environment: `ENGAGE_PREFLIGHT_PROFILE`, `ENGAGE_TOOLS_PACKAGES_YAML`.
