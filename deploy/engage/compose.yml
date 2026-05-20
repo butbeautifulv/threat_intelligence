@@ -9,10 +9,10 @@ services:
     environment:
       ENGAGE_API_LISTEN: ":8890"
       ENGAGE_ENV: ${ENGAGE_ENV:-local}
+      ENGAGE_EXECUTION_PROFILE: ${ENGAGE_EXECUTION_PROFILE:-client-native}
       ENGAGE_CATALOG_PATH: /app/catalog/tools.yaml
       ENGAGE_RUNNER_WORKDIR: /tmp/engage
       ENGAGE_RUNNER_MODE: ${ENGAGE_RUNNER_MODE:-local}
-      ENGAGE_RUNNER_CONTAINER: ${ENGAGE_RUNNER_CONTAINER:-engage-runner}
       ENGAGE_JOBS_MODE: ${ENGAGE_JOBS_MODE:-file}
       ENGAGE_JOBS_DIR: ${ENGAGE_JOBS_DIR:-/var/veil/engage/jobs}
       ENGAGE_FILES_DIR: ${ENGAGE_FILES_DIR:-/tmp/engage/files}
@@ -35,6 +35,7 @@ services:
       - "${ENGAGE_MCP_PORT:-8892}:8892"
     environment:
       ENGAGE_ENV: ${ENGAGE_ENV:-local}
+      ENGAGE_EXECUTION_PROFILE: ${ENGAGE_EXECUTION_PROFILE:-client-native}
       ENGAGE_CATALOG_PATH: /app/catalog/tools.yaml
       ENGAGE_RUNNER_WORKDIR: /tmp/engage
       ENGAGE_MCP_HTTP_ENABLED: ${ENGAGE_MCP_HTTP_ENABLED:-1}
@@ -54,6 +55,7 @@ services:
       dockerfile: deploy/engage/docker/worker.Dockerfile
     environment:
       ENGAGE_ENV: ${ENGAGE_ENV:-local}
+      ENGAGE_EXECUTION_PROFILE: ${ENGAGE_EXECUTION_PROFILE:-client-native}
       ENGAGE_CATALOG_PATH: /app/catalog/tools.yaml
       ENGAGE_RUNNER_WORKDIR: /tmp/engage
       ENGAGE_JOBS_MODE: file

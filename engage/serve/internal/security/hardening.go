@@ -83,13 +83,6 @@ func auditProcessEnv(getenv func(string) string) []Finding {
 			Remediation: "Unset ENGAGE_ALLOW_RAW_COMMAND or use ENGAGE_DENY_RAW_COMMAND=1",
 		})
 	}
-	if strings.EqualFold(strings.TrimSpace(getenv("ENGAGE_RUNNER_MODE")), "local") && prod {
-		out = append(out, Finding{
-			ID: "local-runner-in-prod", Severity: SeverityHigh,
-			Message:     "ENGAGE_RUNNER_MODE=local in prod (tools run on API host)",
-			Remediation: "Use ENGAGE_RUNNER_MODE=docker with ENGAGE_RUNNER_CONTAINER",
-		})
-	}
 	pass := strings.TrimSpace(getenv("NEO4J_PASS"))
 	if pass != "" && isWeakCredential(pass) {
 		out = append(out, Finding{
@@ -133,14 +126,14 @@ func selfTestCommandGuard() []Finding {
 	if !ContainsShellMetacharacters("id; curl evil") {
 		return []Finding{{
 			ID: "selftest-metachar-detector", Severity: SeverityHigh,
-			Message: "shell metachar detector failed to flag injection sample",
+			Message:     "shell metachar detector failed to flag injection sample",
 			Remediation: "fix ContainsShellMetacharacters",
 		}}
 	}
 	if ContainsShellMetacharacters("nmap -sV 127.0.0.1") {
 		return []Finding{{
 			ID: "selftest-metachar-fp", Severity: SeverityMedium,
-			Message: "shell metachar detector false-positive on benign scan target",
+			Message:     "shell metachar detector false-positive on benign scan target",
 			Remediation: "narrow metachar set",
 		}}
 	}

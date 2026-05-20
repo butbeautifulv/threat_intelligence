@@ -25,6 +25,7 @@
 | `ENGAGE_API_LISTEN` | `:8890` | API bind |
 | `ENGAGE_CATALOG_PATH` | `catalog/tools.yaml` | Base catalog path (see merge below) |
 | `ENGAGE_RUNNER_WORKDIR` | `/tmp/engage` | Subprocess cwd |
+| `ENGAGE_EXECUTION_PROFILE` | `client-native` | `client-native` (default in base [compose.yml](../deploy/engage/compose.yml)) validates that `ENGAGE_RUNNER_MODE` is unset/`local` and `ENGAGE_RUNNER_CONTAINER` is empty. `docker-exec` opts into docker runner (set only in [compose.runner.yml](../deploy/engage/compose.runner.yml) / CI runner overlays). |
 
 ### Catalog merge (live tools)
 
@@ -92,7 +93,7 @@ Secure overlay: `deploy/engage/compose.secure.yml` + `deploy/profiles/secure-eng
 
 ### Runner profile (docker exec, lab only)
 
-Isolated toolbox runs in `engage-runner`; API uses `docker exec` when `ENGAGE_RUNNER_MODE=docker`. The API image must include the Docker CLI and mount the host socket — **root-equivalent on the host**; use only in lab/VPN, not in the distroless secure profile.
+Overlay sets `ENGAGE_EXECUTION_PROFILE=docker-exec` before `ENGAGE_RUNNER_MODE=docker`. Isolated toolbox runs in `engage-runner`; API uses `docker exec` when `ENGAGE_RUNNER_MODE=docker`. The API image must include the Docker CLI and mount the host socket — **root-equivalent on the host**; use only in lab/VPN, not in the distroless secure profile.
 
 ```bash
 docker compose -f deploy/engage/compose.yml \

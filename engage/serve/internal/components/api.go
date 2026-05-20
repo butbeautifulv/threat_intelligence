@@ -71,6 +71,9 @@ func InitAPI(cfg *config.Config, logger interface{ Info(string, ...any) }) (*API
 	if err := config.ValidateSecurity(cfg.Security, cfg.Auth.Enabled); err != nil {
 		return nil, err
 	}
+	if err := cfg.ValidateExecutionProfile(); err != nil {
+		return nil, err
+	}
 	if findings := security.RunSelfTest(cfg.Security, cfg.Auth.Enabled); len(findings) > 0 {
 		logger.Info(security.FormatReport(findings))
 		if os.Getenv("ENGAGE_HARDENING_FAIL_ON") == "high" {
