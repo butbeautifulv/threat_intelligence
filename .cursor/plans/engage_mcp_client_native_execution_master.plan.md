@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: wave-5-manifest-critic
     content: "Wave 5 (P21–P22): manifest.yaml phases + critic sign-off + engage-audit-report"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -168,6 +168,6 @@ export ENGAGE_EXECUTION_PROFILE=client-native
 | P7–P11 | `engage/client-native-wave2-p07-p11` | **merged main** | `1dabb9d` — sandbox skip + `ENGAGE_PATH_EXTRA` + scripts; merge `3da75af` |
 | P12–P16 | `main` | **merged main** | compose no longer defines runner services by default; `compose.runner.yml` owns runner services; stage helm engage disabled; `engage-compose` job gated by `ENGAGE_DOCKER_E2E` |
 | P17–P20 | `main` | **merged main** | Product docs updated for client-native default: `docs/mcp-agents.md`, `docs/engage-runtime.md`, `AGENTS.md`, `README.md` |
-| P21+ | — | pending | Wave 5 |
+| P21–P22 | `main` | **merged main** | `.cursor/agents/manifest.yaml` updated with engage-v3 phase bindings; `docs/engage-audit-report.md` signed off on client-native-only execution |
 
 После каждого merge: обновить таблицу + SHA; субагентам: `git pull origin main` перед следующей фазой.

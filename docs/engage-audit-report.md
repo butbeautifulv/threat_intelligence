@@ -76,6 +76,17 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 
 **Signed-off criterion:** Teams can operate **without** Flask **`:8888`** per runbook; tool execution MCP is **`veil-engage`** only. This sign-off is **architecture + catalog/route parity**, not claim that every catalog tool subprocess-runs in the default runner image. Execution completeness is tracked separately: `make test-engage-executable-matrix` (**P9f**) per [engage_tools_full_coverage.plan.md](../.cursor/plans/engage_tools_full_coverage.plan.md).
 
+## Client-native execution sign-off (Wave 5, P22)
+
+**Date:** 2026-05-20
+
+| Criterion | Status | Notes |
+|-----------|--------|-------|
+| Supported engage execution mode | **client-native only** | `ENGAGE_EXECUTION_PROFILE=client-native` is the default operational path (host PATH on MCP execution host). |
+| Docker runner mode | **legacy lab/CI overlay** | `docker-exec` remains in `deploy/engage/compose.runner.yml` for isolated toolbox tests only; removed from default compose happy-path. |
+| MCP operator contract | **Updated** | [mcp-agents.md](mcp-agents.md) documents host-local binary requirement and separates graph/read MCP from engage/exec MCP. |
+| Master plan closure | **Wave 5 complete** | [engage_mcp_client_native_execution_master.plan.md](../.cursor/plans/engage_mcp_client_native_execution_master.plan.md) tracks P21–P22 completion. |
+
 ## Related docs
 
 - [engage-legacy-parity.md](engage-legacy-parity.md) — living checklist + route matrix summary
