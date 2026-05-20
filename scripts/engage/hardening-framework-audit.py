@@ -101,7 +101,7 @@ def check_repo_deploy_hybrid_layout() -> tuple[bool, str]:
         ROOT / "deploy/terraform/README.md",
         ROOT / "deploy/ansible/playbooks/site.yml",
         ROOT / "deploy/helm/veil/Chart.yaml",
-        ROOT / "docs/deploy-platform-hybrid.md",
+        ROOT / "docs/deploy/deploy-platform-hybrid.md",
     ]
     missing = [str(p.relative_to(ROOT)) for p in needed if not p.exists()]
     if missing:

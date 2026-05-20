@@ -3,7 +3,7 @@ name: Cyber corpus vendor
 overview: "Зафиксировать в репозитории домен безопасности из upstream: mappings как Veil SOT в `pkg/playbook/corpus/mappings/`, skills — зеркало в `corpus/…/skills/`, без переписывания runtime в первой волне; далее — поэтапный перенос в `pkg/playbook` и граф. Параллельные малые PR по веткам из мастер-плана."
 todos:
   - id: v0-mappings-sot
-    content: "V0: pkg/playbook/corpus/mappings + ATTRIBUTION + docs/cyber-domain-model.md — branch feat/playbook-v0-mappings-sot"
+    content: "V0: pkg/playbook/corpus/mappings + ATTRIBUTION + docs/architecture/cyber-domain-model.md — branch feat/playbook-v0-mappings-sot"
     status: completed
   - id: v1-skills-mirror
     content: "V1: corpus/anthropic-cybersecurity-skills/skills + corpus-import.sh — branch feat/playbook-v1-corpus-skills"
@@ -106,7 +106,7 @@ flowchart TB
 - `pkg/playbook/corpus/ATTRIBUTION.md` — upstream, license, импорт
 - `pkg/playbook/corpus/VERSION` — upstream git SHA / release tag (ручной или из `corpus-import`)
 - `pkg/playbook/corpus/README.md` — как читать mappings; связь с Veil categories (`playbook`, `mitre`, `detection`)
-- `docs/cyber-domain-model.md` — **наш** обзор: subdomain ↔ CSF ↔ ATT&CK; ссылки только на committed paths (не `.external`)
+- `docs/architecture/cyber-domain-model.md` — **наш** обзор: subdomain ↔ CSF ↔ ATT&CK; ссылки только на committed paths (не `.external`)
 
 **DoD:**
 
@@ -153,7 +153,7 @@ Makefile: `make corpus-import`, `make check-corpus-import` (опциональн
 | [`scripts/knowledge/generate-cyber-skills-index.py`](scripts/knowledge/generate-cyber-skills-index.py) | `--corpus-skills` default `corpus/anthropic-cybersecurity-skills/skills`; `--mappings` default `pkg/playbook/corpus/mappings` (для будущего cross-check) |
 | [`pkg/playbook/index/load.go`](pkg/playbook/index/load.go) | `DefaultSkillsRoot`, чтение body: `corpus/anthropic-cybersecurity-skills/skills/<id>/SKILL.md` |
 | Index JSON | `corpus_path` + deprecated alias `external_path` на 1 релиз |
-| [`docs/external-cybersecurity-skills.md`](docs/external-cybersecurity-skills.md) | operational paths; `.external` = dev import only |
+| [`docs/playbooks/external-cybersecurity-skills.md`](docs/playbooks/external-cybersecurity-skills.md) | operational paths; `.external` = dev import only |
 | [`deploy/knowledge/compose.yml`](deploy/knowledge/compose.yml) | `VEIL_REPO_ROOT=/app` или mount `corpus/` + `pkg/playbook/corpus` в образ API |
 
 `make skills-index && make check-skills-index` — green.
@@ -191,7 +191,7 @@ Makefile: `make corpus-import`, `make check-corpus-import` (опциональн
 
 Не дублировать [`pkg/decision`](pkg/decision/) — framework = **онтология**, decision = **catalog tool**.
 
-Docs: [`docs/mcp-agents.md`](docs/mcp-agents.md), [`docs/cyber-domain-model.md`](docs/cyber-domain-model.md).
+Docs: [`docs/agents/mcp-agents.md`](docs/agents/mcp-agents.md), [`docs/architecture/cyber-domain-model.md`](docs/architecture/cyber-domain-model.md).
 
 ---
 
@@ -207,7 +207,7 @@ Docs: [`docs/mcp-agents.md`](docs/mcp-agents.md), [`docs/cyber-domain-model.md`]
 
 Не одним PR:
 
-1. **Документ** [`docs/cyber-domain-model.md`](docs/cyber-domain-model.md) — Veil naming для subdomain / tactic / engage category (таблица из плана anthropic § «Сопоставление»).
+1. **Документ** [`docs/architecture/cyber-domain-model.md`](docs/architecture/cyber-domain-model.md) — Veil naming для subdomain / tactic / engage category (таблица из плана anthropic § «Сопоставление»).
 2. **Тонкие Veil SKILL.md** в [`.cursor/skills/cyber-playbooks/`](.cursor/skills/cyber-playbooks/) — ссылка на MCP `playbook_get`, не копия 754 файлов.
 3. **Выборочный fork** hot skills (DFIR, IR) → `pkg/playbook/skills/<id>/SKILL.md` с пометкой `veil_derived: true` в frontmatter.
 4. **Ingest NATS** — только если появится live upstream; иначе оставить batch import.

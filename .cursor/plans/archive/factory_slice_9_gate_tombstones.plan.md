@@ -9,7 +9,7 @@ todos:
     content: Удалить scrapers/ingest-worker и scrapers/*/cmd (7 stubs)
     status: completed
   - id: docs-paths
-    content: docs/coding-style.md, README mermaid и layout table
+    content: docs/agents/coding-style.md, README mermaid и layout table
     status: completed
 isProject: false
 ---
@@ -40,7 +40,7 @@ isProject: false
 3. Cypher counts (рост vs пустой граф)
 4. API `/health` (если api в profile)
 
-**E2E env:** см. [docs/threatintel-runtime.md](../../docs/threatintel-runtime.md) — profile `scrape`, `SCRAPE_SOURCES` все 7.
+**E2E env:** см. [docs/architecture/threatintel-runtime.md](../../docs/architecture/threatintel-runtime.md) — profile `scrape`, `SCRAPE_SOURCES` все 7.
 
 Исправлять blockers **до** удаления cmd (чтобы не ломать отладку локального `go run` без замены в README).
 
@@ -61,7 +61,7 @@ isProject: false
 
 | Файл | Правка |
 |------|--------|
-| [docs/coding-style.md](../../docs/coding-style.md) | `ingest/pipeline/pipeline_worker`, `ingest/knowledge/ingest_worker`; lifecycle example → `ingest/scrape/scrape_worker` |
+| [docs/agents/coding-style.md](../../docs/agents/coding-style.md) | `ingest/pipeline/pipeline_worker`, `ingest/knowledge/ingest_worker`; lifecycle example → `ingest/scrape/scrape_worker` |
 | [README.md](../../README.md) | Mermaid: один `scrape_worker`, `pipeline_worker`, `ingest_worker`; убрать ingest-worker из layout |
 | [scrapers/README.md](../../scrapers/README.md) | ссылка на scrape_worker вместо per-scraper cmd |
 
@@ -78,5 +78,5 @@ isProject: false
 
 - [ ] `scripts/smoke_scrape_e2e.sh` зелёный (или задокументирован blocker в PR)
 - [ ] Нет `scrapers/ingest-worker/`, нет `scrapers/*/cmd/`
-- [ ] `docs/coding-style.md` и README отражают `*_worker` пути
+- [ ] `docs/agents/coding-style.md` и README отражают `*_worker` пути
 - [ ] [veil_refactor.plan.md](veil_refactor.plan.md): срез 9 в таблице прогресса

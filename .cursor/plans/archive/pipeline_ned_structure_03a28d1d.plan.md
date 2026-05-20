@@ -3,7 +3,7 @@ name: pipeline NED structure
 overview: "Привести слой pipeline/ к той же архитектуре, что knowledge/: два Go-модуля (connector + ned), явное разделение Normalize / Enrich / Dedup в коде и документации. Каталог pipeline/ не переименовываем; compose-сервис pipeline_worker сохраняем. Скрипты в scripts/ в этом рефакторинге не трогаем — только документируем границы NED vs graph housekeeping."
 todos:
   - id: doc-pipeline-ned-semantics
-    content: "docs/coding-style.md: connector + ned pack, NED phases, scripts boundary"
+    content: "docs/agents/coding-style.md: connector + ned pack, NED phases, scripts boundary"
     status: completed
   - id: doc-pipeline-readme
     content: "pipeline/README.md: дерево connector/, ned/"
@@ -233,9 +233,9 @@ flowchart TB
 
 | ID | Действие |
 |----|----------|
-| `doc-pipeline-ned-semantics` | [`docs/coding-style.md`](docs/coding-style.md): секция Pipeline = connector + **ned pack**; таблица Normalize / Enrich / Dedup; диаграмма; граница со scripts |
+| `doc-pipeline-ned-semantics` | [`docs/agents/coding-style.md`](docs/agents/coding-style.md): секция Pipeline = connector + **ned pack**; таблица Normalize / Enrich / Dedup; диаграмма; граница со scripts |
 | `doc-pipeline-readme` | [`pipeline/README.md`](pipeline/README.md): дерево `connector/`, `ned/` |
-| `doc-runtime-pipeline` | [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md): module path `pipeline/ned`, сервис compose `pipeline_worker` без переименования |
+| `doc-runtime-pipeline` | [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md): module path `pipeline/ned`, сервис compose `pipeline_worker` без переименования |
 | `doc-scripts-taxonomy` | [`scripts/README.md`](scripts/README.md): колонка «слой» (ops / graph QA / graph housekeeping) — без переноса кода |
 
 ---

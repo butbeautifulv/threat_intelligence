@@ -79,7 +79,7 @@ flowchart TB
 | Deploy | [deploy/engage/](deploy/engage/) | api/mcp distroless, runner toolbox, nginx `/engage-mcp/` |
 | Каталог | [tools.yaml](engage/serve/catalog/tools.yaml) | **150** имён MCP; нейтральные descriptions |
 | Live tools | [tools.live.yaml](engage/serve/catalog/tools.live.yaml) | **5** `enabled: true` |
-| Доки | [engage-legacy-parity.md](docs/engage-legacy-parity.md) | Матрица маршрутов |
+| Доки | [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | Матрица маршрутов |
 
 ### Phase 2+ (follow-up) — закрыто
 

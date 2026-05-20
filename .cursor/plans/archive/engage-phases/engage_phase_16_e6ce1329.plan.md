@@ -21,7 +21,7 @@ isProject: false
 Срез из [engage_hexstrike_master](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md) (Phase 16). Переносит **R77–R80** из [engage_phase_15](.cursor/plans/engage/engage_phase_15_1fbc74b3.plan.md); **не** дублирует R76 (pack publish) и **не** трогает Phase 15 v2 (DecisionEngine — уже done).
 
 **Предпосылки (уже в main):**
-- Write path: `engage.events.*` → ingest → `EngageToolRun` / `EngageFinding` / `EngageTarget` ([ingest-contract.md](docs/ingest-contract.md))
+- Write path: `engage.events.*` → ingest → `EngageToolRun` / `EngageFinding` / `EngageTarget` ([ingest-contract.md](docs/contracts/ingest-contract.md))
 - Read path: veil-api category `engage` ([categories.go](knowledge/connector/query/categories.go))
 - Ingest CVE link: `(EngageFinding)-[:MAY_RELATE_TO]->(Vulnerability)` ([neo4j.go](knowledge/ingest/internal/sources/engage/storage/neo4j.go) L80–84)
 - Veil stack smoke: [smoke-veil-engage-stack.sh](scripts/test/smoke-veil-engage-stack.sh) (Phase 15 v2 R75)
@@ -96,7 +96,7 @@ sequenceDiagram
 | Tests | `knowledge/connector/query/service_test.go` или `knowledge/serve` integration: node by name после ingest fixture |
 | Smoke | Новый [`scripts/test/smoke-graph-engage-category.sh`](scripts/test/smoke-graph-engage-category.sh): categories list contains `engage`; search `q=example.com` 200; optional GetNode by hostname |
 | Makefile | `test-graph-engage-category` → smoke script |
-| Docs | [docs/mcp-agents.md](docs/mcp-agents.md): пример `ti_search_in_category` + `GET /v1/nodes/example.com` для EngageTarget; [engage-legacy-parity.md](docs/engage-legacy-parity.md) строка target-timeline |
+| Docs | [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md): пример `ti_search_in_category` + `GET /v1/nodes/example.com` для EngageTarget; [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) строка target-timeline |
 
 **veilgraph client (минимум для R89):** [`client.go`](engage/serve/internal/client/veilgraph/client.go) — `GetNode(ctx, id)`, `Neighbors(ctx, id, depth)` → `/v1/nodes/{id}`, `/v1/nodes/{id}/neighbors`.
 
@@ -154,7 +154,7 @@ flowchart LR
 
 | Rule | Применение |
 |------|------------|
-| [coding-style.md](docs/coding-style.md) | engage: usecase в `intelligence/`; graph: Cypher только в `knowledge/connector/query` |
+| [coding-style.md](docs/agents/coding-style.md) | engage: usecase в `intelligence/`; graph: Cypher только в `knowledge/connector/query` |
 | No Neo4j in engage | Только `veilgraph.Client` HTTP |
 | Auth | Timeline routes под тем же JWT/RBAC что `correlate-threat` |
 | Limits | `limit` default 50, cap 200; veil search limit согласовать с connector |
@@ -168,8 +168,8 @@ flowchart LR
 - `GET /v1/nodes/example.com` резолвит `EngageTarget` (после ingest)
 - `GET /v1/categories/engage/context?q=example.com` возвращает findings + optional `Vulnerability` nodes
 - `make test-engage`, `make test-graph-serve` green; `make test-graph-engage-category` (new) green
-- `make test-engage-veil-stack` документирован в [engage-runtime.md](docs/engage-runtime.md) как e2e для Phase 16
-- [engage-legacy-parity.md](docs/engage-legacy-parity.md) + [mcp-agents.md](docs/mcp-agents.md) обновлены
+- `make test-engage-veil-stack` документирован в [engage-runtime.md](docs/engage/engage-runtime.md) как e2e для Phase 16
+- [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) + [mcp-agents.md](docs/agents/mcp-agents.md) обновлены
 
 ---
 

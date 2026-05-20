@@ -84,11 +84,11 @@ CSV: [engage-mcp-runner-triangle.csv](engage-mcp-runner-triangle.csv) (regenerat
 |-----------|--------|-------|
 | Supported engage execution mode | **client-native only** | `ENGAGE_EXECUTION_PROFILE=client-native` is the default operational path (host PATH on MCP execution host). |
 | Docker runner mode | **legacy lab/CI overlay** | `docker-exec` remains in `deploy/engage/compose.runner.yml` for isolated toolbox tests only; removed from default compose happy-path. |
-| MCP operator contract | **Updated** | [mcp-agents.md](mcp-agents.md) documents host-local binary requirement and separates graph/read MCP from engage/exec MCP. |
+| MCP operator contract | **Updated** | [mcp-agents.md](../agents/mcp-agents.md) documents host-local binary requirement and separates graph/read MCP from engage/exec MCP. |
 | Master plan closure | **Wave 5 complete** | [engage_mcp_client_native_execution_master.plan.md](../.cursor/plans/engage_mcp_client_native_execution_master.plan.md) tracks P21–P22 completion. |
 
 ## Related docs
 
 - [engage-legacy-parity.md](engage-legacy-parity.md) — living checklist + route matrix summary
 - [engage-tools.md](engage-tools.md) — runner matrix
-- [external-hexstrike.md](external-hexstrike.md) — reference boundary
+- [external-hexstrike.md](../external/external-hexstrike.md) — reference boundary

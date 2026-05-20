@@ -1,9 +1,9 @@
 ---
 name: Playbook domain migration master
-overview: "Structured import of Anthropic skills into pkg/playbook — procedure index, ontology API, graph props, engage catalog bridge. Tracks subdomain matrix in docs/playbook-import-matrix.md."
+overview: "Structured import of Anthropic skills into pkg/playbook — procedure index, ontology API, graph props, engage catalog bridge. Tracks subdomain matrix in docs/playbooks/playbook-import-matrix.md."
 todos:
   - id: i0-matrix-schema
-    content: "I0: docs/playbook-import-matrix.md + ProcedureSpec + extract-procedures-index.py + CI"
+    content: "I0: docs/playbooks/playbook-import-matrix.md + ProcedureSpec + extract-procedures-index.py + CI"
     status: completed
   - id: o1-ontology
     content: "O1-O3: pkg/playbook/framework subdomain registry + ontology API"
@@ -36,7 +36,7 @@ Prerequisite: [cyber_corpus_vendor_master.plan.md](cyber_corpus_vendor_master.pl
 | K1–K3 procedure API | `feat/knowledge-playbook-procedure-api` | **done** |
 | G1–G3 graph props | `feat/knowledge-playbook-graph-props` | **done** (run `playbook_seed` locally for edges) |
 | E1–E3 engage bridge | `engage/phase-playbook-procedure-bridge` | **done** |
-| V5 native YAML | per [playbook-import-matrix.md](../../docs/playbook-import-matrix.md) | **pending** (long tail) |
+| V5 native YAML | per [playbook-import-matrix.md](../../docs/playbooks/playbook-import-matrix.md) | **pending** (long tail) |
 
 ## Verify
 

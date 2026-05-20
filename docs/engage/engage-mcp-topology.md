@@ -24,4 +24,4 @@ flowchart LR
 
 For the full phased rollout and invariants, see the master plan: [.cursor/plans/engage_mcp_client_native_execution_master.plan.md](../.cursor/plans/engage_mcp_client_native_execution_master.plan.md).
 
-Dependency checklist for the execution host (planned in P1): [docs/engage-client-dependencies.md](engage-client-dependencies.md) *(upcoming after P1 merge; path reserved for the client-native contract).*
+Dependency checklist for the execution host (planned in P1): [docs/engage/engage-client-dependencies.md](engage-client-dependencies.md) *(upcoming after P1 merge; path reserved for the client-native contract).*

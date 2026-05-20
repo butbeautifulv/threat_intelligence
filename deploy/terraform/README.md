@@ -53,4 +53,4 @@ See [environments/local/variables.tf](environments/local/variables.tf) and [terr
 ## Relation to platform smokes
 
 - P3 closed loop: `make test-platform-closed-loop` (engage only, no scrape)
-- P4b full loop: `make test-platform-full-loop` (scrape → graph → engage) — [docs/platform-full-loop-smoke.md](../../docs/platform-full-loop-smoke.md)
+- P4b full loop: `make test-platform-full-loop` (scrape → graph → engage) — [docs/architecture/platform-full-loop-smoke.md](../../docs/architecture/platform-full-loop-smoke.md)

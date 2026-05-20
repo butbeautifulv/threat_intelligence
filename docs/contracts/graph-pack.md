@@ -76,4 +76,4 @@ Manifest schema: [graph-pack-manifest.schema.json](graph-pack-manifest.schema.js
 
 - [scripts/README.md](../scripts/README.md) — script index
 - [deploy/README.md](../deploy/README.md) — scaling, smoke
-- [threatintel-runtime.md](threatintel-runtime.md) — compose services and env
+- [threatintel-runtime.md](../architecture/threatintel-runtime.md) — compose services and env

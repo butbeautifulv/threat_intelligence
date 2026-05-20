@@ -16,7 +16,7 @@ Apply [veil-karpathy-guidelines.mdc](veil-karpathy-guidelines.mdc) and [veil-age
 1. **Plan compliance** — diff and commits match the active **phase plan** scope; nothing out-of-scope unless justified in the PR.
 2. **Master plan** — phase status, branch name, and dependencies are consistent; block merge if a dependency phase is not on `main`.
 3. **Architecture** — [AGENTS.md](../../AGENTS.md): no cross-layer Go imports; engage → graph via HTTP only; no root `go.work`; `.external/` untouched.
-4. **Style & contracts** — [docs/coding-style.md](../../docs/coding-style.md), [docs/ingest-contract.md](../../docs/ingest-contract.md), engage parity docs when touching routes/catalog.
+4. **Style & contracts** — [docs/agents/coding-style.md](../../docs/agents/coding-style.md), [docs/contracts/ingest-contract.md](../../docs/contracts/ingest-contract.md), engage parity docs when touching routes/catalog.
 5. **Tests & CI** — touched layers tested; `make test-platform-p7` when `pkg/*/domain`, `pkg/ti/*`, or layer `domain/` / `usecase/` on scrape/pipeline/graph/engage changed (CI: `.github/workflows/platform.yml`); `make check-graph-version` if ingest paths changed; parity scripts (`make test-engage-parity`, route/catalog checks) when relevant.
 6. **Security & hygiene** — no secrets, no `data/` in commits; runner/sandbox defaults not weakened without explicit user approval.
 

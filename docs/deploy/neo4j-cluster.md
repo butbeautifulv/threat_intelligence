@@ -47,5 +47,5 @@ Without `NEO4J_ACCEPT_LICENSE_AGREEMENT=yes`, the script exits 0 with `SKIP`.
 ## Related
 
 - Graph read smoke (single node): `./scripts/test/smoke-graph-read.sh`
-- [docs/threatintel-runtime.md](threatintel-runtime.md) — default Neo4j service table
-- P12 unified access ADR (when merged): `docs/platform-unified-access.md`
+- [docs/architecture/threatintel-runtime.md](../architecture/threatintel-runtime.md) — default Neo4j service table
+- P12 unified access ADR (when merged): `docs/architecture/platform-unified-access.md`

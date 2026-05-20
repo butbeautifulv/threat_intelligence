@@ -24,7 +24,7 @@ isProject: false
 
 ## Контекст
 
-[engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md): **Phase 6 (R25–R29) complete.** HTTP parity закрыт ([engage-legacy-parity.md](docs/engage-legacy-parity.md)); `make test-engage` зелёный.
+[engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md): **Phase 6 (R25–R29) complete.** HTTP parity закрыт ([engage-legacy-parity.md](docs/engage/engage-legacy-parity.md)); `make test-engage` зелёный.
 
 ```mermaid
 flowchart LR
@@ -146,7 +146,7 @@ flowchart TB
 |------|----------|
 | [engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) | Секция **Phase 7** R30–R34, todos `engage-r30`…`engage-r34` |
 | [engage_phase_7_r30_slice.plan.md](.cursor/plans/engage_phase_7_r30_slice.plan.md) | Детальный слайс R30 |
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | assessment-report, audit API |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | assessment-report, audit API |
 | **Не редактировать** | `engage_phase_6_*.plan.md` |
 
 ---

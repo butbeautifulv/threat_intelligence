@@ -48,7 +48,7 @@ todos:
     content: "D3: compose.full.yml решение + compose.scale.yml health/depends"
     status: completed
   - id: e1-docs-graph-pack
-    content: "E1: docs/graph-pack.md workflow; coding-style ссылка на scripts layout"
+    content: "E1: docs/contracts/graph-pack.md workflow; coding-style ссылка на scripts layout"
     status: completed
 isProject: false
 ---
@@ -63,7 +63,7 @@ isProject: false
 | Graph pack | ZIP `threat-intel-graph-${VERSION}.zip`, schema `threat-intelligence.graph-pack/1`, тег `v0.3.2-graph-pack` |
 | Профиль fast-rich | Зашит в [scripts/graph-pack-run-v032.sh](scripts/graph-pack-run-v032.sh) (имя привязано к v0.3.2) |
 | Тесты | Go `*_test.go` рядом с кодом (норма для Go); shell smoke/QA в `scripts/` вперемешку с ops |
-| Deploy | Дубли: [deploy/README.md](deploy/README.md) + [docs/threatintel-runtime.md](docs/threatintel-runtime.md); [deploy/knowledge/compose.full.yml](deploy/knowledge/compose.full.yml) почти не используется |
+| Deploy | Дубли: [deploy/README.md](deploy/README.md) + [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md); [deploy/knowledge/compose.full.yml](deploy/knowledge/compose.full.yml) почти не используется |
 
 Выбранная схема релизов: **ZIP `veil-graph-v0.4.0.zip`**, **GitHub tag `veil-graph-v0.4.0`**.
 
@@ -130,7 +130,7 @@ scripts/
 
 ### A4. Документация (только ссылки/имена)
 
-- [README.md](README.md), [deploy/README.md](deploy/README.md), [docs/threatintel-runtime.md](docs/threatintel-runtime.md) — veil-graph-v*, тег `veil-graph-v0.4.0`
+- [README.md](README.md), [deploy/README.md](deploy/README.md), [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md) — veil-graph-v*, тег `veil-graph-v0.4.0`
 
 ---
 
@@ -208,7 +208,7 @@ test-smoke:
 ### D3. Scaling — один источник правды
 
 - Вся логика scale/partition только в [deploy/README.md](deploy/README.md#worker-scaling-parallel-nats-consumers)
-- [docs/threatintel-runtime.md](docs/threatintel-runtime.md): ссылка на deploy/README, убрать дублирующие bash-блоки (оставить env-таблицы сервисов)
+- [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md): ссылка на deploy/README, убрать дублирующие bash-блоки (оставить env-таблицы сервисов)
 - Проверить [deploy/compose.scale.yml](deploy/compose.scale.yml): `depends_on` + health для `scrape_worker_*`
 
 ### D4. Docker / bootstrap
@@ -220,9 +220,9 @@ test-smoke:
 
 ## Фаза E — Документация (после scripts)
 
-- [docs/coding-style.md](docs/coding-style.md): граница scripts vs pipeline NED (уже есть — дополнить структурой каталогов)
-- Новый короткий [docs/graph-pack.md](docs/graph-pack.md) — workflow export → build → release → import (вынести из threatintel-runtime)
-- [docs/threatintel-runtime.md](docs/threatintel-runtime.md) — только runtime compose/ports/env
+- [docs/agents/coding-style.md](docs/agents/coding-style.md): граница scripts vs pipeline NED (уже есть — дополнить структурой каталогов)
+- Новый короткий [docs/contracts/graph-pack.md](docs/contracts/graph-pack.md) — workflow export → build → release → import (вынести из threatintel-runtime)
+- [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md) — только runtime compose/ports/env
 
 ---
 
@@ -239,7 +239,7 @@ test-smoke:
 | 14 | release/publish-graph-pack.sh + Makefile | 3 |
 | 15 | deploy profiles fast-rich + smoke | 4 |
 | 16 | deploy docs dedup | 3 |
-| 17 | docs/graph-pack.md extract | 2 |
+| 17 | docs/contracts/graph-pack.md extract | 2 |
 | 18 | gh release v0.4.0 (опционально отдельно) | assets |
 
 **Не в scope:** перенос Go `*_test.go`; CI GitHub Actions (если нет — отдельная задача); переименование старых GitHub releases v0.3.2 (редирект URL сохранится).

@@ -15,7 +15,7 @@ todos:
     content: "R16: table-driven BuildArgs golden tests (8+ cases) в executor_test.go"
     status: completed
   - id: r16-docs-greenfield
-    content: "R16: docs/engage-tools.md + обновить engage_layer_greenfield Phase 4 статус R14–R16 done"
+    content: "R16: docs/engage/engage-tools.md + обновить engage_layer_greenfield Phase 4 статус R14–R16 done"
     status: completed
 isProject: false
 ---
@@ -157,7 +157,7 @@ Table-driven кейсы (минимум 8):
 
 ## 6. Документация
 
-- [`docs/engage-tools.md`](docs/engage-tools.md) — секция «Args templates»: `ARGS_TEMPLATES`, `infer_args_template`, `make catalog-engage`.
+- [`docs/engage/engage-tools.md`](docs/engage/engage-tools.md) — секция «Args templates»: `ARGS_TEMPLATES`, `infer_args_template`, `make catalog-engage`.
 - Одна строка в [`engage/README.md`](engage/README.md) catalog table.
 
 **Не редактировать** [`.cursor/plans/engage_phase_4_slice_67ef98c5.plan.md`](.cursor/plans/engage_phase_4_slice_67ef98c5.plan.md) (по запросу пользователя). Обновить [`engage_layer_greenfield_9d048eec.plan.md`](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md): Phase 4 table, todos `engage-r16` … `engage-r19`.

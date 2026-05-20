@@ -3,7 +3,7 @@ name: Engage Phase 25 Execution 100
 overview: "Phase 25 (R125–R130): N/A matrix на 100% catalog, расширение runner, ≥100 live tools, strict matrix в compose CI, triangle artifact."
 todos:
   - id: p25-r125-na-matrix
-    content: "R125: generate-tools-na-matrix.py + docs/engage-tools-na-matrix.md (158/158)"
+    content: "R125: generate-tools-na-matrix.py + docs/engage/engage-tools-na-matrix.md (158/158)"
     status: completed
   - id: p25-r126-runner
     content: "R126: runner.Dockerfile — jaeles, x8, whatweb, nbtscan, binwalk, enum4linux-ng"
@@ -37,7 +37,7 @@ isProject: false
 
 ## R125 — N/A execution matrix
 
-**Файлы:** [scripts/engage/generate-tools-na-matrix.py](scripts/engage/generate-tools-na-matrix.py), [docs/engage-tools-na-matrix.md](docs/engage-tools-na-matrix.md)
+**Файлы:** [scripts/engage/generate-tools-na-matrix.py](scripts/engage/generate-tools-na-matrix.py), [docs/engage/engage-tools-na-matrix.md](docs/engage/engage-tools-na-matrix.md)
 
 | Status | Meaning |
 |--------|---------|
@@ -87,16 +87,16 @@ isProject: false
 **Файл:** [.github/workflows/engage.yml](.github/workflows/engage.yml)
 
 - Run `audit-mcp-runner-triangle.py` after catalog steps.
-- Upload `docs/engage-mcp-runner-triangle.csv` as artifact.
+- Upload `docs/engage/engage-mcp-runner-triangle.csv` as artifact.
 
 ---
 
 ## R130 — Documentation
 
-**Файл:** [docs/engage-tools.md](docs/engage-tools.md)
+**Файл:** [docs/engage/engage-tools.md](docs/engage/engage-tools.md)
 
 - Секция **Permanent N/A** (heavy/GUI).
-- Ссылка на [engage-tools-na-matrix.md](docs/engage-tools-na-matrix.md).
+- Ссылка на [engage-tools-na-matrix.md](docs/engage/engage-tools-na-matrix.md).
 
 ---
 

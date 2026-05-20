@@ -3,7 +3,7 @@ name: Veil standardization
 overview: "Довести репозиторий до трёх изолированных слоёв (scrape → pipeline → graph): в корне только docs и послойный deploy; без root go.work; контракты NATS — JSON Schema в docs + генерируемые Go-модули; обязательный internal/domain в каждом модуле; обновлённый coding-style с CLEAN/DRY/KISS/DDD."
 todos:
   - id: p0-coding-style
-    content: "P0: Обновить docs/coding-style.md (domain обязателен, CLEAN/DRY/KISS/DDD) и AGENTS.md"
+    content: "P0: Обновить docs/agents/coding-style.md (domain обязателен, CLEAN/DRY/KISS/DDD) и AGENTS.md"
     status: completed
   - id: p1-schemas-codegen
     content: "P1: docs/schemas/ + scripts/gen-contracts.sh + contract modules в слоях"
@@ -71,13 +71,13 @@ flowchart TB
 | **`pipeline/`** | worker, normalize handlers, pub | HTTP fetch feeds, Bolt, импорт `scrape/sources/*` |
 | **`knowledge/`** | ingest_worker, storage, api, mcp, query, domain writers | `scrapev1`, feeds, Vitess |
 
-**Интеграция только через NATS** + документированные схемы ([`docs/ingest-contract.md`](docs/ingest-contract.md) расширить до machine-readable SOT).
+**Интеграция только через NATS** + документированные схемы ([`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md) расширить до machine-readable SOT).
 
 ---
 
 ## 1. Обновить кодстайл и AGENTS (первый PR, без переносов)
 
-Файлы: [`docs/coding-style.md`](docs/coding-style.md), [`AGENTS.md`](AGENTS.md).
+Файлы: [`docs/agents/coding-style.md`](docs/agents/coding-style.md), [`AGENTS.md`](AGENTS.md).
 
 ### Принципы (новая секция)
 
@@ -120,7 +120,7 @@ storage/       → adapters (Neo4j — только graph; pub — в своём
 | `scrapev1-envelope.json` | scrape (publish) | pipeline (consume) |
 | `ingestv1-envelope.json` | pipeline (publish) | graph (consume) |
 
-- Обновить [`docs/ingest-contract.md`](docs/ingest-contract.md): ссылка на схемы, матрица `source`×`kind`, примеры payload.
+- Обновить [`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md): ссылка на схемы, матрица `source`×`kind`, примеры payload.
 - Генерация (минимальный v1): `scripts/gen-contracts.sh` → `scrape/contract/scrapev1`, `pipeline/contract/ingestv1`, `knowledge/contract/ingestv1` (graph — read-only копия или общий submodule `contract-ingestv1` **вне** runtime-слоёв, только как артефакт сборки).
 - В CI/CONTRIBUTING: `make contracts` перед `go test` в слое, если схема изменилась.
 - **Запрет:** ручное редактирование сгенерированных `*.gen.go` (или пометка `// Code generated`).
@@ -197,7 +197,7 @@ graph/
 
 Корневой [`docker-compose.yml`](docker-compose.yml) → thin redirect в `docs/` («для local: `docker compose -f deploy/knowledge/compose.yml ...`») или удалить после миграции docs.
 
-Обновить [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md), [`docs/deploy.md`](docs/deploy.md), [`README.md`](README.md).
+Обновить [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md), [`docs/deploy.md`](docs/deploy.md), [`README.md`](README.md).
 
 ---
 

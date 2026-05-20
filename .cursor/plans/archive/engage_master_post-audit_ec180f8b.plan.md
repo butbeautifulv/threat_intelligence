@@ -38,7 +38,7 @@ isProject: false
 | [engage_hexstrike_master_7666e9b4.plan.md](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md) | Phase 16–23 (R87–R120): CTF, BB, tools, CVE, browser, scale, hardening — **completed** |
 | [hexstrike_migration_audit_12c9842f.plan.md](.cursor/plans/hexstrike_migration_audit_12c9842f.plan.md) | Формальный аудит — **completed** |
 
-**Источник истины по факту:** [docs/engage-audit-report.md](docs/engage-audit-report.md), [docs/engage-route-parity.csv](docs/engage-route-parity.csv), [docs/engage-mcp-runner-triangle.csv](docs/engage-mcp-runner-triangle.csv).
+**Источник истины по факту:** [docs/engage/engage-audit-report.md](docs/engage/engage-audit-report.md), [docs/engage/engage-route-parity.csv](docs/engage/engage-route-parity.csv), [docs/engage/engage-mcp-runner-triangle.csv](docs/engage/engage-mcp-runner-triangle.csv).
 
 ```mermaid
 flowchart LR
@@ -107,7 +107,7 @@ flowchart LR
 | R121 | Стабилизировать events smoke: health wait, ingest assert, cypher count (уже частично в [smoke-engage-events-pipeline.sh](scripts/test/smoke-engage-events-pipeline.sh)) | smoke script, [compose.events.yml](deploy/engage/compose.events.yml) |
 | R122 | veil-stack-ci: увеличить/параметризовать wait (`SMOKE_VEIL_ENGAGE_WAIT_SEC`), логи при fail, optional `depends_on` health | [smoke-veil-engage-stack-ci.sh](scripts/test/smoke-veil-engage-stack-ci.sh), compose overlay |
 | R123 | Master DoD: events + veil-stack **required green** в [.github/workflows/engage.yml](.github/workflows/engage.yml) | CI only |
-| R124 | Обновить [engage-audit-report.md](docs/engage-audit-report.md) — повторный gate run | docs |
+| R124 | Обновить [engage-audit-report.md](docs/engage/engage-audit-report.md) — повторный gate run | docs |
 
 **DoD Phase 24:** `make test-engage-events-pipeline` и `make test-engage-veil-stack-ci` green на чистом Docker host; master DoD checklist — оба пункта `[x]`.
 
@@ -119,12 +119,12 @@ flowchart LR
 
 | ID | Deliverable | Файлы |
 |----|-------------|-------|
-| R125 | **N/A execution matrix:** для каждого из 158 catalog tools — `live` \| `runner_N/A` \| `bridge_api` с причиной | новый `docs/engage-tools-na-matrix.md` + генератор из catalog |
+| R125 | **N/A execution matrix:** для каждого из 158 catalog tools — `live` \| `runner_N/A` \| `bridge_api` с причиной | новый `docs/engage/engage-tools-na-matrix.md` + генератор из catalog |
 | R126 | Расширить runner: wpscan, enum4linux-ng, jaeles, x8, … (только если образ < разумного лимита) | [runner.Dockerfile](deploy/engage/docker/runner.Dockerfile), [generate-tools-live.py](scripts/engage/generate-tools-live.py) |
 | R127 | Цель **100+** enabled (реальные binary, не только synthetic clones) | `tools.live.yaml` |
 | R128 | CI: `ENGAGE_TOOL_MATRIX_STRICT=1`, min **30** passed в compose job (уже в [smoke-engage-compose.sh](scripts/test/smoke-engage-compose.sh)) — довести до стабильного pass | CI + matrix script |
 | R129 | Triangle CSV в CI artifact: `audit-mcp-runner-triangle.py` | [scripts/engage/audit-mcp-runner-triangle.py](scripts/engage/audit-mcp-runner-triangle.py) |
-| R130 | Документировать тяжёлые tools (ghidra, burp GUI, metasploit GUI, angr) как permanent N/A | [engage-tools.md](docs/engage-tools.md) |
+| R130 | Документировать тяжёлые tools (ghidra, burp GUI, metasploit GUI, angr) как permanent N/A | [engage-tools.md](docs/engage/engage-tools.md) |
 
 **DoD Phase 25:** ≥100 `enabled: true`; strict matrix ≥30 green в `engage-compose` CI; N/A doc покрывает 100% catalog имён.
 
@@ -137,7 +137,7 @@ flowchart LR
 | R131 | Golden fixtures: CTF (`create-challenge`, `auto-solve`, `crypto`, `forensics`) — JSON snapshots из legacy или hand-crafted | `engage/serve/internal/usecase/ctf/testdata/golden/` |
 | R132 | Golden fixtures: Bug Bounty 6 workflows — `phases[]`, `estimated_time`, `tools_count` | `engage/serve/internal/usecase/bugbounty/testdata/golden/` |
 | R133 | `make test-engage-ctf` / `make test-engage-bugbounty` — compare normalized JSON (stable fields only) | test packages |
-| R134 | Обновить [engage-legacy-parity.md](docs/engage-legacy-parity.md) — behavioral row | docs |
+| R134 | Обновить [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) — behavioral row | docs |
 
 **DoD Phase 26:** golden tests green; расхождения >5% полей — documented waiver в parity doc.
 
@@ -189,8 +189,8 @@ flowchart LR
 
 | ID | Deliverable | Файлы |
 |----|-------------|-------|
-| R148 | Runbook: dual-MCP → veil-engage only ([mcp-agents.md](docs/mcp-agents.md)) | docs |
-| R149 | Deprecation checklist: когда `.external/` можно не монтировать в dev | [external-hexstrike.md](docs/external-hexstrike.md) |
+| R148 | Runbook: dual-MCP → veil-engage only ([mcp-agents.md](docs/agents/mcp-agents.md)) | docs |
+| R149 | Deprecation checklist: когда `.external/` можно не монтировать в dev | [external-hexstrike.md](docs/external/external-hexstrike.md) |
 | R150 | Final migration sign-off: повторный audit gate + обновление v2 plan frontmatter | audit report |
 
 **DoD Phase 30:** команда может работать без Flask :8888; задокументирован migration path для агентов.
@@ -222,7 +222,7 @@ make test-engage-ctf / test-engage-bugbounty  # Phase 26+
 - [x] Phase 27: findings dedup в production path (merge `4f82630`)
 - [x] Phase 28: browser + resource-usage + benchmark artifact (merge `a854f94`)
 - [x] Phase 29: httpserver split + catalog pipeline (merge `01627b7`)
-- [x] Phase 30: decommission runbook + sign-off (merge `95b5c81`; [engage-audit-report.md](../../docs/engage-audit-report.md))
+- [x] Phase 30: decommission runbook + sign-off (merge `95b5c81`; [engage-audit-report.md](../../docs/engage/engage-audit-report.md))
 - [x] Architecture parity (аудит 2026-05-16) — **не регрессировать**
 - [x] HTTP route parity 156/156 accounted
 - [x] 158 catalog names + MCP bridge
@@ -249,4 +249,4 @@ make test-engage-ctf / test-engage-bugbounty  # Phase 26+
 
 Создать файл: `.cursor/plans/engage_hexstrike_master_v2_post_audit.plan.md` (этот документ после approve) — **не** редактировать [hexstrike_migration_audit_12c9842f.plan.md](.cursor/plans/hexstrike_migration_audit_12c9842f.plan.md) и старый master, только ссылки.
 
-Обновлять living docs: [engage-legacy-parity.md](docs/engage-legacy-parity.md), [engage-tools.md](docs/engage-tools.md), [engage-audit-report.md](docs/engage-audit-report.md) по завершении каждой фазы.
+Обновлять living docs: [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md), [engage-tools.md](docs/engage/engage-tools.md), [engage-audit-report.md](docs/engage/engage-audit-report.md) по завершении каждой фазы.

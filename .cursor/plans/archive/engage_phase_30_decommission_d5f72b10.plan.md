@@ -21,15 +21,15 @@ isProject: false
 
 ## R148 — MCP runbook
 
-[docs/mcp-agents.md](docs/mcp-agents.md): steps to disable Flask HexStrike MCP, use `veil-engage` only, env vars, Cursor config.
+[docs/agents/mcp-agents.md](docs/agents/mcp-agents.md): steps to disable Flask HexStrike MCP, use `veil-engage` only, env vars, Cursor config.
 
 ## R149 — External deprecation
 
-[docs/external-hexstrike.md](docs/external-hexstrike.md): when `.external/` optional; what still needs legacy (parity extract only).
+[docs/external/external-hexstrike.md](docs/external/external-hexstrike.md): when `.external/` optional; what still needs legacy (parity extract only).
 
 ## R150 — Sign-off
 
-- Update [docs/engage-audit-report.md](docs/engage-audit-report.md) migration sign-off section.
+- Update [docs/engage/engage-audit-report.md](docs/engage/engage-audit-report.md) migration sign-off section.
 - Master plan v2 frontmatter todos p24–p30 status.
 
 ## DoD

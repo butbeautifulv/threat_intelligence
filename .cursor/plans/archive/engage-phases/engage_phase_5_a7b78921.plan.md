@@ -172,7 +172,7 @@ flowchart TB
 - File API: `internal/usecase/files` + root `ENGAGE_FILES_DIR` (default `/var/veil/engage/files`), path traversal guard — create/list/delete/modify.
 - `POST /api/processes/pause|resume/{pid}` — stub или signal через runner session (если docker exec supports).
 - Cache: in-memory TTL cache для repeated tool runs (`use_cache` on command/tool).
-- Обновить [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md).
+- Обновить [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md).
 
 **Не в scope:** `payloads/generate` (можно R23b или defer — низкий приоритет для Veil).
 
@@ -197,7 +197,7 @@ flowchart TB
 |------|----------|
 | [engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) | Секция **Phase 5** (таблица R20–R24), todos `engage-r20`…`engage-r24` pending |
 | Новый `engage_phase_5_slice.plan.md` | Детальный слайс R20 (как phase_4_r19) |
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | Матрица route: implemented / stub / missing |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | Матрица route: implemented / stub / missing |
 | **Не редактировать** | `engage_phase_4_*.plan.md` |
 
 ---

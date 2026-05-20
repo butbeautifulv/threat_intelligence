@@ -57,6 +57,6 @@ Use after moving agents to veil-engage:
 
 Catalog parity (158 catalog tool names): [engage-legacy-parity.md](engage-legacy-parity.md). Regenerate: `make catalog-engage`.
 
-**Graph read** remains separate: `veil-mcp` → Neo4j ([mcp-agents.md](mcp-agents.md)). Agents should configure **two** MCP servers: `veil-mcp` (read) and `veil-engage` (exec) — **not** a third Python HexStrike MCP.
+**Graph read** remains separate: `veil-mcp` → Neo4j ([mcp-agents.md](../agents/mcp-agents.md)). Agents should configure **two** MCP servers: `veil-mcp` (read) and `veil-engage` (exec) — **not** a third Python HexStrike MCP.
 
 Do not run the Python reference stack alongside engage in production without network isolation. Use `.external/` only as a **specification** for tool names and parameters and for **extract-only** regeneration of catalog / parity evidence.

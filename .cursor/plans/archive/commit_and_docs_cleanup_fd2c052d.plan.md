@@ -9,7 +9,7 @@ todos:
     content: git mv completed plans (session + AGENTS done + engage/) into .cursor/plans/archive/; fix archive/README.md
     status: completed
   - id: consolidate-pentest-docs
-    content: Create docs/engage-lab-pentest.md; delete 4 duplicate reports; update AGENTS, engage/README, cross-links
+    content: Create docs/engage/engage-lab-pentest.md; delete 4 duplicate reports; update AGENTS, engage/README, cross-links
     status: completed
   - id: slim-engage-docs
     content: Dedupe engage-client-* and AGENTS KPI prose; lint markdown links
@@ -29,7 +29,7 @@ isProject: false
 | Тип | Пути |
 |-----|------|
 | Код / ops | [`scripts/ops/engage-core-tools.yaml`](scripts/ops/engage-core-tools.yaml) (новый), [`engage-tools-packages.yaml`](scripts/ops/engage-tools-packages.yaml), [`engage-tools-sources.yaml`](scripts/ops/engage-tools-sources.yaml), [`install-engage-host-tools.sh`](scripts/ops/install-engage-host-tools.sh), [`preflight-client-tools.sh`](scripts/engage/preflight-client-tools.sh) |
-| Доки | [`AGENTS.md`](AGENTS.md), [`docs/engage-install-linux.md`](docs/engage-install-linux.md), [`docs/engage-red-blue-bugs.md`](docs/engage-red-blue-bugs.md), 3 новых hexstrike/self-pentest отчёта |
+| Доки | [`AGENTS.md`](AGENTS.md), [`docs/engage/engage-install-linux.md`](docs/engage/engage-install-linux.md), [`docs/engage/engage-red-blue-bugs.md`](docs/engage/engage-red-blue-bugs.md), 3 новых hexstrike/self-pentest отчёта |
 | Артефакты | `eval/results/veil-pentest-*.{md,json}`, планы `self_pentest_*`, `engage_158_*` (untracked) |
 
 `git add` — с исключением `data/` ([`AGENTS.md`](AGENTS.md) § Commit): `git add -A -- . ':!data'`.
@@ -101,7 +101,7 @@ feat(engage): core47 host install, self-pentest and lab reports
 ### Обновить ссылки
 
 - [`AGENTS.md`](AGENTS.md) — completed tracks → `archive/...`
-- [`docs/engage-red-blue-lab.md`](docs/engage-red-blue-lab.md) — ссылка на userfriendly plan → archive path
+- [`docs/engage/engage-red-blue-lab.md`](docs/engage/engage-red-blue-lab.md) — ссылка на userfriendly plan → archive path
 - `grep -r '.cursor/plans/' docs/ engage/ README` — массовая замена путей
 
 ```mermaid
@@ -128,16 +128,16 @@ flowchart LR
 | [`docs/hexstrike-veil-engage-soft-compare.md`](docs/hexstrike-veil-engage-soft-compare.md) | health + read-only |
 | [`docs/hexstrike-aggressive-veil-pentest-report.md`](docs/hexstrike-aggressive-veil-pentest-report.md) | `smart-scan` + nuclei |
 
-Плюс полевой лог [`docs/engage-red-blue-bugs.md`](docs/engage-red-blue-bugs.md) — **оставить** (краткие строки, не дублировать полные findings).
+Плюс полевой лог [`docs/engage/engage-red-blue-bugs.md`](docs/engage/engage-red-blue-bugs.md) — **оставить** (краткие строки, не дублировать полные findings).
 
 ### Решение: один hub-документ
 
-Создать **[`docs/engage-lab-pentest.md`](docs/engage-lab-pentest.md)** (единый источник):
+Создать **[`docs/engage/engage-lab-pentest.md`](docs/engage/engage-lab-pentest.md)** (единый источник):
 
-1. **Scope** — ссылка на [`engage-red-blue-lab.md`](docs/engage-red-blue-lab.md), localhost only.
+1. **Scope** — ссылка на [`engage-red-blue-lab.md`](docs/engage/engage-red-blue-lab.md), localhost only.
 2. **Veil harness** — методология + findings (из self-pentest report), ссылки на `eval/results/veil-pentest-prod-*`.
-3. **HexStrike paths** — таблица трёх глубин (soft / intelligence / aggressive) + итоги nuclei; ссылка на [`external-hexstrike.md`](docs/external-hexstrike.md) для запуска `:8888`.
-4. **Core47 install** — 46/47, ghidra gap — **краткий абзац** + ссылка на [`engage-install-linux.md`](docs/engage-install-linux.md) (не копировать YAML-таблицы).
+3. **HexStrike paths** — таблица трёх глубин (soft / intelligence / aggressive) + итоги nuclei; ссылка на [`external-hexstrike.md`](docs/external/external-hexstrike.md) для запуска `:8888`.
+4. **Core47 install** — 46/47, ghidra gap — **краткий абзац** + ссылка на [`engage-install-linux.md`](docs/engage/engage-install-linux.md) (не копировать YAML-таблицы).
 5. **Open actions** — 2 high (`ENG-CATALOG`, `GRAPH-OPEN`), HSTS — одна таблица.
 
 **Удалить** после переноса содержимого и правки ссылок:
@@ -151,14 +151,14 @@ flowchart LR
 
 | Действие | Файлы |
 |----------|-------|
-| Оставить canonical | [`engage-install-linux.md`](docs/engage-install-linux.md), [`engage-runtime.md`](docs/engage-runtime.md), [`engage-mcp-topology.md`](docs/engage-mcp-topology.md) |
-| Сократить перекрёстные абзацы | [`engage-client-dependencies.md`](docs/engage-client-dependencies.md) vs [`engage-client-native-viability.md`](docs/engage-client-native-viability.md) — один «dependencies» doc, второй → 5–10 строк + ссылка |
-| Generated matrix | [`engage-tool-install-coverage.md`](docs/engage-tool-install-coverage.md) — только ссылка из install-linux / `make engage-tool-install-coverage` |
-| Audit KPI | [`engage-audit-report.md`](docs/engage-audit-report.md) — единственный sign-off; не дублировать KPI в AGENTS (таблица статуса + ссылка) |
+| Оставить canonical | [`engage-install-linux.md`](docs/engage/engage-install-linux.md), [`engage-runtime.md`](docs/engage/engage-runtime.md), [`engage-mcp-topology.md`](docs/engage/engage-mcp-topology.md) |
+| Сократить перекрёстные абзацы | [`engage-client-dependencies.md`](docs/engage/engage-client-dependencies.md) vs [`engage-client-native-viability.md`](docs/engage/engage-client-native-viability.md) — один «dependencies» doc, второй → 5–10 строк + ссылка |
+| Generated matrix | [`engage-tool-install-coverage.md`](docs/engage/engage-tool-install-coverage.md) — только ссылка из install-linux / `make engage-tool-install-coverage` |
+| Audit KPI | [`engage-audit-report.md`](docs/engage/engage-audit-report.md) — единственный sign-off; не дублировать KPI в AGENTS (таблица статуса + ссылка) |
 
 ### Точки входа
 
-- [`AGENTS.md`](AGENTS.md) — одна ссылка «Lab pentest & install field results» → `docs/engage-lab-pentest.md`; core47 quick path оставить (3 команды).
+- [`AGENTS.md`](AGENTS.md) — одна ссылка «Lab pentest & install field results» → `docs/engage/engage-lab-pentest.md`; core47 quick path оставить (3 команды).
 - [`engage/README.md`](engage/README.md) — в секции docs заменить 4 pentest-ссылки на hub + bugs log.
 - [`scripts/README.md`](scripts/README.md) — при необходимости одна строка на `scripts/eval/pentest-veil-mcp.sh`.
 
@@ -194,7 +194,7 @@ flowchart TD
 - [ ] Фаза 1: два push на `main` (или один, если пользователь предпочтёт squash — по умолчанию **два** коммита для review).
 - [ ] В корне `.cursor/plans/` остаются только активные master-планы + `archive/`.
 - [ ] `archive/README.md` актуален; нет битых ссылок на перенесённые планы.
-- [ ] Вместо 4 pentest markdown — **один** [`docs/engage-lab-pentest.md`](docs/engage-lab-pentest.md) + [`engage-red-blue-bugs.md`](docs/engage-red-blue-bugs.md).
+- [ ] Вместо 4 pentest markdown — **один** [`docs/engage/engage-lab-pentest.md`](docs/engage/engage-lab-pentest.md) + [`engage-red-blue-bugs.md`](docs/engage/engage-red-blue-bugs.md).
 - [ ] `rg` не находит удалённые имена файлов (кроме archive/history при необходимости).
 
 ## Вне scope (не блокирует doc cleanup)

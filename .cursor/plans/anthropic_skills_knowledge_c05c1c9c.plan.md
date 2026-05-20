@@ -3,7 +3,7 @@ name: Anthropic skills knowledge
 overview: "Интеграция Anthropic Cybersecurity Skills в контур Knowledge как read-only playbook-слой: индекс из `.external/`, новые MCP-инструменты veil-mcp, рёбра к существующим `AttackTechnique` — без копирования 754 markdown в репо и без смешения с Engage catalog (158 subprocess tools)."
 todos:
   - id: p0-index-docs
-    content: "P0: docs/external-cybersecurity-skills.md + generate-cyber-skills-index.py + docs/skills-index/ + make skills-index"
+    content: "P0: docs/playbooks/external-cybersecurity-skills.md + generate-cyber-skills-index.py + docs/skills-index/ + make skills-index"
     status: completed
   - id: p1-pkg-domain
     content: "P1: pkg/playbook/domain + contract; knowledge/serve usecase + MCP playbook_* tools"
@@ -60,7 +60,7 @@ flowchart LR
 | [engage/serve/catalog](engage/serve/catalog/) | `nmap_scan`, `nuclei`, … | Skills могут **рекомендовать** tool names из workflow, но не регистрировать новые MCP tools |
 | [.cursor/skills/](.cursor/skills/) | Поведение **разработки** Veil (Karpathy) | **Отдельно** от cyber playbooks; опционально symlink позже |
 
-Принцип как у [docs/external-security-frameworks.md](docs/external-security-frameworks.md) и [docs/external-agent-store.md](docs/external-agent-store.md): **`.external/` не исполняется**, operational truth — в `docs/` + сгенерированный индекс + API/MCP.
+Принцип как у [docs/external/external-security-frameworks.md](docs/external/external-security-frameworks.md) и [docs/agents/external-agent-store.md](docs/agents/external-agent-store.md): **`.external/` не исполняется**, operational truth — в `docs/` + сгенерированный индекс + API/MCP.
 
 ---
 
@@ -99,7 +99,7 @@ flowchart TD
 
 ## Domain model (pkg SOT)
 
-Новый пакет по образцу [docs/domain-contour.md](docs/domain-contour.md) — **не** смешать с `pkg/ti/domain`:
+Новый пакет по образцу [docs/architecture/domain-contour.md](docs/architecture/domain-contour.md) — **не** смешать с `pkg/ti/domain`:
 
 | Путь | Типы | Назначение |
 |------|------|------------|
@@ -118,8 +118,8 @@ flowchart TD
 
 | Задача | Артефакт |
 |--------|----------|
-| Hub-док | `docs/external-cybersecurity-skills.md` — лицензия, что vendored, что не делаем |
-| Обновить | [docs/external-security-frameworks.md](docs/external-security-frameworks.md) — строка в таблице vendored refs |
+| Hub-док | `docs/playbooks/external-cybersecurity-skills.md` — лицензия, что vendored, что не делаем |
+| Обновить | [docs/external/external-security-frameworks.md](docs/external/external-security-frameworks.md) — строка в таблице vendored refs |
 | Скрипт | `scripts/knowledge/generate-cyber-skills-index.py` — обход `skills/*/SKILL.md`, парсинг YAML + regex `T\d{4}(?:\.\d{3})?` |
 | Выход | `docs/skills-index/cyber-skills.json` + `docs/skills-index/README.md` (поля, stats) |
 | Makefile | `make skills-index` / `make check-skills-index` (CI: fail if stale) |
@@ -137,7 +137,7 @@ flowchart TD
 | [knowledge/serve/internal/usecase](knowledge/serve/internal/usecase/) | `playbook` package: `SearchSkills`, `GetSkill`, `ListByTechnique`, `ListSubdomains` |
 | [knowledge/connector/query/categories.go](knowledge/connector/query/categories.go) | Категория `playbook` (labels пустые или `CyberSkill` если позже граф) |
 | [knowledge/serve/internal/transport/mcpserver](knowledge/serve/internal/transport/mcpserver/) | Tools: `playbook_search`, `playbook_get`, `playbook_for_technique` (read-only) |
-| [docs/mcp-agents.md](docs/mcp-agents.md) | Таблица новых tools + пример запроса для DFIR skill |
+| [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md) | Таблица новых tools + пример запроса для DFIR skill |
 | Tests | Unit на парсер индекса + usecase без Neo4j |
 
 **Поведение `playbook_get`:** возвращает frontmatter + markdown body (лимит размера, напр. 64KB) из `.external/.../skills/<slug>/SKILL.md`.
@@ -181,7 +181,7 @@ flowchart TD
 
 ### P3 — Cursor / repo ergonomics (опционально)
 
-- `.cursor/skills/cyber-playbooks/` — тонкие SKILL.md со ссылкой на `docs/external-cybersecurity-skills.md` + `playbook_get` через MCP (не копировать 754 файла)
+- `.cursor/skills/cyber-playbooks/` — тонкие SKILL.md со ссылкой на `docs/playbooks/external-cybersecurity-skills.md` + `playbook_get` через MCP (не копировать 754 файла)
 - Или `npx skills add` upstream — документировать как **внешний** путь для разработчиков
 
 ---
@@ -205,7 +205,7 @@ flowchart TD
 |------|-----------|
 | Размер corpus / MCP context | Search возвращает summaries; `playbook_get` — один skill; пагинация |
 | `.external/` отсутствует локально | `make skills-index` fail с hint `git clone` / submodule doc |
-| License / attribution | `docs/external-cybersecurity-skills.md` + поле `license` в index |
+| License / attribution | `docs/playbooks/external-cybersecurity-skills.md` + поле `license` в index |
 | ATT&CK version drift | Match по `external_id` string; не merge STIX objects из skills repo |
 | Путаница skill vs engage tool | Имена MCP `playbook_*`, не `ti_*` / catalog names |
 
@@ -223,10 +223,10 @@ flowchart TD
 
 ## Definition of done (программа)
 
-- [ ] `docs/external-cybersecurity-skills.md` + индекс в `docs/skills-index/`
+- [ ] `docs/playbooks/external-cybersecurity-skills.md` + индекс в `docs/skills-index/`
 - [ ] `make skills-index` в CI
 - [ ] veil-mcp: `playbook_search`, `playbook_get`, `playbook_for_technique`
-- [ ] [domain-contour.md](docs/domain-contour.md) — секция `pkg/playbook/domain`
+- [ ] [domain-contour.md](docs/architecture/domain-contour.md) — секция `pkg/playbook/domain`
 - [ ] (P1b) Рёбра `HAS_PLAYBOOK` к `AttackTechnique` для покрытых T-ids
 - [ ] Engage catalog и `.external/` content **без изменений**
 

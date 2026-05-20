@@ -43,5 +43,5 @@ make external-clone-agent-store
 ## Related
 
 - [agent-evaluation-gaia.md](agent-evaluation-gaia.md) — GAIA benchmark for agent quality metrics
-- [mcp-agents.md](mcp-agents.md) — supported agent integration path
-- [external-security-frameworks.md](external-security-frameworks.md) — JCSF/DAF/OWASP (security, not agent catalog)
+- [mcp-agents.md](../agents/mcp-agents.md) — supported agent integration path
+- [external-security-frameworks.md](../external/external-security-frameworks.md) — JCSF/DAF/OWASP (security, not agent catalog)

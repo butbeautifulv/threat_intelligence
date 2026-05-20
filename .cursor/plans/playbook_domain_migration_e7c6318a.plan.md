@@ -3,7 +3,7 @@ name: Playbook domain migration
 overview: Постепенный перенос Anthropic skills в домен Knowledge через структурированный слой в pkg/playbook (ontology + procedure + catalog links), без переписывания 754 markdown в Go и без замены pkg/decision — с матрицей импорта по subdomain и параллельными ветками.
 todos:
   - id: i0-matrix-schema
-    content: "I0: docs/playbook-import-matrix.md + ProcedureSpec + extract-procedures-index.py + CI"
+    content: "I0: docs/playbooks/playbook-import-matrix.md + ProcedureSpec + extract-procedures-index.py + CI"
     status: completed
   - id: o1-ontology
     content: "O1-O3: pkg/playbook/framework subdomain registry + ontology API"
@@ -67,7 +67,7 @@ flowchart TB
 
 ## Целевая модель в pkg (Veil style)
 
-Расширить [docs/domain-contour.md](docs/domain-contour.md) секцией `pkg/playbook`:
+Расширить [docs/architecture/domain-contour.md](docs/architecture/domain-contour.md) секцией `pkg/playbook`:
 
 | Пакет / тип | Назначение |
 |-------------|------------|
@@ -109,7 +109,7 @@ flowchart TB
 
 ## Матрица постепенного импорта (рабочая таблица)
 
-Файл-трекер: **[docs/playbook-import-matrix.md](docs/playbook-import-matrix.md)** (создать в I0) — колонки:
+Файл-трекер: **[docs/playbooks/playbook-import-matrix.md](docs/playbooks/playbook-import-matrix.md)** (создать в I0) — колонки:
 
 `subdomain | skills | ontology | procedures_index | catalog_links | graph_seed | native_yaml | status | branch`
 
@@ -119,7 +119,7 @@ flowchart TB
 
 | ID | Задача | Артефакт |
 |----|--------|----------|
-| I0 | Матрица + master plan | `docs/playbook-import-matrix.md`, [.cursor/plans/playbook_domain_migration_master.plan.md](.cursor/plans/playbook_domain_migration_master.plan.md) |
+| I0 | Матрица + master plan | `docs/playbooks/playbook-import-matrix.md`, [.cursor/plans/playbook_domain_migration_master.plan.md](.cursor/plans/playbook_domain_migration_master.plan.md) |
 | I1 | `ProcedureSpec` types | `pkg/playbook/domain/procedure.go` |
 | I2 | Extractor script | `scripts/knowledge/extract-procedures-index.py`, `make procedures-index` |
 | I3 | CI check | `make check-procedures-index` |
@@ -178,7 +178,7 @@ flowchart TB
 |----|--------|
 | E1 | veil-api client: `ProcedureForTechnique`, `RecommendTools` |
 | E2 | intelligence: merge catalog boosts + `procedure_summary` в `CorrelateThreatIntelligence` / `CreateAttackChain` |
-| E3 | Документ: decision vs playbook в [docs/cyber-domain-model.md](docs/cyber-domain-model.md) |
+| E3 | Документ: decision vs playbook в [docs/architecture/cyber-domain-model.md](docs/architecture/cyber-domain-model.md) |
 
 **Ветка:** `engage/phase-playbook-procedure-bridge`
 
@@ -194,7 +194,7 @@ flowchart TB
 
 **Не promote bulk:** оставить corpus markdown + structured index.
 
-Обновлять строку в `docs/playbook-import-matrix.md` per subdomain batch (5–10 skills за PR).
+Обновлять строку в `docs/playbooks/playbook-import-matrix.md` per subdomain batch (5–10 skills за PR).
 
 ---
 
@@ -249,7 +249,7 @@ O1 + K1 ─► E1–E3 (engage bridge)
 
 ## Definition of done (программа)
 
-- [ ] `docs/playbook-import-matrix.md` с 26 subdomain и статусами
+- [ ] `docs/playbooks/playbook-import-matrix.md` с 26 subdomain и статусами
 - [ ] `procedures-index.json` + `pkg/playbook/procedure`
 - [ ] Ontology API / types из mappings
 - [ ] Structured procedure API + MCP

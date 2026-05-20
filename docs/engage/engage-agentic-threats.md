@@ -12,7 +12,7 @@ Maps **OWASP GenAI Agentic / Red Team landscapes** and **DAF MLSO** runtime prac
 | **Runner host compromise** | Tool escapes to API host | `ENGAGE_RUNNER_MODE=docker` + isolated `engage-runner` | VEIL-ENG-002 |
 | **Unauthenticated MCP** | Open HTTP MCP on :8892 | `ENGAGE_MCP_HTTP_AUTH_STRICT=1`, Keycloak | VEIL-ENG-003 |
 | **Unbounded agent delegation** | Spawn sub-agents with full catalog | Single MCP server; no dynamic agent creation (DAF MLSO T-PROD-RUN-ML-1-2) | design |
-| **Data exfil via graph** | MCP reads entire TI graph | Separate **veil-mcp** (read) vs **veil-engage** (exec); RBAC roles | [mcp-agents.md](mcp-agents.md) |
+| **Data exfil via graph** | MCP reads entire TI graph | Separate **veil-mcp** (read) vs **veil-engage** (exec); RBAC roles | [mcp-agents.md](../agents/mcp-agents.md) |
 | **Supply-chain tool binary** | Tampered `nmap` on PATH | Runner image rebuild; catalog `binary:` pinned in YAML | VEIL-ENG-002 |
 
 ## DAF MLSO practices adopted
@@ -63,5 +63,5 @@ Document exceptions in your change ticket; critic should reject prod profile cha
 ## Related
 
 - [engage-hardening.md](engage-hardening.md)
-- [external-security-frameworks.md](external-security-frameworks.md)
-- [mcp-agents.md](mcp-agents.md)
+- [external-security-frameworks.md](../external/external-security-frameworks.md)
+- [mcp-agents.md](../agents/mcp-agents.md)

@@ -100,7 +100,7 @@ var/veil/
 - [`deploy/compose.scale.yml`](deploy/compose.scale.yml) — те же mounts
 - [`docker-compose.testpack.yml`](docker-compose.testpack.yml) — путь к zip в `var/veil/graph/releases/`
 - [`.gitignore`](.gitignore), [`.dockerignore`](.dockerignore) — `var/veil/blobs/`, `var/veil/ledger/`, `var/veil/graph/` (оставить `.gitkeep` в пустых каталогах)
-- Документация: [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md), [`docs/graph-pack.md`](docs/graph-pack.md), [`scripts/README.md`](scripts/README.md)
+- Документация: [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md), [`docs/contracts/graph-pack.md`](docs/contracts/graph-pack.md), [`scripts/README.md`](scripts/README.md)
 
 **Миграция (одноразово в README/scripts):**
 
@@ -235,4 +235,4 @@ sequenceDiagram
 3. `compose-down-ephemeral.sh`, `incremental-pack.env`, `profile-incremental-pack.sh`; ослабить `fast-rich`
 4. `scripts/crawl/status.sh` (+ optional ledger-dump)
 5. `ingest_worker` depends_on bootstrap
-6. Docs + migration note в `docs/graph-pack.md`
+6. Docs + migration note в `docs/contracts/graph-pack.md`

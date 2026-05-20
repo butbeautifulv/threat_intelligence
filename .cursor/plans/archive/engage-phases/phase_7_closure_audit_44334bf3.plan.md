@@ -28,7 +28,7 @@ isProject: false
 | **R33** | Audit JSONL + API | [store.go](engage/serve/internal/audit/store.go), `ENGAGE_AUDIT_DIR`, `GET /api/audit/recent` |
 | **R34** | Runner/MCP CI | [smoke-engage-runner-profile.sh](scripts/test/smoke-engage-runner-profile.sh) (вызов из compose smoke); MCP ≥150 в [smoke-engage-mcp.sh](scripts/test/smoke-engage-mcp.sh); CI `enable-tools-on-path.sh`; +5 golden `BuildArgs` |
 
-[docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) обновлён (`assessment-report`, `audit/recent`).
+[docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) обновлён (`assessment-report`, `audit/recent`).
 
 **Косметика (не блокирует закрытие):** в YAML frontmatter greenfield-плана todos заканчиваются на `engage-r29` — нет отдельных `engage-r30`…`engage-r34` (таблица Phase 7 при этом есть). Файл [engage_phase_7_r30_slice.plan.md](.cursor/plans/engage_phase_7_r30_slice.plan.md) из Phase 7 plan **не создан** (в плане был optional).
 

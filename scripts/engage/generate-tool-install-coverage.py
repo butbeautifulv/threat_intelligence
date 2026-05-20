@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 SOURCES = ROOT / "scripts/ops/engage-tools-sources.yaml"
 PACKAGES = ROOT / "scripts/ops/engage-tools-packages.yaml"
-OUT = ROOT / "docs/engage-tool-install-coverage.md"
+OUT = ROOT / "docs/engage/engage-tool-install-coverage.md"
 
 BRIDGE_BINARIES = {
     "api", "bugbounty", "ai", "get", "http", "create", "execute", "generate",

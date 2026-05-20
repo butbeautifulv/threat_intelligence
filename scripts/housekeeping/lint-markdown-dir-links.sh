@@ -37,7 +37,7 @@ while IFS= read -r -d '' f; do
 done < <(find . -name '*.md' -not -path './data/*' -not -path './.cursor/plans/*' -print0 2>/dev/null)
 
 if [[ "${errors}" -gt 0 ]]; then
-  echo "${errors} issue(s); use path/to/dir/ for directory links (see docs/coding-style.md)" >&2
+  echo "${errors} issue(s); use path/to/dir/ for directory links (see docs/agents/coding-style.md)" >&2
   exit 1
 fi
 echo "markdown directory links OK"

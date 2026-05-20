@@ -50,7 +50,7 @@ flowchart LR
    - `scrapers/{sbom,coderules,nuclei}/storage/neo4j` → [`ingest/graph/storage/`](../../ingest/graph/storage/)
 2. Модуль [`ingest/graph/go.mod`](../../ingest/graph/go.mod); worker → `require ingest/graph`.
 3. **Re-export** в `scrapers/*` (deprecated, 1 release cycle).
-4. Документация: [`ingest/graph/README.md`](../../ingest/graph/README.md), [`docs/ingest-contract.md`](../../docs/ingest-contract.md).
+4. Документация: [`ingest/graph/README.md`](../../ingest/graph/README.md), [`docs/contracts/ingest-contract.md`](../../docs/contracts/ingest-contract.md).
 
 ### Out of scope (срез 8)
 

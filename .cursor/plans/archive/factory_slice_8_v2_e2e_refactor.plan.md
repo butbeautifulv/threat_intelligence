@@ -115,7 +115,7 @@ docker compose restart scrape-worker
 
 Ожидание: `unchanged` / `skip publish` на KEV, ThreatFox, nuclei paths.
 
-**E2E env (не release):** поднять `NVD_MAX_PAGES`, `GITHUB_TOKEN` для стабильного smoke — в [docs/threatintel-runtime.md](../../docs/threatintel-runtime.md) как «E2E profile», без export/release.
+**E2E env (не release):** поднять `NVD_MAX_PAGES`, `GITHUB_TOKEN` для стабильного smoke — в [docs/architecture/threatintel-runtime.md](../../docs/architecture/threatintel-runtime.md) как «E2E profile», без export/release.
 
 **Исправлять блокеры** до Phase 2 (не переименовывать сломанный стек).
 

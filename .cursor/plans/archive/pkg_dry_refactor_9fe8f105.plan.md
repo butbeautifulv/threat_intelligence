@@ -293,7 +293,7 @@ flowchart TB
 | `pkg-ingestv1-rm-pipeline-contract` | Удалить `pipeline/contract/` |
 | `pkg-ingestv1-rm-graph-contract` | Удалить `knowledge/contract/` |
 | `pkg-ingestv1-rm-gen-contracts` | Удалить [`scripts/gen-contracts.sh`](scripts/gen-contracts.sh); убрать `contracts` из [`Makefile`](Makefile), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`scripts/README.md`](scripts/README.md) |
-| `pkg-ingestv1-docs` | Обновить [`docs/coding-style.md`](docs/coding-style.md), [`docs/ingest-contract.md`](docs/ingest-contract.md), [`AGENTS.md`](AGENTS.md): SOT = pkg, schemas = docs only |
+| `pkg-ingestv1-docs` | Обновить [`docs/agents/coding-style.md`](docs/agents/coding-style.md), [`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md), [`AGENTS.md`](AGENTS.md): SOT = pkg, schemas = docs only |
 
 ---
 

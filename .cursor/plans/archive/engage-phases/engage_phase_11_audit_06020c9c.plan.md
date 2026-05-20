@@ -64,7 +64,7 @@ flowchart TB
 | Prometheus `/metrics` | [telemetry/prometheus.go](engage/serve/internal/telemetry/prometheus.go), `ENGAGE_METRICS_ENABLED=1` |
 | Audit export / webhook | [audit/export.go](engage/serve/internal/audit/export.go), `GET /api/audit/export`, `POST /api/audit/export-webhook` |
 | Branded HTML/PDF | [html.go](engage/serve/internal/usecase/report/html.go), `export-report` с `format=html\|pdf` |
-| Документация | [engage-legacy-parity.md](docs/engage-legacy-parity.md), [engage-reports.md](docs/engage-reports.md), [engage-runtime.md](docs/engage-runtime.md) |
+| Документация | [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md), [engage-reports.md](docs/engage-reports.md), [engage-runtime.md](docs/engage/engage-runtime.md) |
 
 ---
 

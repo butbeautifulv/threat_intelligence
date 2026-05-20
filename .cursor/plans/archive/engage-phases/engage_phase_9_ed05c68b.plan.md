@@ -104,7 +104,7 @@ flowchart LR
 - Расширить `ARGS_TEMPLATES` в [scripts/engage/extract-legacy-catalog.py](scripts/engage/extract-legacy-catalog.py) до **~100** tools (top HexStrike MCP по категориям: network, web, osint, cloud)
 - `make catalog-engage` + golden [executor_test.go](engage/serve/internal/runner/executor_test.go) (+10 templates)
 - CI после `enable-tools-on-path.sh`: matrix smoke **10 tools** (nmap, nuclei, httpx, subfinder, gobuster, nikto, ffuf, rustscan, trivy, sqlmap) — skip individual tool if binary missing
-- Обновить [docs/engage-tools.md](docs/engage-tools.md): coverage table
+- Обновить [docs/engage/engage-tools.md](docs/engage/engage-tools.md): coverage table
 
 **Не в scope:** 150 отдельных Go adapters; только YAML + generic runner.
 
@@ -133,7 +133,7 @@ flowchart LR
 - Script [scripts/test/smoke-engage-secure.sh](scripts/test/smoke-engage-secure.sh): `compose.yml` + `compose.secure.yml`, health via nginx :8443, JWT smoke if `ENGAGE_AUTH_ENABLED=1` (self-signed certs gen in script)
 - CI: nightly workflow или `workflow_dispatch` job `engage-secure` (не блокирует PR)
 - [deploy/engage/docker/runner.Dockerfile](deploy/engage/docker/runner.Dockerfile): `ARG APT_MIRROR`, retry apt; уменьшить flake из Phase 7/8 compose CI
-- [engage-legacy-parity.md](docs/engage-legacy-parity.md): secure overlay, NATS mode
+- [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md): secure overlay, NATS mode
 
 **Не в scope:** Keycloak в default PR CI (слишком тяжёлый); полный pentest checklist.
 
@@ -156,7 +156,7 @@ flowchart LR
 |------|----------|
 | [engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) | Секция **Phase 9** R40–R44, todos `engage-r40`…`engage-r44` |
 | [engage_phase_9.plan.md](.cursor/plans/engage_phase_9.plan.md) | Детальный слайс (создать при старте) |
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | NATS jobs, secure smoke |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | NATS jobs, secure smoke |
 | **Не редактировать** | `engage_phase_8.plan.md`, `engage_phase_7_*.plan.md` |
 
 ---

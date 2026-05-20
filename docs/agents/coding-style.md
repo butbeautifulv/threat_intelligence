@@ -17,7 +17,7 @@ Conventions for the three runtime layers — **Discovery**, **pipeline**, **grap
 
 | Zone | Path | Role |
 |------|------|------|
-| **Knowledge** | [docs/](./) | Schemas, runtime, contracts — no application Go code |
+| **Knowledge** | [docs/](../) | Schemas, runtime, contracts — no application Go code |
 | **Deploy** | [deploy/](../deploy/) | Compose per layer |
 | **Discovery** | [discovery/](../discovery/) | Fetch + ledger → `scrape.>` |
 | **Pipeline** | [pipeline/](../pipeline/) | `scrape.>` → NED → `ingest.>` |
@@ -27,7 +27,7 @@ Conventions for the three runtime layers — **Discovery**, **pipeline**, **grap
 
 Layers **Discovery / pipeline / graph** communicate **only via NATS** and documented JSON schemas. **Engage** calls graph only via **HTTP veil-api** (no Bolt, no NATS). No Go imports across `discovery/`, `pipeline/`, `knowledge/`, `engage/`. All layers may import `pkg/*`. NVD parse/map lives in [pipeline/pkg/nvd](../pipeline/pkg/nvd/) (pipeline only).
 
-**Logical layers (v8 target)** — see [platform-architecture.md](platform-architecture.md): **Discovery** (`discovery/`, P8h done), **Pipeline**, **Knowledge** (`knowledge/` → `knowledge/`, P8i), **Engage**, shared **Report**, API/MCP façade. **Discovery `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only **`pkg/exec`**, do not rename factory to runner.
+**Logical layers (v8 target)** — see [platform-architecture.md](../architecture/platform-architecture.md): **Discovery** (`discovery/`, P8h done), **Pipeline**, **Knowledge** (`knowledge/` → `knowledge/`, P8i), **Engage**, shared **Report**, API/MCP façade. **Discovery `factory`** orchestrates sources; **engage `runner`** executes catalog tools — share only **`pkg/exec`**, do not rename factory to runner.
 
 Layer-specific layout, env vars, and build commands:
 
@@ -48,7 +48,7 @@ Layer-specific layout, env vars, and build commands:
 
 Shared fetch policy (Discovery only): [discovery/harvest/internal/feeds](../discovery/harvest/internal/feeds/), [discovery/harvest/internal/ledger](../discovery/harvest/internal/ledger/) (`VITESS_DSN`, `SCRAPE_MIN_REFETCH_AFTER`, `SCRAPE_FORCE_REFETCH`).
 
-Wire contracts: [ingest-contract.md](ingest-contract.md). Go SOT: [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/).
+Wire contracts: [ingest-contract.md](../contracts/ingest-contract.md). Go SOT: [pkg/harvest](../pkg/harvest/), [pkg/commit](../pkg/commit/).
 
 ---
 
@@ -69,7 +69,7 @@ storage/                → adapters at module root (Neo4j in graph; pub in laye
 
 ### Domain package paths (pkg SOT)
 
-Shared entities live under **`pkg/*/domain/`** (single source of truth). Layers import `pkg` and keep only source-specific adapters (transform, storage, I/O). Full map: [domain-contour.md](domain-contour.md).
+Shared entities live under **`pkg/*/domain/`** (single source of truth). Layers import `pkg` and keep only source-specific adapters (transform, storage, I/O). Full map: [domain-contour.md](../architecture/domain-contour.md).
 
 | Package | Types | Layers |
 |---------|-------|--------|
@@ -83,7 +83,7 @@ Shared entities live under **`pkg/*/domain/`** (single source of truth). Layers 
 
 **Rule:** new cross-layer entity → add to `pkg/<area>/domain` with `*_test.go`; do not duplicate `type IOC struct` in scrape/pipeline/graph.
 
-Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (`ops/`, `graph-pack/`, `test/`, `housekeeping/` — Neo4j housekeeping is not NED wire dedup). Graph packs: [docs/graph-pack.md](graph-pack.md).
+Pipeline/scripts boundary: [scripts/README.md](../scripts/README.md) (`ops/`, `graph-pack/`, `test/`, `housekeeping/` — Neo4j housekeeping is not NED wire dedup). Graph packs: [docs/contracts/graph-pack.md](../contracts/graph-pack.md).
 
 ---
 
@@ -173,7 +173,7 @@ Follow the [Google Go Style Guide](https://google.github.io/styleguide/go/guide)
 ## Configuration
 
 - Environment variables with sensible defaults
-- Document new env vars in [docs/threatintel-runtime.md](threatintel-runtime.md)
+- Document new env vars in [docs/architecture/threatintel-runtime.md](../architecture/threatintel-runtime.md)
 
 ---
 

@@ -195,8 +195,8 @@ docker compose --profile scrape up --build -d scrape-worker pipeline-worker inge
 ## 8. Документация
 
 - [ingest/discovery/README.md](ingest/discovery/README.md) — зарегистрирован `ti`, env `TI_FEEDS` / `TI_JSONL_FILE`
-- [docs/threatintel-runtime.md](docs/threatintel-runtime.md) — убрать `ti` из legacy services; normalize только в pipeline
-- [docs/coding-style.md](docs/coding-style.md) или [docs/ingest-contract.md](docs/ingest-contract.md) — одна строка: TI IOC normalize в pipeline-worker, не в scraper
+- [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md) — убрать `ti` из legacy services; normalize только в pipeline
+- [docs/agents/coding-style.md](docs/agents/coding-style.md) или [docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md) — одна строка: TI IOC normalize в pipeline-worker, не в scraper
 - [scrapers/README.md](scrapers/README.md) — compose column для `ti` → `scrape-worker`
 
 ---

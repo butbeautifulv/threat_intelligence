@@ -85,7 +85,7 @@ flowchart LR
 | `create_attack_chain` | pattern + optimized params + **success_prob × confidence** + **time estimates** | patterns + `effectiveness_score`; params из pattern **без** `OptimizeParameters` на каждом шаге | Средний |
 | `IntelligentErrorHandler` | 10+ error types, recovery strategies, backoff, history | [`recovery`](engage/serve/internal/usecase/recovery/handler.go) — 5 types, 6 alt tools | **Высокий** |
 | Attack patterns | 15 named keys | **25** keys (≥ HexStrike) | OK |
-| HTTP/MCP routes | 156 Flask routes | [engage-legacy-parity.md](docs/engage-legacy-parity.md) — в основном OK | Низкий |
+| HTTP/MCP routes | 156 Flask routes | [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) — в основном OK | Низкий |
 | Infra | standalone :8888 | events → Neo4j; **нет единого lab smoke** veil+engage | **Интеграция** |
 
 **Не редактировать:** [engage_phase_15_1fbc74b3.plan.md](.cursor/plans/engage_phase_15_1fbc74b3.plan.md) (оригинал с R76 publish).
@@ -113,7 +113,7 @@ flowchart LR
 | Deliverable | Детали |
 |-------------|--------|
 | Smoke | [`scripts/test/smoke-veil-engage-stack.sh`](scripts/test/smoke-veil-engage-stack.sh): `POST /api/tools/nmap` (или httpx) → events pipeline → `GET /v1/categories/engage/search?q=<host>` count ≥ 1 |
-| Docs | [deploy/README.md](deploy/README.md), [docs/engage-runtime.md](docs/engage-runtime.md): **либо** `compose.events.yml` (standalone NATS), **либо** `compose.veil-stack.yml` — не оба одновременно |
+| Docs | [deploy/README.md](deploy/README.md), [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md): **либо** `compose.events.yml` (standalone NATS), **либо** `compose.veil-stack.yml` — не оба одновременно |
 | `make` target | `test-engage-veil-stack` → smoke script |
 
 ---
@@ -232,7 +232,7 @@ flowchart TB
 - `make test-engage` green; новые table-driven tests для decision/chain/recovery.
 - `make test-engage-veil-stack` (или documented manual): tool run → Neo4j engage category.
 - Агент через MCP `analyze_target_intelligence` / `create_attack_chain_ai` получает **те же поля**, что HTTP API (intel bridge уже есть).
-- [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md): секция «DecisionEngine» — **full deterministic parity** (не «stub»).
+- [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md): секция «DecisionEngine» — **full deterministic parity** (не «stub»).
 - **Нет** release `veil-graph-v0.4.4` на GitHub.
 
 ---

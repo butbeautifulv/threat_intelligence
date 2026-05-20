@@ -178,7 +178,7 @@ flowchart TB
 
 ## Repo layout (coding-style)
 
-Следуем [docs/coding-style.md](docs/coding-style.md): `cmd/` = wiring, `internal/usecase`, `domain` без I/O, адаптеры снаружи.
+Следуем [docs/agents/coding-style.md](docs/agents/coding-style.md): `cmd/` = wiring, `internal/usecase`, `domain` без I/O, адаптеры снаружи.
 
 ```
 engage/
@@ -358,10 +358,10 @@ Makefile targets:
 
 ## Документация
 
-- [docs/engage-runtime.md](docs/engage-runtime.md) — ports, env, threat model (exec vs read).
+- [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md) — ports, env, threat model (exec vs read).
 - [docs/engage-hexstrike-parity.md](docs/engage-hexstrike-parity.md) — route/tool matrix, MIT attribution.
-- Обновить [docs/external-hexstrike.md](docs/external-hexstrike.md) → «superseded by engage layer».
-- [docs/coding-style.md](docs/coding-style.md) — четвёртый контекст + границы импорта.
+- Обновить [docs/external/external-hexstrike.md](docs/external/external-hexstrike.md) → «superseded by engage layer».
+- [docs/agents/coding-style.md](docs/agents/coding-style.md) — четвёртый контекст + границы импорта.
 - [deploy/README.md](deploy/README.md) — engage table, prod vs dev ports.
 
 Примеры MCP: `examples/mcp/engage.*.example` (отдельно от `veil-graph`).
@@ -613,7 +613,7 @@ Phase 14 (R69–R74) complete.
 | 22 Scale/benchmarks | R113–R116 | done |
 | 23 Prod CI/hardening | R117–R120 | done |
 
-**Migration audit (2026-05-16):** [docs/engage-audit-report.md](../../docs/engage-audit-report.md) — architecture confirmed; 80 live tools; route parity CSV; MCP↔runner triangle.
+**Migration audit (2026-05-16):** [docs/engage/engage-audit-report.md](../../docs/engage/engage-audit-report.md) — architecture confirmed; 80 live tools; route parity CSV; MCP↔runner triangle.
 
 ---
 

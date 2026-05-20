@@ -146,7 +146,7 @@ Optional: `TestCreateAttackChain_stepsOrdered` — steps[0].tool is highest-rank
 
 | File | Change |
 |------|--------|
-| [`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md) or [`docs/engage-tools.md`](docs/engage-tools.md) | One line: `select-tools` uses decision engine ranking |
+| [`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) or [`docs/engage/engage-tools.md`](docs/engage/engage-tools.md) | One line: `select-tools` uses decision engine ranking |
 | [`engage_layer_greenfield_9d048eec.plan.md`](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) | R19 done; Phase 4 complete |
 
 **Не редактировать** `engage_phase_4_*.plan.md`.

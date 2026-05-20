@@ -36,7 +36,7 @@ isProject: false
 
 **Prerequisite (done):** P6 refactor, P7 tests + `pkg/*/domain`, HexStrike sign-off, catalog live merge fix (`634e067`).
 
-**Architecture doc:** [docs/platform-architecture.md](../../docs/platform-architecture.md)
+**Architecture doc:** [docs/architecture/platform-architecture.md](../../docs/architecture/platform-architecture.md)
 
 ## Target layer map
 
@@ -173,7 +173,7 @@ isProject: false
 | Binaries / brands | `veil-api`, `veil-mcp`, `ingest_worker` — **keep user-facing names**; only repo path `knowledge/` |
 | Makefile | `test-graph` → `test-knowledge`; `test-graph-serve` → `test-knowledge-serve`; aliases one release |
 | CI | engage.yml path filters `knowledge/` → `knowledge/` |
-| Docs | `docs/threatintel-runtime.md` → split or rename `knowledge-runtime.md`; graph-pack.md may keep “graph pack” as artifact name |
+| Docs | `docs/architecture/threatintel-runtime.md` → split or rename `knowledge-runtime.md`; graph-pack.md may keep “graph pack” as artifact name |
 | Versions | `GRAPH_PACK_VERSION` env key unchanged in P8i (rename env is P8i-follow-up optional) |
 
 **Keep unchanged in P8i:** NATS `ingest.>`; `pkg/commit`; Neo4j labels; HTTP routes `/v1/*`; MCP server name `veil-mcp` in agent configs.
@@ -191,7 +191,7 @@ main ─┬─ P8h (discovery/) ──┐
 
 1. Finish **P8h + P8i** (or single branch) before wide P8b–g refactors to avoid double rebase.
 2. One commit per rename layer; run full platform tests after each.
-3. Update [platform-architecture.md](../../docs/platform-architecture.md) “Path today” column to only target names.
+3. Update [platform-architecture.md](../../docs/architecture/platform-architecture.md) “Path today” column to only target names.
 
 ---
 

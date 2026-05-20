@@ -60,7 +60,7 @@ agents:
       Maintain GAIA eval harness under eval/gaia/ and scripts/eval/.
       Run `make test-agent-eval-registry` and `make test-agent-eval-pilot`.
       Do not commit HF dataset files or GAIA validation/test answers.
-      Docs: docs/agent-evaluation-gaia.md. Do not merge without critic APPROVE.
+      Docs: docs/agents/agent-evaluation-gaia.md. Do not merge without critic APPROVE.
 
   - id: docs-only
     description: Post-merge documentation pass

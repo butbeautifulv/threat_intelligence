@@ -103,7 +103,7 @@ nginx/gateway upstream blocks use Docker DNS or K8s service names with `least_co
 
 **Invariants across profiles:** `GRAPH_PACK_VERSION`, ingest via `pkg/commit`, labels and `/v1/*` routes unchanged. Ingest workers and `veil-api` use the same Bolt credentials from secrets; scale ingest separately (not via `VEIL_*_SCALE` above).
 
-**Failover expectation:** lose 1 core → cluster remains writable (quorum 2/3). Backup/restore and pack import procedures stay in [graph-pack.md](graph-pack.md).
+**Failover expectation:** lose 1 core → cluster remains writable (quorum 2/3). Backup/restore and pack import procedures stay in [graph-pack.md](../contracts/graph-pack.md).
 
 ---
 
@@ -178,8 +178,8 @@ make test-knowledge test-engage
 
 ## References
 
-- [platform-architecture.md](platform-architecture.md) — layer diagram with unified edge
-- [mcp-agents.md](mcp-agents.md) — stdio setup (updated in P12j)
+- [platform-architecture.md](../architecture/platform-architecture.md) — layer diagram with unified edge
+- [mcp-agents.md](../agents/mcp-agents.md) — stdio setup (updated in P12j)
 - [deploy/README.md](../deploy/README.md) — compose stacks
 - [deploy/stacks/secure-unified.yml](../deploy/stacks/secure-unified.yml) — secure stack SSOT
 - [veil_platform_p12_unified_access.plan.md](../.cursor/plans/archive/veil_platform_p12_unified_access.plan.md) — phase branches (archived)

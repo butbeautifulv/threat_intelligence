@@ -1,6 +1,6 @@
 # Veil platform architecture (current + target)
 
-**Entry:** layer summary and quick start in [README.md](../README.md). **Ports:** [threatintel-runtime.md](threatintel-runtime.md).
+**Entry:** layer summary and quick start in [README.md](../README.md). **Ports:** [threatintel-runtime.md](../architecture/threatintel-runtime.md).
 
 **Current runtime (2026-05):** four isolated Go modules — `discovery/`, `pipeline/`, `knowledge/`, `engage/` — plus shared `pkg/*`. Integration: NATS (`harvest` / `commit` / `engage.events`) and HTTP (engage → veil-api only).
 
@@ -17,9 +17,9 @@
 | Executable matrix | Partial → **158/158** target | `make test-engage-executable-matrix` (**P9f**) |
 | Catalog merge bug | **Fixed** (`634e067`) — load order `tools.yaml` → `tools.live.yaml` → `tools.enabled.yaml` | `TestLoadCatalog_productionMergeOrder` |
 | Platform P0–P4b | Bus tests, closed/full loop, Terraform skeleton | [platform-full-loop-smoke.md](platform-full-loop-smoke.md) |
-| Platform P5 | Hybrid deploy skeleton | [deploy-platform-hybrid.md](deploy-platform-hybrid.md) |
+| Platform P5 | Hybrid deploy skeleton | [deploy-platform-hybrid.md](../deploy/deploy-platform-hybrid.md) |
 | Platform P6 | Infra DRY (events, auth, scrapepub, stacks, natsjet publish) | [archive/veil_platform_refactor_p6.plan.md](../.cursor/plans/archive/veil_platform_refactor_p6.plan.md) |
-| Platform P7 | Tests + `pkg/*/domain` SOT + `make test-platform-p7` CI | [domain-contour.md](domain-contour.md), [archive/veil_platform_p7_tests_then_pkg_domain.plan.md](../.cursor/plans/archive/veil_platform_p7_tests_then_pkg_domain.plan.md) |
+| Platform P7 | Tests + `pkg/*/domain` SOT + `make test-platform-p7` CI | [domain-contour.md](../architecture/domain-contour.md), [archive/veil_platform_p7_tests_then_pkg_domain.plan.md](../.cursor/plans/archive/veil_platform_p7_tests_then_pkg_domain.plan.md) |
 | Platform v8 | Layer renames + shared pkg extractions + discovery browser | [archive/veil_platform_v8_layers_master.plan.md](../.cursor/plans/archive/veil_platform_v8_layers_master.plan.md) |
 
 **Engage compose (default):** `ENGAGE_CATALOG_PATH=/app/catalog/tools.yaml` but **InitAPI merges live on top** — runner profile may set `tools.live.yaml` directly ([compose.runner.yml](../deploy/engage/compose.runner.yml)).
@@ -83,7 +83,7 @@ flowchart TB
   DE --> GS
 ```
 
-**Unified path contract (P12):** [platform-unified-access.md](platform-unified-access.md). Today dev may still hit `:8090` / `:8890` directly; production targets a single TLS host with prefix routing.
+**Unified path contract (P12):** [platform-unified-access.md](../architecture/platform-unified-access.md). Today dev may still hit `:8090` / `:8890` directly; production targets a single TLS host with prefix routing.
 
 | Layer | Responsibility | Path today | Path target |
 |-------|----------------|------------|-------------|
@@ -146,7 +146,7 @@ They solve **different** problems today. Unifying the **name** without splitting
 | Browser automation | `engage/.../browser/` | [discovery/pkg/browser](../discovery/pkg/browser/), [discovery/browser](../discovery/browser/) |
 | HTTP/MCP transport helpers | per-layer duplicates | [pkg/api](../pkg/api/), [pkg/mcp](../pkg/mcp/) |
 | Execution plane | `engage/.../runner/` | [pkg/exec](../pkg/exec/) + engage adapter |
-| Domain entities | scattered | [domain-contour.md](domain-contour.md) (P7 + P8a) |
+| Domain entities | scattered | [domain-contour.md](../architecture/domain-contour.md) (P7 + P8a) |
 
 ---
 

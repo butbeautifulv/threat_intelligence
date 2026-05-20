@@ -18,8 +18,8 @@ def main() -> int:
         (ROOT / "eval/gaia/schema/task.schema.json", "task schema"),
         (ROOT / "scripts/eval/gaia/score.py", "scorer"),
         (ROOT / "scripts/eval/gaia/run-pilot.sh", "pilot runner"),
-        (ROOT / "docs/agent-evaluation-gaia.md", "GAIA doc"),
-        (ROOT / "docs/external-agent-store.md", "agent-store doc"),
+        (ROOT / "docs/agents/agent-evaluation-gaia.md", "GAIA doc"),
+        (ROOT / "docs/agents/external-agent-store.md", "agent-store doc"),
         (ROOT / "deploy/eval/gaia.env.example", "env example"),
         (ROOT / ".github/workflows/agent-eval.yml", "agent-eval workflow"),
     ]

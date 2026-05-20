@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 LEGACY = ROOT / ".external/hexstrike-ai-master/hexstrike_server.py"
 HTTPSERVER = ROOT / "engage/serve/internal/transport/httpserver"
 PKG_API = ROOT / "pkg/api"
-OUT_CSV = ROOT / "docs/engage-route-parity.csv"
+OUT_CSV = ROOT / "docs/engage/engage-route-parity.csv"
 
 ROUTE_ALIASES: dict[str, str] = {
     "DELETE /api/files/delete": "POST /api/files/delete",

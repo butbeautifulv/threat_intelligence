@@ -12,8 +12,8 @@ VERSIONS_FILE="${VEIL_ROOT}/versions.env"
 DOC_FILES=(
   "${VEIL_ROOT}/README.md"
   "${VEIL_ROOT}/deploy/README.md"
-  "${VEIL_ROOT}/docs/threatintel-runtime.md"
-  "${VEIL_ROOT}/docs/graph-pack.md"
+  "${VEIL_ROOT}/docs/architecture/threatintel-runtime.md"
+  "${VEIL_ROOT}/docs/contracts/graph-pack.md"
   "${VEIL_ROOT}/scripts/README.md"
 )
 TESTPACK_YML="${VEIL_ROOT}/docker-compose.testpack.yml"

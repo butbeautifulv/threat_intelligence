@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MCP = ROOT / ".external/hexstrike-ai-master/hexstrike_mcp.py"
 CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 LIVE = ROOT / "engage/serve/catalog/tools.live.yaml"
-OUT = ROOT / "docs/engage-mcp-runner-triangle.csv"
+OUT = ROOT / "docs/engage/engage-mcp-runner-triangle.csv"
 LIST_BIN = ROOT / "scripts/engage/list-runner-binaries.sh"
 
 

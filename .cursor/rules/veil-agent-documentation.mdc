@@ -16,12 +16,12 @@ Documentation is part of the **agent chain**, not an optional cleanup. After cod
 | **[AGENTS.md](../../AGENTS.md)** | New `make test-*` targets, workflow steps, layer rules |
 | **[CONTRIBUTING.md](../../CONTRIBUTING.md)** | Contributor test matrix, doc expectations |
 | **[.github/repo-description.txt](../../.github/repo-description.txt)** | One-line GitHub summary (~350 chars); then `make sync-github-metadata` |
-| **Runtime docs** (`docs/threatintel-runtime.md`, `docs/engage-runtime.md`) | Ports, env vars, compose overlays, smokes |
-| **Contracts** (`docs/ingest-contract.md`, `docs/schemas/`) | `pkg/harvest`, `pkg/commit` wire changes |
-| **Platform / deploy** ([docs/platform-closed-loop-pilot.md](../../docs/platform-closed-loop-pilot.md), [docs/deploy-platform-hybrid.md](../../docs/deploy-platform-hybrid.md)) | Bus, loop smokes, TF/Ansible/Helm |
-| **Parity / audit** (`docs/engage-*.md`, CSV matrices) | Routes, catalog, MCP triangle changes |
-| **Engage hardening** ([docs/engage-hardening.md](../../docs/engage-hardening.md)) | Runner isolation, self-test, secure profile env |
-| **External frameworks** ([docs/external-security-frameworks.md](../../docs/external-security-frameworks.md)) | JCSF/DAF/OWASP mappings; update [deploy/security/veil-controls.yaml](../../deploy/security/veil-controls.yaml) when adding controls |
+| **Runtime docs** (`docs/architecture/threatintel-runtime.md`, `docs/engage/engage-runtime.md`) | Ports, env vars, compose overlays, smokes |
+| **Contracts** (`docs/contracts/ingest-contract.md`, `docs/schemas/`) | `pkg/harvest`, `pkg/commit` wire changes |
+| **Platform / deploy** ([docs/architecture/platform-closed-loop-pilot.md](../../docs/architecture/platform-closed-loop-pilot.md), [docs/deploy/deploy-platform-hybrid.md](../../docs/deploy/deploy-platform-hybrid.md)) | Bus, loop smokes, TF/Ansible/Helm |
+| **Parity / audit** (`docs/engage/`, CSV matrices) | Routes, catalog, MCP triangle changes |
+| **Engage hardening** ([docs/engage/engage-hardening.md](../../docs/engage/engage-hardening.md)) | Runner isolation, self-test, secure profile env |
+| **External frameworks** ([docs/external/external-security-frameworks.md](../../docs/external/external-security-frameworks.md)) | JCSF/DAF/OWASP mappings; update [deploy/security/veil-controls.yaml](../../deploy/security/veil-controls.yaml) when adding controls |
 
 Do **not** edit `.external/` or duplicate HexStrike prose; link to Veil docs instead.
 
@@ -97,7 +97,7 @@ Phase plan template (minimal):
 | P0 | `make test-platform-p0` — bus contracts |
 | P1 | `pkg/natsjet` — streams + `RunPullLoop` |
 | P2 | engage `target-graph`, `pkg/engage/hostnorm` |
-| P3 | [platform-closed-loop-pilot.md](../../docs/platform-closed-loop-pilot.md), `make test-platform-closed-loop` |
+| P3 | [platform-closed-loop-pilot.md](../../docs/architecture/platform-closed-loop-pilot.md), `make test-platform-closed-loop` |
 
 Master plan: [veil_platform_v3_test_then_dedup.plan.md](../plans/veil_platform_v3_test_then_dedup.plan.md).
 
@@ -110,8 +110,8 @@ Phases 24–30 on `main`; table in [engage_master_post-audit_ec180f8b.plan.md](.
 | Track | Doc / test |
 |-------|------------|
 | P4a CI | `.github/workflows/platform.yml`, `make test-platform-p0` |
-| P4b full loop | [platform-full-loop-smoke.md](../../docs/platform-full-loop-smoke.md) |
-| P5 hybrid | [deploy-platform-hybrid.md](../../docs/deploy-platform-hybrid.md), [veil_deploy_platform_p5_hybrid.plan.md](../plans/veil_deploy_platform_p5_hybrid.plan.md) |
+| P4b full loop | [platform-full-loop-smoke.md](../../docs/architecture/platform-full-loop-smoke.md) |
+| P5 hybrid | [deploy-platform-hybrid.md](../../docs/deploy/deploy-platform-hybrid.md), [veil_deploy_platform_p5_hybrid.plan.md](../plans/veil_deploy_platform_p5_hybrid.plan.md) |
 
 ## GitHub metadata sync
 

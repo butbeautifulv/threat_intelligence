@@ -22,7 +22,7 @@ isProject: false
 ## Текущее состояние
 
 - **Код Phase 12–13 уже в рабочем дереве**, но **не закоммичен** (последний коммит: `08834bb feat(engage): fourth layer...`).
-- Документация частично обновлена в прошлой сессии ([docs/engage-runtime.md](docs/engage-runtime.md), [pipeline/README.md](pipeline/README.md), greenfield plan), но **корневой [README.md](README.md)**, **[engage/README.md](engage/README.md)**, **[AGENTS.md](AGENTS.md)**, **[docs/coding-style.md](docs/coding-style.md)**, **[docs/ingest-contract.md](docs/ingest-contract.md)** и **[.cursor/rules/veil-agent-workflow.mdc](.cursor/rules/veil-agent-workflow.mdc)** не отражают полный bus и чеклисты агента.
+- Документация частично обновлена в прошлой сессии ([docs/engage/engage-runtime.md](docs/engage/engage-runtime.md), [pipeline/README.md](pipeline/README.md), greenfield plan), но **корневой [README.md](README.md)**, **[engage/README.md](engage/README.md)**, **[AGENTS.md](AGENTS.md)**, **[docs/agents/coding-style.md](docs/agents/coding-style.md)**, **[docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md)** и **[.cursor/rules/veil-agent-workflow.mdc](.cursor/rules/veil-agent-workflow.mdc)** не отражают полный bus и чеклисты агента.
 - **[versions.env](versions.env)**: `APP_VERSION=0.4.3`, `GRAPH_PACK_VERSION=v0.4.3` — согласовано с engage graph ingest.
 
 ```mermaid
@@ -55,11 +55,11 @@ flowchart LR
 
 - Исправить «Five default enabled tools» → **11 tools** в [tools.live.yaml](engage/serve/catalog/tools.live.yaml).
 - Новая секция **Events bus (Phase 13)**: `ENGAGE_EVENTS_NATS_ENABLED`, subjects `engage.events.audit` / `engage.events.finding`, [deploy/engage/compose.events.yml](deploy/engage/compose.events.yml), [pipeline/engage-events/](pipeline/engage-events/), `make test-engage-events-pipeline`, profile `graph-ingest`.
-- Ссылка на [docs/engage-runtime.md](docs/engage-runtime.md#events-bus-e2e-nats--ingest).
+- Ссылка на [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md#events-bus-e2e-nats--ingest).
 
 ## 3. Обновить ingest-contract и schemas
 
-Файлы: [docs/ingest-contract.md](docs/ingest-contract.md), [docs/schemas/commit-envelope.json](docs/schemas/commit-envelope.json) (если есть enum `kind` / `source`)
+Файлы: [docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md), [docs/schemas/commit-envelope.json](docs/schemas/commit-envelope.json) (если есть enum `kind` / `source`)
 
 Добавить секцию **engage (cross-layer, optional)**:
 
@@ -72,7 +72,7 @@ flowchart LR
 
 ## 4. Исправить coding-style (engage + NATS)
 
-Файл: [docs/coding-style.md](docs/coding-style.md)
+Файл: [docs/agents/coding-style.md](docs/agents/coding-style.md)
 
 Строка 45 сейчас неверна: `Engage | — (HTTP to veil-api only)`.
 

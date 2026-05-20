@@ -9,7 +9,7 @@ license: MIT
 
 # Veil + Karpathy guidelines
 
-Behavioral guidelines from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876), merged with Veil project rules ([AGENTS.md](../../../AGENTS.md), [docs/coding-style.md](../../../docs/coding-style.md)).
+Behavioral guidelines from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876), merged with Veil project rules ([AGENTS.md](../../../AGENTS.md), [docs/agents/coding-style.md](../../../docs/agents/coding-style.md)).
 
 **Tradeoff:** Caution over speed on non-trivial work. For trivial one-liners, use judgment.
 
@@ -42,7 +42,7 @@ Before touching code:
 
 **Minimum code that solves the phase goal. Nothing speculative.**
 
-Align with [docs/coding-style.md](../../../docs/coding-style.md): CLEAN CODE, DRY, KISS, DDD.
+Align with [docs/agents/coding-style.md](../../../docs/agents/coding-style.md): CLEAN CODE, DRY, KISS, DDD.
 
 - No features beyond the **phase plan** deliverables.
 - No abstractions for single-use code; no extra configurability unless the plan asks.
@@ -184,7 +184,7 @@ Each error response should leave the repo slightly better:
 
 ```text
 You are a Veil implementer on branch engage/phase-NN-slug.
-Read: AGENTS.md, docs/coding-style.md, .cursor/skills/veil-karpathy-guidelines/SKILL.md,
+Read: AGENTS.md, docs/agents/coding-style.md, .cursor/skills/veil-karpathy-guidelines/SKILL.md,
        <phase-plan-path>.
 Follow Karpathy 1–4 within phase scope only.
 On any error: 5 Whys + Gemba Kaizen fix + Kaizen note (1% improvement); no guess-and-check loops.

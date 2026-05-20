@@ -10,4 +10,4 @@ Veil does **not** require a Hugging Face token for CI. Use:
 | Paper examples (public) | `fixtures/paper-examples/` | Scorer + level format (Fig. 1) |
 | Full 466 tasks | HF gated / manual JSONL | Optional local only |
 
-Docs: [docs/agent-evaluation-gaia.md](../../docs/agent-evaluation-gaia.md).
+Docs: [docs/agents/agent-evaluation-gaia.md](../../docs/agents/agent-evaluation-gaia.md).

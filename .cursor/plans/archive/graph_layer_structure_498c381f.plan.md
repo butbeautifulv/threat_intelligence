@@ -3,7 +3,7 @@ name: graph layer structure
 overview: Привести слой knowledge/ к кодстайлу (cmd → internal → connector), разделив write-path (NATS ingest) и read-path (api+mcp) на два Go-модуля внутри knowledge/, с общим connector для Neo4j. Каталог knowledge/ не переименовываем; repo pkg/* — только wire-типы.
 todos:
   - id: doc-graph-semantics
-    content: "docs/coding-style.md: ingest pack + serve pack + connector, dependency diagram"
+    content: "docs/agents/coding-style.md: ingest pack + serve pack + connector, dependency diagram"
     status: completed
   - id: doc-graph-readme
     content: "graph/README.md: новое дерево ingest/, serve/, connector/"
@@ -141,7 +141,7 @@ flowchart TB
   usecase --> repopkg
 ```
 
-Правила (как в [`docs/coding-style.md`](docs/coding-style.md)):
+Правила (как в [`docs/agents/coding-style.md`](docs/agents/coding-style.md)):
 
 - `domain` — без Bolt, NATS, HTTP
 - `usecase` — без subject strings / Cypher
@@ -218,9 +218,9 @@ graph/
 
 | ID | Действие |
 |----|----------|
-| `doc-graph-semantics` | В [`docs/coding-style.md`](docs/coding-style.md): секция Graph = ingest pack + serve pack + connector; диаграмма зависимостей |
+| `doc-graph-semantics` | В [`docs/agents/coding-style.md`](docs/agents/coding-style.md): секция Graph = ingest pack + serve pack + connector; диаграмма зависимостей |
 | `doc-graph-readme` | Обновить [`knowledge/README.md`](knowledge/README.md): дерево `ingest/`, `serve/`, `connector/` |
-| `doc-runtime-paths` | Проверить [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — пути бинарей без изменения имён сервисов compose |
+| `doc-runtime-paths` | Проверить [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md) — пути бинарей без изменения имён сервисов compose |
 
 ---
 

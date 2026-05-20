@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Preflight: verify a HexStrike-style toolset exists on PATH for client-native Engage.
-# Does not install packages. See docs/engage-client-dependencies.md
+# Does not install packages. See docs/engage/engage-client-dependencies.md
 # Profiles match scripts/ops/engage-tools-packages.yaml (requires PyYAML for dynamic list).
 set -euo pipefail
 
@@ -182,5 +182,5 @@ if ((${#MISSING[@]} == 0)); then
 fi
 
 echo "preflight-client-tools: profile=${PROFILE} missing on PATH: ${MISSING[*]}" >&2
-echo "Install: docs/engage-install-linux.md / docs/engage-client-dependencies.md" >&2
+echo "Install: docs/engage/engage-install-linux.md / docs/engage/engage-client-dependencies.md" >&2
 exit 1

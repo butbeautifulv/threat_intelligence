@@ -14,4 +14,4 @@ else
   git clone --depth 1 "${URL}" "${DEST}"
 fi
 echo "[clone-agent-store] ok: ${DEST}"
-echo "See docs/external-agent-store.md — reference only, do not run community agents in CI/prod."
+echo "See docs/agents/external-agent-store.md — reference only, do not run community agents in CI/prod."

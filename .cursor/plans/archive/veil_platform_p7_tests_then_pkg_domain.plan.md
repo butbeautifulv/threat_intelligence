@@ -89,7 +89,7 @@ isProject: false
 - `make test-platform-p7` = `test-pkg-shared` + `test-pkg-domain` + layer unit targets (без full-loop Docker).
 - `scripts/test/lib/unit.sh` — общие хелперы: `assertJSON`, `readFixture`, `skipNoGo`.
 - Baseline JSON в `eval/fixtures/` или `*/testdata/` для envelope round-trip (не дублировать GAIA).
-- В `CONTRIBUTING.md` / `docs/coding-style.md` — правило: новый `pkg/*` или `domain/*` → `*_test.go` в том же PR.
+- В `CONTRIBUTING.md` / `docs/agents/coding-style.md` — правило: новый `pkg/*` или `domain/*` → `*_test.go` в том же PR.
 
 **DoD:**
 
@@ -242,7 +242,7 @@ pkg/
 **Шаги:**
 
 1. Добавить `pkg/ti/validate` — перенести дублирующие проверки из scrape/graph domain.
-2. Документировать mapping: `docs/domain-contour.md` (таблица type → layer adapter).
+2. Документировать mapping: `docs/architecture/domain-contour.md` (таблица type → layer adapter).
 3. **Не** переносить NVD parse (`pipeline/pkg/nvd` остаётся pipeline-only).
 
 **DoD:** `make test-pkg-domain`; zero cross-layer imports; schemas/docs ссылка на pkg SOT.
@@ -278,7 +278,7 @@ pkg/
 
 - GitHub Actions: `test-platform-p7` на PR touching `pkg/`, `*/domain/`, `*/usecase/`.
 - Optional: `-coverprofile` upload; fail if `pkg/*` coverage < 80%.
-- Обновить `AGENTS.md`, `docs/coding-style.md` § Domain package paths → pkg SOT.
+- Обновить `AGENTS.md`, `docs/agents/coding-style.md` § Domain package paths → pkg SOT.
 - Master plan P6 (c–g) **после** P7i-ti или параллельно только non-domain batches.
 
 **DoD:** PR checklist item «domain change → pkg test»; critic rule in `veil-agent-critic.mdc`.
@@ -358,6 +358,6 @@ make test-engage          # после P7g
 | P7e | `platform/p7e-graph-ingest-tests` | done — merged `3f06963` |
 | P7f | `platform/p7f-graph-serve-tests` | done — merged `9c2cec8` |
 | P7g | `platform/p7g-engage-tests` | done — merged `c723e6d` |
-| P7h | `platform/p7h-pkg-domain-sot` | done — `pkg/ti/{validate,ids,normalize}`, docs/domain-contour.md |
+| P7h | `platform/p7h-pkg-domain-sot` | done — `pkg/ti/{validate,ids,normalize}`, docs/architecture/domain-contour.md |
 | P7i | `platform/p7i-*` | done — ti/vuln/lola + appsec + engage report/job/tool → pkg |
 | P7j | `platform/p7j-ci-enforce` | done — `platform-p7.yml`, coding-style, critic, CONTRIBUTING |

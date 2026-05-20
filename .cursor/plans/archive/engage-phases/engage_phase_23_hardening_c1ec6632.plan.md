@@ -53,8 +53,8 @@ flowchart LR
 |----|----------------|
 | **R117** | [`scripts/test/smoke-veil-engage-stack-ci.sh`](scripts/test/smoke-veil-engage-stack-ci.sh) (new), [`.github/workflows/engage.yml`](.github/workflows/engage.yml), [`deploy/engage/compose.veil-stack.yml`](deploy/engage/compose.veil-stack.yml) |
 | **R118** | [`config/security.go`](engage/serve/internal/config/security.go), [`command/runner.go`](engage/serve/internal/usecase/command/runner.go), [`components/api.go`](engage/serve/internal/components/api.go), [`deploy/profiles/secure-engage.env`](deploy/profiles/secure-engage.env), smoke scripts |
-| **R119** | [`.github/workflows/engage.yml`](.github/workflows/engage.yml) или graph workflow, [`docs/engage-runtime.md`](docs/engage-runtime.md), [`.cursor/rules/veil-ingest-graph-version.mdc`](.cursor/rules/veil-ingest-graph-version.mdc) |
-| **R120** | [`.cursor/plans/engage_layer_greenfield_9d048eec.plan.md`](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md), [`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md) |
+| **R119** | [`.github/workflows/engage.yml`](.github/workflows/engage.yml) или graph workflow, [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md), [`.cursor/rules/veil-ingest-graph-version.mdc`](.cursor/rules/veil-ingest-graph-version.mdc) |
+| **R120** | [`.cursor/plans/engage_layer_greenfield_9d048eec.plan.md`](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md), [`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) |
 
 **Не в scope:** публикация graph pack на GitHub; правки `.external/`; обязательный benchmark в PR CI (остаётся `make test-engage-benchmark` локально/nightly).
 
@@ -84,7 +84,7 @@ flowchart LR
    - `run: make test-engage-veil-stack-ci` (или env `ENGAGE_CI_VEIL_STACK=1` в существующем скрипте)
    - Path filters уже включают `smoke-veil-engage-stack.sh` — добавить новый скрипт
 
-**Не комбинировать** `compose.events.yml` (standalone NATS) с `compose.veil-stack.yml` — см. [engage-runtime.md](docs/engage-runtime.md).
+**Не комбинировать** `compose.events.yml` (standalone NATS) с `compose.veil-stack.yml` — см. [engage-runtime.md](docs/engage/engage-runtime.md).
 
 ---
 
@@ -113,7 +113,7 @@ AllowRawCommand bool // false when ENGAGE_ENV=prod or ENGAGE_DENY_RAW_COMMAND=1
 
 1. Дождаться Keycloak healthy + engage-api.
 2. **Без токена:** `POST /api/jobs` или `GET /api/tools` → expect **401** (при `AUTH_ENABLED=1`).
-3. **С токеном:** получить JWT (Keycloak master realm: password grant или documented lab client из [`docs/auth-keycloak.md`](docs/auth-keycloak.md)) → `GET /health` или `POST /api/jobs` → **200**.
+3. **С токеном:** получить JWT (Keycloak master realm: password grant или documented lab client из [`docs/deploy/auth-keycloak.md`](docs/deploy/auth-keycloak.md)) → `GET /health` или `POST /api/jobs` → **200**.
 4. Fail (не SKIP) если auth включён, но 401 не приходит без токена.
 
 Опционально: вынести в `make test-engage-keycloak` и добавить в **weekly** workflow (рядом с `engage-secure.yml`) — не блокировать каждый PR из-за Keycloak startup time (~4 min).
@@ -124,7 +124,7 @@ AllowRawCommand bool // false when ENGAGE_ENV=prod or ENGAGE_DENY_RAW_COMMAND=1
 
 - `POST /api/command` с `{"command":"id"}` (или другой non-catalog binary) → expect `success: false` и сообщение allowlist (при `ENGAGE_ENV=prod` из secure profile).
 
-Документировать в [`docs/engage-runtime.md`](docs/engage-runtime.md) таблицу env:
+Документировать в [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) таблицу env:
 
 | Variable | Lab | Secure (`compose.secure.yml`) |
 |----------|-----|-------------------------------|
@@ -145,7 +145,7 @@ AllowRawCommand bool // false when ENGAGE_ENV=prod or ENGAGE_DENY_RAW_COMMAND=1
    - Скрипт уже сравнивает `knowledge/ingest`, `pkg/harvest`, `pkg/commit`, `docs/schemas` vs `versions.env`.
    - На PR base = `main`; fork PRs — document fallback `HEAD~1` (уже в скрипте).
 
-2. Обновить [`docs/engage-runtime.md`](docs/engage-runtime.md) / [`CONTRIBUTING.md`](CONTRIBUTING.md): engage PRs, затрагивающие ingest, требуют `make bump-graph-patch` + `check-graph-version`.
+2. Обновить [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) / [`CONTRIBUTING.md`](CONTRIBUTING.md): engage PRs, затрагивающие ingest, требуют `make bump-graph-patch` + `check-graph-version`.
 
 3. **Не bump** `versions.env` в Phase 23, если ingest schema не менялась (R119 — процесс, не релиз pack).
 
@@ -184,7 +184,7 @@ AllowRawCommand bool // false when ENGAGE_ENV=prod or ENGAGE_DENY_RAW_COMMAND=1
 
 ### Parity doc
 
-[`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md): строка CI — `engage-veil-stack` job; secure raw command; ссылка на master DoD checklist.
+[`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md): строка CI — `engage-veil-stack` job; secure raw command; ссылка на master DoD checklist.
 
 ---
 

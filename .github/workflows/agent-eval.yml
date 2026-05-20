@@ -7,8 +7,8 @@ on:
       - 'eval/gaia/**'
       - 'scripts/eval/**'
       - 'deploy/eval/**'
-      - 'docs/agent-evaluation-gaia.md'
-      - 'docs/external-agent-store.md'
+      - 'docs/agents/agent-evaluation-gaia.md'
+      - 'docs/agents/external-agent-store.md'
       - 'deploy/security/veil-controls.yaml'
       - '.github/workflows/agent-eval.yml'
   pull_request:
@@ -16,8 +16,8 @@ on:
       - 'eval/gaia/**'
       - 'scripts/eval/**'
       - 'deploy/eval/**'
-      - 'docs/agent-evaluation-gaia.md'
-      - 'docs/external-agent-store.md'
+      - 'docs/agents/agent-evaluation-gaia.md'
+      - 'docs/agents/external-agent-store.md'
       - 'deploy/security/veil-controls.yaml'
       - '.github/workflows/agent-eval.yml'
 

@@ -67,4 +67,4 @@ make test-engage-runner-full-smoke
 | `engage-python-install` | `--env p11c-smoke --package requests` → `engage-python-install: ok` |
 | `engage-python-exec` | `--env p11c-smoke --script "print('hello …')"` → stdout contains hello line |
 
-Docs: [docs/engage-tools.md](../../docs/engage-tools.md) · [docs/engage-runtime.md](../../docs/engage-runtime.md)
+Docs: [docs/engage/engage-tools.md](../../docs/engage/engage-tools.md) · [docs/engage/engage-runtime.md](../../docs/engage/engage-runtime.md)

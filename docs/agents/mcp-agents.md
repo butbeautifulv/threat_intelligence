@@ -9,7 +9,7 @@ Veil exposes **two MCP servers** for agents — keep them separate. **Tool execu
 
 Do not merge offensive tool execution into the graph MCP process.
 
-**Unified edge (P12):** operators and remote agents may use **one TLS hostname** with path-based routing. HTTP MCP uses **`/mcp/graph`** (graph read) and **`/mcp/engage`** (tool exec); stdio remains **two processes**. Full path map, scale variables, and Neo4j cluster profile: [platform-unified-access.md](platform-unified-access.md).
+**Unified edge (P12):** operators and remote agents may use **one TLS hostname** with path-based routing. HTTP MCP uses **`/mcp/graph`** (graph read) and **`/mcp/engage`** (tool exec); stdio remains **two processes**. Full path map, scale variables, and Neo4j cluster profile: [platform-unified-access.md](../architecture/platform-unified-access.md).
 
 ---
 
@@ -141,7 +141,7 @@ Example (DFIR):
 
 Then `playbook_get` with `id` from results (e.g. `acquiring-disk-image-with-dd-and-dcfldd`).
 
-Regenerate: `make corpus-import` (dev, from `.external/`) then `make skills-index`. Mappings SOT: [pkg/playbook/corpus/mappings/](../pkg/playbook/corpus/mappings/). See [external-cybersecurity-skills.md](external-cybersecurity-skills.md), [cyber-domain-model.md](cyber-domain-model.md).
+Regenerate: `make corpus-import` (dev, from `.external/`) then `make skills-index`. Mappings SOT: [pkg/playbook/corpus/mappings/](../pkg/playbook/corpus/mappings/). See [external-cybersecurity-skills.md](../playbooks/external-cybersecurity-skills.md), [cyber-domain-model.md](../architecture/cyber-domain-model.md).
 
 Legacy (deprecated): `ti_list_kinds`, `ti_get_nodes_by_kind`, `ti_search`.
 
@@ -170,7 +170,7 @@ export MCP_HTTP_ENABLED=1
 
 **Direct (dev):** `POST http://localhost:8091/mcp`, `GET /health`.
 
-**Unified edge (prod / remote):** `POST https://<veil-host>/mcp/graph` (nginx strips `/graph` to upstream `/mcp`). Engage: `POST https://<veil-host>/mcp/engage`. See [platform-unified-access.md](platform-unified-access.md).
+**Unified edge (prod / remote):** `POST https://<veil-host>/mcp/graph` (nginx strips `/graph` to upstream `/mcp`). Engage: `POST https://<veil-host>/mcp/engage`. See [platform-unified-access.md](../architecture/platform-unified-access.md).
 
 Remote client (direct port): [mcp.remote.json.example](../examples/mcp/mcp.remote.json.example).
 
@@ -274,9 +274,9 @@ Full engage API/runtime variables: [engage-runtime.md](engage-runtime.md).
 
 ## Related
 
-- [platform-unified-access.md](platform-unified-access.md) — single TLS hostname, `/v1` + `/api` + MCP paths, scale 4/8/16
+- [platform-unified-access.md](../architecture/platform-unified-access.md) — single TLS hostname, `/v1` + `/api` + MCP paths, scale 4/8/16
 - [engage-runtime.md](engage-runtime.md) — engage API, runner modes, ports
-- [external-hexstrike.md](external-hexstrike.md) — MIT reference in `.external/` (superseded by engage layer)
+- [external-hexstrike.md](../external/external-hexstrike.md) — MIT reference in `.external/` (superseded by engage layer)
 - [auth-keycloak.md](auth-keycloak.md) — Keycloak, RBAC
-- [deploy-secure.md](deploy-secure.md) — production hardening
-- [threatintel-runtime.md](threatintel-runtime.md) — compose, ports
+- [deploy-secure.md](../deploy/deploy-secure.md) — production hardening
+- [threatintel-runtime.md](../architecture/threatintel-runtime.md) — compose, ports

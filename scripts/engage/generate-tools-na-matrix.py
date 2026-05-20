@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate docs/engage-tools-na-matrix.md — execution status for every catalog tool."""
+"""Generate docs/engage/engage-tools-na-matrix.md — execution status for every catalog tool."""
 from __future__ import annotations
 
 import argparse
@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
 LIVE = ROOT / "engage/serve/catalog/tools.live.yaml"
-OUT = ROOT / "docs/engage-tools-na-matrix.md"
+OUT = ROOT / "docs/engage/engage-tools-na-matrix.md"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from runner_binaries import RUNNER_BINARIES  # noqa: E402

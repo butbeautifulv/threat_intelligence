@@ -88,7 +88,7 @@ type ScrapeDeps struct {
 - Один раз: `scrapepub.ConnectJetStreamAndStream`, `feeds.OpenLedgerFromEnv`, `feeds.NewClient` (cache root из `SCRAPE_CACHE_DIR` или per-source env позже)
 - Для каждого зарегистрированного `Source` — свой `RawPublisher` (subject из env, см. ниже)
 - `Registry.RunAll(ctx, deps)` — как сейчас, но с реальными deps
-- SIGINT/SIGTERM + `errgroup` ([docs/coding-style.md](docs/coding-style.md))
+- SIGINT/SIGTERM + `errgroup` ([docs/agents/coding-style.md](docs/agents/coding-style.md))
 
 **Регистрация источников** — `factory.RegisterAll() []Source` или `factory.SourcesFor(names []string)`:
 
@@ -176,7 +176,7 @@ docker compose --profile scrape up -d scrape-worker pipeline-worker ingest-worke
 ## 6. Документация (минимум)
 
 - [`ingest/discovery/README.md`](ingest/discovery/README.md) — `SCRAPE_SOURCES`, `scrape-worker`
-- [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — env `SCRAPE_SOURCES`, сервис `scrape-worker`
+- [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md) — env `SCRAPE_SOURCES`, сервис `scrape-worker`
 - [`scrapers/README.md`](scrapers/README.md) — пометка: DS через `scrape-worker`; legacy `ds` cmd оставить как thin wrapper **или** удалить после миграции (предпочтительно thin wrapper 5 строк → `factory.Run` для локальных `go run`)
 
 ---

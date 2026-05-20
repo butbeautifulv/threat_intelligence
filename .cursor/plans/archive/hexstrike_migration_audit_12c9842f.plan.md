@@ -3,7 +3,7 @@ name: HexStrike Migration Audit
 overview: "\"Подтверждение переноса HexStrike на Go-архитектуру Veil Engage (R0–R120): behavioral parity высокий, execution parity частичный (52/150 tools). План систематического аудита с автоматизацией, классификацией N/A и приоритизированным backlog для оставшихся пробелов.\""
 todos:
   - id: audit-gates
-    content: "Этап 1: прогнать все make test-engage-* gates; создать docs/engage-audit-report.md с результатами"
+    content: "Этап 1: прогнать все make test-engage-* gates; создать docs/engage/engage-audit-report.md с результатами"
     status: completed
   - id: audit-route-matrix
     content: "Этап 2: scripts/engage/check-route-parity.py + make test-engage-route-parity; секция Route parity в engage-legacy-parity.md"
@@ -27,7 +27,7 @@ isProject: false
 
 ## Вердикт: перенос архитектуры подтверждён
 
-**Целевая модель достигнута:** четвёртый слой [engage/](engage/) заменяет монолит Python ([`.external/hexstrike-ai-master/`](.external/hexstrike-ai-master/)) по схеме «capabilities parity», не line-by-line port — это зафиксировано в [engage_hexstrike_master](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md) и [external-hexstrike.md](docs/external-hexstrike.md).
+**Целевая модель достигнута:** четвёртый слой [engage/](engage/) заменяет монолит Python ([`.external/hexstrike-ai-master/`](.external/hexstrike-ai-master/)) по схеме «capabilities parity», не line-by-line port — это зафиксировано в [engage_hexstrike_master](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md) и [external-hexstrike.md](docs/external/external-hexstrike.md).
 
 ```mermaid
 flowchart TB
@@ -56,7 +56,7 @@ flowchart TB
 
 | Критерий мастер-DoD | Статус | Доказательство |
 |---------------------|--------|----------------|
-| 150 MCP имён + bridge tools | **OK** | [`check-catalog-parity.sh`](scripts/engage/check-catalog-parity.sh); [`engage-legacy-parity.md`](docs/engage-legacy-parity.md) |
+| 150 MCP имён + bridge tools | **OK** | [`check-catalog-parity.sh`](scripts/engage/check-catalog-parity.sh); [`engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) |
 | Intelligence / workflows / CTF / BB / CVE HTTP | **OK** | [`router.go`](engage/serve/internal/transport/httpserver/router.go) + usecase-пакеты |
 | Graph write + read | **OK** | events pipeline; `target-timeline`; veil-stack CI |
 | CI (unit, parity, events, veil-stack, secure) | **OK** | [`.github/workflows/engage.yml`](.github/workflows/engage.yml), [`engage-secure.yml`](.github/workflows/engage-secure.yml) |
@@ -129,7 +129,7 @@ flowchart TB
 | Tool matrix CI | effectiveness ≥0.85 | best-effort ≥15 | Поднять `ENGAGE_TOOL_MATRIX_STRICT`; чинить red tools (ARGS, binary, timeout) |
 | `binary: api` entries | in-process в Python | 2 в catalog | Убедиться что все `binary: api` в [`DOCUMENTED_GENERIC`](scripts/engage/extract-legacy-catalog.py) |
 
-**Не портировать в runner:** ghidra, burpsuite, metasploit GUI, angr (тяжёлые) — **N/A** с причиной в [`engage-tools.md`](docs/engage-tools.md).
+**Не портировать в runner:** ghidra, burpsuite, metasploit GUI, angr (тяжёлые) — **N/A** с причиной в [`engage-tools.md`](docs/engage/engage-tools.md).
 
 ### P1 — Behavioral depth (средний приоритет)
 
@@ -177,7 +177,7 @@ make test-engage-veil-stack-ci
 make test-engage-benchmark          # timing table artifact
 ```
 
-**Выход:** `docs/engage-audit-report.md` (новый) — таблица gate → pass/fail/skip.
+**Выход:** `docs/engage/engage-audit-report.md` (новый) — таблица gate → pass/fail/skip.
 
 ### Этап 2 — Route matrix (новый скрипт, 1 PR)
 
@@ -191,7 +191,7 @@ make test-engage-benchmark          # timing table artifact
 3. Вывод: `implemented` | `na_unified_tool` | `na_out_of_scope` | `missing`
 4. CI: `make test-engage-route-parity` (fail только на `missing` без записи в parity doc)
 
-Обновить [`engage-legacy-parity.md`](docs/engage-legacy-parity.md): секция **«Route parity matrix»** с полным списком `missing` / `N/A`.
+Обновить [`engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md): секция **«Route parity matrix»** с полным списком `missing` / `N/A`.
 
 ### Этап 3 — MCP ↔ catalog ↔ runner triangle (1 PR)
 
@@ -208,7 +208,7 @@ make test-engage-benchmark          # timing table artifact
 ### Этап 4 — Документация и закрытие планов (1 PR)
 
 1. Обновить [мастер-план](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md) frontmatter: Phase 16–23 → `completed`; обновить gap matrix L104–126
-2. Добавить в greenfield ссылку на [`engage-audit-report.md`](docs/engage-audit-report.md)
+2. Добавить в greenfield ссылку на [`engage-audit-report.md`](docs/engage/engage-audit-report.md)
 3. Закрыть R2–R6 (уже в greenfield) — без нового кода
 4. Definition of Done мастер-плана: чеклист с галочками
 
@@ -248,7 +248,7 @@ flowchart TD
 
 - [ ] Все automated gates green (или documented SKIP)
 - [ ] `check-route-parity.py`: **0 unexplained `missing`**
-- [ ] [`engage-legacy-parity.md`](docs/engage-legacy-parity.md) содержит полную матрицу 156 routes (implemented / N/A + reason)
+- [ ] [`engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) содержит полную матрицу 156 routes (implemented / N/A + reason)
 - [ ] Мастер-план и greenfield согласованы по статусу Phase 16–23
 - [ ] Backlog P0/P1/P2 зафиксирован с owner (Phase 24+ или ops)
 - [ ] Подтверждение пользователю: **архитектура перенесена**; **execution parity** — отдельный трек P0
@@ -259,8 +259,8 @@ flowchart TD
 
 | Документ | Роль в аудите |
 |----------|----------------|
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | Living checklist — обновить после этапа 2 |
-| [engage-tools.md](docs/engage-tools.md) | Runner matrix, N/A tools |
-| [mcp-agents.md](docs/mcp-agents.md) | Dual MCP workflow |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | Living checklist — обновить после этапа 2 |
+| [engage-tools.md](docs/engage/engage-tools.md) | Runner matrix, N/A tools |
+| [mcp-agents.md](docs/agents/mcp-agents.md) | Dual MCP workflow |
 | [`.cursor/plans/engage/`](.cursor/plans/engage/) | 34 phase plans — reference only |
 | [phase_7_closure_audit](.cursor/plans/engage/phase_7_closure_audit_44334bf3.plan.md) | Прецедент формального audit close |

@@ -39,7 +39,7 @@ flowchart LR
 
 | Область | HexStrike | Engage сейчас |
 |---------|-----------|---------------|
-| `POST /api/payloads/generate` | buffer/cyclic/random → file | **missing** ([parity doc](docs/engage-legacy-parity.md)) |
+| `POST /api/payloads/generate` | buffer/cyclic/random → file | **missing** ([parity doc](docs/engage/engage-legacy-parity.md)) |
 | `IntelligentErrorHandler` | classify, retry, alt tools | **нет** |
 | Job cancel / list | implicit in pool | только `POST/GET /api/jobs/{id}` |
 | Worker throughput | `ProcessPool` + threads | file worker, **1 job за poll** |
@@ -160,7 +160,7 @@ flowchart LR
 |------|----------|
 | [engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) | Секция **Phase 6** R25–R29, todos `engage-r25`…`engage-r29` |
 | Новый `engage_phase_6_r25_*.plan.md` | Детальный слайс R25 (по аналогии с phase_5_slice) |
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | payloads → implemented; telemetry expanded |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | payloads → implemented; telemetry expanded |
 | **Не редактировать** | `engage_phase_5_a7b78921.plan.md` |
 
 ---

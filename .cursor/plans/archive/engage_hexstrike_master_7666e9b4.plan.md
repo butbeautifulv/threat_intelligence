@@ -40,8 +40,8 @@ isProject: false
 **Ограничения (сохраняем):**
 - Не править `.external/`
 - Нет cross-import между `scrape` / `pipeline` / `graph` / `engage`
-- Graph только через `veil-api`; write path через NATS `engage.events.*` → `ingest.engage.*` ([docs/ingest-contract.md](docs/ingest-contract.md))
-- Стиль: [docs/coding-style.md](docs/coding-style.md) (четвёртый runtime context), [docs/engage-runtime.md](docs/engage-runtime.md), [AGENTS.md](AGENTS.md)
+- Graph только через `veil-api`; write path через NATS `engage.events.*` → `ingest.engage.*` ([docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md))
+- Стиль: [docs/agents/coding-style.md](docs/agents/coding-style.md) (четвёртый runtime context), [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md), [AGENTS.md](AGENTS.md)
 
 ```mermaid
 flowchart TB
@@ -89,7 +89,7 @@ flowchart TB
 | R85 | Расширенный [`recovery`](engage/serve/internal/usecase/recovery/handler.go) + backoff в [`tools/run.go`](engage/serve/internal/usecase/tools/run.go) |
 | R86 | `make test-engage-decision-parity`, required `engage-events-e2e`, CI paths knowledge/pipeline |
 
-Документация: секция Decision engine в [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md).
+Документация: секция Decision engine в [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md).
 
 ### Архитектурный выигрыш vs legacy
 
@@ -139,7 +139,7 @@ flowchart TB
 | R88 | `EngageTarget` name lookup в graph connector |
 | R89 | `MAY_RELATE_TO` traversal в correlate/timeline |
 
-**DoD:** smoke на veil-stack; [docs/mcp-agents.md](docs/mcp-agents.md) workflow engage→read.
+**DoD:** smoke на veil-stack; [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md) workflow engage→read.
 
 ---
 
@@ -155,7 +155,7 @@ flowchart TB
 | R93 | MCP intel bridge + catalog category `ctf`; playbooks `playbooks/ctf.yaml` |
 | R94 | Тесты: table-driven workflows; smoke 1 CTF web + 1 pwn path |
 
-**DoD:** все 7 legacy CTF routes в [engage-legacy-parity.md](docs/engage-legacy-parity.md); agent может пройти «CTF web challenge» end-to-end.
+**DoD:** все 7 legacy CTF routes в [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md); agent может пройти «CTF web challenge» end-to-end.
 
 ---
 
@@ -180,7 +180,7 @@ flowchart TB
 
 | ID | Deliverable |
 |----|-------------|
-| R99 | Runner image: tier-1 tools (top effectiveness per type) — расширить [`engage-runner`](deploy/engage/) Dockerfile; документировать matrix в [docs/engage-tools.md](docs/engage-tools.md) |
+| R99 | Runner image: tier-1 tools (top effectiveness per type) — расширить [`engage-runner`](deploy/engage/) Dockerfile; документировать matrix в [docs/engage/engage-tools.md](docs/engage/engage-tools.md) |
 | R100 | `tools.live.yaml` → 50+ enabled в lab; `enable-tools-on-path.sh` по категориям |
 | R101 | ARGS_TEMPLATES: 150/150 non-generic или documented infer; `make catalog-engage` gate в CI |
 | R102 | Per-tool smoke matrix: все tools с score ≥0.85 в effectiveness (best-effort skip) |
@@ -271,9 +271,9 @@ flowchart LR
 
 ## Definition of Done (мастер-план)
 
-Аудит 2026-05-16: [docs/engage-audit-report.md](docs/engage-audit-report.md).
+Аудит 2026-05-16: [docs/engage/engage-audit-report.md](docs/engage/engage-audit-report.md).
 
-- [x] [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md): 156 HTTP routes — implemented / N/A (`make test-engage-route-parity`, [engage-route-parity.csv](docs/engage-route-parity.csv))
+- [x] [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md): 156 HTTP routes — implemented / N/A (`make test-engage-route-parity`, [engage-route-parity.csv](docs/engage/engage-route-parity.csv))
 - [x] 151 MCP names + 8 bridge tools in catalog; parity CI green
 - [x] CTF + Bug Bounty: структурный parity (phased workflows, HTTP + MCP bridge)
 - [x] `make test-engage` + parity + decision-parity + catalog-args + route-parity green
@@ -292,9 +292,9 @@ flowchart LR
 
 | Doc | Роль |
 |-----|------|
-| [docs/external-hexstrike.md](docs/external-hexstrike.md) | Reference-only architecture |
-| [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) | Living checklist — обновлять каждую фазу |
-| [docs/engage-tools.md](docs/engage-tools.md) | Catalog / ARGS / CI matrix |
+| [docs/external/external-hexstrike.md](docs/external/external-hexstrike.md) | Reference-only architecture |
+| [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | Living checklist — обновлять каждую фазу |
+| [docs/engage/engage-tools.md](docs/engage/engage-tools.md) | Catalog / ARGS / CI matrix |
 | [docs/engage-reports.md](docs/engage-reports.md) | Reports |
-| [docs/mcp-agents.md](docs/mcp-agents.md) | Dual MCP + cross-layer |
-| [docs/coding-style.md](docs/coding-style.md) | Layering + engage constraints |
+| [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md) | Dual MCP + cross-layer |
+| [docs/agents/coding-style.md](docs/agents/coding-style.md) | Layering + engage constraints |

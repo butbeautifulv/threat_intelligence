@@ -102,4 +102,4 @@ Do not weaken engage hardening for eval.
 
 - [external-agent-store.md](external-agent-store.md)
 - [engage-agentic-threats.md](engage-agentic-threats.md)
-- [mcp-agents.md](mcp-agents.md)
+- [mcp-agents.md](../agents/mcp-agents.md)

@@ -71,6 +71,6 @@ Graph-pack crawl profiles (`full-enrich`, `fast-rich`, `incremental-pack`, `full
 ## Related docs
 
 - [deploy/README.md](../README.md) — per-layer compose layout
-- [docs/deploy-secure.md](../../docs/deploy-secure.md) — secure knowledge/engage runtime
-- [docs/platform-unified-access.md](../../docs/platform-unified-access.md) — unified edge paths and RBAC
-- [docs/engage-runtime.md](../../docs/engage-runtime.md) — engage overlays and ports
+- [docs/deploy/deploy-secure.md](../../docs/deploy/deploy-secure.md) — secure knowledge/engage runtime
+- [docs/architecture/platform-unified-access.md](../../docs/architecture/platform-unified-access.md) — unified edge paths and RBAC
+- [docs/engage/engage-runtime.md](../../docs/engage/engage-runtime.md) — engage overlays and ports

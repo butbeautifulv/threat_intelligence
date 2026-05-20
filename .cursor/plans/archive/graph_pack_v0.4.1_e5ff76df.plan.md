@@ -68,7 +68,7 @@ flowchart TB
 |------|--------------|------------|-------|
 | **Scrape** | локально только (напр. CVE case) | сырой NVD JSON → `KindVulnNVDPage` | crawl ledger + `content_key` |
 | **Pipeline NED** | [`pipeline/pkg/ti/normalize`](pipeline/pkg/ti/normalize), NVD в [`pipeline/ned/.../vuln/enrich`](pipeline/ned/internal/sources/vuln/enrich/nvd.go) | CWE/CPE на vuln upserts | [`pipeline/ned/internal/dedup`](pipeline/ned/internal/dedup) |
-| **Graph ingest** | **не** re-normalize ([`docs/ingest-contract.md`](docs/ingest-contract.md)) | MERGE `HAS_CWE`, `AFFECTS`→`CPE` | MERGE по `idempotency_key` |
+| **Graph ingest** | **не** re-normalize ([`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md)) | MERGE `HAS_CWE`, `AFFECTS`→`CPE` | MERGE по `idempotency_key` |
 | **Housekeeping** | — | — | [`scripts/housekeeping/graph-dedup-cleanup.sh`](scripts/housekeeping/graph-dedup-cleanup.sh) — параллельные rels в Neo4j |
 
 Профиль crawl: [`deploy/profiles/fast-rich.env`](deploy/profiles/fast-rich.env) — 7 источников, `NVD_MAX_PAGES=1` (~2k CVE), `GRAPH_PACK_SKIP=1` (чистая Neo4j без скачивания старого pack).

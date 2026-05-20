@@ -139,7 +139,7 @@ du -h data/neo4j_user_export/graph.cypher data/neo4j_user_export/releases/threat
 1. `gh release create v0.3.2-graph-pack ...`
 2. [`deploy/knowledge/docker/graph-bootstrap.sh`](deploy/knowledge/docker/graph-bootstrap.sh) → URL v0.3.2
 3. [`docker-compose.testpack.yml`](docker-compose.testpack.yml) → `threat-intel-graph-v0.3.2.zip`
-4. [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — секция «fast-rich profile» + v0.3.2
+4. [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md) — секция «fast-rich profile» + v0.3.2
 
 ---
 

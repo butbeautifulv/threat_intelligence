@@ -24,10 +24,10 @@ todos:
     content: "Wave G (PR7): smoke-engage-red-vs-blue.sh — агрессивный fuzz victim через attacker"
     status: completed
   - id: wave-h-make-docs
-    content: "Wave H (PR8): Makefile targets + docs/engage-install-linux.md + ссылки в README"
+    content: "Wave H (PR8): Makefile targets + docs/engage/engage-install-linux.md + ссылки в README"
     status: completed
   - id: wave-i-field-bugs
-    content: "Wave I: полевой прогон у пользователя + docs/engage-red-blue-bugs.md"
+    content: "Wave I: полевой прогон у пользователя + docs/engage/engage-red-blue-bugs.md"
     status: pending
   - id: wave-j-fix-slices
     content: "Wave J: микро-PR фиксы по багам + viability sign-off"
@@ -52,7 +52,7 @@ isProject: false
 - Victim слушает **localhost** или private lab network; не публиковать в интернет без edge hardening.
 - «Супер-агрессивный» = **автоматизированный abuse** против **вашего** victim-инстанса: malformed JSON, oversized bodies, concurrency burst, auth fuzz (если включён auth на B), pathological catalog parameters, rate-limit stress — **не** реальные illegal атаки на третьи стороны.
 
-Документировать это в первом PR (Wave A): [`docs/engage-red-blue-lab.md`](docs/engage-red-blue-lab.md) (новый).
+Документировать это в первом PR (Wave A): [`docs/engage/engage-red-blue-lab.md`](docs/engage/engage-red-blue-lab.md) (новый).
 
 ## Мультиагентная модель (роли и ветки)
 
@@ -90,15 +90,15 @@ Harness может быть:
 
 | # | PR | Содержимое (минимальный diff) | Зависит от |
 |---|----|-------------------------------|------------|
-| 1 | `engage/install-p01-lab-legal` | Новый `docs/engage-red-blue-lab.md` + 1–2 ссылки из `engage/README.md` | — |
+| 1 | `engage/install-p01-lab-legal` | Новый `docs/engage/engage-red-blue-lab.md` + 1–2 ссылки из `engage/README.md` | — |
 | 2 | `engage/install-p02-packages-yaml` | Только [`scripts/ops/engage-tools-packages.yaml`](scripts/ops/engage-tools-packages.yaml) (данные) | PR1 |
 | 3 | `engage/install-p03-install-skeleton` | [`scripts/ops/install-engage-host-tools.sh`](scripts/ops/install-engage-host-tools.sh): detect PM, `--plan`, `--yes` no-op install stubs | PR2 |
 | 4 | `engage/install-p04-preflight` | Расширение [`scripts/engage/preflight-client-tools.sh`](scripts/engage/preflight-client-tools.sh) (профили / `--json`) | PR3 |
 | 5 | `engage/lab-p05-victim-instance` | [`scripts/engage/run-client-native-api-instance.sh`](scripts/engage/run-client-native-api-instance.sh) или расширение существующего launcher: роль `victim`, порты, workdir | PR4 |
 | 6 | `engage/lab-p06-attacker-instance` | launcher роли `attacker` (отдельные порты/env) | PR5 |
 | 7 | `engage/lab-p07-red-harness` | [`scripts/test/smoke-engage-red-vs-blue.sh`](scripts/test/smoke-engage-red-vs-blue.sh): агрессивные сценарии против `ENGAGE_VICTIM_URL` | PR6 |
-| 8 | `engage/install-p08-make-docs` | `Makefile` targets + [`docs/engage-install-linux.md`](docs/engage-install-linux.md) + `scripts/README.md` | PR7 |
-| 9 | **Field** | Полевой прогон у пользователя; [`docs/engage-red-blue-bugs.md`](docs/engage-red-blue-bugs.md) | PR8 |
+| 8 | `engage/install-p08-make-docs` | `Makefile` targets + [`docs/engage/engage-install-linux.md`](docs/engage/engage-install-linux.md) + `scripts/README.md` | PR7 |
+| 9 | **Field** | Полевой прогон у пользователя; [`docs/engage/engage-red-blue-bugs.md`](docs/engage/engage-red-blue-bugs.md) | PR8 |
 | 10+ | `engage/fix-pXX-<slug>` | Один баг = один PR | поле |
 
 **Параллельность:** после merge **PR4** можно параллелить **PR5** и **док-патч** только если файлы не пересекаются; при конфликте — строго по таблице.
@@ -107,7 +107,7 @@ Harness может быть:
 
 ### Wave A — PR1: legal + multi-agent runbook
 
-- Новый `docs/engage-red-blue-lab.md`: роли агентов, ветки, merge order, safety.
+- Новый `docs/engage/engage-red-blue-lab.md`: роли агентов, ветки, merge order, safety.
 - Ссылка из [`engage/README.md`](engage/README.md).
 
 ### Wave B — PR2: package map
@@ -135,11 +135,11 @@ Harness может быть:
 
 ### Wave I — Field + bug log
 
-- Пользователь выполняет сценарий на своей машине; заполняется `docs/engage-red-blue-bugs.md`.
+- Пользователь выполняет сценарий на своей машине; заполняется `docs/engage/engage-red-blue-bugs.md`.
 
 ### Wave J — Fix slices + viability
 
-- Микро-PR на каждый баг; финальный [`docs/engage-client-native-viability.md`](docs/engage-client-native-viability.md): Go/No-Go.
+- Микро-PR на каждый баг; финальный [`docs/engage/engage-client-native-viability.md`](docs/engage/engage-client-native-viability.md): Go/No-Go.
 
 ## Критерии Go/No-Go (жизнеспособность)
 
@@ -148,7 +148,7 @@ Harness может быть:
 
 ## Связь с существующими артефактами
 
-- [`docs/engage-client-dependencies.md`](docs/engage-client-dependencies.md) — остаётся источником списков инструментов.
+- [`docs/engage/engage-client-dependencies.md`](docs/engage/engage-client-dependencies.md) — остаётся источником списков инструментов.
 - [`scripts/engage/run-client-native-api.sh`](scripts/engage/run-client-native-api.sh) — не ломать; instance-скрипт может обёрнуть его с env.
 
 ## Примечание для манифеста субагентов

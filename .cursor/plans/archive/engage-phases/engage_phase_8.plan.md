@@ -145,7 +145,7 @@ flowchart LR
 | Файл | Действие |
 |------|----------|
 | [engage_layer_greenfield_9d048eec.plan.md](engage_layer_greenfield_9d048eec.plan.md) | Phase 8 table: R35–R39 → done по мере PR |
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | stealth/comprehensive, export-report, queue modes |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | stealth/comprehensive, export-report, queue modes |
 | **Не редактировать** | `engage_phase_7_*.plan.md`, `phase_7_closure_audit_*.plan.md` |
 
 ---

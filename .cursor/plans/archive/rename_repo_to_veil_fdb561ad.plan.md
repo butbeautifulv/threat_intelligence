@@ -88,7 +88,7 @@ make test-scrape test-pipeline test-graph
 | Файл | Что менять |
 |------|------------|
 | [README.md](README.md), [deploy/README.md](deploy/README.md) | Ссылки на releases (`github.com/.../veil/releases/...`) |
-| [docs/coding-style.md](docs/coding-style.md) | Строка про Go module path |
+| [docs/agents/coding-style.md](docs/agents/coding-style.md) | Строка про Go module path |
 | [docs/schemas/*.json](docs/schemas/), [docs/graph-pack-manifest.schema.json](docs/graph-pack-manifest.schema.json) | `$id` URLs |
 | [deploy/knowledge/docker/graph-bootstrap.sh](deploy/knowledge/docker/graph-bootstrap.sh) | `DEFAULT_PACK_URL` |
 | [LICENSE](LICENSE) | Имя проекта, если упоминается старое |

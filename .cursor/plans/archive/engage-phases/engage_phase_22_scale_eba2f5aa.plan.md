@@ -244,8 +244,8 @@ func (s *Service) ProbeRateLimit(ctx context.Context, subject, target string) Ra
 
 ## Docs
 
-- [`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md) — R113 env, R114 parsers, R115 benchmark, R116 pre-flight
-- [`docs/engage-runtime.md`](docs/engage-runtime.md) — `ENGAGE_MAX_PARALLEL` vs `ENGAGE_WORKER_CONCURRENCY`, benchmark workflow
+- [`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) — R113 env, R114 parsers, R115 benchmark, R116 pre-flight
+- [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) — `ENGAGE_MAX_PARALLEL` vs `ENGAGE_WORKER_CONCURRENCY`, benchmark workflow
 - [`docs/engage-reports.md`](docs/engage-reports.md) — ffuf/sqlmap finding shapes в assessment
 
 ---

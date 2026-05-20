@@ -39,21 +39,21 @@ controls:
     frameworks: [daf:T-DEV-SRC-1-1, owasp-agentic:deploy]
     level: L2
     verify: [engage_deny_raw_in_secure_profile, code_command_metachar_guard]
-    docs: [docs/engage-hardening.md, docs/engage-agentic-threats.md]
+    docs: [docs/engage/engage-hardening.md, docs/engage/engage-agentic-threats.md]
 
   - id: VEIL-ENG-002
     title: Runner isolation (Docker sandbox)
     frameworks: [jcsf:container:L2, daf-mlso:T-PROD-RUN-ML-1-1, daf:T-CODE-IMG-2-1]
     level: L2
     verify: [engage_runner_mode_docker_in_secure_profile]
-    docs: [docs/engage-hardening.md]
+    docs: [docs/engage/engage-hardening.md]
 
   - id: VEIL-ENG-003
     title: Auth required in production (fail-closed)
     frameworks: [daf:T-DEV-SCM-3-3, jcsf:manifests:L2]
     level: L2
     verify: [engage_require_auth_in_secure_profile, engage_mcp_auth_strict]
-    docs: [docs/deploy-secure.md, docs/auth-keycloak.md]
+    docs: [docs/deploy/deploy-secure.md, docs/deploy/auth-keycloak.md]
 
   - id: VEIL-ENG-004
     title: MCP/HTTP hardening headers and body limits
@@ -81,14 +81,14 @@ controls:
     frameworks: [daf-mlso:T-PROD-RUN-ML-2-2, owasp-agentic:deploy]
     level: L2
     verify: [code_target_guard, engage_target_guard_in_secure_profile]
-    docs: [docs/engage-agentic-threats.md]
+    docs: [docs/engage/engage-agentic-threats.md]
 
   - id: VEIL-ENG-008
     title: Audit trail for tool runs
     frameworks: [daf:T-DEV-CICD-1-2, owasp-agentic:monitor]
     level: L1
     verify: [code_audit_logger_present]
-    docs: [docs/engage-runtime.md]
+    docs: [docs/engage/engage-runtime.md]
 
   # --- Platform / containers (P5 hybrid) ---
   - id: VEIL-PLT-001
@@ -96,14 +96,14 @@ controls:
     frameworks: [jcsf:manifests:L2, jcsf:nodes:L1, daf:T-PREPROD-MANSEC-2-1]
     level: L2
     verify: [repo_deploy_hybrid_layout]
-    docs: [docs/deploy-platform-hybrid.md]
+    docs: [docs/deploy/deploy-platform-hybrid.md]
 
   - id: VEIL-PLT-002
     title: Secure graph overlay (TLS edge, no published Neo4j)
     frameworks: [jcsf:runtime:L2, daf:T-PREPROD-MANSEC-0-1]
     level: L2
     verify: [compose_graph_secure_overlay_exists]
-    docs: [docs/deploy-secure.md]
+    docs: [docs/deploy/deploy-secure.md]
 
   - id: VEIL-PLT-003
     title: CI hardening gates (engage + platform)
@@ -118,7 +118,7 @@ controls:
     frameworks: [daf:T-ADI-ART-4-4, daf:T-CODE-SPC-3-3]
     level: L2
     verify: [script_graph_pack_checksum]
-    docs: [docs/graph-pack.md]
+    docs: [docs/contracts/graph-pack.md]
 
   # --- Agent evaluation (GAIA + registry) ---
   - id: VEIL-EVAL-001
@@ -126,11 +126,11 @@ controls:
     frameworks: [owasp-red-team-ai:evaluate, gaia:level1]
     level: L1
     verify: [eval_gaia_pilot_harness, workflow_agent_eval_pilot]
-    docs: [docs/agent-evaluation-gaia.md]
+    docs: [docs/agents/agent-evaluation-gaia.md]
 
   - id: VEIL-EVAL-002
     title: GAIA splits not in git; arXiv methodology primary, HF optional
     frameworks: [gaia:contamination-policy, gaia:arxiv-2311.12983]
     level: L2
     verify: [eval_gaia_data_gitignored]
-    docs: [docs/agent-evaluation-gaia.md, deploy/eval/gaia.env.example, eval/gaia/paper/system-prompt.txt]
+    docs: [docs/agents/agent-evaluation-gaia.md, deploy/eval/gaia.env.example, eval/gaia/paper/system-prompt.txt]

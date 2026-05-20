@@ -112,8 +112,8 @@ pipeline/pkg/
 | [`pipeline/ned/internal/sources/vuln/enrich/nvd.go`](pipeline/ned/internal/sources/vuln/enrich/nvd.go) | импорты → `pipeline/pkg/nvd/...` |
 | [`pipeline/ned/internal/sources/vuln/transform_test.go`](pipeline/ned/internal/sources/vuln/transform_test.go) | `testdata` путь → `pipeline/pkg/nvd/parse/testdata/...` |
 | [`Makefile`](Makefile) | `test-pipeline`: nvd tests под `pipeline/pkg` |
-| [`docs/coding-style.md`](docs/coding-style.md) | NED enrich / harvest: «NVD parse только в pipeline» |
-| [`docs/ontology-appsec.md`](docs/ontology-appsec.md), [`README.md`](README.md) | ссылки `pkg/nvd` → `pipeline/pkg/nvd` |
+| [`docs/agents/coding-style.md`](docs/agents/coding-style.md) | NED enrich / harvest: «NVD parse только в pipeline» |
+| [`docs/architecture/ontology-appsec.md`](docs/architecture/ontology-appsec.md), [`README.md`](README.md) | ссылки `pkg/nvd` → `pipeline/pkg/nvd` |
 
 Проверка: `make test-scrape test-pipeline` (graph не затронут).
 
@@ -127,7 +127,7 @@ pipeline/pkg/
 
 ### 2.1 Контракт `commit` (документация + комментарии)
 
-В [`pkg/commit/envelope.go`](pkg/commit/envelope.go) (или [`docs/ingest-contract.md`](docs/ingest-contract.md)):
+В [`pkg/commit/envelope.go`](pkg/commit/envelope.go) (или [`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md)):
 
 - Для `KindTIIoC`, `KindTICampaign`, `KindTICluster`, `KindTIActor`, `KindTIReport`: payload **уже нормализован NED**; graph не должен менять `value`/`type`/tags.
 - `IdempotencyKey` для TI IOC = `ti:ioc:<canonical>` ([`TIIoCIdempotencyKey`](pkg/commit/envelope.go)) — источник truth для Neo4j node `id`.
@@ -171,7 +171,7 @@ pipeline/pkg/
 | Graph TI | unit/integration: upsert с pre-normalized IOC → MERGE по `idempotency_key`, без второго normalize |
 | Regression | `make test-pipeline test-graph`; smoke `scripts/smoke_scrape_e2e.sh` для TI path |
 
-Обновить PR checklist в [`docs/coding-style.md`](docs/coding-style.md): «graph ingest не импортирует `ti/normalize`».
+Обновить PR checklist в [`docs/agents/coding-style.md`](docs/agents/coding-style.md): «graph ingest не импортирует `ti/normalize`».
 
 ---
 

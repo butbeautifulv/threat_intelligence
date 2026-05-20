@@ -2,7 +2,7 @@
 # Usage:
 #   docker compose -f deploy/knowledge/compose.yml \
 #     -f deploy/knowledge/compose.neo4j-cluster.yml up -d
-# See docs/neo4j-cluster.md.
+# See docs/deploy/neo4j-cluster.md.
 
 x-neo4j-cluster-env: &neo4j_cluster_env
   NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"

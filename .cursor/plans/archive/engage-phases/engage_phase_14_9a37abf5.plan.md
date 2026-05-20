@@ -65,7 +65,7 @@ flowchart LR
 | Engage client | [veilgraph/client.go](engage/serve/internal/client/veilgraph/client.go): `Search(ctx, "engage", q)`; в [graph_intel.go](engage/serve/internal/usecase/intelligence/graph_intel.go) добавить `engage` в цикл `CorrelateThreatIntelligence` / `DiscoverAttackChains` |
 | MCP | [veil-mcp](knowledge/serve/cmd/mcp) — категория `engage` в `list_categories` / search tools без нового бинарника |
 | Tests | `knowledge/serve` router tests: `/v1/categories` содержит `engage`; search smoke с mock Neo4j или testcontainers |
-| Docs | [docs/threatintel-runtime.md](docs/threatintel-runtime.md), [docs/mcp-agents.md](docs/mcp-agents.md), [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) |
+| Docs | [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md), [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md), [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) |
 
 **Out of scope R69:** отдельный `GET /v1/engage/*` REST namespace — достаточно категории `engage` в categorical API.
 
@@ -82,7 +82,7 @@ flowchart LR
 | [smoke-engage-events-pipeline.sh](scripts/test/smoke-engage-events-pipeline.sh) | Поднять `--profile graph-ingest`; после tool run: `cypher-shell` `MATCH (r:EngageToolRun) RETURN count(r) AS c` ≥ 1 |
 | Compose | [compose.events.yml](deploy/engage/compose.events.yml) — убедиться, что `ingest_worker` ждёт Neo4j healthy и подписан на `ingest.>` |
 | CI | [.github/workflows/engage.yml](.github/workflows/engage.yml): при наличии docker — fail если Neo4j count = 0 (сейчас WARN на NATS CLI) |
-| Makefile | Краткая заметка в target help / [engage-runtime.md](docs/engage-runtime.md) |
+| Makefile | Краткая заметка в target help / [engage-runtime.md](docs/engage/engage-runtime.md) |
 
 ---
 
@@ -129,7 +129,7 @@ flowchart LR
 | Item | Детали |
 |------|--------|
 | Release | Опубликовать `veil-graph-v0.4.3.zip` если ещё нет на GitHub ([publish-graph-pack.sh](scripts/release/publish-graph-pack.sh)) |
-| Agent docs | [docs/mcp-agents.md](docs/mcp-agents.md): workflow «run tool on engage → query engage category on veil-mcp» |
+| Agent docs | [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md): workflow «run tool on engage → query engage category on veil-mcp» |
 | Greenfield | Секция Phase 14 в [engage_layer_greenfield_9d048eec.plan.md](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md); создать `engage_phase_14.plan.md` (отдельный файл, **не** править phase 13 plan) |
 
 ---

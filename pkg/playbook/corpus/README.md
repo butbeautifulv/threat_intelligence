@@ -19,4 +19,4 @@ Procedure bodies (754 `SKILL.md` files) live under [corpus/anthropic-cybersecuri
 | veil-api / veil-mcp | `playbook_*` and framework read tools |
 | Neo4j (optional) | `CyberSkill` + `HAS_PLAYBOOK` from index seed |
 
-Human overview of the security domain model: [docs/cyber-domain-model.md](../../docs/cyber-domain-model.md).
+Human overview of the security domain model: [docs/architecture/cyber-domain-model.md](../../docs/architecture/cyber-domain-model.md).

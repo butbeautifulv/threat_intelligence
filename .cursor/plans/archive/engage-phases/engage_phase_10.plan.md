@@ -110,7 +110,7 @@ flowchart LR
   - Counters: `engage_tool_runs_total{tool,status}`, `engage_jobs_total{status}`, `engage_audit_events_total`
   - Gauges: `engage_jobs_pending`, `engage_cache_entries`
   - Route `GET /metrics` (behind `ENGAGE_METRICS_ENABLED=1`)
-- Wire в [components/api.go](engage/serve/internal/components/api.go); document env in [docs/engage-runtime.md](docs/engage-runtime.md)
+- Wire в [components/api.go](engage/serve/internal/components/api.go); document env in [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md)
 - CI: unit tests for metric registration; webhook mock server test
 
 **Не в scope:** Grafana dashboards; Splunk HEC full schema.
@@ -151,7 +151,7 @@ flowchart LR
 | Файл | Действие |
 |------|----------|
 | [engage_layer_greenfield_9d048eec.plan.md](engage_layer_greenfield_9d048eec.plan.md) | Секция **Phase 10** R45–R48 |
-| [engage-legacy-parity.md](docs/engage-legacy-parity.md) | API audit, metrics, full patterns |
+| [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) | API audit, metrics, full patterns |
 | **Не редактировать** | `engage_phase_9_ed05c68b.plan.md`, `engage_phase_8.plan.md` |
 
 ---

@@ -31,12 +31,12 @@ isProject: false
 |---------|----------------|
 | [AGENTS.md](AGENTS.md) + [veil-agent-parallel-branches.mdc](.cursor/rules/veil-agent-parallel-branches.mdc) | Master plan в `.cursor/plans/`, ветка `feat/cleanup-phase-NN-slug` / `docs/cleanup-…`, **один коммит на срез**, merge в `main` после critic APPROVE |
 | [veil-agent-critic.mdc](.cursor/rules/veil-agent-critic.mdc) | Orchestrator = critic; implementer не мержит |
-| [docs/coding-style.md](docs/coding-style.md) + [domain-contour.md](docs/domain-contour.md) | Domain SOT уже в `pkg/*/domain`; слои — только adapters |
+| [docs/agents/coding-style.md](docs/agents/coding-style.md) + [domain-contour.md](docs/architecture/domain-contour.md) | Domain SOT уже в `pkg/*/domain`; слои — только adapters |
 | `.external/` | **Не трогать** |
 | Deprecated MCP tools (`ti_list_kinds`, …) | **Оставить** (ваш выбор); только warn в логах |
 | Активные Engage-треки | [engage_mcp_client_native_execution_master.plan.md](.cursor/plans/engage_mcp_client_native_execution_master.plan.md), [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — cleanup-ветки **не меняют** catalog/router/`tools.yaml` без отдельного согласования |
 
-**Уже сделано ранее:** P6/P7 domain в `pkg`, rename `harvest`/`commit` ([archive/pkg_rename_and_audit](.cursor/plans/archive/pkg_rename_and_audit_f5fedb76.plan.md)), doc hub [engage-lab-pentest.md](docs/engage-lab-pentest.md). **Не повторять** полный `pkg_dry_refactor` (scrapev1/ingestv1) — он устарел; актуальные имена `pkg/harvest`, `pkg/commit`.
+**Уже сделано ранее:** P6/P7 domain в `pkg`, rename `harvest`/`commit` ([archive/pkg_rename_and_audit](.cursor/plans/archive/pkg_rename_and_audit_f5fedb76.plan.md)), doc hub [engage-lab-pentest.md](docs/engage/engage-lab-pentest.md). **Не повторять** полный `pkg_dry_refactor` (scrapev1/ingestv1) — он устарел; актуальные имена `pkg/harvest`, `pkg/commit`.
 
 ```mermaid
 flowchart TD
@@ -76,7 +76,7 @@ flowchart TD
 **Известные кандидаты (подтвердить в R0):**
 
 - [`engage/serve/cmd/browser-agent/main.go`](engage/serve/cmd/browser-agent/main.go) — stub exit 1, browser в `discovery/cmd/browser-agent`
-- [`pipeline/pkg/ti/normalize/`](pipeline/pkg/ti/normalize/) — thin forwarder → [`pkg/ti/normalize`](pkg/ti/normalize/) ([domain-contour.md](docs/domain-contour.md#deprecations))
+- [`pipeline/pkg/ti/normalize/`](pipeline/pkg/ti/normalize/) — thin forwarder → [`pkg/ti/normalize`](pkg/ti/normalize/) ([domain-contour.md](docs/architecture/domain-contour.md#deprecations))
 - [`pkg/exec/sandbox.go`](pkg/exec/sandbox.go) — deprecated, не в дефолтном профиле ([engage_mcp master](.cursor/plans/engage_mcp_client_native_execution_master.plan.md))
 - Makefile aliases: `test-scrape` → `test-discovery`, [`scripts/test/smoke-scrape-e2e.sh`](scripts/test/smoke-scrape-e2e.sh) → `smoke-discovery-e2e.sh`
 
@@ -106,7 +106,7 @@ flowchart TD
 | Phase | Branch | Изменения | DoD |
 |-------|--------|-----------|-----|
 | **D1** | `feat/cleanup-d1-normalize-shim` | Удалить `pipeline/pkg/ti/normalize`; импорты → `pkg/ti/normalize`; обновить `pipeline/ned/README.md` | `make test-pipeline` |
-| **D2** | `feat/cleanup-d2-domain-audit` | Пройти transform/ingest adapters: убедиться, что entity types только из `pkg/*/domain` (не дублировать structs); зафиксировать в [domain-contour.md](docs/domain-contour.md) если найдены исключения | `make test-platform-p7` |
+| **D2** | `feat/cleanup-d2-domain-audit` | Пройти transform/ingest adapters: убедиться, что entity types только из `pkg/*/domain` (не дублировать structs); зафиксировать в [domain-contour.md](docs/architecture/domain-contour.md) если найдены исключения | `make test-platform-p7` |
 | **D3** | `feat/cleanup-d3-engage-stubs` | Удалить `engage/serve/cmd/browser-agent`; `rg` ссылок; **не** трогать catalog | `make test-engage` |
 | **D4** | `feat/cleanup-d4-exec-sandbox` | Удалить или вынести в `pkg/exec/legacy/` неиспользуемый sandbox (только если R0 + `rg` = 0 prod imports); согласовать с engage client-native master | `make test-pkg-shared`, `make test-engage` |
 
@@ -135,7 +135,7 @@ flowchart TD
 - Обновить master plan (status `done`, merge SHA)
 - [README.md](README.md) / [CONTRIBUTING.md](CONTRIBUTING.md) — test matrix, удалённые `make` targets
 - [scripts/README.md](scripts/README.md) — таблица layout
-- [domain-contour.md](docs/domain-contour.md) — убрать deprecation `pipeline/pkg/ti/normalize` после D1
+- [domain-contour.md](docs/architecture/domain-contour.md) — убрать deprecation `pipeline/pkg/ti/normalize` после D1
 - `make sync-github-metadata` если меняется [.github/repo-description.txt](.github/repo-description.txt)
 
 ---
@@ -179,7 +179,7 @@ Verdict: APPROVE | REQUEST_CHANGES
 - `.external/**`
 - Удаление deprecated MCP tools в knowledge/serve
 - Изменение Engage 158/158 / `tools.live.yaml` / P9f matrix
-- Переименование `discovery`→`Discovery` в путях (отдельный P8 track в [platform-architecture.md](docs/platform-architecture.md))
+- Переименование `discovery`→`Discovery` в путях (отдельный P8 track в [platform-architecture.md](docs/architecture/platform-architecture.md))
 - Root `go.work`
 
 ---

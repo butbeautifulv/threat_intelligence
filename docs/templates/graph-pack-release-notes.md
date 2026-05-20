@@ -15,7 +15,7 @@ Neo4j **5.x** export for [Veil](https://github.com/butbeautifulv/veil). Manifest
 2. **Local ZIP:** `GRAPH_PACK_FILE=/path/to/veil-graph-${GRAPH_PACK_VERSION}.zip` or bind-mount via [docker-compose.testpack.yml](../../docker-compose.testpack.yml).
 3. **Script:** `./scripts/graph-pack/import.sh` with the ZIP path.
 
-Env reference: [docs/threatintel-runtime.md](../threatintel-runtime.md#graph-bootstrap-usage-mode).
+Env reference: [docs/architecture/threatintel-runtime.md](../threatintel-runtime.md#graph-bootstrap-usage-mode).
 
 ### Ingest changes since previous pack
 

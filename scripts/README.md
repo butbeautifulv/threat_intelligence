@@ -33,15 +33,15 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [smoke/mcp-smoke.sh](smoke/mcp-smoke.sh) | MCP stdio smoke against local Neo4j |
 | [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`, `client-native` defaults) |
 | [engage/run-client-native-api.sh](engage/run-client-native-api.sh) | Engage HTTP API on host (`go run ./cmd/api`) |
-| [engage/run-client-native-api-instance.sh](engage/run-client-native-api-instance.sh) | Lab victim/attacker instance (ports + isolated dirs); see [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) |
+| [engage/run-client-native-api-instance.sh](engage/run-client-native-api-instance.sh) | Lab victim/attacker instance (ports + isolated dirs); see [docs/engage/engage-red-blue-lab.md](../docs/engage/engage-red-blue-lab.md) |
 | [engage/preflight-client-tools.sh](engage/preflight-client-tools.sh) | PATH check for core pentest CLIs (`--json`, `--emit-missing`, `--emit-install-plan`) |
-| [eval/pentest-veil-mcp.sh](eval/pentest-veil-mcp.sh) | Lab HTTP+MCP self-pentest vs Veil API + Engage — [docs/engage-lab-pentest.md](../docs/engage-lab-pentest.md) |
+| [eval/pentest-veil-mcp.sh](eval/pentest-veil-mcp.sh) | Lab HTTP+MCP self-pentest vs Veil API + Engage — [docs/engage/engage-lab-pentest.md](../docs/engage/engage-lab-pentest.md) |
 | [ops/install-engage-host-tools.sh](ops/install-engage-host-tools.sh) | Multi-distro package install from `engage-tools-packages.yaml` (`--policy` supports repo/upstream/Kali/full-auto) |
 | [ops/install-engage-kali-fallback.sh](ops/install-engage-kali-fallback.sh) | Configure pinned Kali apt fallback allowlist for Debian/Ubuntu |
 | [ops/engage-tools-sources.yaml](ops/engage-tools-sources.yaml) | Source provenance for missing tools (Kali pages, trackers, upstream repos, fallback methods) |
 | [ops/engage-tools-packages.yaml](ops/engage-tools-packages.yaml) | Tool → distro package mapping for installer |
 | [ops/generate-engage-tools-sources.py](ops/generate-engage-tools-sources.py) | Generate full source map entries from 158-tool catalog + curated overrides |
-| [engage/generate-tool-install-coverage.py](engage/generate-tool-install-coverage.py) | Build `docs/engage-tool-install-coverage.md` coverage matrix |
+| [engage/generate-tool-install-coverage.py](engage/generate-tool-install-coverage.py) | Build `docs/engage/engage-tool-install-coverage.md` coverage matrix |
 | [engage/extract-legacy-catalog.py](engage/extract-legacy-catalog.py) | Regenerate `engage/serve/catalog/tools.yaml` |
 | [engage/enable-catalog-by-category.sh](engage/enable-catalog-by-category.sh) | Write `tools.enabled.yaml` when binaries on PATH |
 | [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 158 catalog names vs legacy MCP reference |
@@ -59,7 +59,7 @@ smoke_skip_no_docker
 smoke_wait_http "${API_URL}/health" 120 "veil-api" 2
 ```
 
-Deploy profiles: [deploy/profiles/](../deploy/profiles/) (`smoke-minimal`, `secure-graph`). Runtime: [docs/threatintel-runtime.md](../docs/threatintel-runtime.md). Secure deploy: [docs/deploy-secure.md](../docs/deploy-secure.md). Graph pack workflow: [docs/graph-pack.md](../docs/graph-pack.md).
+Deploy profiles: [deploy/profiles/](../deploy/profiles/) (`smoke-minimal`, `secure-graph`). Runtime: [docs/architecture/threatintel-runtime.md](../docs/architecture/threatintel-runtime.md). Secure deploy: [docs/deploy/deploy-secure.md](../docs/deploy/deploy-secure.md). Graph pack workflow: [docs/contracts/graph-pack.md](../docs/contracts/graph-pack.md).
 
 ## Graph pack workflow
 

@@ -15,6 +15,6 @@ notes:
   - >-
     Do not use deploy/knowledge/compose.neo4j-publish.yml with this stack; secure
     overlay keeps Neo4j off the host.
-  - See docs/deploy-secure.md for TLS certs and Keycloak wiring.
+  - See docs/deploy/deploy-secure.md for TLS certs and Keycloak wiring.
 scripts:
   - scripts/test/smoke-graph-read.sh

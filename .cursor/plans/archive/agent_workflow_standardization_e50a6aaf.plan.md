@@ -60,7 +60,7 @@ GRAPH_PACK_VERSION=v0.4.0
 - [`scripts/lib/common.sh`](scripts/lib/common.sh): `source "${VEIL_ROOT}/versions.env"`; `GRAPH_PACK_DEFAULT_VERSION` берётся из файла, без хардкода `v0.4.0`.
 - [`deploy/knowledge/docker/graph-bootstrap.sh`](deploy/knowledge/docker/graph-bootstrap.sh): fallback только через `GRAPH_PACK_DEFAULT_VERSION` (уже есть), дефолт URL строится из него.
 - [`docker-compose.testpack.yml`](docker-compose.testpack.yml): путь к ZIP — `veil-graph-${GRAPH_PACK_VERSION}.zip` через env в compose или обновление скриптом bump (compose не читает `.env` из корня автоматически — bump-скрипт переписывает имя файла в yml).
-- Документация: в [`docs/graph-pack.md`](docs/graph-pack.md) и [`README.md`](README.md) — «текущий дефолт: см. `versions.env`», конкретные `v0.4.0` в примерах обновляет bump-скрипт.
+- Документация: в [`docs/contracts/graph-pack.md`](docs/contracts/graph-pack.md) и [`README.md`](README.md) — «текущий дефолт: см. `versions.env`», конкретные `v0.4.0` в примерах обновляет bump-скрипт.
 
 ```mermaid
 flowchart TD
@@ -84,7 +84,7 @@ flowchart TD
 **[`scripts/release/bump-graph-version.sh`](scripts/release/bump-graph-version.sh)** (новый):
 - Аргумент: `patch` (default) | `minor`.
 - Увеличивает `GRAPH_PACK_VERSION` в `versions.env`.
-- Обновляет: `VERSION`, `docker-compose.testpack.yml`, строки дефолта в `docs/threatintel-runtime.md`, `README.md`, `deploy/README.md` (список файлов — константа в скрипте).
+- Обновляет: `VERSION`, `docker-compose.testpack.yml`, строки дефолта в `docs/architecture/threatintel-runtime.md`, `README.md`, `deploy/README.md` (список файлов — константа в скрипте).
 - Печатает напоминание: пересобрать pack (`profile-fast-rich` → `build` → `publish`) если нужен новый ZIP на GitHub.
 
 **[`scripts/release/check-graph-version-bump.sh`](scripts/release/check-graph-version-bump.sh)** (новый):
@@ -100,7 +100,7 @@ flowchart TD
 
 ### [`AGENTS.md`](AGENTS.md) — расширить до чеклиста «конец задачи»
 
-1. Прочитать [`docs/coding-style.md`](docs/coding-style.md), соблюдать PR checklist.
+1. Прочитать [`docs/agents/coding-style.md`](docs/agents/coding-style.md), соблюдать PR checklist.
 2. Тесты по затронутым слоям: `make test-scrape|test-pipeline|test-graph`.
 3. При ingest-изменениях: `./scripts/release/bump-graph-version.sh patch` + при необходимости обновить schemas.
 4. **Commit** с осмысленным сообщением (что и зачем).
@@ -124,7 +124,7 @@ alwaysApply: false
 
 При сохранении файлов в этих путях — напоминание о bump + schemas.
 
-### [`docs/coding-style.md`](docs/coding-style.md) — секция «Agent / CI closure»
+### [`docs/agents/coding-style.md`](docs/agents/coding-style.md) — секция «Agent / CI closure»
 
 Дополнить PR checklist: `check-graph-version-bump.sh`, commit, push.
 
@@ -171,7 +171,7 @@ gh repo edit butbeautifulv/veil --description "$(tr -d '\n' < .github/repo-descr
 
 **Причина:** GitHub показывает иконку каталога только если URL заканчивается на `/` и путь — директория в репо.
 
-**Конвенция** (добавить в [`docs/coding-style.md`](docs/coding-style.md) или CONTRIBUTING):
+**Конвенция** (добавить в [`docs/agents/coding-style.md`](docs/agents/coding-style.md) или CONTRIBUTING):
 
 | Тип | Формат ссылки |
 |-----|----------------|
@@ -184,29 +184,29 @@ gh repo edit butbeautifulv/veil --description "$(tr -d '\n' < .github/repo-descr
 **[`scripts/housekeeping/lint-markdown-dir-links.sh`](scripts/housekeeping/lint-markdown-dir-links.sh)** — ripgrep по `*.md` (исключить `.cursor/plans/`), предупреждения на известные каталоги без `/`.
 
 Файлы с наибольшим числом правок:
-- [`docs/coding-style.md`](docs/coding-style.md) — `.../sources/ti` → `.../ti/`
-- [`docs/ingest-contract.md`](docs/ingest-contract.md) — `pkg/harvest`, `pkg/commit`, `discovery/harvest`, `pipeline/ned`, `graph/ingest`, `pipeline/connector`
-- [`docs/ontology-appsec.md`](docs/ontology-appsec.md)
-- [`docs/threatintel-runtime.md`](docs/threatintel-runtime.md) — `pipeline/connector`, `pkg/commit`
+- [`docs/agents/coding-style.md`](docs/agents/coding-style.md) — `.../sources/ti` → `.../ti/`
+- [`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md) — `pkg/harvest`, `pkg/commit`, `discovery/harvest`, `pipeline/ned`, `graph/ingest`, `pipeline/connector`
+- [`docs/architecture/ontology-appsec.md`](docs/architecture/ontology-appsec.md)
+- [`docs/architecture/threatintel-runtime.md`](docs/architecture/threatintel-runtime.md) — `pipeline/connector`, `pkg/commit`
 - Layer READMEs — уже в основном с `/` для `connector/`, `harvest/`; проверить `pkg/*` ссылки
 
 Исправить битую ссылку `[docs/](.)` в coding-style → `[docs/](.)` заменить на `[docs/](.)` → лучше `[docs/](.)` → **`[docs/](.)`** на **`[docs/](.)`** — фактически заменить на `[docs/](.)` → `[docs/](.)` — корректно: `[docs/](.)` → `[docs/](.)` — use `[docs/](.)` → **`[docs/](.)`** → **`[docs/](.)`** 
 
-Actually fix `[docs/](.)` to `[docs/](.)` - the link `(.)` from docs/coding-style.md points to current directory which is wrong semantics; change to `[docs/](.)` → `[docs/](.)` 
+Actually fix `[docs/](.)` to `[docs/](.)` - the link `(.)` from docs/agents/coding-style.md points to current directory which is wrong semantics; change to `[docs/](.)` → `[docs/](.)` 
 
 Better: `| **Knowledge** | [docs/](.) |` → `| **Knowledge** | [docs/](.) |` should be `[docs/](.)` → `[docs/](.)` 
 
 I'll say in plan: fix `[docs/](.)` → `[docs/](.)` or link to `docs/README.md` if we add one, else `[docs/](.)` → `[docs/](.)` 
 
-Simplest fix: `[docs/](.)` → `[docs/](.)` - from docs/coding-style.md, relative path to docs folder from within docs/ is `.` which is correct for docs folder. The issue is no trailing slash: use `[docs/](.)` → `[docs/](.)` 
+Simplest fix: `[docs/](.)` → `[docs/](.)` - from docs/agents/coding-style.md, relative path to docs folder from within docs/ is `.` which is correct for docs folder. The issue is no trailing slash: use `[docs/](.)` → `[docs/](.)` 
 
-From file `docs/coding-style.md`, link `(.)` resolves to `docs/` - OK for folder but no trailing slash. Change to `[docs/](.)` → `[docs/](.)` 
+From file `docs/agents/coding-style.md`, link `(.)` resolves to `docs/` - OK for folder but no trailing slash. Change to `[docs/](.)` → `[docs/](.)` 
 
 Use `[docs/](.)` → replace with `[docs/](.)` - I'll specify `[docs/](.)` → `[docs/](.)` in plan as `[docs/](.)` → `[docs/](.)` 
 
-Final: change to `[docs/](.)` → **`[docs/](.)`** with href **`./`** or **`../docs/`** from root perspective - from docs/coding-style.md use **`[docs/](.)`** → **`[docs/](.)`** 
+Final: change to `[docs/](.)` → **`[docs/](.)`** with href **`./`** or **`../docs/`** from root perspective - from docs/agents/coding-style.md use **`[docs/](.)`** → **`[docs/](.)`** 
 
-Actually from docs/coding-style.md the path to docs directory is `.` - for GitHub folder icon use `./` or empty - standard is `[docs/](.)` → `[docs/](.)` 
+Actually from docs/agents/coding-style.md the path to docs directory is `.` - for GitHub folder icon use `./` or empty - standard is `[docs/](.)` → `[docs/](.)` 
 
 I'll write: replace `[docs/](.)` with `[docs/](.)` where href is `./` (trailing slash for GitHub).
 

@@ -6,7 +6,7 @@ todos:
     content: "R17: создать .github/workflows/engage.yml — test-engage + test-engage-parity, path filters, Go 1.25"
     status: completed
   - id: r17-docs
-    content: "R17: docs/engage-tools.md CI section, CONTRIBUTING.md, engage/README.md"
+    content: "R17: docs/engage/engage-tools.md CI section, CONTRIBUTING.md, engage/README.md"
     status: completed
   - id: r17-greenfield
     content: "R17: engage_layer_greenfield plan — engage-r17-ci-parity done"
@@ -101,7 +101,7 @@ jobs:
 
 - Отдельный job `parity-external` с `workflow_dispatch` + documented step «clone/reference `.external` locally» **или** закоммиченный минимальный fixture `scripts/engage/fixtures/mcp-tool-names.txt` (вне scope R17 unless requested).
 
-**Рекомендация R17:** оставить skip при отсутствии `.external`; в [`docs/engage-tools.md`](docs/engage-tools.md) одна строка: «full parity requires local `.external/`».
+**Рекомендация R17:** оставить skip при отсутствии `.external`; в [`docs/engage/engage-tools.md`](docs/engage/engage-tools.md) одна строка: «full parity requires local `.external/`».
 
 ---
 
@@ -109,7 +109,7 @@ jobs:
 
 | Файл | Изменение |
 |------|-----------|
-| [`docs/engage-tools.md`](docs/engage-tools.md) | Секция **CI**: workflow `engage.yml`, что запускается, что skip без `.external` |
+| [`docs/engage/engage-tools.md`](docs/engage/engage-tools.md) | Секция **CI**: workflow `engage.yml`, что запускается, что skip без `.external` |
 | [`engage/README.md`](engage/README.md) | Badge или ссылка «CI: GitHub Actions engage workflow» (badge optional, только если repo на GitHub) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Одна строка: PR с `engage/` → CI `engage` job должен быть зелёным |
 | [`engage_layer_greenfield_9d048eec.plan.md`](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) | `engage-r17-ci-parity` → completed после merge |

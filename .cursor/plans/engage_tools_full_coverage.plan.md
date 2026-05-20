@@ -54,7 +54,7 @@ isProject: false
 - [ ] `scripts/engage/check-executable-matrix.py` — for each catalog name: `tooldispatch` classify + minimal dispatch (unit) or HTTP against test API
 - [ ] Success = `success:true` OR structured bridge stub (not `tool disabled`, not `unknown tool`)
 - [ ] `make test-engage-executable-matrix`; wire `.github/workflows/engage.yml`
-- [ ] Fail report: `docs/engage-executable-gaps.md` (auto)
+- [ ] Fail report: `docs/engage/engage-executable-gaps.md` (auto)
 
 **DoD:** gate passes 158/158 on main after P9h+i merged.
 
@@ -80,7 +80,7 @@ isProject: false
 
 **Branch:** `engage/p9i-runner-remaining-binaries`
 
-- [ ] Parse `docs/engage-tools-na-matrix.md` `runner_N/A` → install list
+- [ ] Parse `docs/engage/engage-tools-na-matrix.md` `runner_N/A` → install list
 - [ ] `deploy/engage/docker/runner.Dockerfile` + apt/pip/go; wrappers where needed
 - [ ] Extend `RUNNER_BINARIES` in `generate-tools-live.py` / `generate-tools-na-matrix.py`
 - [ ] `engage/serve/internal/runner` LookupBinary allowlist
@@ -109,8 +109,8 @@ isProject: false
 **Branch:** `engage/p9k-docs-honest-kpi`
 
 - [ ] README: three KPIs (catalog / executable / subprocess-in-runner)
-- [ ] [engage-audit-report.md](../../docs/engage-audit-report.md): amend execution row; link P9f
-- [ ] [engage-legacy-parity.md](../../docs/engage-legacy-parity.md): replace «80 enabled»
+- [ ] [engage-audit-report.md](../../docs/engage/engage-audit-report.md): amend execution row; link P9f
+- [ ] [engage-legacy-parity.md](../../docs/engage/engage-legacy-parity.md): replace «80 enabled»
 - [ ] AGENTS.md: full port = P9f gate required before claiming «HexStrike execution done»
 
 **DoD:** no doc says «113 live = full port».

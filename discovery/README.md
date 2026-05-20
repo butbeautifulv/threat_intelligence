@@ -1,6 +1,6 @@
 # Discovery layer (harvest)
 
-Part of the four-layer Veil stack — [README.md](../README.md#architecture). Architecture rules: [docs/coding-style.md](../docs/coding-style.md).
+Part of the four-layer Veil stack — [README.md](../README.md#architecture). Architecture rules: [docs/agents/coding-style.md](../docs/agents/coding-style.md).
 
 Fetches third-party feeds, records fetches in the Vitess/MySQL **ledger**, and publishes **`harvest`** envelopes to NATS **`scrape.>`**.
 
@@ -59,6 +59,6 @@ Full stack: `./scripts/ops/compose-up-full.sh` from repo root.
 
 ## Further reading
 
-- [docs/threatintel-runtime.md](../docs/threatintel-runtime.md)
-- [docs/ingest-contract.md](../docs/ingest-contract.md)
+- [docs/architecture/threatintel-runtime.md](../docs/architecture/threatintel-runtime.md)
+- [docs/contracts/ingest-contract.md](../docs/contracts/ingest-contract.md)
 - [pipeline/README.md](../pipeline/README.md) — downstream NED

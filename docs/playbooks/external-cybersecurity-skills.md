@@ -8,7 +8,7 @@
 | Skill procedures | [corpus/anthropic-cybersecurity-skills/skills/](../corpus/anthropic-cybersecurity-skills/skills/) |
 | Dev import source (gitignored) | `.external/Anthropic-Cybersecurity-Skills-main/` |
 
-Domain model: [cyber-domain-model.md](cyber-domain-model.md). Master plan: [.cursor/plans/cyber_corpus_vendor_master.plan.md](../.cursor/plans/cyber_corpus_vendor_master.plan.md).
+Domain model: [cyber-domain-model.md](../architecture/cyber-domain-model.md). Master plan: [.cursor/plans/cyber_corpus_vendor_master.plan.md](../.cursor/plans/cyber_corpus_vendor_master.plan.md).
 
 ## What Veil uses it for
 
@@ -24,8 +24,8 @@ This is **agent procedure knowledge** (when/how to investigate), not subprocess 
 
 | Artifact | Purpose |
 |----------|---------|
-| [docs/skills-index/cyber-skills.json](skills-index/cyber-skills.json) | Machine-readable metadata (generated) |
-| [docs/skills-index/README.md](skills-index/README.md) | Schema and stats |
+| [docs/skills-index/cyber-skills.json](../skills-index/cyber-skills.json) | Machine-readable metadata (generated) |
+| [docs/skills-index/README.md](../skills-index/README.md) | Schema and stats |
 | `make corpus-import` | Rsync from `.external/` into committed paths |
 | `make check-corpus-mappings` | CI: mappings SOT present + valid Navigator JSON |
 | `make skills-index` | Regenerate index from committed `corpus/.../skills` |
@@ -46,7 +46,7 @@ Bodies are read from disk using `corpus_path` in the index (under `corpus/anthro
 | `playbook_recommend_tools` | Map mentions → engage catalog tool names |
 | `playbook_ontology_subdomains` | Subdomain registry + CSF hints |
 
-See [mcp-agents.md](mcp-agents.md).
+See [mcp-agents.md](../agents/mcp-agents.md).
 
 ## HTTP API
 
@@ -86,6 +86,6 @@ Or import Cypher from `scripts/knowledge/playbook-seed.cypher` (generated with `
 
 ## Related
 
-- [external-security-frameworks.md](external-security-frameworks.md) — JCSF/DAF/OWASP
-- [domain-contour.md](domain-contour.md) — `pkg/playbook/domain`
+- [external-security-frameworks.md](../external/external-security-frameworks.md) — JCSF/DAF/OWASP
+- [domain-contour.md](../architecture/domain-contour.md) — `pkg/playbook/domain`
 - Upstream [README](../.external/Anthropic-Cybersecurity-Skills-main/README.md), [ATTACK_COVERAGE](../.external/Anthropic-Cybersecurity-Skills-main/ATTACK_COVERAGE.md)

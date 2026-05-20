@@ -216,7 +216,7 @@ def main() -> int:
         default="corpus/anthropic-cybersecurity-skills/skills",
     )
     ap.add_argument("--out", default="docs/skills-index/procedures-index.json")
-    ap.add_argument("--matrix-out", default="docs/playbook-import-matrix.md")
+    ap.add_argument("--matrix-out", default="docs/playbooks/playbook-import-matrix.md")
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
 

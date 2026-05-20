@@ -7,7 +7,7 @@ helm template veil . -f values.yaml -f values-stage.yaml \
   --set global.imageTag=v0.4.5
 ```
 
-Stateful services (Neo4j, NATS) default to Ansible+Compose data nodes — set `global.natsUrl` / `global.neo4jUri` accordingly. Prod Neo4j: Enterprise **3-core** cluster URI (`neo4j+routing://…`) per [docs/platform-unified-access.md](../../../docs/platform-unified-access.md).
+Stateful services (Neo4j, NATS) default to Ansible+Compose data nodes — set `global.natsUrl` / `global.neo4jUri` accordingly. Prod Neo4j: Enterprise **3-core** cluster URI (`neo4j+routing://…`) per [docs/architecture/platform-unified-access.md](../../../docs/architecture/platform-unified-access.md).
 
 ## Replicas and HPA
 
@@ -73,4 +73,4 @@ helm upgrade --install veil . \
   --set ingest.worker.hpa.maxReplicas=16
 ```
 
-MCP HTTP deployments and unified Ingress path routing: [docs/platform-unified-access.md](../../../docs/platform-unified-access.md).
+MCP HTTP deployments and unified Ingress path routing: [docs/architecture/platform-unified-access.md](../../../docs/architecture/platform-unified-access.md).

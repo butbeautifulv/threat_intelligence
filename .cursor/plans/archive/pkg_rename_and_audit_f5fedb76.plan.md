@@ -15,7 +15,7 @@ todos:
     content: "discovery/pkg: githubraw + proxypool; убрать из корневого pkg; discovery/go.work"
     status: completed
   - id: google-style-pass
-    content: Package docs, API surface, errors; секция Google Go Style в docs/coding-style.md
+    content: Package docs, API surface, errors; секция Google Go Style в docs/agents/coding-style.md
     status: completed
   - id: verify-tests
     content: rg на старые имена; make test-scrape test-pipeline test-graph
@@ -39,7 +39,7 @@ isProject: false
 | tidomain | harvest ti (alias) | ned ti | ingest ti |
 | tinormalize | — | ned ti | ingest ti |
 
-Правило репозитория ([`docs/coding-style.md`](docs/coding-style.md), [`AGENTS.md`](AGENTS.md)): слои **не импортируют** друг друга; общее — только через NATS + общий `pkg/`. Перенос в `discovery/pkg` возможен **только** для кода, который не нужен pipeline/graph.
+Правило репозитория ([`docs/agents/coding-style.md`](docs/agents/coding-style.md), [`AGENTS.md`](AGENTS.md)): слои **не импортируют** друг друга; общее — только через NATS + общий `pkg/`. Перенос в `discovery/pkg` возможен **только** для кода, который не нужен pipeline/graph.
 
 **Выбранные имена:** `pkg/harvest` + `pkg/commit` (NATS `scrape.>` / `ingest.>` и JSON `kind` вида `scrape_*` / `ti_*` **не меняем** — это стабильный wire-контракт; меняются путь импорта, package name, префиксы ошибок, JSON schema filenames).
 
@@ -110,8 +110,8 @@ flowchart LR
 |------|--------|
 | `docs/schemas/scrapev1-envelope.json` | `docs/schemas/harvest-envelope.json` |
 | `docs/schemas/ingestv1-envelope.json` | `docs/schemas/commit-envelope.json` |
-| [`docs/ingest-contract.md`](docs/ingest-contract.md) | harvest/commit, ссылки на `pkg/harvest`, `pkg/commit` |
-| [`docs/coding-style.md`](docs/coding-style.md) | таблицы слоёв, PR checklist |
+| [`docs/contracts/ingest-contract.md`](docs/contracts/ingest-contract.md) | harvest/commit, ссылки на `pkg/harvest`, `pkg/commit` |
+| [`docs/agents/coding-style.md`](docs/agents/coding-style.md) | таблицы слоёв, PR checklist |
 | [`AGENTS.md`](AGENTS.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`README.md`](README.md), layer READMEs | те же замены |
 | [`Makefile`](Makefile) | `test-scrape` → `pkg/harvest`; `test-pipeline`/`test-graph` → `pkg/commit` |
 
@@ -197,7 +197,7 @@ graph/go.work   → ../pkg, connector, ingest, serve
 
 ### Принципы (зафиксировать в docs)
 
-Добавить секцию **«Go style (Google)»** в [`docs/coding-style.md`](docs/coding-style.md):
+Добавить секцию **«Go style (Google)»** в [`docs/agents/coding-style.md`](docs/agents/coding-style.md):
 
 - **Clarity > cleverness** — имена и структура объясняют «что» и «почему»; комментарии про rationale, не пересказ кода ([guide: Clarity](https://google.github.io/styleguide/go/guide#clarity)).
 - **Least mechanism** — без лишних абстракций; maps/slices вместо generic «util» ([guide: Simplicity](https://google.github.io/styleguide/go/guide#simplicity)).

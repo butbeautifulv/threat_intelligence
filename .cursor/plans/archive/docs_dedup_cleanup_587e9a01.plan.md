@@ -6,7 +6,7 @@ todos:
     content: Исправить pipeline/pipeline/pkg/nvd и pkg/nvd ссылки; обновить pipeline/pkg/nvd/README.md
     status: completed
   - id: refactor-coding-style
-    content: "Упростить docs/coding-style.md: единый PR checklist, убрать дубли модулей/wire, актуализировать domain paths"
+    content: "Упростить docs/agents/coding-style.md: единый PR checklist, убрать дубли модулей/wire, актуализировать domain paths"
     status: completed
   - id: slim-entry-docs
     content: README, CONTRIBUTING, AGENTS, layer READMEs — ссылки вместо повторов
@@ -27,13 +27,13 @@ isProject: false
 
 ## Проблема
 
-Сейчас одни и те же правила (три слоя, DDD, PR checklist, NATS-контракт, compose) размазаны по [docs/coding-style.md](docs/coding-style.md) (~226 строк), [CONTRIBUTING.md](CONTRIBUTING.md), [README.md](README.md), layer READMEs и частично [docs/ingest-contract.md](docs/ingest-contract.md). Плюс **устаревшие пути** после переноса NVD в pipeline:
+Сейчас одни и те же правила (три слоя, DDD, PR checklist, NATS-контракт, compose) размазаны по [docs/agents/coding-style.md](docs/agents/coding-style.md) (~226 строк), [CONTRIBUTING.md](CONTRIBUTING.md), [README.md](README.md), layer READMEs и частично [docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md). Плюс **устаревшие пути** после переноса NVD в pipeline:
 
 | Файл | Сейчас (неверно) | Должно быть |
 |------|------------------|-------------|
 | [README.md](README.md) L36 | `pipeline/pipeline/pkg/nvd/parse` | `pipeline/pkg/nvd/parse` |
-| [docs/threatintel-runtime.md](docs/threatintel-runtime.md) L217 | `pipeline/pipeline/pkg/nvd/parse` | `pipeline/pkg/nvd/parse` |
-| [docs/ontology-appsec.md](docs/ontology-appsec.md) L16 | `pipeline/pipeline/pkg/nvd/parse` | `pipeline/pkg/nvd/parse` |
+| [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md) L217 | `pipeline/pipeline/pkg/nvd/parse` | `pipeline/pkg/nvd/parse` |
+| [docs/architecture/ontology-appsec.md](docs/architecture/ontology-appsec.md) L16 | `pipeline/pipeline/pkg/nvd/parse` | `pipeline/pkg/nvd/parse` |
 | [docs/deploy.md](docs/deploy.md) L52 | `pkg/nvd/parse` | `pipeline/pkg/nvd/parse` |
 | [pipeline/pkg/nvd/README.md](pipeline/pkg/nvd/README.md) | «used by harvest» | только pipeline NED enrich |
 
@@ -42,11 +42,11 @@ isProject: false
 ```mermaid
 flowchart TB
   subgraph canonical [Single source of truth]
-    CS[docs/coding-style.md]
-    IC[docs/ingest-contract.md]
-    RT[docs/threatintel-runtime.md]
+    CS[docs/agents/coding-style.md]
+    IC[docs/contracts/ingest-contract.md]
+    RT[docs/architecture/threatintel-runtime.md]
     DEP[deploy/README.md]
-    ONT[docs/ontology-appsec.md]
+    ONT[docs/architecture/ontology-appsec.md]
   end
   README[README.md] -->|index + quick start| canonical
   AGENTS[AGENTS.md] --> CS
@@ -60,9 +60,9 @@ flowchart TB
 
 | Документ | Единственная роль |
 |----------|-------------------|
-| [docs/coding-style.md](docs/coding-style.md) | Принципы (CLEAN/DRY/KISS/DDD), изоляция слоёв, layering, **единый PR checklist**, Go style, naming/logging |
-| [docs/ingest-contract.md](docs/ingest-contract.md) | `harvest` / `commit`, JetStream, Vitess ledger, TI/NVD wire semantics |
-| [docs/threatintel-runtime.md](docs/threatintel-runtime.md) | Compose, порты, env, сервисы, bootstrap, API/MCP, NATS |
+| [docs/agents/coding-style.md](docs/agents/coding-style.md) | Принципы (CLEAN/DRY/KISS/DDD), изоляция слоёв, layering, **единый PR checklist**, Go style, naming/logging |
+| [docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md) | `harvest` / `commit`, JetStream, Vitess ledger, TI/NVD wire semantics |
+| [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md) | Compose, порты, env, сервисы, bootstrap, API/MCP, NATS |
 | [deploy/README.md](deploy/README.md) | Compose per layer, scaling, smoke, **graph pack releases** (контент из `docs/deploy.md`) |
 | [README.md](README.md) | Описание проекта, mermaid-архитектура, quick start, **индекс ссылок** (без детальных таблиц модулей) |
 | [AGENTS.md](AGENTS.md) | 4–6 пунктов для агентов + ссылки (уже почти идеален) |
@@ -76,7 +76,7 @@ flowchart TB
 
 ---
 
-## 1. Переписать `docs/coding-style.md` (главный фокус)
+## 1. Переписать `docs/agents/coding-style.md` (главный фокус)
 
 **Оставить и уплотнить:**
 - Design principles + таблица «что где делается» (discovery/pipeline/graph)
@@ -90,7 +90,7 @@ flowchart TB
   - Scrape: [discovery/README.md](../discovery/README.md)
   - Pipeline: [pipeline/README.md](../pipeline/README.md), [pipeline/ned/README.md](../pipeline/ned/README.md)
   - Graph: [graph/README.md](../knowledge/README.md)
-- Секция Wire envelopes (L160–165) → одна строка: «см. [ingest-contract.md](ingest-contract.md); Go SOT: `pkg/harvest`, `pkg/commit`»
+- Секция Wire envelopes (L160–165) → одна строка: «см. [ingest-contract.md](../contracts/ingest-contract.md); Go SOT: `pkg/harvest`, `pkg/commit`»
 - Дублирующая секция Errors (L202–206) — слить с Go style Errors
 
 **Актуализировать domain paths** (сейчас неточно «mandatory `internal/domain/`»):
@@ -111,7 +111,7 @@ flowchart TB
 - Сохранить mermaid + quick start + doc index
 
 ### [CONTRIBUTING.md](CONTRIBUTING.md)
-- Пункт 1: «Read [docs/coding-style.md](docs/coding-style.md) (architecture + PR checklist)» — убрать перечисление `cmd → usecase → …`
+- Пункт 1: «Read [docs/agents/coding-style.md](docs/agents/coding-style.md) (architecture + PR checklist)» — убрать перечисление `cmd → usecase → …`
 - Остальное без изменений по смыслу (schemas, tests, serve/NATS rule, runtime doc)
 
 ### [AGENTS.md](AGENTS.md)
@@ -119,12 +119,12 @@ flowchart TB
 
 ### Layer READMEs
 В начало [discovery/README.md](discovery/README.md), [pipeline/README.md](pipeline/README.md), [graph/README.md](graph/README.md):
-- Одна строка: architecture rules → [docs/coding-style.md](../docs/coding-style.md)
+- Одна строка: architecture rules → [docs/agents/coding-style.md](../docs/agents/coding-style.md)
 - Убрать повтор «Layers communicate only via NATS» из pipeline/graph README (достаточно в coding-style) **или** оставить одну короткую фразу без таблиц
 
-### [docs/ontology-appsec.md](docs/ontology-appsec.md)
+### [docs/architecture/ontology-appsec.md](docs/architecture/ontology-appsec.md)
 - Исправить NVD path
-- NATS-параграф (L31) сократить до ссылки на [ingest-contract.md](ingest-contract.md)
+- NATS-параграф (L31) сократить до ссылки на [ingest-contract.md](../contracts/ingest-contract.md)
 - Related docs: убрать `deploy.md`, заменить на `deploy/README.md`
 
 ---
@@ -136,14 +136,14 @@ flowchart TB
    - Build/export commands (если ещё нет)
 2. Удалить дублирующие секции full stack / scale / smoke из `docs/deploy.md` (они уже в deploy/README)
 3. **Удалить** `docs/deploy.md`
-4. Обновить ссылки: [README.md](README.md) doc index, [ontology-appsec.md](docs/ontology-appsec.md), [threatintel-runtime.md](docs/threatintel-runtime.md) (если ссылается на deploy.md)
+4. Обновить ссылки: [README.md](README.md) doc index, [ontology-appsec.md](docs/architecture/ontology-appsec.md), [threatintel-runtime.md](docs/architecture/threatintel-runtime.md) (если ссылается на deploy.md)
 
 ---
 
 ## 4. Мелкие актуализации
 
 - [pipeline/pkg/nvd/README.md](pipeline/pkg/nvd/README.md): «pipeline NED enrich only; harvest publishes raw `scrape_nvd_page`»
-- [docs/threatintel-runtime.md](docs/threatintel-runtime.md): fix NVD path; проверить, что `vulnFromNVDPage` ещё актуально как имя (или обобщить «pipeline vuln enrich»)
+- [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md): fix NVD path; проверить, что `vulnFromNVDPage` ещё актуально как имя (или обобщить «pipeline vuln enrich»)
 - Grep по репо на `docs/deploy.md`, `pipeline/pipeline/`, `pkg/nvd` в `.md` (кроме `.cursor/plans`)
 
 ---

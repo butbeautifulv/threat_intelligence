@@ -12,7 +12,7 @@ todos:
     content: "R14: scripts/test/smoke-engage-tool.sh + Makefile test-engage-smoke-tool; ENGAGE_SKIP_TOOL_SMOKE"
     status: completed
   - id: r14-docs
-    content: "R14: engage/README.md + docs/engage-runtime.md runner profile section"
+    content: "R14: engage/README.md + docs/engage/engage-runtime.md runner profile section"
     status: completed
   - id: r14-tests
     content: "R14: sandbox env unit tests; manual e2e nmap_scan via docker exec"
@@ -65,7 +65,7 @@ flowchart TB
 
 | Release | Цель | Ключевые файлы |
 |---------|------|----------------|
-| **R14** (первый слайс) | Docker runner в compose + smoke с `nmap_scan` | [compose.yml](deploy/engage/compose.yml), [smoke-engage.sh](scripts/test/smoke-engage.sh), [docs/engage-runtime.md](docs/engage-runtime.md) |
+| **R14** (первый слайс) | Docker runner в compose + smoke с `nmap_scan` | [compose.yml](deploy/engage/compose.yml), [smoke-engage.sh](scripts/test/smoke-engage.sh), [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md) |
 | **R15** | Process manager + jobs с `parameters` | [executor.go](engage/serve/internal/runner/executor.go), [run.go](engage/serve/internal/usecase/tools/run.go), [queue.go](engage/serve/internal/usecase/job/queue.go), [router.go](engage/serve/internal/transport/httpserver/router.go) |
 | **R16** | Расширить `ARGS_TEMPLATES` (~20–30 tools) | [extract-legacy-catalog.py](scripts/engage/extract-legacy-catalog.py), regen [tools.yaml](engage/serve/catalog/tools.yaml), golden tests |
 | **R17** | Parity в CI | `.github/workflows/*` + `make test-engage-parity` |
@@ -103,7 +103,7 @@ volumes:
   - /var/run/docker.sock:/var/run/docker.sock  # только при profile runner + docker mode
 ```
 
-Добавить compose **override** или documented env block в [docs/engage-runtime.md](docs/engage-runtime.md):
+Добавить compose **override** или documented env block в [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md):
 
 ```bash
 docker compose -f deploy/engage/compose.yml --profile runner up -d engage-runner engage-api
@@ -139,7 +139,7 @@ test-engage-smoke-tool: smoke-engage-tool.sh  # opt-in
 **4. Документация**
 
 - [engage/README.md](engage/README.md) — секция «Runner profile (docker)» с одной командой up + curl example.
-- [docs/engage-runtime.md](docs/engage-runtime.md) — threat model: socket mount = high privilege, только lab/VPN.
+- [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md) — threat model: socket mount = high privilege, только lab/VPN.
 
 **5. Тесты (unit, без Docker в CI)**
 

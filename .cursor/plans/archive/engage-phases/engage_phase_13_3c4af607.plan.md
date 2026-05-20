@@ -76,7 +76,7 @@ flowchart LR
 | [`smoke-engage-events-pipeline.sh`](scripts/test/smoke-engage-events-pipeline.sh) | После tool run: `nats stream view` / JetStream API — ≥1 msg на `ingest.engage.tool_run`; опционально с `graph-ingest` в compose и проверка Neo4j node count |
 | Compose | [`compose.events.yml`](deploy/engage/compose.events.yml) — optional profile `graph-ingest` + shared Neo4j |
 | CI | Job `engage-events-e2e` в [`.github/workflows/engage.yml`](.github/workflows/engage.yml) (continue-on-error только если docker недоступен) |
-| Makefile | `make test-engage-events-pipeline` уже есть — задокументировать в [engage-runtime.md](docs/engage-runtime.md) |
+| Makefile | `make test-engage-events-pipeline` уже есть — задокументировать в [engage-runtime.md](docs/engage/engage-runtime.md) |
 
 ---
 

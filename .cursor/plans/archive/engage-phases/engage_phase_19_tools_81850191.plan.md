@@ -3,7 +3,7 @@ name: Engage Phase 19 Tools
 overview: "Phase 19 закрывает критический пробел «15 enabled vs 150 catalog»: расширяем engage-runner tier-1 бинарниками, доводим tools.live.yaml до 50+ lab-enabled инструментов, ужесточаем ARGS/CI matrix и улучшаем technology detection (headers + body sample) — чтобы phased Bug Bounty/CTF workflows реально исполняли инструменты."
 todos:
   - id: r99-runner-image
-    content: "R99: Expand runner.Dockerfile with tier-1 tools (amass, katana, gau, paramspider, arjun, trivy, rustscan, dalfox); document matrix in docs/engage-tools.md"
+    content: "R99: Expand runner.Dockerfile with tier-1 tools (amass, katana, gau, paramspider, arjun, trivy, rustscan, dalfox); document matrix in docs/engage/engage-tools.md"
     status: completed
   - id: r100-tools-live
     content: "R100: tools.live.yaml 50+ enabled entries aligned with runner; remove fake api/graphql/jwt binaries from live catalog"
@@ -77,7 +77,7 @@ flowchart LR
 
 **Не ставить в образ (R104 / out of runner):** ghidra, burpsuite, metasploit, GUI tools, `binary: api` placeholders.
 
-**Документация:** новая секция **Runner tool matrix** в [docs/engage-tools.md](docs/engage-tools.md) — таблица `tool_id | binary | in_runner | default_enabled`.
+**Документация:** новая секция **Runner tool matrix** в [docs/engage/engage-tools.md](docs/engage/engage-tools.md) — таблица `tool_id | binary | in_runner | default_enabled`.
 
 **Проверка:** `docker build -f deploy/engage/docker/runner.Dockerfile` + `docker run … which amass katana paramspider trivy`.
 
@@ -211,7 +211,7 @@ test-engage-tool-matrix:
 - `POST .../reconnaissance-workflow` + `execute:true` → ≥1 `tools_executed` в runner profile; timing logged (<15 min target)
 - `AnalyzeTarget` использует body+header signatures; unit tests green
 - `make test-engage` green; no Neo4j imports in new code
-- [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) — строка tool execution: **Partial → implemented (lab 50+)**
+- [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) — строка tool execution: **Partial → implemented (lab 50+)**
 
 ---
 

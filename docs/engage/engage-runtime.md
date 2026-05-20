@@ -2,7 +2,7 @@
 
 **Engage** is the fourth Veil layer: authorized offensive security tooling, workflows, and reports. It is separate from the graph read path.
 
-**Ports (dev):** engage-api **8890**, engage-mcp HTTP **8892**, secure nginx **8443**. Graph stack ports (8090/8091/7474/7687) are in [threatintel-runtime.md](threatintel-runtime.md). Quick start: [README.md](../README.md#quick-start) · compose: [deploy/engage/README.md](../deploy/engage/README.md).
+**Ports (dev):** engage-api **8890**, engage-mcp HTTP **8892**, secure nginx **8443**. Graph stack ports (8090/8091/7474/7687) are in [threatintel-runtime.md](../architecture/threatintel-runtime.md). Quick start: [README.md](../README.md#quick-start) · compose: [deploy/engage/README.md](../deploy/engage/README.md).
 
 ## Threat model
 
@@ -228,5 +228,5 @@ make test-engage-benchmark
 ## Related
 
 - [engage-legacy-parity.md](engage-legacy-parity.md)
-- [deploy-secure.md](deploy-secure.md) (graph)
+- [deploy-secure.md](../deploy/deploy-secure.md) (graph)
 - [auth-keycloak.md](auth-keycloak.md)

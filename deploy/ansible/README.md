@@ -7,4 +7,4 @@ cd deploy/ansible
 ansible-playbook -i inventories/stage playbooks/site.yml --check
 ```
 
-Inventory hosts are filled from Terraform outputs (P5b). See [docs/deploy-platform-hybrid.md](../../docs/deploy-platform-hybrid.md).
+Inventory hosts are filled from Terraform outputs (P5b). See [docs/deploy/deploy-platform-hybrid.md](../../docs/deploy/deploy-platform-hybrid.md).

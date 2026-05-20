@@ -10,15 +10,15 @@ When hardening engage or platform deploy, use **Veil-native** artifacts first:
 | Read | Do not |
 |------|--------|
 | [deploy/security/veil-controls.yaml](../../deploy/security/veil-controls.yaml) | Copy full JCSF/DAF spreadsheets into repo |
-| [docs/external-security-frameworks.md](../../docs/external-security-frameworks.md) | Edit files under `.external/` |
-| [docs/engage-agentic-threats.md](../../docs/engage-agentic-threats.md) | Assume every DAF practice applies to Veil |
+| [docs/external/external-security-frameworks.md](../../docs/external/external-security-frameworks.md) | Edit files under `.external/` |
+| [docs/engage/engage-agentic-threats.md](../../docs/engage/engage-agentic-threats.md) | Assume every DAF practice applies to Veil |
 
 ## Workflow
 
 1. Identify which **VEIL-* control** a change supports (add to `veil-controls.yaml` only if new).
 2. Implement in **code / compose / CI** — not markdown-only.
 3. Run `make test-engage-hardening` and `python3 scripts/engage/hardening-framework-audit.py`.
-4. Update [engage-hardening.md](../../docs/engage-hardening.md) or [deploy-platform-hybrid.md](../../docs/deploy-platform-hybrid.md) if operator-facing.
+4. Update [engage-hardening.md](../../docs/engage/engage-hardening.md) or [deploy-platform-hybrid.md](../../docs/deploy/deploy-platform-hybrid.md) if operator-facing.
 
 ## Skepticism checklist
 

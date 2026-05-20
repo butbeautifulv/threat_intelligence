@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "engage/serve/catalog/tools.yaml"
-GAPS_DOC = ROOT / "docs/engage-executable-gaps.md"
+GAPS_DOC = ROOT / "docs/engage/engage-executable-gaps.md"
 MATRIX_CMD = ["go", "run", "./cmd/executable-matrix/", "--root", str(ROOT)]
 EXPECTED_TOOLS = 158
 

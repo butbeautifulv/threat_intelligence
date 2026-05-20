@@ -3,7 +3,7 @@ name: Cyber corpus vendor master
 overview: "Вендоринг Anthropic Cybersecurity Skills: mappings SOT в pkg/playbook/corpus, skills в corpus/, framework API. Статус выполнения на main."
 todos:
   - id: v0-mappings-sot
-    content: "V0: pkg/playbook/corpus/mappings + ATTRIBUTION + docs/cyber-domain-model.md"
+    content: "V0: pkg/playbook/corpus/mappings + ATTRIBUTION + docs/architecture/cyber-domain-model.md"
     status: completed
   - id: v1-skills-mirror
     content: "V1: corpus/anthropic-cybersecurity-skills/skills + corpus-import.sh"

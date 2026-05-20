@@ -3,7 +3,7 @@ name: Platform P3 Closed Loop Pilot
 overview: Document and smoke-test act→learn→remember→decide for web-host target class on veil stack.
 todos:
   - id: p3-docs
-    content: docs/platform-closed-loop-pilot.md
+    content: docs/architecture/platform-closed-loop-pilot.md
     status: completed
   - id: p3-smoke
     content: scripts/test/smoke-platform-closed-loop.sh + make target

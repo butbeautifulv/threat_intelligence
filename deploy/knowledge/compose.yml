@@ -71,7 +71,7 @@ services:
       NEO4J_USER: neo4j
       NEO4J_PASS: neo4jpassword
       NEO4J_DB: neo4j
-      # Optional Keycloak JWT (default off). See docs/auth-keycloak.md
+      # Optional Keycloak JWT (default off). See docs/deploy/auth-keycloak.md
       # AUTH_ENABLED: "1"
       # RBAC_ENABLED: "1"
       # KEYCLOAK_ISSUER: https://keycloak.example/realms/veil
@@ -82,7 +82,7 @@ services:
       graph-bootstrap:
         condition: service_completed_successfully
 
-  # MCP: stdio (host) + optional Streamable HTTP on 8091 (see docs/mcp-agents.md).
+  # MCP: stdio (host) + optional Streamable HTTP on 8091 (see docs/agents/mcp-agents.md).
   mcp:
     profiles:
       - mcp

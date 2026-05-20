@@ -28,7 +28,7 @@ This document summarizes **normalized node labels**, **relationships** introduce
 
 - Hard **limits** via environment variables on every high-cardinality feed (`*_MAX_*`).
 - **MERGE** on canonical keys (`id`, `cve`, `Package.id`, `SemgrepRule.id`, …).
-- Ingest path (harvest → commit → Neo4j): [ingest-contract.md](ingest-contract.md).
+- Ingest path (harvest → commit → Neo4j): [ingest-contract.md](../contracts/ingest-contract.md).
 - Optional **cleanup** scripts under [`scripts/`](../scripts/) (duplicate relationships, stale isolated IOCs) with `--dry-run` first.
 
 ## IOC freshness (TI)
@@ -64,8 +64,8 @@ A read-side or batch **enrichment engine** (outside the Neo4j write path) can ma
 
 ## Related documentation
 
-- [threatintel-runtime.md](threatintel-runtime.md) — Compose, API, NATS, **`ingest_worker`**
+- [threatintel-runtime.md](../architecture/threatintel-runtime.md) — Compose, API, NATS, **`ingest_worker`**
 - [discovery/README.md](../discovery/README.md) — scrape sources and env vars
 - [graph/ingest/README.md](../graph/ingest/README.md) — graph consumer
 - [deploy/README.md](../deploy/README.md) — compose, scaling, graph packs
-- [coding-style.md](coding-style.md) — architecture and PR checklist
+- [coding-style.md](../agents/coding-style.md) — architecture and PR checklist

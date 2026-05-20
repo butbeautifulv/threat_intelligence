@@ -1,6 +1,6 @@
 # Pipeline layer (NED)
 
-Part of the four-layer Veil stack — [README.md](../README.md#architecture). Architecture rules: [docs/coding-style.md](../docs/coding-style.md).
+Part of the four-layer Veil stack — [README.md](../README.md#architecture). Architecture rules: [docs/agents/coding-style.md](../docs/agents/coding-style.md).
 
 Consumes `scrape.>`, applies **NED** (normalize, enrichment, deduplication), publishes `ingest.>`.
 

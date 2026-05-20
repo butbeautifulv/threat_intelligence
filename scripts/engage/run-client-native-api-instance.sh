@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run engage-api on the host for red-vs-blue lab: isolated ports and state dirs.
 # Usage: ./scripts/engage/run-client-native-api-instance.sh victim|attacker
-# See docs/engage-red-blue-lab.md
+# See docs/engage/engage-red-blue-lab.md
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"

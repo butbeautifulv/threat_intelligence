@@ -198,7 +198,7 @@ services:
 
 ## 6. Документация
 
-- [`docs/engage-runtime.md`](docs/engage-runtime.md) — env `ENGAGE_JOBS_*`, diagram API vs worker
+- [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) — env `ENGAGE_JOBS_*`, diagram API vs worker
 - [`engage/README.md`](engage/README.md) — worker consumes file queue in compose
 - [`engage_layer_greenfield_9d048eec.plan.md`](.cursor/plans/engage_layer_greenfield_9d048eec.plan.md) — `engage-r18-worker-queue` → completed
 

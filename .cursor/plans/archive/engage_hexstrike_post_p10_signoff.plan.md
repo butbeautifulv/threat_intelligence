@@ -29,7 +29,7 @@ isProject: false
 | Критерий | Статус | Доказательство |
 |----------|--------|----------------|
 | Runtime | **Go** | `engage/serve/cmd/{api,mcp,worker}`, `pkg/engage`, `pkg/exec` |
-| Legacy Flask `:8888` | **Decommissioned** | [docs/mcp-agents.md](docs/mcp-agents.md), Phase 30 |
+| Legacy Flask `:8888` | **Decommissioned** | [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md), Phase 30 |
 | MCP tools | **158 catalog** | `make test-engage-parity` |
 | HTTP routes | **Parity** | `make test-engage-route-parity` (156 legacy → mapped) |
 | Dispatch | **Unified** | `tooldispatch` — HTTP + MCP одна цепочка (P9b) |

@@ -3,7 +3,7 @@ name: Veil P12 unified access
 overview: "Единый edge (nginx + gateway): veil-api/veil-mcp, scale 4/8/16, Neo4j Enterprise cluster."
 todos:
   - id: p12a-adr
-    content: "P12a: ADR docs/platform-unified-access.md"
+    content: "P12a: ADR docs/architecture/platform-unified-access.md"
     status: completed
   - id: p12b-nginx
     content: "P12b: deploy/platform/nginx unified edge"
@@ -37,8 +37,8 @@ isProject: false
 
 # P12 — Unified access (master)
 
-**ADR:** [docs/platform-unified-access.md](../../docs/platform-unified-access.md)  
-**Architecture:** [docs/platform-architecture.md](../../docs/platform-architecture.md)
+**ADR:** [docs/architecture/platform-unified-access.md](../../docs/architecture/platform-unified-access.md)  
+**Architecture:** [docs/architecture/platform-architecture.md](../../docs/architecture/platform-architecture.md)
 
 ## Merge order
 
@@ -72,5 +72,5 @@ make test-knowledge test-engage
 All phases P12a–P12j merged to `main`. Release gate for operators:
 
 - `make test-platform-unified-edge` — Docker smoke through `veil-edge` (CI job `platform.yml` → `unified-edge`)
-- ADR and path map: [docs/platform-unified-access.md](../../docs/platform-unified-access.md)
+- ADR and path map: [docs/architecture/platform-unified-access.md](../../docs/architecture/platform-unified-access.md)
 - Dev TLS: [deploy/platform/nginx/certs/README.md](../../deploy/platform/nginx/certs/README.md) (do not commit keys)

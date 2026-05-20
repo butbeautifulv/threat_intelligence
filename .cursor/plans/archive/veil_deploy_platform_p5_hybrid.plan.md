@@ -42,7 +42,7 @@ isProject: false
 | Route parity | **0 unexplained missing** (`make test-engage-route-parity`) |
 | Catalog parity | **150 tools** (`make test-engage-parity`) |
 | Domain refactor P29 | Router split `router_*.go`; usecase bounded contexts; `pkg/engage` contracts only |
-| Phase 30 sign-off | [engage-audit-report.md](../../docs/engage-audit-report.md) R148–R150 |
+| Phase 30 sign-off | [engage-audit-report.md](../../docs/engage/engage-audit-report.md) R148–R150 |
 | Unit tests | `engage/serve` **PASS** (2026-05-16 verification) |
 
 **Not blocking P5:** line-by-line Python port; README 24× KPI; optional `.external/` for extract-only.
@@ -109,7 +109,7 @@ flowchart TB
 
 ## Agent chain
 
-Implement via [manifest.yaml](../agents/manifest.yaml) `platform-implementer`; critic gate per [veil-agent-critic.mdc](../rules/veil-agent-critic.mdc). Document in [deploy-platform-hybrid.md](../../docs/deploy-platform-hybrid.md).
+Implement via [manifest.yaml](../agents/manifest.yaml) `platform-implementer`; critic gate per [veil-agent-critic.mdc](../rules/veil-agent-critic.mdc). Document in [deploy-platform-hybrid.md](../../docs/deploy/deploy-platform-hybrid.md).
 
 ## Dependencies
 

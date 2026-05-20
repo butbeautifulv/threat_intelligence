@@ -207,9 +207,9 @@ Extend [`playbooks.go`](engage/serve/internal/usecase/workflow/playbooks.go): `L
 
 Update:
 
-- [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) — 7 rows `POST /api/ctf/*` = implemented
-- [docs/engage-runtime.md](docs/engage-runtime.md) — CTF section, env `ENGAGE_FILES_DIR` for forensics/binary paths
-- [docs/mcp-agents.md](docs/mcp-agents.md) — CTF workflow after scan + optional target-timeline
+- [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) — 7 rows `POST /api/ctf/*` = implemented
+- [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md) — CTF section, env `ENGAGE_FILES_DIR` for forensics/binary paths
+- [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md) — CTF workflow after scan + optional target-timeline
 
 ---
 

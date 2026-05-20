@@ -148,7 +148,7 @@ Prefix `/api/vuln-intel/` (не `/api/cve/`) — parity с HexStrike.
 | Full suite | `make test-engage` |
 | Live smoke (SKIP if API down) | [`scripts/test/smoke-cve-monitor.sh`](scripts/test/smoke-cve-monitor.sh) → `make test-engage-cve` |
 
-**Docs:** [`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md), [`docs/engage-runtime.md`](docs/engage-runtime.md) (секция Phase 20), [`docs/mcp-agents.md`](docs/mcp-agents.md) (workflow: monitor → correlate → exploit-generate).
+**Docs:** [`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md), [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) (секция Phase 20), [`docs/agents/mcp-agents.md`](docs/agents/mcp-agents.md) (workflow: monitor → correlate → exploit-generate).
 
 ### Definition of Done (acceptance)
 

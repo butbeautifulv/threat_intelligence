@@ -72,10 +72,10 @@ flowchart LR
 
 ## Правило нейминга (зафиксировать в плане)
 
-- **Слой:** в [`engage/README.md`](engage/README.md), [`NOTICE.hexstrike`](engage/NOTICE.hexstrike), один абзац в [`docs/engage-runtime.md`](docs/engage-runtime.md) — «greenfield rewrite of MIT reference in `.external/`».
+- **Слой:** в [`engage/README.md`](engage/README.md), [`NOTICE.hexstrike`](engage/NOTICE.hexstrike), один абзац в [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) — «greenfield rewrite of MIT reference in `.external/`».
 - **Catalog:** нейтральные `description` (что делает tool), без слова HexStrike.
 - **Скрипт:** переименовать [`scripts/engage/extract-hexstrike-catalog.py`](scripts/engage/extract-hexstrike-catalog.py) → `extract-legacy-catalog.py`; Makefile target `catalog-engage` → `catalog-engage` (оставить) или `catalog-regen`.
-- **Док:** [`docs/engage-hexstrike-parity.md`](docs/engage-hexstrike-parity.md) → переименовать в `docs/engage-legacy-parity.md` (матрица совместимости, без бренда в заголовках tools).
+- **Док:** [`docs/engage-hexstrike-parity.md`](docs/engage-hexstrike-parity.md) → переименовать в `docs/engage/engage-legacy-parity.md` (матрица совместимости, без бренда в заголовках tools).
 
 ---
 

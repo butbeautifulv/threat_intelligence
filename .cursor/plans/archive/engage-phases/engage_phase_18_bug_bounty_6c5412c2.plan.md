@@ -190,9 +190,9 @@ for each phase in workflow.Phases:
 
 ## Docs
 
-- [`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md) — уточнить bug bounty: **phased** (не generic scan)
-- [`docs/engage-runtime.md`](docs/engage-runtime.md) — секция Bug Bounty: `domain`/`target`, `execute`, `priority_vulns`
-- [`docs/mcp-agents.md`](docs/mcp-agents.md) — phased workflow перед smart-scan
+- [`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) — уточнить bug bounty: **phased** (не generic scan)
+- [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) — секция Bug Bounty: `domain`/`target`, `execute`, `priority_vulns`
+- [`docs/agents/mcp-agents.md`](docs/agents/mcp-agents.md) — phased workflow перед smart-scan
 
 ---
 

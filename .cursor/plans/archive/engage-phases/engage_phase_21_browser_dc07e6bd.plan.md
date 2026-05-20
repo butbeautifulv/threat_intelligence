@@ -240,9 +240,9 @@ ETA             float64 `json:"eta_seconds,omitempty"`
 
 ## Docs
 
-- [`docs/engage-legacy-parity.md`](docs/engage-legacy-parity.md) — browser inspect enriched; dashboard live stats; scan-progress route
-- [`docs/engage-runtime.md`](docs/engage-runtime.md) — `ENGAGE_BROWSER_URL`, scan-progress poll workflow
-- [`docs/mcp-agents.md`](docs/mcp-agents.md) — browser inspect → assessment-report with executive_summary
+- [`docs/engage/engage-legacy-parity.md`](docs/engage/engage-legacy-parity.md) — browser inspect enriched; dashboard live stats; scan-progress route
+- [`docs/engage/engage-runtime.md`](docs/engage/engage-runtime.md) — `ENGAGE_BROWSER_URL`, scan-progress poll workflow
+- [`docs/agents/mcp-agents.md`](docs/agents/mcp-agents.md) — browser inspect → assessment-report with executive_summary
 
 ---
 

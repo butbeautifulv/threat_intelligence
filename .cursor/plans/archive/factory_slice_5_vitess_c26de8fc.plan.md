@@ -163,8 +163,8 @@ go test ./ingest/scrape/... ./scrapers/ti/... ./scrapers/vuln/... ./scrapers/ds/
 ## 6. Документация
 
 - [ingest/discovery/README.md](ingest/discovery/README.md) — таблица policies + resource_key conventions.
-- [docs/threatintel-runtime.md](docs/threatintel-runtime.md) — `crawl-db`, ledger env, повторный scrape пропускает due URLs.
-- [docs/ingest-contract.md](docs/ingest-contract.md) — ledger только ctx1; pipeline dedup без изменений.
+- [docs/architecture/threatintel-runtime.md](docs/architecture/threatintel-runtime.md) — `crawl-db`, ledger env, повторный scrape пропускает due URLs.
+- [docs/contracts/ingest-contract.md](docs/contracts/ingest-contract.md) — ledger только ctx1; pipeline dedup без изменений.
 
 ---
 

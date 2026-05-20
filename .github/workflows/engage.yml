@@ -16,7 +16,7 @@ on:
       - 'scripts/test/engage-executable-matrix-runner.sh'
       - 'scripts/test/engage-hardening-selftest.sh'
       - 'scripts/engage/hardening-compose-audit.py'
-      - 'docs/engage-hardening.md'
+      - 'docs/engage/engage-hardening.md'
       - 'scripts/test/smoke-veil-engage-stack.sh'
       - 'scripts/test/smoke-veil-engage-stack-ci.sh'
       - 'scripts/test/smoke-platform-closed-loop.sh'
@@ -39,7 +39,7 @@ on:
       - 'scripts/test/engage-executable-matrix-runner.sh'
       - 'scripts/test/engage-hardening-selftest.sh'
       - 'scripts/engage/hardening-compose-audit.py'
-      - 'docs/engage-hardening.md'
+      - 'docs/engage/engage-hardening.md'
       - 'scripts/test/smoke-veil-engage-stack.sh'
       - 'scripts/test/smoke-veil-engage-stack-ci.sh'
       - 'scripts/test/smoke-platform-closed-loop.sh'
@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: engage-mcp-runner-triangle
-          path: docs/engage-mcp-runner-triangle.csv
+          path: docs/engage/engage-mcp-runner-triangle.csv
           if-no-files-found: error
 
       - name: Enable tools on PATH

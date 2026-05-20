@@ -7,4 +7,4 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout tls.key -out tls.crt -subj '/CN=localhost'
 ```
 
-Do not commit production private keys. See [docs/platform-unified-access.md](../../../docs/platform-unified-access.md).
+Do not commit production private keys. See [docs/architecture/platform-unified-access.md](../../../docs/architecture/platform-unified-access.md).

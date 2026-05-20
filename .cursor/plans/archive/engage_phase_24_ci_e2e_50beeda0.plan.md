@@ -26,7 +26,7 @@ isProject: false
 
 **Ветка:** `engage/phase-24-ci-e2e` (создать от `main`, PR → critic APPROVE → merge).
 
-**Цель фазы:** `make test-engage-events-pipeline` и `make test-engage-veil-stack-ci` стабильно **green** на чистом Docker host и в GitHub Actions; обновить [engage-audit-report.md](docs/engage-audit-report.md) и DoD v2.
+**Цель фазы:** `make test-engage-events-pipeline` и `make test-engage-veil-stack-ci` стабильно **green** на чистом Docker host и в GitHub Actions; обновить [engage-audit-report.md](docs/engage/engage-audit-report.md) и DoD v2.
 
 **Контекст аудита (2026-05-16):**
 - Events: Neo4j `EngageToolRun` count = 0; исправлен парсинг cypher (частично), корневая причина не устранена.
@@ -169,8 +169,8 @@ compose logs --tail=80 engage-api api nats neo4j ingest_worker engage-events-wor
 
 ## R124 — Документация и регрессия (P1)
 
-1. Обновить [docs/engage-audit-report.md](docs/engage-audit-report.md): таблица gates — PASS для events + veil-stack после прогона.
-2. Краткая секция в [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) или [docs/engage-runtime.md](docs/engage-runtime.md): «Events E2E prerequisites» (Docker, profiles `graph-ingest`, env vars).
+1. Обновить [docs/engage/engage-audit-report.md](docs/engage/engage-audit-report.md): таблица gates — PASS для events + veil-stack после прогона.
+2. Краткая секция в [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) или [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md): «Events E2E prerequisites» (Docker, profiles `graph-ingest`, env vars).
 3. Прогнать полный регрессионный набор:
 
 ```bash
@@ -188,7 +188,7 @@ make test-engage-veil-stack-ci
 - [x] `make test-engage-events-pipeline` green локально и в CI job `engage-events-e2e`
 - [x] `make test-engage-veil-stack-ci` green локально и в CI job `engage-veil-stack`
 - [x] Smoke scripts fail fast с логами (не silent skip health)
-- [x] [engage-audit-report.md](docs/engage-audit-report.md) обновлён
+- [x] [engage-audit-report.md](docs/engage/engage-audit-report.md) обновлён
 - [x] Master v2 DoD: events + veil-stack `[x]` ([engage_hexstrike_master_7666e9b4.plan.md](.cursor/plans/engage_hexstrike_master_7666e9b4.plan.md), [engage_master_post-audit_ec180f8b.plan.md](.cursor/plans/engage_master_post-audit_ec180f8b.plan.md))
 - [x] Нет регрессии: `make test-engage`, `make test-engage-route-parity`
 

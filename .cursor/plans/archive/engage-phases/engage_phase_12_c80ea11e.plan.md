@@ -89,7 +89,7 @@ flowchart LR
 | Pipeline | Новый pull consumer в `pipeline/` (например `pipeline/engage-events/` или расширение [connector](pipeline/connector/nats/)): подписка на `engage.events.>`, маппинг → `commit.Envelope`, publish на `ingest.engage` (или существующий ingest subject + stream ensure) |
 | Compose | `deploy/engage/compose.events.yml` overlay: shared NATS + engage `ENGAGE_EVENTS_NATS_ENABLED=1` + pipeline consumer |
 | Smoke | `scripts/test/smoke-engage-events-pipeline.sh` — один tool run → сообщение в JetStream → consumer ack |
-| Docs | [engage-runtime.md](docs/engage-runtime.md), кратко в [pipeline/README.md](pipeline/README.md) |
+| Docs | [engage-runtime.md](docs/engage/engage-runtime.md), кратко в [pipeline/README.md](pipeline/README.md) |
 
 **Ограничение:** consumer не импортирует `engage/serve`; только `pkg/commit` + NATS.
 
@@ -106,7 +106,7 @@ flowchart LR
 | `ai_vulnerability_assessment` | `SmartScan` / ranked nuclei + findings summary + graph context; document as **deterministic**, not LLM |
 | MCP | Добавить cases в [intel_bridge.go](engage/serve/internal/transport/mcpserver/intel_bridge.go) |
 | HTTP (optional) | `POST /api/intelligence/correlate-threat` если удобнее для non-MCP clients |
-| Docs | [engage-legacy-parity.md](docs/engage-legacy-parity.md): AI-* web tools (`ai_generate_*`) остаются subprocess/stub; intelligence AI names = graph-backed |
+| Docs | [engage-legacy-parity.md](docs/engage/engage-legacy-parity.md): AI-* web tools (`ai_generate_*`) остаются subprocess/stub; intelligence AI names = graph-backed |
 
 **Out of scope:** настоящий LLM/HexStrike `IntelligentDecisionEngine` Python port.
 

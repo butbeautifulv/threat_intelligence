@@ -8,7 +8,7 @@ Veil treats the Anthropic Cybersecurity Skills corpus as a **procedure + taxonom
 |----------|------|--------|
 | Framework mappings | [pkg/playbook/corpus/mappings/](../pkg/playbook/corpus/mappings/) | Navigator layer (ATT&CK v14 in layer file), NIST CSF 2.0, OWASP — **Veil SOT** |
 | Agent playbooks | [corpus/anthropic-cybersecurity-skills/skills/](../corpus/anthropic-cybersecurity-skills/skills/) | agentskills.io-style `SKILL.md` mirror |
-| Index | [docs/skills-index/cyber-skills.json](skills-index/cyber-skills.json) | Generated metadata + `corpus_path` |
+| Index | [docs/skills-index/cyber-skills.json](../skills-index/cyber-skills.json) | Generated metadata + `corpus_path` |
 | Dev import source | `.external/Anthropic-Cybersecurity-Skills-main/` | Gitignored; `make corpus-import` only |
 
 ## Subdomain → Veil categories
@@ -21,7 +21,7 @@ Anthropic skills use **26 subdomains** (e.g. `digital-forensics`, `threat-huntin
 | threat-hunting, detection-engineering | `playbook` + `detection` | Procedures; Sigma/YARA in `detection` |
 | web-application-security, penetration-testing | `playbook` + engage catalog | Procedures recommend catalog tools, not new MCP tools |
 | threat-intelligence | `playbook` + `ti` | OSINT/MISP procedures ≠ IOC graph |
-| compliance-governance, soc-operations | `playbook` + [external-security-frameworks.md](external-security-frameworks.md) | Aligns with NIST CSF tables in mappings |
+| compliance-governance, soc-operations | `playbook` + [external-security-frameworks.md](../external/external-security-frameworks.md) | Aligns with NIST CSF tables in mappings |
 
 ## MITRE ATT&CK version note
 
@@ -45,9 +45,9 @@ make skills-index       # regenerate cyber-skills.json
 make check-corpus-mappings
 ```
 
-See [external-cybersecurity-skills.md](external-cybersecurity-skills.md) for API/MCP tools.
+See [external-cybersecurity-skills.md](../playbooks/external-cybersecurity-skills.md) for API/MCP tools.
 
-Cross-contour taxonomy (Ingest / Engage / Knowledge): [pkg-domain-model.md](pkg-domain-model.md) and [pkg/domain/](../pkg/domain/).
+Cross-contour taxonomy (Ingest / Engage / Knowledge): [pkg-domain-model.md](../architecture/pkg-domain-model.md) and [pkg/domain/](../pkg/domain/).
 
 ## Decision vs playbook (DRY)
 

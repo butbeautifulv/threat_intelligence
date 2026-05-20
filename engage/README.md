@@ -4,7 +4,7 @@ Fourth Veil runtime context: **authorized tool execution**, intelligence workflo
 
 ## What it is
 
-**Execution model:** Catalog tools run as subprocesses on the **same machine as the MCP server**, using that host’s **`PATH`** and OS environment—like HexStrike running `hexstrike_server.py` on the host with scanners installed there, not on a separate “client-only” laptop. Install the security CLIs you need on **that** execution host. Topology and dependency expectations: [docs/engage-mcp-topology.md](../docs/engage-mcp-topology.md), [docs/engage-client-dependencies.md](../docs/engage-client-dependencies.md).
+**Execution model:** Catalog tools run as subprocesses on the **same machine as the MCP server**, using that host’s **`PATH`** and OS environment—like HexStrike running `hexstrike_server.py` on the host with scanners installed there, not on a separate “client-only” laptop. Install the security CLIs you need on **that** execution host. Topology and dependency expectations: [docs/engage/engage-mcp-topology.md](../docs/engage/engage-mcp-topology.md), [docs/engage/engage-client-dependencies.md](../docs/engage/engage-client-dependencies.md).
 
 Greenfield **Go** implementation of the tool-orchestration model from the MIT reference in [`.external/hexstrike-ai-master/`](../.external/hexstrike-ai-master/) (attribution: [NOTICE.hexstrike](NOTICE.hexstrike)). Veil does **not** ship or run that Python stack — engage provides:
 
@@ -60,7 +60,7 @@ curl -sS -X POST http://localhost:8890/api/tools/nmap_scan \
 make test-engage-smoke-tool   # opt-in; ENGAGE_SKIP_TOOL_SMOKE=1 in CI without runner
 ```
 
-See [docs/engage-runtime.md](../docs/engage-runtime.md#runner-profile-docker-exec-lab-only).
+See [docs/engage/engage-runtime.md](../docs/engage/engage-runtime.md#runner-profile-docker-exec-lab-only).
 
 ### Compose e2e (async jobs)
 
@@ -110,9 +110,9 @@ docker compose -f deploy/engage/compose.yml -f deploy/engage/compose.events.yml 
   --profile graph-ingest up -d ingest_worker
 ```
 
-Read back via veil-api category **`engage`**: `GET /v1/categories/engage/search?q=…` (see [docs/mcp-agents.md](../docs/mcp-agents.md)).
+Read back via veil-api category **`engage`**: `GET /v1/categories/engage/search?q=…` (see [docs/agents/mcp-agents.md](../docs/agents/mcp-agents.md)).
 
-Details: [docs/engage-runtime.md](../docs/engage-runtime.md#events-bus-e2e-nats--ingest).
+Details: [docs/engage/engage-runtime.md](../docs/engage/engage-runtime.md#events-bus-e2e-nats--ingest).
 
 ## Catalog and tools
 
@@ -159,4 +159,4 @@ Examples: [engage.stdio.json.example](../examples/mcp/engage.stdio.json.example)
 
 ## Docs
 
-Hub: [docs/engage-tools.md](../docs/engage-tools.md) (catalog, matrices, assessment API). Lab: [engage-lab-pentest.md](../docs/engage-lab-pentest.md) · [engage-red-blue-bugs.md](../docs/engage-red-blue-bugs.md) · [engage-install-linux.md](../docs/engage-install-linux.md). Runtime: [engage-runtime.md](../docs/engage-runtime.md) · [engage-mcp-topology.md](../docs/engage-mcp-topology.md) · [engage-legacy-parity.md](../docs/engage-legacy-parity.md).
+Hub: [docs/engage/engage-tools.md](../docs/engage/engage-tools.md) (catalog, matrices, assessment API). Lab: [engage-lab-pentest.md](../docs/engage/engage-lab-pentest.md) · [engage-red-blue-bugs.md](../docs/engage/engage-red-blue-bugs.md) · [engage-install-linux.md](../docs/engage/engage-install-linux.md). Runtime: [engage-runtime.md](../docs/engage/engage-runtime.md) · [engage-mcp-topology.md](../docs/engage/engage-mcp-topology.md) · [engage-legacy-parity.md](../docs/engage/engage-legacy-parity.md).

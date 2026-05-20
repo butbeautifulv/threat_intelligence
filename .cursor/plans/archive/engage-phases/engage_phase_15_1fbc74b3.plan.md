@@ -73,7 +73,7 @@ flowchart TB
 | Compose overlay | Новый [deploy/engage/compose.veil-stack.yml](deploy/engage/compose.veil-stack.yml): `engage-api`, `engage-events-worker`, env `ENGAGE_EVENTS_NATS_ENABLED=1`, `ENGAGE_VEIL_API_URL=http://api:8090`, `NATS_URL=nats://nats:4222` (shared с knowledge/pipeline) |
 | Script | [scripts/ops/compose-up-veil-engage.sh](scripts/ops/compose-up-veil-engage.sh) — вызывает `compose-up-full.sh` + engage overlay + optional `profile graph-ingest` / shared `ingest_worker` |
 | Smoke | [scripts/test/smoke-veil-engage-stack.sh](scripts/test/smoke-veil-engage-stack.sh): tool run → `GET /v1/categories/engage/search?q=` → count ≥ 1 |
-| Docs | [deploy/README.md](deploy/README.md), [docs/engage-runtime.md](docs/engage-runtime.md) |
+| Docs | [deploy/README.md](deploy/README.md), [docs/engage/engage-runtime.md](docs/engage/engage-runtime.md) |
 
 **Не дублировать** второй NATS в events overlay при использовании veil-stack (документировать: либо standalone `compose.events.yml`, либо `compose.veil-stack.yml`).
 
@@ -98,7 +98,7 @@ flowchart TB
 | Endpoint | `POST /api/intelligence/target-timeline` (или `GET` с query `target=`): audit recent + `veilgraph` search `engage`/`vuln`/`ti` + `correlate` summary |
 | Implementation | [graph_intel.go](engage/serve/internal/usecase/intelligence/graph_intel.go) + thin handler в [router.go](engage/serve/internal/transport/httpserver/router.go); MCP bridge name `target_timeline` / alias в [intel_bridge.go](engage/serve/internal/transport/mcpserver/intel_bridge.go) |
 | Tests | Unit test with mock `Veil` client |
-| Parity | [docs/engage-legacy-parity.md](docs/engage-legacy-parity.md) |
+| Parity | [docs/engage/engage-legacy-parity.md](docs/engage/engage-legacy-parity.md) |
 
 ---
 
@@ -108,7 +108,7 @@ flowchart TB
 |-------------|--------|
 | Node lookup | В [service.go](knowledge/connector/query/service.go) `GetNode` / seed match: добавить `seed.name` для `EngageTarget` (hostname lookup) |
 | MCP smoke | [scripts/test/smoke-graph-engage-category.sh](scripts/test/smoke-graph-engage-category.sh) — с testpack/compose: categories contains `engage`, search returns 200 |
-| veil-mcp docs | Пример `ti_search_in_category` с `category=engage` в [docs/mcp-agents.md](docs/mcp-agents.md) |
+| veil-mcp docs | Пример `ti_search_in_category` с `category=engage` в [docs/agents/mcp-agents.md](docs/agents/mcp-agents.md) |
 
 ---
 
@@ -129,7 +129,7 @@ flowchart TB
 | Deliverable | Детали |
 |-------------|--------|
 | Cypher/read | В [target-timeline](engage/serve/internal/usecase/intelligence/) или graph query helper: для findings с CVE — optional `MATCH (f)-[:MAY_RELATE_TO]->(v:Vulnerability)` и включить в JSON |
-| Ingest test | Расширить [cve_test.go](knowledge/ingest/internal/sources/engage/storage/cve_test.go) + doc в [ingest-contract.md](docs/ingest-contract.md) |
+| Ingest test | Расширить [cve_test.go](knowledge/ingest/internal/sources/engage/storage/cve_test.go) + doc в [ingest-contract.md](docs/contracts/ingest-contract.md) |
 | Graph version | Bump **patch** только если меняется ingest Cypher снова |
 
 ---

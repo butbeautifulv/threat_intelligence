@@ -6,7 +6,7 @@ todos:
     content: "Чеклист/scripts/smoke-scrape-e2e.sh: compose ×2, NATS lag, crawl_resource SQL, Cypher"
     status: cancelled
   - id: release-env-doc
-    content: "docs/threatintel-runtime.md: release profile env (NVD_MAX_PAGES, SCRAPE_FORCE_REFETCH, …)"
+    content: "docs/architecture/threatintel-runtime.md: release profile env (NVD_MAX_PAGES, SCRAPE_FORCE_REFETCH, …)"
     status: cancelled
   - id: export-pack-032
     content: export-graph-cypher + GRAPH_PACK_VERSION=v0.3.2 build; sha256 ≠ b4fd360a

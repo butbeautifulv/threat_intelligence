@@ -61,7 +61,7 @@ isProject: false
    - Добавить machine-readable registry источников для missing tools:
      - новый файл [`/home/bbv/Desktop/threat_intelligence/scripts/ops/engage-tools-sources.yaml`](/home/bbv/Desktop/threat_intelligence/scripts/ops/engage-tools-sources.yaml)
    - Обновить runbook:
-     - [`/home/bbv/Desktop/threat_intelligence/docs/engage-install-linux.md`](/home/bbv/Desktop/threat_intelligence/docs/engage-install-linux.md)
+     - [`/home/bbv/Desktop/threat_intelligence/docs/engage/engage-install-linux.md`](/home/bbv/Desktop/threat_intelligence/docs/engage/engage-install-linux.md)
    - Содержание registry по каждому tool: `kali_tool_page`, `kali_pkg_tracker`, `kali_packaging_repo`, `debian_or_salsa_if_exists`, `upstream_repo`, `preferred_install_methods`.
 
 2. **PR-B: Fallback Installer (код, один скрипт + make target)**
@@ -84,7 +84,7 @@ isProject: false
      - `./scripts/engage/preflight-client-tools.sh --profile recommended --json`
      - `make test-engage-red-blue`
    - Результаты и дефекты:
-     - [`/home/bbv/Desktop/threat_intelligence/docs/engage-red-blue-bugs.md`](/home/bbv/Desktop/threat_intelligence/docs/engage-red-blue-bugs.md)
+     - [`/home/bbv/Desktop/threat_intelligence/docs/engage/engage-red-blue-bugs.md`](/home/bbv/Desktop/threat_intelligence/docs/engage/engage-red-blue-bugs.md)
 
 5. **PR-E+: micro-fixes per defect**
    - Один баг = один PR (`engage/fix-pXX-*`) до достижения DoD.
@@ -108,7 +108,7 @@ isProject: false
 - `make engage-install-fallback` не падает целиком на частично недоступных пакетах и выводит, что установлено, что осталось manual.
 - Preflight JSON показывает осмысленные install hints для каждого missing tool.
 - `make test-engage-red-blue` проходит после установки fallback-путём.
-- Баги/ограничения задокументированы в [`/home/bbv/Desktop/threat_intelligence/docs/engage-red-blue-bugs.md`](/home/bbv/Desktop/threat_intelligence/docs/engage-red-blue-bugs.md).
+- Баги/ограничения задокументированы в [`/home/bbv/Desktop/threat_intelligence/docs/engage/engage-red-blue-bugs.md`](/home/bbv/Desktop/threat_intelligence/docs/engage/engage-red-blue-bugs.md).
 
 ## Ограничения и риски
 

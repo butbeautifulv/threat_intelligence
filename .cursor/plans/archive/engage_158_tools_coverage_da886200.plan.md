@@ -57,7 +57,7 @@ flowchart LR
 
 1. **PR1 — Tool universe & coverage matrix**
    - Сгенерировать canonical список 158 тулов и текущий coverage report.
-   - Добавить артефакт: [`/home/bbv/Desktop/threat_intelligence/docs/engage-tool-install-coverage.md`](/home/bbv/Desktop/threat_intelligence/docs/engage-tool-install-coverage.md)
+   - Добавить артефакт: [`/home/bbv/Desktop/threat_intelligence/docs/engage/engage-tool-install-coverage.md`](/home/bbv/Desktop/threat_intelligence/docs/engage/engage-tool-install-coverage.md)
    - Включить поля: binary, категория, apt/deb, kali, upstream, fallback method, status.
 
 2. **PR2 — Full source registry for 158**
@@ -83,11 +83,11 @@ flowchart LR
 6. **PR6 — Multi-distro execution matrix (поэтапно)**
    - Сначала обязательная волна: Ubuntu LTS + Debian stable.
    - Потом расширение на Kali, Fedora/RHEL-family, Arch-family, openSUSE, Alpine.
-   - Добавить matrix runner scripts в [`/home/bbv/Desktop/threat_intelligence/scripts/test/`](/home/bbv/Desktop/threat_intelligence/scripts/test/) и отчёт в [`/home/bbv/Desktop/threat_intelligence/docs/engage-tool-install-coverage.md`](/home/bbv/Desktop/threat_intelligence/docs/engage-tool-install-coverage.md).
+   - Добавить matrix runner scripts в [`/home/bbv/Desktop/threat_intelligence/scripts/test/`](/home/bbv/Desktop/threat_intelligence/scripts/test/) и отчёт в [`/home/bbv/Desktop/threat_intelligence/docs/engage/engage-tool-install-coverage.md`](/home/bbv/Desktop/threat_intelligence/docs/engage/engage-tool-install-coverage.md).
 
 7. **PR7 — Agent operationalization**
    - Обновить [`/home/bbv/Desktop/threat_intelligence/.cursor/agents/manifest.yaml`](/home/bbv/Desktop/threat_intelligence/.cursor/agents/manifest.yaml) phase bindings под coverage waves.
-   - Обновить runbook [`/home/bbv/Desktop/threat_intelligence/docs/engage-install-linux.md`](/home/bbv/Desktop/threat_intelligence/docs/engage-install-linux.md) и [`/home/bbv/Desktop/threat_intelligence/AGENTS.md`](/home/bbv/Desktop/threat_intelligence/AGENTS.md) с командами "быстрого старта" для агентов.
+   - Обновить runbook [`/home/bbv/Desktop/threat_intelligence/docs/engage/engage-install-linux.md`](/home/bbv/Desktop/threat_intelligence/docs/engage/engage-install-linux.md) и [`/home/bbv/Desktop/threat_intelligence/AGENTS.md`](/home/bbv/Desktop/threat_intelligence/AGENTS.md) с командами "быстрого старта" для агентов.
 
 ## Субагенты (параллельно)
 

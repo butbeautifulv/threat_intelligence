@@ -101,7 +101,7 @@ When `VEIL_API_SCALE` or `ENGAGE_API_SCALE` is **> 1**, host publishes on `:8090
 
 ## Hybrid deploy (P5 — Terraform + Ansible + Helm)
 
-Production model: **TF** provisions cloud → **Ansible** data plane (Compose) → **Helm** control plane (K8s). See [docs/deploy-platform-hybrid.md](../docs/deploy-platform-hybrid.md) and [.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md](../.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md).
+Production model: **TF** provisions cloud → **Ansible** data plane (Compose) → **Helm** control plane (K8s). See [docs/deploy/deploy-platform-hybrid.md](../docs/deploy/deploy-platform-hybrid.md) and [.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md](../.cursor/plans/veil_deploy_platform_p5_hybrid.plan.md).
 
 | Path | Role |
 |------|------|
@@ -166,7 +166,7 @@ make test-graph-read-smoke
 # or: ./scripts/test/smoke-graph-read.sh --up
 ```
 
-**Production secure overlay** — only nginx `443` on the host; see [docs/deploy-secure.md](../docs/deploy-secure.md):
+**Production secure overlay** — only nginx `443` on the host; see [docs/deploy/deploy-secure.md](../docs/deploy/deploy-secure.md):
 
 ```bash
 docker compose -f deploy/knowledge/compose.yml -f deploy/knowledge/compose.secure.yml \
@@ -175,7 +175,7 @@ docker compose -f deploy/knowledge/compose.yml -f deploy/knowledge/compose.secur
 
 ## Graph pack releases
 
-Naming: ZIP **`veil-graph-vX.Y.Z.zip`**, GitHub tag **`veil-graph-vX.Y.Z`**. See [docs/graph-pack.md](../docs/graph-pack.md).
+Naming: ZIP **`veil-graph-vX.Y.Z.zip`**, GitHub tag **`veil-graph-vX.Y.Z`**. See [docs/contracts/graph-pack.md](../docs/contracts/graph-pack.md).
 
 | Release | Notes |
 |---------|--------|
@@ -213,4 +213,4 @@ Overlays: [compose.runner.yml](engage/compose.runner.yml) (docker exec), [compos
 
 Secure overlay: [engage/compose.secure.yml](engage/compose.secure.yml) + [profiles/secure-engage.env](profiles/secure-engage.env).
 
-Runtime: [docs/engage-runtime.md](../docs/engage-runtime.md). Catalog: [docs/engage-tools.md](../docs/engage-tools.md).
+Runtime: [docs/engage/engage-runtime.md](../docs/engage/engage-runtime.md). Catalog: [docs/engage/engage-tools.md](../docs/engage/engage-tools.md).
