@@ -165,7 +165,7 @@ export ENGAGE_EXECUTION_PROFILE=client-native
 | P1 | `engage/client-native-p01-hexstrike-contract` | **merged main** | `docs/engage-client-dependencies.md` |
 | P2 | `engage/client-native-p02-readme-engage-one-liner` | **merged main** | `engage/README.md` |
 | P3–P6 | `engage/client-native-wave1-p03-p06` | **merged main** | `391758f` — `ENGAGE_EXECUTION_PROFILE`, `ValidateExecutionProfile`, compose; merge commit `e14fc4d` |
-| P7–P11 | `main` (Wave 2 single commit) | **merged** | `pkg/exec` client-native sandbox skip, `ENGAGE_PATH_EXTRA`, `preflight-client-tools.sh`, `run-client-native-api.sh`, `run-veil-engage.sh` defaults |
+| P7–P11 | `engage/client-native-wave2-p07-p11` | **merged main** | `1dabb9d` — sandbox skip + `ENGAGE_PATH_EXTRA` + scripts; merge `3da75af` |
 | P12+ | — | pending | Wave 3 |
 
 После каждого merge: обновить таблицу + SHA; субагентам: `git pull origin main` перед следующей фазой.
