@@ -92,9 +92,9 @@ Secure overlay: `deploy/engage/compose.secure.yml` + `deploy/profiles/secure-eng
 | `ENGAGE_ALLOW_RAW_COMMAND` | optional `1` | ignored (denied) |
 | `VEIL_REQUIRE_AUTH` | optional | `1` via profile |
 
-### Runner profile (docker exec, lab only)
+### Runner profile (docker exec, legacy lab/CI only)
 
-Overlay sets `ENGAGE_EXECUTION_PROFILE=docker-exec` before `ENGAGE_RUNNER_MODE=docker`. Isolated toolbox runs in `engage-runner`; API uses `docker exec` when `ENGAGE_RUNNER_MODE=docker`. The API image must include the Docker CLI and mount the host socket — **root-equivalent on the host**; use only in lab/VPN, not in the distroless secure profile.
+Default production/developer path is `ENGAGE_EXECUTION_PROFILE=client-native` (no runner container). This overlay sets `ENGAGE_EXECUTION_PROFILE=docker-exec` before `ENGAGE_RUNNER_MODE=docker`. Isolated toolbox runs in `engage-runner`; API uses `docker exec` when `ENGAGE_RUNNER_MODE=docker`. The API image must include the Docker CLI and mount the host socket — **root-equivalent on the host**; use only in lab/VPN, not in the distroless secure profile.
 
 ```bash
 docker compose -f deploy/engage/compose.yml \

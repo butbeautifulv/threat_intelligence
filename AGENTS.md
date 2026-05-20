@@ -22,7 +22,8 @@
 | Platform P7 pkg/domain | [veil_platform_p7_tests_then_pkg_domain.plan.md](.cursor/plans/veil_platform_p7_tests_then_pkg_domain.plan.md) — **done**; `make test-platform-p7` |
 | Platform v8 layers | [veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md) — **done** (P8a–i) |
 | Platform P12 unified access | [veil_platform_p12_unified_access.plan.md](.cursor/plans/veil_platform_p12_unified_access.plan.md) — **done**; operator contract [platform-unified-access.md](docs/platform-unified-access.md) |
-| Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — **active** (158 catalog → 158 executable; **P9f** gate) |
+| Engage tool coverage | [engage_tools_full_coverage.plan.md](.cursor/plans/engage_tools_full_coverage.plan.md) — legacy parity track (158 catalog → 158 executable; **P9f** gate) |
+| Engage client-native v3 | [engage_mcp_client_native_execution_master.plan.md](.cursor/plans/engage_mcp_client_native_execution_master.plan.md) — **active** (MCP host-path execution, runner removed from happy-path) |
 | Finish | This file § End-of-task checklist |
 
 **Completed program tracks (reference for few-shot plans):** Platform v3–v4 P0–P4b; Engage 24–30 / HexStrike **Phase 30 sign-off** ([engage-audit-report.md](docs/engage-audit-report.md)) — decommission `:8888` + catalog/route parity only; P5 hybrid deploy; **P6** infra DRY; **P7** pkg domain + CI; **v8** logical layers ([veil_platform_v8_layers_master.plan.md](.cursor/plans/veil_platform_v8_layers_master.plan.md)). **Critical fix on main:** catalog merge order `tools.yaml` → `tools.live.yaml` (`634e067`) — without it live tools appear disabled at runtime.

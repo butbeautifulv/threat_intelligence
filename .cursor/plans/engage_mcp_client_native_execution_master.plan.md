@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: wave-4-docs-product
     content: "Wave 4 (P17–P20): mcp-agents, engage-runtime, AGENTS, hexstrike parity doc — слой управления, не LAB"
-    status: pending
+    status: completed
   - id: wave-5-manifest-critic
     content: "Wave 5 (P21–P22): manifest.yaml phases + critic sign-off + engage-audit-report"
     status: pending
@@ -167,6 +167,7 @@ export ENGAGE_EXECUTION_PROFILE=client-native
 | P3–P6 | `engage/client-native-wave1-p03-p06` | **merged main** | `391758f` — `ENGAGE_EXECUTION_PROFILE`, `ValidateExecutionProfile`, compose; merge commit `e14fc4d` |
 | P7–P11 | `engage/client-native-wave2-p07-p11` | **merged main** | `1dabb9d` — sandbox skip + `ENGAGE_PATH_EXTRA` + scripts; merge `3da75af` |
 | P12–P16 | `main` | **merged main** | compose no longer defines runner services by default; `compose.runner.yml` owns runner services; stage helm engage disabled; `engage-compose` job gated by `ENGAGE_DOCKER_E2E` |
-| P17+ | — | pending | Wave 4 |
+| P17–P20 | `main` | **merged main** | Product docs updated for client-native default: `docs/mcp-agents.md`, `docs/engage-runtime.md`, `AGENTS.md`, `README.md` |
+| P21+ | — | pending | Wave 5 |
 
 После каждого merge: обновить таблицу + SHA; субагентам: `git pull origin main` перед следующей фазой.

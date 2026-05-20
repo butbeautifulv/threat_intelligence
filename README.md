@@ -16,7 +16,7 @@
 |------------|-------------|
 | **Threat graph** | Versioned [graph packs](docs/graph-pack.md), HTTP API (`/v1/*`), read-only MCP |
 | **Ingestion bus** | Scrape → NED → ingest over NATS (`pkg/harvest`, `pkg/commit`) |
-| **Engage toolkit** | **158** catalog tools · **54** bridge handlers · subprocess runner matrix (`make test-engage-executable-matrix`). Workflows (CTF, BB, CVE), Docker sandbox |
+| **Engage toolkit** | **158** catalog tools · **54** bridge handlers · subprocess runner matrix (`make test-engage-executable-matrix`). Workflows (CTF, BB, CVE), **client-native host PATH** execution by default |
 | **Closed loop** | Tool runs → `engage.events` → graph (`EngageToolRun`, `EngageFinding`) |
 | **Unified edge (P12)** | One TLS host: `/v1/*`, `/api/*`, `/mcp/graph`, `/mcp/engage`; scale tiers **4 / 8 / 16** |
 | **Agent-ready** | **veil-mcp** (read) + **veil-engage** (exec), Keycloak RBAC, GAIA eval harness |
@@ -54,8 +54,8 @@ flowchart LR
   subgraph engage [engage]
     EngAPI[engage-api]
     EngMCP[veil-engage]
-    Runner[engage-runner]
-    EngMCP --> EngAPI --> Runner
+    HostPATH[execution-host PATH]
+    EngMCP --> EngAPI --> HostPATH
     EngAPI -.->|read| API
     EngAPI -.->|events| EEW
   end
@@ -156,7 +156,7 @@ curl -sS http://localhost:8890/api/tools | jq .
 |---------|------|--------|
 | engage-api | 8890 | `POST /api/tools/{name}`, workflows |
 | veil-engage MCP | stdio or :8892 | [engage.stdio.json.example](examples/mcp/engage.stdio.json.example) |
-| engage-runner | — | `docker compose --profile runner` + `ENGAGE_RUNNER_MODE=docker` |
+| engage-runner (legacy) | — | optional `docker-exec` overlay for lab/CI only (`deploy/engage/compose.runner.yml`) |
 
 Docs: [engage/README.md](engage/README.md) · [engage-hardening.md](docs/engage-hardening.md). Tools prefixed `ai_*` are stubs today — [engage-llm-stubs.md](docs/engage-llm-stubs.md).
 

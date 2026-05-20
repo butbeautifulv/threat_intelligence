@@ -187,8 +187,9 @@ Engage MCP runs separately from graph read:
 - Methods: `initialize`, `tools/list` (~158 catalog tools), `tools/call` → `POST /api/tools/{name}` equivalent
 - Auth: `AuthorizeEngageMCP` + role `veil-engage-runner` when `AUTH_ENABLED=1`
 - Logs on **stderr** (same stdio rule as veil-mcp)
+- Supported execution model: **client-native** (`ENGAGE_EXECUTION_PROFILE=client-native`) — tools run on the same host where this MCP process runs. Install CLI binaries on that execution host per [engage-client-dependencies.md](engage-client-dependencies.md).
 
-Compose: `deploy/engage/compose.yml` (`engage-mcp` on :8892). Docs: [engage-runtime.md](engage-runtime.md), [engage-legacy-parity.md](engage-legacy-parity.md).
+Compose: `deploy/engage/compose.yml` (`engage-mcp` on :8892). Runner overlay `compose.runner.yml` is legacy lab/CI only (`ENGAGE_EXECUTION_PROFILE=docker-exec`). Docs: [engage-runtime.md](engage-runtime.md), [engage-legacy-parity.md](engage-legacy-parity.md).
 
 ### Cross-layer workflow (engage scan → graph read)
 
@@ -231,7 +232,7 @@ Recommended launcher from repo root (sets `ENGAGE_*` defaults and `GOWORK`):
 
 Optional **Streamable HTTP** MCP on the engage MCP process (`POST` …`/mcp`): set `ENGAGE_MCP_HTTP_ENABLED=1` and tune `ENGAGE_MCP_HTTP_LISTEN` / `ENGAGE_MCP_HTTP_PATH`; default listen **`:8892`** in config (see Compose `engage-mcp`). On the **unified edge**, use `https://<veil-host>/mcp/engage` instead of `:8892`. Do not confuse this with legacy **`:8888`**.
 
-Heavy lab workflows often use **`deploy/engage/compose.yml`** so `engage-api`, runner, and optional graph ingest stay aligned — details in [engage-runtime.md](engage-runtime.md).
+Default/Recommended: run `veil-engage` on the analyst host via [`scripts/mcp/run-veil-engage.sh`](../scripts/mcp/run-veil-engage.sh), install tools on that host, and keep graph read as a separate MCP. Compose runner overlay is optional legacy lab/CI path only — details in [engage-runtime.md](engage-runtime.md).
 
 ### 3. Keep graph read separate (unchanged)
 
