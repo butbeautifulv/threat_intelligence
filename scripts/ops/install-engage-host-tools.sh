@@ -103,6 +103,34 @@ if ((${#PKGS[@]} == 0)); then
   exit 1
 fi
 
+UNAVAILABLE_PKGS=()
+
+filter_apt_available() {
+  local available=()
+  local p candidate
+  for p in "${PKGS[@]}"; do
+    candidate="$(apt-cache policy "$p" 2>/dev/null | awk '/Candidate:/ {print $2; exit}')"
+    if [[ -z "${candidate:-}" || "$candidate" == "(none)" ]]; then
+      UNAVAILABLE_PKGS+=("$p")
+      continue
+    fi
+    available+=("$p")
+  done
+  PKGS=("${available[@]}")
+}
+
+if [[ "$PM" == "apt" ]]; then
+  filter_apt_available
+  if ((${#UNAVAILABLE_PKGS[@]} > 0)); then
+    echo "install-engage-host-tools: apt unavailable packages (manual/alternate repo needed): ${UNAVAILABLE_PKGS[*]}" >&2
+  fi
+fi
+
+if ((${#PKGS[@]} == 0)); then
+  echo "No installable packages available for profile=$PROFILE pm=$PM" >&2
+  exit 1
+fi
+
 run_apt() {
   if [[ "$DO_PLAN" -eq 1 ]]; then
     echo "sudo apt-get update && sudo apt-get install -y ${PKGS[*]}"
