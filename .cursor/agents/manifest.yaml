@@ -373,6 +373,55 @@ phases:
     phase_slug: pkg-tests-w14-ci
     notes: test-platform-p7 strict master plan sign-off
 
+  - id: pkg-cover-v-m0
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m0-root
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m0-root
+    notes: verify T3 100pct pkg root commit decision domain harvest natsjet report ti
+
+  - id: pkg-cover-v-m1
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m1-playbook
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m1-playbook
+    notes: verify T3 100pct playbook procedure index framework cataloglink testutil
+
+  - id: pkg-cover-v-m2
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m2-engage
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m2-engage
+    notes: verify T3 100pct engage report tool events hostnorm toolid
+
+  - id: pkg-cover-v-m3
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m3-api
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m3-api
+    notes: verify T3 100pct pkg/api
+
+  - id: pkg-cover-v-m4
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m4-auth
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m4-auth
+    notes: verify T3 100pct auth httpmiddleware keycloak static
+
+  - id: pkg-cover-v-m5
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m5-mcp
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m5-mcp
+    notes: verify T3 100pct pkg/mcp
+
+  - id: pkg-cover-v-m6
+    agent: platform-implementer
+    branch: platform/pkg-cover-v-m6-exec
+    plan_path: .cursor/plans/pkg_unit_tests_verify_100.plan.md
+    phase_slug: pkg-cover-v-m6-exec
+    notes: verify T3 100pct pkg/exec sandbox
+
   # Example bindings — critic fills branch/plan when spawning.
   - id: platform-p4b
     agent: platform-implementer

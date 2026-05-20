@@ -18,6 +18,7 @@ parent_plan: .cursor/plans/pkg_unit_tests_full_165670eb.plan.md
 | W12 | `platform/pkg-tests-w12-mcp-auth` | done |
 | W13 | `platform/pkg-tests-w13-exec` | done |
 | W14 | `platform/pkg-tests-w14-ci` | done |
+| VERIFY | `main` | done | 2026-05-20 — `pkg-cover-v-m0`…`m6` audit pass; no subagent branches |
 
 ## DoD
 

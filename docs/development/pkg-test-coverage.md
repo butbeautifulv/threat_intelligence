@@ -1,6 +1,6 @@
 # pkg unit test coverage (Veil)
 
-Baseline and wave tracking for [pkg unit tests master plan](../.cursor/plans/pkg_unit_tests_master.plan.md) and [T3 master plan](../.cursor/plans/pkg_unit_tests_t3_master.plan.md).
+Baseline and wave tracking for [pkg unit tests master plan](../../.cursor/plans/pkg_unit_tests_master.plan.md), [T3 master plan](../../.cursor/plans/pkg_unit_tests_t3_master.plan.md), and [100% verify tracker](../../.cursor/plans/pkg_unit_tests_verify_100.plan.md).
 
 ## Gates
 
@@ -62,6 +62,20 @@ Merged to `main`: W0–W7 (T2) and W8–W14 (T3). CI gate for platform P7: `make
 | W14 | `platform/pkg-tests-w14-ci` | P7 → strict, master plan sign-off |
 
 T3 exclude list: empty (no packages require Docker/live Keycloak in unit tests).
+
+## VERIFY (2026-05-20)
+
+Orchestrator audit: `make test-pkg-cover-strict` green on `main` for all seven Go module slices (m0 root through m6 exec). Subagent gap-fill waves **skipped** (no FAIL). Manifest phases `pkg-cover-v-m0` … `pkg-cover-v-m6` registered for future regressions. Sign-off: `make test-platform-p7`.
+
+| Module slice | phase_id | Status |
+|--------------|----------|--------|
+| `pkg/` root | `pkg-cover-v-m0` | pass 100% |
+| playbook | `pkg-cover-v-m1` | pass 100% |
+| engage | `pkg-cover-v-m2` | pass 100% |
+| api | `pkg-cover-v-m3` | pass 100% |
+| auth | `pkg-cover-v-m4` | pass 100% |
+| mcp | `pkg-cover-v-m5` | pass 100% |
+| exec | `pkg-cover-v-m6` | pass 100% |
 
 Regenerate coverage snapshot:
 

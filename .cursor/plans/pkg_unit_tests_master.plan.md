@@ -21,6 +21,7 @@ parent_plan: .cursor/plans/pkg_unit_tests_full_165670eb.plan.md
 | W7 | `platform/pkg-tests-w7-ci` | done | `make test-pkg-cover` |
 | W8–W14 | T3 waves (see `pkg_unit_tests_t3_master.plan.md`) | done | `make test-pkg-cover-strict` |
 | MERGE | `main` | done | `make test-pkg-cover-strict` green |
+| VERIFY | `main` | done | 2026-05-20 — all m0–m6 pass; see `pkg_unit_tests_verify_100.plan.md` |
 
 ## DoD
 
