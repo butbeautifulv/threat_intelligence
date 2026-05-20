@@ -7,16 +7,18 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 YAML="${ENGAGE_TOOLS_PACKAGES_YAML:-${ROOT}/scripts/ops/engage-tools-packages.yaml}"
 SOURCES_YAML="${ENGAGE_TOOLS_SOURCES_YAML:-${ROOT}/scripts/ops/engage-tools-sources.yaml}"
 PROFILE="${ENGAGE_INSTALL_PROFILE:-recommended}"
+INSTALL_POLICY="${ENGAGE_INSTALL_POLICY:-repo-first}"
 DO_PLAN=0
 DO_YES=0
 DO_FALLBACK=0
 MISSING_FILE=""
 
 usage() {
-  echo "Usage: $0 [--profile minimal|recommended|full] [--plan|--yes] [--fallback] [--missing-file FILE]" >&2
+  echo "Usage: $0 [--profile minimal|recommended|full] [--plan|--yes] [--policy repo-first|upstream-fallback|kali-fallback|full-auto] [--fallback] [--missing-file FILE]" >&2
   echo "  --plan   print install commands only" >&2
   echo "  --yes    run package manager (needs root/sudo on most distros)" >&2
   echo "  --fallback   install missing tools from upstream (go/cargo) when repo packages unavailable" >&2
+  echo "  --policy     install policy (default: repo-first)" >&2
   echo "  --missing-file FILE   newline-delimited tool list to prioritize for fallback" >&2
   exit 1
 }
@@ -30,6 +32,10 @@ while [[ $# -gt 0 ]]; do
     --plan) DO_PLAN=1; shift ;;
     --yes) DO_YES=1; shift ;;
     --fallback) DO_FALLBACK=1; shift ;;
+    --policy)
+      INSTALL_POLICY="${2:-}"
+      shift 2 || usage
+      ;;
     --missing-file)
       MISSING_FILE="${2:-}"
       shift 2 || usage
@@ -38,6 +44,10 @@ while [[ $# -gt 0 ]]; do
     *) usage ;;
   esac
 done
+
+if [[ "$DO_FALLBACK" -eq 1 && "$INSTALL_POLICY" == "repo-first" ]]; then
+  INSTALL_POLICY="upstream-fallback"
+fi
 
 if [[ "$DO_PLAN" -eq 0 && "$DO_YES" -eq 0 ]]; then
   echo "Specify --plan or --yes" >&2
@@ -56,6 +66,14 @@ if [[ "$DO_FALLBACK" -eq 1 && ! -f "$SOURCES_YAML" ]]; then
   echo "Missing sources YAML: $SOURCES_YAML" >&2
   exit 1
 fi
+
+case "$INSTALL_POLICY" in
+  repo-first|upstream-fallback|kali-fallback|full-auto) ;;
+  *)
+    echo "invalid --policy ${INSTALL_POLICY}" >&2
+    exit 1
+    ;;
+esac
 
 detect_pm() {
   if [[ -r /etc/os-release ]]; then
@@ -209,6 +227,7 @@ case "$PM" in
   *) echo "internal error: pm=$PM" >&2; exit 1 ;;
 esac
 
+KALI_MISSING_PKGS=()
 fallback_candidates() {
   local set=()
   local t
@@ -294,8 +313,45 @@ run_fallback_install() {
   return $missing_count
 }
 
-if [[ "$DO_FALLBACK" -eq 1 ]]; then
+collect_kali_fallback_pkgs() {
+  local p
+  KALI_MISSING_PKGS=()
+  if [[ "$PM" != "apt" ]]; then
+    return
+  fi
+  for p in "${UNAVAILABLE_PKGS[@]-}"; do
+    KALI_MISSING_PKGS+=("$p")
+  done
+}
+
+run_kali_fallback() {
+  local allowlist=""
+  local p
+  if [[ "$PM" != "apt" ]]; then
+    echo "kali-fallback: skip (non-apt distro manager: $PM)" >&2
+    return 0
+  fi
+  collect_kali_fallback_pkgs
+  if ((${#KALI_MISSING_PKGS[@]} == 0)); then
+    return 0
+  fi
+  for p in "${KALI_MISSING_PKGS[@]}"; do
+    allowlist+="${p} "
+  done
+  if [[ "$DO_PLAN" -eq 1 ]]; then
+    echo "./scripts/ops/install-engage-kali-fallback.sh \"${allowlist% }\""
+    echo "sudo apt-get install -y ${allowlist% }"
+    return 0
+  fi
+  "${ROOT}/scripts/ops/install-engage-kali-fallback.sh" "${allowlist% }"
+  sudo apt-get install -y "${KALI_MISSING_PKGS[@]}" || true
+}
+
+if [[ "$INSTALL_POLICY" == "upstream-fallback" || "$INSTALL_POLICY" == "full-auto" ]]; then
   run_fallback_install || true
 fi
+if [[ "$INSTALL_POLICY" == "kali-fallback" || "$INSTALL_POLICY" == "full-auto" ]]; then
+  run_kali_fallback || true
+fi
 
-echo "install-engage-host-tools: done (pm=$PM profile=$PROFILE)"
+echo "install-engage-host-tools: done (pm=$PM profile=$PROFILE policy=$INSTALL_POLICY)"

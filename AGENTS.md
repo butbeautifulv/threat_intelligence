@@ -76,6 +76,16 @@ Complete every step that applies before you consider the task done:
 5. **Push** — `git push origin HEAD` unless the user explicitly forbade push or there is no remote.
 6. **GitHub description** — if [.github/repo-description.txt](.github/repo-description.txt) changed, run `make sync-github-metadata` (or rely on [`.github/workflows/docs.yml`](.github/workflows/docs.yml) on push to `main`).
 
+### Engage 158 install quickstart (agent-first)
+
+When working on host-tool readiness for Engage, use this deterministic chain:
+
+1. `make engage-tool-source-map`
+2. `make engage-tool-install-coverage`
+3. `./scripts/engage/preflight-client-tools.sh --profile recommended --emit-install-plan --policy full-auto`
+4. `make engage-install-fallback` or `make engage-install-kali-fallback` (Debian/Ubuntu opt-in)
+5. `make test-engage-red-blue`
+
 ## Graph pack releases
 
 - Default version: see [versions.env](versions.env).

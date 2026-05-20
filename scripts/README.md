@@ -33,10 +33,13 @@ Shared library: [lib/common.sh](lib/common.sh) (`COMPOSE_FILES`, `compose()`, pa
 | [mcp/run-veil-engage.sh](mcp/run-veil-engage.sh) | Engage MCP stdio launcher (`veil-engage`, `client-native` defaults) |
 | [engage/run-client-native-api.sh](engage/run-client-native-api.sh) | Engage HTTP API on host (`go run ./cmd/api`) |
 | [engage/run-client-native-api-instance.sh](engage/run-client-native-api-instance.sh) | Lab victim/attacker instance (ports + isolated dirs); see [docs/engage-red-blue-lab.md](../docs/engage-red-blue-lab.md) |
-| [engage/preflight-client-tools.sh](engage/preflight-client-tools.sh) | PATH check for core pentest CLIs (`--json`, `--emit-missing` for remediation pipelines) |
-| [ops/install-engage-host-tools.sh](ops/install-engage-host-tools.sh) | Multi-distro package install from `engage-tools-packages.yaml` (`--plan` / `--yes` / `--fallback`) |
+| [engage/preflight-client-tools.sh](engage/preflight-client-tools.sh) | PATH check for core pentest CLIs (`--json`, `--emit-missing`, `--emit-install-plan`) |
+| [ops/install-engage-host-tools.sh](ops/install-engage-host-tools.sh) | Multi-distro package install from `engage-tools-packages.yaml` (`--policy` supports repo/upstream/Kali/full-auto) |
+| [ops/install-engage-kali-fallback.sh](ops/install-engage-kali-fallback.sh) | Configure pinned Kali apt fallback allowlist for Debian/Ubuntu |
 | [ops/engage-tools-sources.yaml](ops/engage-tools-sources.yaml) | Source provenance for missing tools (Kali pages, trackers, upstream repos, fallback methods) |
 | [ops/engage-tools-packages.yaml](ops/engage-tools-packages.yaml) | Tool → distro package mapping for installer |
+| [ops/generate-engage-tools-sources.py](ops/generate-engage-tools-sources.py) | Generate full source map entries from 158-tool catalog + curated overrides |
+| [engage/generate-tool-install-coverage.py](engage/generate-tool-install-coverage.py) | Build `docs/engage-tool-install-coverage.md` coverage matrix |
 | [engage/extract-legacy-catalog.py](engage/extract-legacy-catalog.py) | Regenerate `engage/serve/catalog/tools.yaml` |
 | [engage/enable-catalog-by-category.sh](engage/enable-catalog-by-category.sh) | Write `tools.enabled.yaml` when binaries on PATH |
 | [engage/check-catalog-parity.sh](engage/check-catalog-parity.sh) | Verify 150 tools vs legacy MCP reference |

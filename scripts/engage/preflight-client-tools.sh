@@ -8,11 +8,13 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 YAML="${ENGAGE_TOOLS_PACKAGES_YAML:-${ROOT}/scripts/ops/engage-tools-packages.yaml}"
 SOURCES_YAML="${ENGAGE_TOOLS_SOURCES_YAML:-${ROOT}/scripts/ops/engage-tools-sources.yaml}"
 PROFILE="${ENGAGE_PREFLIGHT_PROFILE:-recommended}"
+INSTALL_POLICY="${ENGAGE_INSTALL_POLICY:-repo-first}"
 JSON_OUT=0
 EMIT_MISSING=0
+EMIT_INSTALL_PLAN=0
 
 usage() {
-  echo "Usage: $0 [--profile minimal|recommended|full] [--json] [--emit-missing]" >&2
+  echo "Usage: $0 [--profile minimal|recommended|full] [--json] [--emit-missing] [--emit-install-plan] [--policy POLICY]" >&2
   echo "Env: ENGAGE_PREFLIGHT_PROFILE, ENGAGE_TOOLS_PACKAGES_YAML, ENGAGE_TOOLS_SOURCES_YAML" >&2
   exit 1
 }
@@ -25,6 +27,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     --json) JSON_OUT=1; shift ;;
     --emit-missing) EMIT_MISSING=1; shift ;;
+    --emit-install-plan) EMIT_INSTALL_PLAN=1; shift ;;
+    --policy)
+      INSTALL_POLICY="${2:-}"
+      shift 2 || usage
+      ;;
     -h|--help) usage ;;
     *) echo "unknown option: $1" >&2; usage ;;
   esac
@@ -120,6 +127,12 @@ PY
 
 if [[ "$EMIT_MISSING" -eq 1 ]]; then
   printf '%s\n' "${MISSING[@]}"
+  ((${#MISSING[@]} == 0))
+  exit $?
+fi
+
+if [[ "$EMIT_INSTALL_PLAN" -eq 1 ]]; then
+  echo "./scripts/engage/preflight-client-tools.sh --profile ${PROFILE} --emit-missing | ./scripts/ops/install-engage-host-tools.sh --plan --profile ${PROFILE} --policy ${INSTALL_POLICY} --missing-file /dev/stdin"
   ((${#MISSING[@]} == 0))
   exit $?
 fi

@@ -154,6 +154,48 @@ phases:
     phase_slug: install-p08-make-docs
     notes: Makefile + engage-install-linux.md + scripts index
 
+  - id: engage-coverage-w1
+    agent: engage-implementer
+    branch: engage/coverage-w1-matrix
+    plan_path: .cursor/plans/engage_158_tools_coverage_da886200.plan.md
+    phase_slug: coverage-w1-matrix
+    notes: generate 158-tool coverage matrix and baseline gaps
+
+  - id: engage-coverage-w2
+    agent: engage-implementer
+    branch: engage/coverage-w2-sources
+    plan_path: .cursor/plans/engage_158_tools_coverage_da886200.plan.md
+    phase_slug: coverage-w2-sources
+    notes: source registry for 158 tools (Kali/pkg/upstream)
+
+  - id: engage-coverage-w3
+    agent: engage-implementer
+    branch: engage/coverage-w3-policy
+    plan_path: .cursor/plans/engage_158_tools_coverage_da886200.plan.md
+    phase_slug: coverage-w3-policy
+    notes: installer repo-first upstream and kali fallback policy
+
+  - id: engage-coverage-w4
+    agent: engage-implementer
+    branch: engage/coverage-w4-preflight
+    plan_path: .cursor/plans/engage_158_tools_coverage_da886200.plan.md
+    phase_slug: coverage-w4-preflight
+    notes: preflight remediation and install-plan emission
+
+  - id: engage-coverage-w5
+    agent: engage-implementer
+    branch: engage/coverage-w5-matrix
+    plan_path: .cursor/plans/engage_158_tools_coverage_da886200.plan.md
+    phase_slug: coverage-w5-matrix
+    notes: ubuntu debian matrix validation scripts and report
+
+  - id: engage-coverage-w6
+    agent: engage-implementer
+    branch: engage/coverage-w6-agentops
+    plan_path: .cursor/plans/engage_158_tools_coverage_da886200.plan.md
+    phase_slug: coverage-w6-agentops
+    notes: runbooks and agent operational quickstart
+
   - id: platform-p5b-tf
     agent: platform-implementer
     branch: platform/p5b-tf-foundation

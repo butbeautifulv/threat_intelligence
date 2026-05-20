@@ -38,13 +38,19 @@ make engage-install-host-tools
 ENGAGE_INSTALL_PROFILE=minimal ./scripts/ops/install-engage-host-tools.sh --yes
 ```
 
-If your distro repositories miss some tools, run fallback mode (uses upstream `go install` / `cargo install` where configured):
+If your distro repositories miss some tools, choose an explicit policy:
 
 ```bash
+# upstream fallback (go/cargo/pipx/gem from source registry)
 make engage-install-fallback
 
-# Or explicitly:
-./scripts/ops/install-engage-host-tools.sh --yes --fallback --profile recommended
+# Kali fallback for Debian/Ubuntu (opt-in, pinned allowlist)
+make engage-install-kali-fallback
+
+# Explicit policy form:
+./scripts/ops/install-engage-host-tools.sh --yes --profile recommended --policy upstream-fallback
+./scripts/ops/install-engage-host-tools.sh --yes --profile recommended --policy kali-fallback
+./scripts/ops/install-engage-host-tools.sh --yes --profile recommended --policy full-auto
 ```
 
 Override the YAML path with `ENGAGE_TOOLS_PACKAGES_YAML` if you maintain a forked map.
@@ -56,9 +62,22 @@ Override the YAML path with `ENGAGE_TOOLS_PACKAGES_YAML` if you maintain a forke
 ./scripts/engage/preflight-client-tools.sh --profile minimal
 ./scripts/engage/preflight-client-tools.sh --profile full --json
 ./scripts/engage/preflight-client-tools.sh --profile recommended --emit-missing
+./scripts/engage/preflight-client-tools.sh --profile recommended --emit-install-plan --policy full-auto
 ```
 
-Environment: `ENGAGE_PREFLIGHT_PROFILE`, `ENGAGE_TOOLS_PACKAGES_YAML`.
+Environment: `ENGAGE_PREFLIGHT_PROFILE`, `ENGAGE_TOOLS_PACKAGES_YAML`, `ENGAGE_TOOLS_SOURCES_YAML`, `ENGAGE_INSTALL_POLICY`.
+
+## Coverage artifacts (158-tool track)
+
+```bash
+make engage-tool-source-map
+make engage-tool-install-coverage
+```
+
+Artifacts:
+
+- [`engage-tools-sources.yaml`](../scripts/ops/engage-tools-sources.yaml) — source provenance + fallback methods
+- [`engage-tool-install-coverage.md`](engage-tool-install-coverage.md) — per-tool status for Ubuntu/Debian repo, Kali fallback, upstream fallback
 
 ## Red-vs-blue lab (optional)
 
