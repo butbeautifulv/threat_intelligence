@@ -47,6 +47,8 @@ make check-corpus-mappings
 
 See [external-cybersecurity-skills.md](external-cybersecurity-skills.md) for API/MCP tools.
 
+Cross-contour taxonomy (Ingest / Engage / Knowledge): [pkg-domain-model.md](pkg-domain-model.md) and [pkg/domain/](../pkg/domain/).
+
 ## Decision vs playbook (DRY)
 
 | Question | Layer |
