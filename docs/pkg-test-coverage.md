@@ -17,27 +17,21 @@ Baseline and wave tracking for [pkg unit tests master plan](../.cursor/plans/pkg
 | T1 | Exported pure helpers have table or round-trip tests |
 | T2 | Logic packages ≥70% statement coverage (`go test -cover`) |
 
-## Baseline gaps (2026-05-20)
+## Wave 1 complete (2026-05-20)
 
-| Package | Tests | Cover (approx) | Wave |
-|---------|-------|----------------|------|
-| `pkg/vuln/domain` | none | — | W1 |
-| `pkg/lola/domain` | none | — | W1 |
-| `pkg/playbook/domain` | none | — | W1 |
-| `engage/domain/job` | none | — | W1 |
-| `pkg/commit` | partial | 39% | W2 |
-| `pkg/harvest` | partial | 64% | W2 |
-| `pkg/playbook/procedure` | partial | 5% | W3 |
-| `pkg/playbook/index` | partial | 23% | W3 |
-| `pkg/playbook/framework` | partial | 30% | W3 |
-| `pkg/playbook/cataloglink` | partial | 0% | W3 |
-| `engage/domain/report` | const only | 0% | W4 |
-| `engage/events` | JSON only | publisher 0% | W4 |
-| `pkg/auth` | partial | 52% | W5 |
-| `pkg/mcp` | partial | 32% | W5 |
-| `pkg/decision` | partial | 44% | W6 |
-| `pkg/report` | partial | 68% | W6 |
-| `pkg/natsjet` | partial | 61% | W6 |
+Merged to `main`: W0 harness, W1–W6 parallel test waves. Gate: `make test-pkg-all` green.
+
+| Wave | Branch | Focus |
+|------|--------|--------|
+| W0 | `platform/pkg-tests-w0-harness` | `test-pkg-all`, this doc |
+| W1 | `platform/pkg-tests-w1-entity` | vuln, lola, playbook/domain, engage/job |
+| W2 | `platform/pkg-tests-w2-wire` | harvest, commit idempotency |
+| W3 | `platform/pkg-tests-w3-playbook` | procedure, index, framework, cataloglink |
+| W4 | `platform/pkg-tests-w4-engage` | report, contract, events publisher |
+| W5 | `platform/pkg-tests-w5-auth-mcp` | auth enforcer, mcp rpc/tools/framed |
+| W6 | `platform/pkg-tests-w6-misc` | decision, report, natsjet |
+
+T0 (every package has tests): satisfied. T2 (≥70% logic packages): re-check with `go test -cover` when changing code.
 
 Regenerate coverage snapshot:
 
